@@ -1,24 +1,27 @@
 -module(posm).
--compile(export_all).
+-export([start/1, start/2]).
 
 -include("posm.hrl").
 
 -define(DEBUG(Format, Args), io:format(Format ++ "\n", Args)).
 %%-define(DEBUG(Format, Args), ok).
 
+start([Filename, StartLabel]) ->
+    start(Filename, list_to_integer(StartLabel)).
+
 start(Filename, StartLabel) ->
     {Program, JumpTable} = posm_file:read_file(Filename),
     Stack = array:new(),
     StartAddress = maps:get(StartLabel, JumpTable),
     Registers = #{sp => -1, fp => 0, pc => StartAddress},
-    ?DEBUG("~p", [format_program(Program)]),
+    %%?DEBUG("~p", [format_program(Program)]),
     process_instructions(Program, Stack, Registers).
 
 process_instructions(Program, Stack, #{sp := SP, pc := PC} = Registers) ->
     Instruction = array:get(PC, Program),
     ?DEBUG("~p", [format_stack(Stack, SP)]),
     %%?DEBUG("REGISTERS: ~p", [Registers]),
-    ?DEBUG("~p ==> ~p", [PC, Instruction]),
+    ?DEBUG("~p: ~p", [PC, Instruction]),
     case eval(Stack, Registers, Instruction) of
         halt ->
             format_stack(Stack, SP);
