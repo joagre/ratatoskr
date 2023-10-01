@@ -1,9 +1,11 @@
 {
-	"authors": [
-		"Joakim G."
-	],
-	"copyright": "Copyright © 2023, Joakim G.",
-	"description": "An agnostic green threads scheduler",
-	"license": "MIT",
-	"name": "d"
+    "authors": [
+	"Joakim G."
+    ],
+    "copyright": "Copyright © 2023, Joakim G.",
+    "description": "An agnostic green threads scheduler",
+    "license": "MIT",
+    "name": "d",
+    "targetPath": "./bin",
+    "targetName": "posm",
 }
