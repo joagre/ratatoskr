@@ -1,0 +1,328 @@
+A Plain Old Stack Machine (POSM)
+================================
+
+This document describes a Plain Old Stack Machine (POSM) intended to
+be used in experiments with different types of thread scheduling
+algorithms. POSM sports the following instructions: PUSH, PUSHR, POP,
+DUP, SWAP, LOADR, STORER, MOVER, ADD, SUB, MUL, DIV, JUMP, CJUMP,
+CALL, RET, SYSCALL, AND, OR, NOT, EQ, NEQ, LT, GT, NOP and HALT.
+
+POSM also has three registers:
+
+SP: Stack pointer
+FP: Frame pointer
+PC: Program counter
+
+POSM exposes these registers to make management of call stacks
+explicit. This has drawbacks in terms of efficiency but makes it
+easy to experiment with different kinds of stack framing policies and
+more.
+
+A number of the above instructions can actually be implemented in
+terms of changes to these registers. Minimalism must not be taken to
+an extreme though.
+
+NOTE: The stack grows downwards.
+
+Instruction set
+===============
+
+LABEL label       ; A jump label. This is a meta instruction.
+PUSH value        ; Pushes a value onto the stack.
+PUSHR SP|FP|PC    ; Pushes the content of a register onto the stack.
+POP               ; Removes the top value from the stack.
+DUP               ; Duplicates the top value on the stack.
+SWAP              ; Swaps the top two values on the stack.
+LOADR SP|FP       ; Copies a value on the stack to the top of the stack.
+                  ; The top value of the stack must be an offset to SP
+                  ; or FP 
+STORER SP|FP      ; Updates a value on the stack. The top value of the
+                  ; stack must an offset to the SP or FP and the new
+                  ; value comes next. 
+MOVER SP|FP|PC    ; Pops the top of the stack and copies the value to
+                  ; a register.
+ADD               ; Pops two values, adds them, and pushes the result.
+SUB               ; Pops two values, subtracts them, and pushes the result.
+MUL               ; Pops two values, multiplies them, and pushes the result.
+DIV               ; Pops two values, divides them, and pushes the result.
+JUMP label        ; Unconditionally jumps to a label.
+CJUMP label       ; Conditionally jumps based to a label if the top
+                  ; value of the stack is not 0. Pops the top value.
+CALL label        ; Calls a function and pushes the return address.
+RET               ; Returns from a function, i.e. pops the return
+                  ; address and sets PC to its value.
+SYS name          ; Calls a built-in function, e.g. spawn, send, recv,
+                  ; rand, sleep and println etc. 
+AND               ; Pops two values, performs a logical AND, and
+                  ; pushes the result.
+OR                ; Pops two values, performs a logical OR, and
+                  ; pushes the result.                  
+NOT               ; Pops two values, performs a logical NOT, and
+                  ; pushes the result.                   
+EQ                ; Pops two values, checks if they are equal, and
+                  ; pushes the result (0 or 1).                   
+NEQ               ; Pops two values, checks if they are not equal, and
+                  ; pushes the result (0 or 1).
+LT                ; Pops two values, checks if the first is less than
+                  ; the second, and pushes the result (0 or 1).
+GT                ; Pops two values, checks if the first is greater than
+                  ; the second, and pushes the result (0 or 1).
+NOP               ; No operation. Do nothing.
+HALT              ; Halts the stack machine execution.
+
+Call stack
+==========
+
+Explicit call stack management means that each function must govern
+its stack frame with careful updates of SP, FP and more.
+
+The CALL instruction pushes a return address on the stack (to be used
+by RET later on) and the function typically stores the previous FP
+on its stack frame and updates FP to SP, i.e. explicitly managing
+its own stack frame.
+
+If the final action of a function is to call itself it would be a
+waste of a stack frame to use a CALL instruction. Instead the current
+parameters can be updated inline followed by a plain JUMP back to itself.
+
+Example 1
+=========
+
+Consider this Erlang snippet:
+
+start() ->
+    summer(13, 10).
+
+summer(_M, 0) ->
+    0;
+summer(M, N) ->
+    M + summer(M, N - 1).
+
+This is how it could be written:
+
+__EXAMPLE1_START__
+LABEL 0          ; start/0
+  ; Function prologue
+  PUSHR FP       ; Saves previous FP
+  PUSHR SP
+  MOVER FP       ; Sets FP to SP
+  ; Call summer(13, 10)
+  PUSH 13        ; Pushes parameter M
+  PUSH 10        ; Pushes parameter N
+  PUSH 2         ; Pushes number of pscarameters
+  ;; Stack:
+  ;;   13
+  ;;   10
+  ;;   2
+  CALL 1
+  ;; Stack:
+  ;;   130
+  ; Function epilogue
+  JUMP 1000
+
+LABEL 1          ; summer/2
+  ; Function prologue
+  PUSHR FP       ; Saves previous FP
+  PUSHR SP
+  MOVER FP       ; Sets FP to SP
+  ;; Stack:
+  ;;   M
+  ;;   N
+  ;;   Number of parameters
+  ;;   Return address
+  ;;   Previous FP <- FP
+  JUMP 2
+
+LABEL 2
+  ; Is it summer(_M, 0) clause?
+  PUSH 3
+  LOADR FP       ; Parameter  N
+  PUSH 0
+  NEQ
+  CJUMP 3
+  PUSH 0         ; Return 0
+  ; Function epilogue
+  JUMP 1000
+
+LABEL 3
+  ; It is summer(M, N) clause!
+  ; Call summer(M, N - 1)
+  PUSH 4
+  LOADR FP       ; Parameter M
+  PUSH 4
+  LOADR FP       ; Pushes Parameter M
+  PUSH 3
+  LOADR FP       ; Parameter N
+  PUSH 1
+  SUB            ; Pushes parameter N - 1
+  PUSH 2         ; Pushes number of parameters
+  ;; Stack:
+  ;;   M
+  ;;   N - 1
+  ;;   2
+  CALL 1
+  ;; Stack:
+  ;;   summer(M, N - 1)
+  ADD            ; M + summer(M, N - 1)
+  ; Function epilogue
+  JUMP 1000
+
+LABEL 1000
+  ;; Stack:
+  ;;   Parameters...
+  ;;   Number of parameters
+  ;;   Return address
+  ;;   Previous FP <- FP
+  ;;   Result
+  ; Function epilogue
+  SWAP
+  MOVER FP       ; Restores FP to saved FP
+  PUSHR SP
+  PUSH 0
+  EQ
+  CJUMP 2000     ; If the stack is exhausted we are done!
+  SWAP
+  ;; Stack:
+  ;;   Parameters...
+  ;;   Number of parameters
+  ;;   Result
+  ;;   Return address
+  RET
+  ;; Stack:
+  ;;   Result
+
+LABEL 2000
+  HALT
+__EXAMPLE1_END__  
+
+Example 2
+=========
+
+Consider this Erlang snippet:
+
+start() ->
+    summer(13, 10, 0).
+
+summer(_M, 0, Ack) ->
+    Ack;
+summer(M, N, Ack) ->
+    summer(M, N - 1, Ack + M).
+
+It does the same as the example above but with an accumulated
+parameter. This makes the function tail recursive, i.e. the stack
+frame can be reused for each recursion and the call stack will not
+grow. To achieve this a CALL is not used. Instead parameters are
+updated in the current stack frame and then a plain JUMP is done to
+perform next iteration.
+
+This is how it could be written:
+
+__EXAMPLE2_START__  
+LABEL 0          ; start/0
+  ; Function prologue
+  PUSHR FP       ; Saves previous FP
+  PUSHR SP
+  MOVER FP       ; Sets FP to SP
+  ; Call summer(13, 10)
+  PUSH 13        ; Pushes parameter M
+  PUSH 10        ; Pushes parameter N
+  PUSH 0         ; Pushes parameter Ack
+  PUSH 3         ; Pushes number of parameters
+  ;; Stack:
+  ;;   13
+  ;;   10
+  ;;   0
+  ;;   3
+  CALL 1
+  ;; Stack:
+  ;;   130
+  ; Function epilogue
+  JUMP 1000
+
+LABEL 1          ; summer/2
+  ; Function prologue
+  PUSHR FP       ; Saves previous FP
+  PUSHR SP
+  MOVER FP     ; Sets FP to SP
+  ;; Stack:
+  ;;   M
+  ;;   N
+  ;;   Ack
+  ;;   Number of parameters
+  ;;   Return address
+  ;;   Previous FP <- FP
+  JUMP 2
+
+LABEL 2
+  ; Is it summer(_M, 0, Ack) clause?
+  PUSH 4
+  LOADR FP       ; Parameter N
+  PUSH 0
+  NEQ
+  CJUMP 3
+  PUSH 3
+  LOADR FP       ; Return Ack
+  ; Function epilogue
+  JUMP 1000
+
+LABEL 3
+  ; It is summer(M, N, Ack)!
+  ; Call summer(M, N - 1, Ack + M)
+  PUSH 4
+  LOADR FP       ; Parameter N
+  PUSH 1
+  SUB            ; N - 1
+  PUSH 3
+  LOADR FP       ; Parameter Ack
+  PUSH 5
+  LOADR FP       ; Parameter M
+  ADD
+  ;; Stack:
+  ;;   M
+  ;;   N
+  ;;   Ack
+  ;;   Return address
+  ;;   Previous FP <- FP
+  ;;   M
+  ;;   N - 1
+  ;;   Ack + M
+  ; Patch (changed) parameters in place and jump to label 2
+  PUSH 3
+  STORER FP      ; Patches Ack -> Ack + M
+  PUSH 4
+  STORER FP      ; Patches N -> N - 1
+  ;; Stack:
+  ;;   M
+  ;;   N - 1
+  ;;   Ack + M
+  ;;   Return address
+  ;;   Previous FP <- FP
+  JUMP 2         ; Voila! The old stack frame is reused.
+
+LABEL 1000
+  ;; Stack:
+  ;;   Parameters...
+  ;;   Number of parameters
+  ;;   Return address
+  ;;   Previous FP <- FP
+  ;;   Result
+  ; Function epilogue
+  SWAP
+  MOVER FP       ; Restores FP to saved FP
+  PUSHR SP
+  PUSH 0
+  EQ
+  CJUMP 2000     ; If the stack is exhausted we are done!
+  SWAP
+  ;; Stack:
+  ;;   Parameters...
+  ;;   Number of parameters
+  ;;   Result
+  ;;   Return address
+  RET
+  ;; Stack:
+  ;;   Result
+
+LABEL 2000
+  HALT
+__EXAMPLE2_END__  
