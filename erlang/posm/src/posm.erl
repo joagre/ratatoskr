@@ -3,28 +3,28 @@
 
 -include("posm.hrl").
 
--define(DEBUG(Format, Args), io:format(Format ++ "\n", Args)).
-%%-define(DEBUG(Format, Args), ok).
+%%-define(DEBUG(Format, Args), io:format(Format ++ "\n", Args)).
+-define(DEBUG(Format, Args), ok).
 
 start([Filename, StartLabel]) ->
-    start(Filename, list_to_integer(StartLabel)).
+    start(Filename, list_to_integer(StartLabel)),
+    erlang:halt().
 
 start(Filename, StartLabel) ->
     {Program, JumpTable} = posm_file:read_file(Filename),
     Stack = array:new(),
     StartAddress = maps:get(StartLabel, JumpTable),
     Registers = #{sp => -1, fp => 0, pc => StartAddress},
-    %%?DEBUG("~p", [format_program(Program)]),
+    ?DEBUG("~p", [format_program(Program)]),
     process_instructions(Program, Stack, Registers).
 
 process_instructions(Program, Stack, #{sp := SP, pc := PC} = Registers) ->
     Instruction = array:get(PC, Program),
     ?DEBUG("~p", [format_stack(Stack, SP)]),
-    %%?DEBUG("REGISTERS: ~p", [Registers]),
     ?DEBUG("~p: ~p", [PC, Instruction]),
     case eval(Stack, Registers, Instruction) of
         halt ->
-            format_stack(Stack, SP);
+            io:format("~p\n", [format_stack(Stack, SP)]);
         {UpdatedStack, #{pc := PC} = UpdatedRegisters} ->
             process_instructions(Program, UpdatedStack,
                                  UpdatedRegisters#{pc => PC + 1});

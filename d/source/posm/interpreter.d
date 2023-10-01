@@ -4,10 +4,9 @@ import std.conv;
 import core.time;
 import std.datetime;
 import std.stdio;
-import std.uuid;
+import core.thread;
 import program;
 import runcontext;
-import core.thread;
 
 class InterpreterError : Exception {
     this(string msg, string file = __FILE__, size_t line = __LINE__) {
@@ -16,33 +15,26 @@ class InterpreterError : Exception {
 }
 
 enum RunResult {
-    HALT,
-    TIMEOUT,
-    UNKNOWN
+    halt,
+    timeout
 }
 
 struct Interpreter {
-    public const UUID uniqueId;
-    private Program* program;
-    private RunContext* run_context;
-
-    this(ref Program program, ref RunContext run_context) {
-        this.uniqueId = randomUUID();
-        this.program = &program;
-        this.run_context = &run_context;
-    }
-
-    RunResult run(const Duration timeSlice, const uint instructionsPerCheck) {
+    RunResult run(ref RunContext run_context, const Duration timeSlice,
+                  const uint instructionsPerCheck) {
         auto startTime = Clock.currTime();
         uint instructionsExecuted = 0;
-        RunResult runResult = RunResult.UNKNOWN;
+        RunResult runResult;
 
         while (true) {
             auto pc = run_context.pc;
-            Instruction instruction = program.instructions[pc];
+            Instruction instruction = run_context.program.instructions[pc];
 
-            writeln(run_context.stack);
-            program.pretty_print(pc, instruction);
+            debug {
+                writeln(run_context.stack);
+                run_context.program.pretty_print(pc, instruction);
+            }
+
             //Thread.sleep(dur!"msecs"(500));
             //readln();
 
@@ -74,7 +66,8 @@ struct Interpreter {
             case Opcode.LOADR:
                 auto offset = run_context.stack[$ - 1];
                 if (instruction.operand == SP) {
-                    run_context.stack[$ - 1] = run_context.stack[$ - 1 - offset];
+                    run_context.stack[$ - 1] =
+                        run_context.stack[$ - 1 - offset];
                 } else { // Must be FP
                     run_context.stack[$ - 1] =
                         run_context.stack[run_context.fp - offset];
@@ -196,14 +189,14 @@ struct Interpreter {
             case Opcode.NOP:
                 break;
             case Opcode.HALT:
-                return RunResult.HALT;
+                return RunResult.halt;
             default:
                 throw new InterpreterError("Invalid opcode");
             }
 
             if (instructionsExecuted++ >= instructionsPerCheck) {
                 if (Clock.currTime() - startTime >= timeSlice) {
-                    runResult = RunResult.TIMEOUT;
+                    runResult = RunResult.timeout;
                     break;
                 }
                 instructionsExecuted = 0;
