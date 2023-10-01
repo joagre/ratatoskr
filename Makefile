@@ -2,6 +2,7 @@ all: build
 
 build:
 	(cd doc; make build)
+	(cd erlang; make build)
 	(cd d; make build)
 
 d-example1: build
@@ -12,4 +13,5 @@ d-example2: build
 
 clean:
 	(cd doc; make clean)
+	(cd erlang; make clean)
 	(cd d; make clean)

@@ -1,5 +1,5 @@
-all:
-	(cd src; make)
+build:
+	(cd src; make build)
 
 clean:
 	(cd src; make clean)
