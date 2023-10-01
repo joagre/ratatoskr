@@ -1,2 +1,2 @@
 # ratatoskr
-A virtual machine agnostic light weight green threads scheduler
+An agnostic green threads scheduler
