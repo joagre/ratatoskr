@@ -1,12 +1,12 @@
-module scheduler.scheduler;
+module scheduler;
 
 import std.stdio;
 import std.conv;
 import std.datetime;
 import std.container;
-import posm.program;
-import posm.interpreter;
-import scheduler.fiber;
+import program;
+import interpreter;
+import fiber;
 
 struct Scheduler {
     private Interpreter interpreter;

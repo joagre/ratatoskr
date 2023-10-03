@@ -1,6 +1,6 @@
-module scheduler.fiber;
+module fiber;
 
-import posm.program;
+import program;
 
 struct Fiber {
     public ulong fid;

@@ -1,11 +1,11 @@
-module posm.interpreter;
+module interpreter;
 
 import std.conv;
 import core.time;
 import std.datetime;
 import std.stdio;
-import posm.program;
-import scheduler.fiber;
+import program;
+import fiber;
 
 class InterpreterError : Exception {
     this(string msg, string file = __FILE__, size_t line = __LINE__) {
