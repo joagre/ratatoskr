@@ -1,4 +1,4 @@
-module program;
+module posm.program;
 
 import std.stdio;
 import std.string;

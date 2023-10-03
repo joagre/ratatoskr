@@ -3,9 +3,9 @@ import std.file;
 import std.path;
 import std.datetime;
 import std.conv;
-import scheduler;
-import program : ByteCodeError;
-import interpreter : InterpreterError;
+import scheduler.scheduler;
+import posm.program : ByteCodeError;
+import posm.interpreter : InterpreterError;
 
 int main(const string[] args) {
     if (args.length != 4) {
