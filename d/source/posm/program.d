@@ -4,84 +4,69 @@ import std.stdio;
 import std.string;
 import std.conv;
 import std.regex;
-import std.traits;
 import std.algorithm.searching;
 
-enum Opcode {
-    PUSH,
-    PUSHR,
-    POP,
-    DUP,
-    SWAP,
-    LOADR,
-    STORER,
-    MOVER,
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    JUMP,
-    CJUMP,
-    CALL,
-    RET,
-    SYS,
-    AND,
-    OR,
-    NOT,
-    EQ,
-    NEQ,
-    LT,
-    GT,
-    NOP,
-    HALT
-}
+const ubyte SP = 0;
+const ubyte FP = 1;
+const ubyte PC = 2;
 
-const SP = 0;
-const FP = 1;
-const PC = 2;
+const ubyte PUSH   = 0;
+const ubyte PUSHR  = 1;
+const ubyte POP    = 2;
+const ubyte DUP    = 3;
+const ubyte SWAP   = 4;
+const ubyte LOADR  = 5;
+const ubyte STORER = 6;
+const ubyte MOVER  = 7;
+const ubyte ADD    = 8;
+const ubyte SUB    = 9;
+const ubyte MUL    = 10;
+const ubyte DIV    = 11;
+const ubyte JUMP   = 12;
+const ubyte CJUMP  = 13;
+const ubyte CALL   = 14;
+const ubyte RET    = 15;
+const ubyte SYS    = 16;
+const ubyte AND    = 17;
+const ubyte OR     = 18;
+const ubyte NOT    = 19;
+const ubyte EQ     = 20;
+const ubyte NEQ    = 21;
+const ubyte LT     = 22;
+const ubyte GT     = 23;
+const ubyte NOP    = 24;
+const ubyte HALT   = 25;
 
-const SYS_SPAWN = 0;
-const SYS_SEND = 1;
-const SYS_RECV = 2;
-const SYS_RAND = 3;
-const SYS_SLEEP = 4;
-const SYS_PRINTLN = 5;
+const ulong SYS_SPAWN   = 0;
+const ulong SYS_SEND    = 1;
+const ulong SYS_RECV    = 2;
+const ulong SYS_RAND    = 3;
+const ulong SYS_SLEEP   = 4;
+const ulong SYS_PRINTLN = 5;
 
-struct Instruction {
-    Opcode opcode;
-    ulong operand = 0;
-
-    this(const Opcode opcode, const ulong operand) {
-        this.opcode = opcode;
-        this.operand = operand;
-    }
-
-    this(const Opcode opcode) {
-        this.opcode = opcode;
-    }
-}
-
-class InstructionError : Exception {
+class ByteCodeError : Exception {
     this(string msg, string file = __FILE__, size_t line = __LINE__) {
         super(msg, file, line);
     }
 }
 
 struct Program {
-    public Instruction[] instructions;
-    public ulong[ulong] jumpTable;
+    public ubyte[] byte_code;
+    public ulong[ulong] jump_table;
+    public string filename;
     private File file;
 
-    this(const string filename) {
+    this(string filename) {
+        this.filename = filename;
         file = File(filename, "r");
         try {
-            loadInstructions();
+            generateByteCode();
         } finally {
             file.close;
         }
     }
 
-    private void loadInstructions() {
+    private void generateByteCode() {
         while (!file.eof) {
             auto line = file.readln.strip;
 
@@ -100,216 +85,314 @@ struct Program {
 
             immutable auto parts = line.strip.split;
 
-            Instruction instruction;
-
-            final switch (parts[0]) {
+            switch (parts[0]) {
             case "LABEL":
-                jumpTable[to_value(parts[1])] = instructions.length;
+                jump_table[to!ulong(parts[1])] = byte_code.length;
                 continue;
             case "PUSH":
-                instruction = Instruction(Opcode.PUSH, to_value(parts[1]));
+                byte_code ~= PUSH << 3;
+                insert_ulong(to!ulong(parts[1]), byte_code);
                 break;
             case "PUSHR":
-                instruction = Instruction(Opcode.PUSHR, to_register(parts[1]));
+                byte_code ~= add_register(parts[1], PUSHR);
                 break;
             case "POP":
-                instruction = Instruction(Opcode.POP);
+                byte_code ~= POP << 3;
                 break;
             case "DUP":
-                instruction = Instruction(Opcode.DUP);
+                byte_code ~= DUP << 3;
                 break;
             case "SWAP":
-                instruction = Instruction(Opcode.SWAP);
+                byte_code ~= SWAP << 3;
                 break;
             case "LOADR":
-                instruction =
-                    Instruction(Opcode.LOADR, to_register(parts[1], [SP, FP]));
+                byte_code ~= add_register(parts[1], ["SP", "FP"], LOADR);
                 break;
             case "STORER":
-                instruction =
-                    Instruction(Opcode.STORER, to_register(parts[1], [SP, FP]));
+                byte_code ~= add_register(parts[1], ["SP", "FP"], STORER);
                 break;
             case "MOVER":
-                instruction = Instruction(Opcode.MOVER, to_register(parts[1]));
+                byte_code ~= add_register(parts[1], MOVER);
                 break;
             case "ADD":
-                instruction = Instruction(Opcode.ADD);
+                byte_code ~= ADD << 3;
                 break;
             case "SUB":
-                instruction = Instruction(Opcode.SUB);
+                byte_code ~= SUB << 3;
                 break;
             case "MUL":
-                instruction = Instruction(Opcode.MUL);
+                byte_code ~= MUL << 3;
                 break;
             case "DIV":
-                instruction = Instruction(Opcode.DIV);
+                byte_code ~= DIV << 3;
                 break;
             case "JUMP":
-                instruction = Instruction(Opcode.JUMP, to_value(parts[1]));
+                byte_code ~= JUMP << 3;
+                insert_ulong(to!ulong(parts[1]), byte_code);
                 break;
             case "CJUMP":
-                instruction = Instruction(Opcode.CJUMP, to_value(parts[1]));
+                byte_code ~= CJUMP << 3;
+                insert_ulong(to!ulong(parts[1]), byte_code);
                 break;
             case "CALL":
-                instruction = Instruction(Opcode.CALL, to_value(parts[1]));
+                byte_code ~= CALL << 3;
+                insert_ulong(to!ulong(parts[1]), byte_code);
                 break;
             case "RET":
-                instruction = Instruction(Opcode.RET);
+                byte_code ~= RET << 3;
                 break;
             case "SYS":
-                instruction = Instruction(Opcode.RET, to_sys_name(parts[1]));
+                byte_code ~= SYS << 3;
+                insert_sys_name(parts[1], byte_code);
                 break;
             case "AND":
-                instruction = Instruction(Opcode.AND);
+                byte_code ~= AND << 3;
                 break;
             case "OR":
-                instruction = Instruction(Opcode.OR);
+                byte_code ~= OR << 3;
                 break;
             case "NOT":
-                instruction = Instruction(Opcode.NOT);
+                byte_code ~= NOT << 3;
                 break;
             case "EQ":
-                instruction = Instruction(Opcode.EQ);
+                byte_code ~= EQ << 3;
                 break;
             case "NEQ":
-                instruction = Instruction(Opcode.NEQ);
+                byte_code ~= NEQ << 3;
                 break;
             case "LT":
-                instruction = Instruction(Opcode.LT);
+                byte_code ~= LT << 3;
                 break;
             case "GT":
-                instruction = Instruction(Opcode.GT);
+                byte_code ~= GT << 3;
                 break;
             case "NOP":
-                instruction = Instruction(Opcode.NOP);
+                byte_code ~= NOP << 3;
                 break;
             case "HALT":
-                instruction = Instruction(Opcode.HALT);
+                byte_code ~= HALT << 3;
                 break;
+            default:
+                throw new ByteCodeError("Invalid instruction " ~ parts[0]);
             }
-
-            instructions ~= instruction;
         }
 
-        foreach (index, value; instructions) {
-            if (value.opcode == Opcode.JUMP ||
-                value.opcode == Opcode.CJUMP ||
-                value.opcode == Opcode.CALL ||
-                value.opcode == Opcode.SYS) {
-                instructions[index].operand = jumpTable[value.operand];
+        // Convert labels to byte indices
+        ulong i = 0;
+        while (i < byte_code.length) {
+            auto opcode = byte_code[i] >> 3;
+            if (opcode == PUSH) {
+                i += 8;
+            } else if (opcode == JUMP || opcode == CJUMP || opcode == CALL) {
+                auto label = get_ulong(&byte_code[i + 1]);
+                auto byte_index = jump_table[label];
+                set_ulong(byte_index, &byte_code[i + 1]);
+                i += 8;
+            } else if (opcode == SYS) {
+                i += 8;
             }
+            i++;
         }
     }
 
-    private ulong to_value(const string s) {
-        try {
-            return to!ulong(s);
-        } catch (ConvException e) {
-            throw new InstructionError("Bad value " ~ s);
+    public void insert_ulong(ulong value, ref ubyte[] bytes) {
+        for (int i = 0; i < 8; i++){
+            bytes ~= cast(ubyte)(value & 0xFF);
+            value >>= 8;
         }
     }
 
-    private ulong to_register(const string s, const uint[] valid_registers) {
-        auto register = to_register(s);
-        if (valid_registers.canFind(register)) {
-            return register;
+    private ubyte add_register(string s, ubyte opcode) {
+        return add_register(s, ["SP", "FP", "PC"],  opcode);
+    }
+
+    private ubyte add_register(string s, string[] valid_registers,
+                               ubyte opcode) {
+        if (!valid_registers.canFind(s)) {
+            throw new ByteCodeError("Invalid register " ~ s);
+        }
+        if (s == "SP") {
+            return cast(ubyte)(opcode << 3) | SP;
+        } else if (s == "FP") {
+            return cast(ubyte)(opcode << 3) | FP;
+        } else if (s == "PC") {
+            return cast(ubyte)(opcode << 3) | PC;
         } else {
-            throw new InstructionError("Invalid register " ~ s);
+            throw new ByteCodeError("Invalid register " ~ s);
         }
     }
 
-    private ulong to_register(const string s) {
-        switch (s) {
-        case "SP":
-            return SP;
-        case "FP":
-            return FP;
-        case "PC":
-            return PC;
-        default:
-            throw new InstructionError("Unknown register " ~ s);
+    private void insert_sys_name(string s, ref ubyte[] bytes) {
+        ulong sys_name;
+        if (s == "spawn") {
+            sys_name = SYS_SPAWN;
+        } else if (s == "send") {
+            sys_name = SYS_SEND;
+        } else if (s ==  "recv") {
+            sys_name = SYS_RECV;
+        } else if (s == "rand") {
+            sys_name = SYS_RAND;
+        } else if (s == "sleep") {
+            sys_name = SYS_SLEEP;
+        } else if (s == "println") {
+            sys_name = SYS_PRINTLN;
+        } else {
+            throw new ByteCodeError("Unknown system function " ~ s);
         }
+        insert_ulong(sys_name, bytes);
     }
 
-    private ulong to_sys_name(const string s) {
-        switch (s) {
-        case "spawn":
-            return SYS_SPAWN;
-        case "send":
-            return SYS_SEND;
-        case "recv":
-            return SYS_RECV;
-        case "rand":
-            return SYS_RAND;
-        case "sleep":
-            return SYS_SLEEP;
-        case "println":
-            return SYS_PRINTLN;
-        default:
-            throw new InstructionError("Unknown system function " ~ s);
+    public ulong get_ulong(ubyte* bytes) {
+        ulong value = 0;
+        for (int i = 0; i < 8; i++) {
+            value |= (cast(ulong)bytes[i]) << (i * 8);
+        }
+        return value;
+    }
+
+    private void set_ulong(ulong value, ubyte* bytes) {
+        for (int i = 0; i < 8; i++) {
+            bytes[i] = cast(ubyte)(value & 0xFF);
+            value >>= 8;
         }
     }
 
     public void pretty_print() {
-        foreach (index, instruction; instructions) {
-            pretty_print(index, instruction);
+        ulong i = 0;
+        while (i < byte_code.length) {
+            i += 1 + pretty_print(&byte_code[i], true);
         }
     }
 
-    public void pretty_print(size_t index, Instruction instruction) {
-        string opcode = enumToName(instruction.opcode);
-        if (instruction.opcode == Opcode.PUSH) {
-            writeln(to!string(index) ~ ": " ~ opcode ~ " " ~
-                    to!string(instruction.operand));
-        } else if (instruction.opcode == Opcode.PUSHR ||
-                   instruction.opcode == Opcode.LOADR ||
-                   instruction.opcode == Opcode.STORER ||
-                   instruction.opcode == Opcode.MOVER) {
-            auto register = from_register(instruction.operand);
-            writeln(to!string(index) ~ ": " ~ opcode ~ " " ~ register);
-        } else if (instruction.opcode == Opcode.PUSH ||
-                   instruction.opcode == Opcode.JUMP ||
-                   instruction.opcode == Opcode.CJUMP ||
-                   instruction.opcode == Opcode.CALL) {
-            writeln(to!string(index) ~ ": " ~ opcode ~ " " ~
-                    to!string(instruction.operand));
-        } else if (instruction.opcode == Opcode.SYS) {
-            auto name = from_sys_name(instruction.operand);
-            writeln(to!string(index) ~ ": " ~ opcode ~ " " ~ name);
-        } else {
-            writeln(to!string(index) ~ ": " ~ opcode);
+    public ulong pretty_print(ubyte* bytes, bool show_labels) {
+        switch (bytes[0] >> 3) {
+        case PUSH:
+            ulong value = get_ulong(&bytes[1]);
+            writeln("PUSH " ~ to!string(value));
+            return 8;
+        case PUSHR:
+            string register = get_register_string(bytes[0]);
+            writeln("PUSHR " ~ register);
+            break;
+        case POP:
+            writeln("POP");
+            break;
+        case DUP:
+            writeln("DUP");
+            break;
+        case SWAP:
+            writeln("SWAP");
+            break;
+        case LOADR:
+            string register = get_register_string(bytes[0]);
+            writeln("LOADR " ~ register);
+            break;
+        case STORER:
+            string register = get_register_string(bytes[0]);
+            writeln("STORER " ~ register);
+            break;
+        case MOVER:
+            string register = get_register_string(bytes[0]);
+            writeln("MOVER " ~ register);
+            break;
+        case ADD:
+            writeln("ADD");
+            break;
+        case SUB:
+            writeln("SUB");
+            break;
+        case MUL:
+            writeln("MUL");
+            break;
+        case DIV:
+            writeln("DIV");
+            break;
+        case JUMP:
+            auto byte_index = get_ulong(&bytes[1]);
+            if (show_labels) {
+                auto label = lookup_label(byte_index);
+                writeln("JUMP " ~ to!string(label));
+            } else {
+                writeln("JUMP " ~ to!string(byte_index));
+            }
+            return 8;
+        case CJUMP:
+            auto byte_index = get_ulong(&bytes[1]);
+            if (show_labels) {
+                auto label = lookup_label(byte_index);
+                writeln("CJUMP " ~ to!string(label));
+            } else {
+                writeln("CJUMP " ~ to!string(byte_index));
+            }
+            return 8;
+        case CALL:
+            auto byte_index = get_ulong(&bytes[1]);
+            if (show_labels) {
+                auto label = lookup_label(byte_index);
+                writeln("CALL " ~ to!string(label));
+            } else {
+                writeln("CALL " ~ to!string(byte_index));
+            }
+            return 8;
+        case RET:
+            writeln("RET");
+            break;
+        case SYS:
+            ulong value = get_ulong(&bytes[1]);
+            writeln("SYS " ~ to!string(value));
+            return 8;
+        case AND:
+            writeln("AND");
+            break;
+        case OR:
+            writeln("OR");
+            break;
+        case NOT:
+            writeln("NOT");
+            break;
+        case EQ:
+            writeln("EQ");
+            break;
+        case NEQ:
+            writeln("NEQ");
+            break;
+        case LT:
+            writeln("LT");
+            break;
+        case GT:
+            writeln("GT");
+            break;
+        case NOP:
+            writeln("NOP");
+            break;
+        case HALT:
+            writeln("HALT");
+            break;
+        default:
+            throw new ByteCodeError("Unknown opcode " ~
+                                    to!string(bytes[0] >> 3));
         }
+
+        return 0;
     }
 
-    private string enumToName(T)(T value) {
-        return to!string([EnumMembers!T][value]);
+    private ulong lookup_label(ulong byte_index) {
+        foreach (label, possible_byte_index; jump_table) {
+            if (byte_index == possible_byte_index) {
+                return label;
+            }
+        }
+        throw new ByteCodeError("Internal Error");
     }
 
-    private string from_register(const ulong register) {
-        final switch (register) {
-        case SP:
+    private string get_register_string(ubyte instruction) {
+        ubyte register = instruction & 0b00000111;
+        if (register == SP) {
             return "SP";
-        case FP:
+        } else if (register == FP) {
             return "FP";
-        case PC:
+        } else { // Must be PC
             return "PC";
-        }
-    }
-
-    private string from_sys_name(const ulong name) {
-        final switch (name) {
-        case SYS_SPAWN:
-            return "spawn";
-        case SYS_SEND:
-            return "send";
-        case SYS_RECV:
-            return "recv";
-        case SYS_RAND:
-            return "rand";
-        case SYS_SLEEP:
-            return "sleep";
-        case SYS_PRINTLN:
-            return "println";
         }
     }
 }

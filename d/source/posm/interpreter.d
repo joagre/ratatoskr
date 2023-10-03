@@ -4,9 +4,8 @@ import std.conv;
 import core.time;
 import std.datetime;
 import std.stdio;
-import core.thread;
 import program;
-import runcontext;
+import fiber;
 
 class InterpreterError : Exception {
     this(string msg, string file = __FILE__, size_t line = __LINE__) {
@@ -14,199 +13,225 @@ class InterpreterError : Exception {
     }
 }
 
-enum RunResult {
+enum InterpreterResult {
     halt,
     timeout
 }
 
 struct Interpreter {
-    RunResult run(ref RunContext run_context, const Duration timeSlice,
-                  const uint instructionsPerCheck) {
-        auto startTime = Clock.currTime();
-        uint instructionsExecuted = 0;
-        RunResult runResult;
+    InterpreterResult run(ref Fiber fiber, Duration time_slice,
+                          uint timeout_granularity) {
+        auto start_time = Clock.currTime();
+        uint instructions_executed = 0;
+        InterpreterResult result;
 
         while (true) {
-            auto pc = run_context.pc;
-            Instruction instruction = run_context.program.instructions[pc];
+            auto byte_code = fiber.program.byte_code;
 
-            debug {
-                writeln(run_context.stack);
-                run_context.program.pretty_print(pc, instruction);
+            debug(interpreter) {
+                writeln(fiber.stack);
+                fiber.program.pretty_print(&byte_code[fiber.pc], true);
             }
 
-            //Thread.sleep(dur!"msecs"(500));
+            //Thread.sleep(dur!"msecs"(50));
             //readln();
 
-            switch (instruction.opcode) {
-            case Opcode.PUSH:
-                run_context.stack ~= instruction.operand;
+            bool pc_updated = false;
+            switch (byte_code[fiber.pc] >> 3) {
+            case PUSH:
+                auto value = fiber.program.get_ulong(
+                                 &byte_code[fiber.pc + 1]);
+                fiber.stack ~= value;
+                fiber.pc += 8 + 1;
+                pc_updated = true;
                 break;
-            case Opcode.PUSHR:
-                if (instruction.operand == SP) {
-                    run_context.stack ~= run_context.stack.length - 1;
-                } else if (instruction.operand == FP) {
-                    run_context.stack ~= run_context.fp;
-                } else {
-                    run_context.stack ~= run_context.pc;
-                }
-                break;
-            case Opcode.POP:
-                run_context.stack = run_context.stack[0 .. $ - 1];
-                break;
-            case Opcode.DUP:
-                auto topValue = run_context.stack[$ - 1];
-                run_context.stack ~= topValue;
-                break;
-            case Opcode.SWAP:
-                auto topValue = run_context.stack[$ - 1];
-                run_context.stack[$ - 1] = run_context.stack[$ - 2];
-                run_context.stack[$ - 2] = topValue;
-                break;
-            case Opcode.LOADR:
-                auto offset = run_context.stack[$ - 1];
-                if (instruction.operand == SP) {
-                    run_context.stack[$ - 1] =
-                        run_context.stack[$ - 1 - offset];
-                } else { // Must be FP
-                    run_context.stack[$ - 1] =
-                        run_context.stack[run_context.fp - offset];
-                }
-                break;
-            case Opcode.STORER:
-                auto offset = run_context.stack[$ - 1];
-                auto new_value = run_context.stack[$ - 2];
-                if (instruction.operand == SP) {
-                    // Do not count the STORER parameters
-                    run_context.stack[$ - 1 - 2 - offset] = new_value;
-                } else { // Must be FP
-                    run_context.stack[run_context.fp - offset] = new_value;
-                }
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                break;
-            case Opcode.MOVER:
-                auto topValue = run_context.stack[$ - 1];
-                run_context.stack = run_context.stack[0 .. $ - 1];
-                if (instruction.operand == SP) {
-                    run_context.stack = run_context.stack[0 .. topValue + 1];
-                } else if (instruction.operand == FP) {
-                    run_context.fp = topValue;
+            case PUSHR:
+                auto register = byte_code[fiber.pc] & 0b00000111;
+                if (register == SP) {
+                    fiber.stack ~= fiber.stack.length - 1;
+                } else if (register == FP) {
+                    fiber.stack ~= fiber.fp;
                 } else { // Must be PC
-                    run_context.pc = topValue;
+                    fiber.stack ~= fiber.pc;
                 }
                 break;
-            case Opcode.ADD:
-                auto operand2 = run_context.stack[$ - 1];
-                auto operand1 = run_context.stack[$ - 2];
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                run_context.stack ~= operand1 + operand2;
+            case POP:
+                fiber.stack = fiber.stack[0 .. $ - 1];
                 break;
-            case Opcode.SUB:
-                auto operand2 = run_context.stack[$ - 1];
-                auto operand1 = run_context.stack[$ - 2];
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                run_context.stack ~= operand1 - operand2;
+            case DUP:
+                auto topValue = fiber.stack[$ - 1];
+                fiber.stack ~= topValue;
                 break;
-            case Opcode.MUL:
-                auto operand2 = run_context.stack[$ - 1];
-                auto operand1 = run_context.stack[$ - 2];
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                run_context.stack ~= operand1 * operand2;
+            case SWAP:
+                auto topValue = fiber.stack[$ - 1];
+                fiber.stack[$ - 1] = fiber.stack[$ - 2];
+                fiber.stack[$ - 2] = topValue;
                 break;
-            case Opcode.DIV:
-                auto operand2 = run_context.stack[$ - 1];
-                auto operand1 = run_context.stack[$ - 2];
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                run_context.stack ~= operand1 / operand2;
+            case LOADR:
+                auto register = byte_code[fiber.pc] & 0b00000111;
+                auto offset = fiber.stack[$ - 1];
+                if (register == SP) {
+                    fiber.stack[$ - 1] =
+                        fiber.stack[$ - 1 - offset];
+                } else { // Must be FP
+                    fiber.stack[$ - 1] =
+                        fiber.stack[fiber.fp - offset];
+                }
                 break;
-            case Opcode.JUMP:
-                run_context.pc = instruction.operand;
+            case STORER:
+                auto register = byte_code[fiber.pc] & 0b00000111;
+                auto offset = fiber.stack[$ - 1];
+                auto new_value = fiber.stack[$ - 2];
+                if (register == SP) {
+                    // Do not count the STORER parameters
+                    fiber.stack[$ - 1 - 2 - offset] = new_value;
+                } else { // Must be FP
+                    fiber.stack[fiber.fp - offset] = new_value;
+                }
+                fiber.stack = fiber.stack[0 .. $ - 2];
                 break;
-            case Opcode.CJUMP:
-                auto conditional = run_context.stack[$ - 1];
-                run_context.stack = run_context.stack[0 .. $ - 1];
+            case MOVER:
+                auto register = byte_code[fiber.pc] & 0b00000111;
+                auto topValue = fiber.stack[$ - 1];
+                fiber.stack = fiber.stack[0 .. $ - 1];
+                if (register == SP) {
+                    fiber.stack = fiber.stack[0 .. topValue + 1];
+                } else if (register == FP) {
+                    fiber.fp = topValue;
+                } else { // Must be PC
+                    fiber.pc = topValue;
+                    pc_updated = true;
+                }
+                break;
+            case ADD:
+                auto operand2 = fiber.stack[$ - 1];
+                auto operand1 = fiber.stack[$ - 2];
+                fiber.stack = fiber.stack[0 .. $ - 2];
+                fiber.stack ~= operand1 + operand2;
+                break;
+            case SUB:
+                auto operand2 = fiber.stack[$ - 1];
+                auto operand1 = fiber.stack[$ - 2];
+                fiber.stack = fiber.stack[0 .. $ - 2];
+                fiber.stack ~= operand1 - operand2;
+                break;
+            case MUL:
+                auto operand2 = fiber.stack[$ - 1];
+                auto operand1 = fiber.stack[$ - 2];
+                fiber.stack = fiber.stack[0 .. $ - 2];
+                fiber.stack ~= operand1 * operand2;
+                break;
+            case DIV:
+                auto operand2 = fiber.stack[$ - 1];
+                auto operand1 = fiber.stack[$ - 2];
+                fiber.stack = fiber.stack[0 .. $ - 2];
+                fiber.stack ~= operand1 / operand2;
+                break;
+            case JUMP:
+                auto byte_index =
+                    fiber.program.get_ulong(
+                        &byte_code[fiber.pc + 1]);
+                fiber.pc = byte_index;
+                pc_updated = true;
+                break;
+            case CJUMP:
+                auto byte_index =
+                    fiber.program.get_ulong(
+                        &byte_code[fiber.pc + 1]);
+                auto conditional = fiber.stack[$ - 1];
+                fiber.stack = fiber.stack[0 .. $ - 1];
                 if (conditional != 0) {
-                    run_context.pc = instruction.operand;
+                    fiber.pc = byte_index;
+                } else {
+                    fiber.pc += 8 + 1;
                 }
+                pc_updated = true;
                 break;
-            case Opcode.CALL:
-                auto address = run_context.stack[$ - 1];
-                run_context.stack ~= run_context.pc + 1;
-                run_context.pc = instruction.operand;
+            case CALL:
+                auto byte_index =
+                    fiber.program.get_ulong(
+                        &byte_code[fiber.pc + 1]);
+                auto address = fiber.stack[$ - 1];
+                fiber.stack ~= fiber.pc + 1 + 8;
+                fiber.pc = byte_index;
+                pc_updated = true;
                 break;
-            case Opcode.RET:
-                auto return_address = run_context.stack[$ - 1];
-                auto result = run_context.stack[$ - 2];
-                auto number_of_parameters = run_context.stack[$ - 3];
-                run_context.stack =
-                    run_context.stack[0 .. $ - 3 - number_of_parameters];
-                run_context.stack ~= result;
-                run_context.pc = return_address;
+            case RET:
+                auto return_address = fiber.stack[$ - 1];
+                auto return_value = fiber.stack[$ - 2];
+                auto number_of_parameters = fiber.stack[$ - 3];
+                fiber.stack =
+                    fiber.stack[0 .. $ - 3 - number_of_parameters];
+                fiber.stack ~= return_value;
+                fiber.pc = return_address;
+                pc_updated = true;
                 break;
-            case Opcode.SYS:
+            case SYS:
                 throw new InterpreterError("SYS is not implemented");
-            case Opcode.AND:
-                auto operand2 = run_context.stack[$ - 1];
-                auto operand1 = run_context.stack[$ - 2];
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                run_context.stack ~= (operand1 != 0) && (operand2 == 0);
+            case AND:
+                auto operand2 = fiber.stack[$ - 1];
+                auto operand1 = fiber.stack[$ - 2];
+                fiber.stack = fiber.stack[0 .. $ - 2];
+                fiber.stack ~= (operand1 != 0) && (operand2 == 0);
                 break;
-            case Opcode.OR:
-                auto operand2 = run_context.stack[$ - 1];
-                auto operand1 = run_context.stack[$ - 2];
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                run_context.stack ~= (operand1 != 0) || (operand2 != 0);
+            case OR:
+                auto operand2 = fiber.stack[$ - 1];
+                auto operand1 = fiber.stack[$ - 2];
+                fiber.stack = fiber.stack[0 .. $ - 2];
+                fiber.stack ~= (operand1 != 0) || (operand2 != 0);
                 break;
-            case Opcode.NOT:
-                auto operand = run_context.stack[$ - 1];
-                run_context.stack = run_context.stack[0 .. $ - 1];
-                run_context.stack ~= !(operand != 0);
+            case NOT:
+                auto operand = fiber.stack[$ - 1];
+                fiber.stack = fiber.stack[0 .. $ - 1];
+                fiber.stack ~= !(operand != 0);
                 break;
-            case Opcode.EQ:
-                auto operand2 = run_context.stack[$ - 1];
-                auto operand1 = run_context.stack[$ - 2];
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                run_context.stack ~= operand1 == operand2;
+            case EQ:
+                auto operand2 = fiber.stack[$ - 1];
+                auto operand1 = fiber.stack[$ - 2];
+                fiber.stack = fiber.stack[0 .. $ - 2];
+                fiber.stack ~= operand1 == operand2;
                 break;
-            case Opcode.NEQ:
-                auto operand2 = run_context.stack[$ - 1];
-                auto operand1 = run_context.stack[$ - 2];
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                run_context.stack ~= operand1 != operand2;
+            case NEQ:
+                auto operand2 = fiber.stack[$ - 1];
+                auto operand1 = fiber.stack[$ - 2];
+                fiber.stack = fiber.stack[0 .. $ - 2];
+                fiber.stack ~= operand1 != operand2;
                 break;
-            case Opcode.LT:
-                auto operand2 = run_context.stack[$ - 1];
-                auto operand1 = run_context.stack[$ - 2];
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                run_context.stack ~= operand1 < operand2;
+            case LT:
+                auto operand2 = fiber.stack[$ - 1];
+                auto operand1 = fiber.stack[$ - 2];
+                fiber.stack = fiber.stack[0 .. $ - 2];
+                fiber.stack ~= operand1 < operand2;
                 break;
-            case Opcode.GT:
-                auto operand2 = run_context.stack[$ - 1];
-                auto operand1 = run_context.stack[$ - 2];
-                run_context.stack = run_context.stack[0 .. $ - 2];
-                run_context.stack ~= operand1 > operand2;
+            case GT:
+                auto operand2 = fiber.stack[$ - 1];
+                auto operand1 = fiber.stack[$ - 2];
+                fiber.stack = fiber.stack[0 .. $ - 2];
+                fiber.stack ~= operand1 > operand2;
                 break;
-            case Opcode.NOP:
+            case NOP:
                 break;
-            case Opcode.HALT:
-                return RunResult.halt;
+            case HALT:
+                return InterpreterResult.halt;
             default:
-                throw new InterpreterError("Invalid opcode");
+                throw new InterpreterError(
+                              "Invalid opcode" ~
+                              to!string(byte_code[fiber.pc] >> 3));
             }
 
-            if (instructionsExecuted++ >= instructionsPerCheck) {
-                if (Clock.currTime() - startTime >= timeSlice) {
-                    runResult = RunResult.timeout;
+            if (!pc_updated) {
+                fiber.pc++;
+            }
+
+            if (instructions_executed ++ >= timeout_granularity) {
+                if (Clock.currTime() - start_time >= time_slice) {
+                    result = InterpreterResult.timeout;
                     break;
                 }
-                instructionsExecuted = 0;
-            }
-
-            if (pc == run_context.pc) {
-                run_context.pc++;
+                instructions_executed = 0;
             }
         }
 
-        return runResult;
+        return result;
     }
 }

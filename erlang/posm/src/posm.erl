@@ -3,8 +3,8 @@
 
 -include("posm.hrl").
 
-%%-define(DEBUG(Format, Args), io:format(Format ++ "\n", Args)).
--define(DEBUG(Format, Args), ok).
+-define(DEBUG(Format, Args), io:format(Format ++ "\n", Args)).
+%%-define(DEBUG(Format, Args), ok).
 
 start([Filename, StartLabel]) ->
     start(Filename, list_to_integer(StartLabel)),
