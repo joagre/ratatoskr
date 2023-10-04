@@ -1,9 +1,9 @@
 module scheduler;
 
-import std.stdio;
-import std.conv;
-import std.datetime;
-import std.container;
+import std.stdio : writeln;
+import std.conv : to;
+import std.datetime : Duration;
+import std.container : DList;
 import program;
 import interpreter;
 import fiber;
@@ -32,27 +32,27 @@ struct Scheduler {
             program.pretty_print;
         }
 
-        auto run_context = Fiber(fid, program);
-        readyQueue.insertBack(run_context);
+        auto fiber = Fiber(fid, program);
+        readyQueue.insertBack(fiber);
         return fid++;
     }
 
     void run() {
         while (!readyQueue.empty) {
-            auto run_context = readyQueue.front;
+            auto fiber = readyQueue.front;
             readyQueue.removeFront;
             InterpreterResult result =
-                interpreter.run(run_context, time_slice, timeout_granularity);
+                interpreter.run(fiber, time_slice, timeout_granularity);
             final switch(result) {
             case InterpreterResult.halt:
                 debug(scheduler) {
-                    writeln("Fiber " ~ to!string(run_context.fid) ~ " (" ~
-                            run_context.program.filename ~ ") halted: " ~
-                            to!string(run_context.stack));
+                    writeln("Fiber " ~ to!string(fiber.fid) ~ " (" ~
+                            fiber.program.filename ~ ") halted: " ~
+                            to!string(fiber.stack));
                 }
                 break;
             case InterpreterResult.timeout:
-                readyQueue.insertBack(run_context);
+                readyQueue.insertBack(fiber);
             }
         }
     }

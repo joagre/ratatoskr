@@ -16,6 +16,9 @@ d-example1: docbuild dbuild
 d-example2: docbuild dbuild
 	./d/bin/posm doc/example2.posm 10000000 10
 
+d-example3: docbuild dbuild
+	./d/bin/posm doc/example3.posm 10000000 10
+
 erl-example1: docbuild erlbuild
 	env ERL_LIBS=erlang erl -noinput -run posm start doc/example1.posm 0
 

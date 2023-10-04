@@ -1,9 +1,8 @@
 module interpreter;
 
-import std.conv;
-import core.time;
-import std.datetime;
-import std.stdio;
+import std.conv : to;
+import std.datetime : Duration, Clock;
+import std.stdio : writeln;
 import program;
 import fiber;
 
@@ -39,8 +38,14 @@ struct Interpreter {
             bool pc_updated = false;
             switch (byte_code[fiber.pc] >> 3) {
             case PUSH:
-                auto value = fiber.program.get_ulong(
-                                 &byte_code[fiber.pc + 1]);
+                auto value = get_ulong(&byte_code[fiber.pc + 1]);
+
+                /*
+                  auto unsigned_value = get_ulong(&byte_code[fiber.pc + 1]);
+                  auto tagged_value = tag_ulong(unsigned_value, LONG);
+                  fiber.stack ~= tagged_value;
+                */
+
                 fiber.stack ~= value;
                 fiber.pc += 8 + 1;
                 pc_updated = true;
@@ -128,16 +133,12 @@ struct Interpreter {
                 fiber.stack ~= operand1 / operand2;
                 break;
             case JUMP:
-                auto byte_index =
-                    fiber.program.get_ulong(
-                        &byte_code[fiber.pc + 1]);
+                auto byte_index = get_ulong(&byte_code[fiber.pc + 1]);
                 fiber.pc = byte_index;
                 pc_updated = true;
                 break;
             case CJUMP:
-                auto byte_index =
-                    fiber.program.get_ulong(
-                        &byte_code[fiber.pc + 1]);
+                auto byte_index = get_ulong(&byte_code[fiber.pc + 1]);
                 auto conditional = fiber.stack[$ - 1];
                 fiber.stack = fiber.stack[0 .. $ - 1];
                 if (conditional != 0) {
@@ -148,9 +149,7 @@ struct Interpreter {
                 pc_updated = true;
                 break;
             case CALL:
-                auto byte_index =
-                    fiber.program.get_ulong(
-                        &byte_code[fiber.pc + 1]);
+                auto byte_index = get_ulong(&byte_code[fiber.pc + 1]);
                 auto address = fiber.stack[$ - 1];
                 fiber.stack ~= fiber.pc + 1 + 8;
                 fiber.pc = byte_index;

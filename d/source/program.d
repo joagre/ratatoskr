@@ -1,10 +1,11 @@
 module program;
 
-import std.stdio;
-import std.string;
-import std.conv;
-import std.regex;
-import std.algorithm.searching;
+import std.stdio : File, writeln;
+import std.string : strip, split;
+import std.conv : to;
+import std.regex : regex, replace;
+import std.typecons : Tuple;
+import std.algorithm.searching : canFind;
 
 const ubyte SP = 0;
 const ubyte FP = 1;
@@ -44,6 +45,10 @@ const ulong SYS_RAND    = 3;
 const ulong SYS_SLEEP   = 4;
 const ulong SYS_PRINTLN = 5;
 
+const ubyte LONG = 0;
+const ubyte ULONG = 1;
+const ubyte STRING = 2;
+
 class ByteCodeError : Exception {
     this(string msg, string file = __FILE__, size_t line = __LINE__) {
         super(msg, file, line);
@@ -68,7 +73,7 @@ struct Program {
 
     private void generateByteCode() {
         while (!file.eof) {
-            auto line = file.readln.strip;
+            string line = file.readln.strip;
 
             if (line.length == 0) {
                 continue;
@@ -242,21 +247,6 @@ struct Program {
         insert_ulong(sys_name, bytes);
     }
 
-    public ulong get_ulong(ubyte* bytes) {
-        ulong value = 0;
-        for (int i = 0; i < 8; i++) {
-            value |= (cast(ulong)bytes[i]) << (i * 8);
-        }
-        return value;
-    }
-
-    private void set_ulong(ulong value, ubyte* bytes) {
-        for (int i = 0; i < 8; i++) {
-            bytes[i] = cast(ubyte)(value & 0xFF);
-            value >>= 8;
-        }
-    }
-
     public void pretty_print() {
         ulong i = 0;
         while (i < byte_code.length) {
@@ -395,4 +385,50 @@ struct Program {
             return "PC";
         }
     }
+
+}
+
+ulong get_ulong(ubyte* bytes) {
+    ulong value = 0;
+    for (int i = 0; i < 8; i++) {
+        value |= (cast(ulong)bytes[i]) << (i * 8);
+    }
+    return value;
+}
+
+ulong get_long(ubyte* bytes) {
+    long value = 0;
+    for (int i = 0; i < 8; i++) {
+        value |= (cast(long)bytes[i]) << (i * 8);
+    }
+    return value;
+}
+
+void set_ulong(ulong value, ubyte* bytes) {
+    for (int i = 0; i < 8; i++) {
+        bytes[i] = cast(ubyte)(value & 0xFF);
+        value >>= 8;
+    }
+}
+
+Tuple!(ubyte, ulong) untag_ulong(ulong tagged_value) {
+    return Tuple!(ubyte, ulong)
+                (cast(ubyte)((tagged_value >> 61) & 0x7),
+                tagged_value & ((1UL << 61) - 1));
+}
+
+ulong tag_ulong(ulong untagged_value, ubyte tag) {
+    return untagged_value | (cast(ulong)tag << 61);
+}
+
+long ulong2long(ulong unsigned_value) {
+    if ((unsigned_value & (1L << 60)) != 0) {
+        return cast(long)(unsigned_value | ~((1L << 61) - 1));
+    } else {
+        return cast(long)unsigned_value;
+    }
+}
+
+ulong long2ulong(long signed_value) {
+    return cast(ulong)signed_value & ((1UL << 61) - 1);
 }
