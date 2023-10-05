@@ -4,23 +4,14 @@ A Plain Old Stack Machine (POSM)
 This document describes a Plain Old Stack Machine (POSM) intended to
 be used in experiments with different types of thread scheduling
 algorithms. POSM sports the following instructions: PUSH, PUSHR, POP,
-DUP, SWAP, LOADR, STORER, MOVER, ADD, SUB, MUL, DIV, JUMP, CJUMP,
-CALL, RET, SYSCALL, AND, OR, NOT, EQ, NEQ, LT, GT, NOP and HALT.
+DUP, SWAP, LOADR, STORER, ADD, SUB, MUL, DIV, JUMP, CJUMP, CALL, RET,
+SYSCALL, AND, OR, NOT, EQ, NEQ, LT, GT, NOP and HALT.
 
 POSM also has three registers:
 
 SP: Stack pointer
 FP: Frame pointer
 PC: Program counter
-
-POSM exposes these registers to make management of call stacks
-explicit. This has drawbacks in terms of efficiency but makes it
-easy to experiment with different kinds of stack framing policies and
-more.
-
-A number of the above instructions can actually be implemented in
-terms of changes to these registers. Minimalism must not be taken to
-an extreme though.
 
 NOTE: The stack grows downwards.
 
@@ -39,8 +30,6 @@ LOADR SP|FP       ; Copies a value on the stack to the top of the stack.
 STORER SP|FP      ; Updates a value on the stack. The top value of the
                   ; stack must an offset to the SP or FP and the new
                   ; value comes next.
-MOVER SP|FP|PC    ; Pops the top of the stack and copies the value to
-                  ; a register.
 ADD               ; Pops two values, adds them, and pushes the result.
 SUB               ; Pops two values, subtracts them, and pushes the result.
 MUL               ; Pops two values, multiplies them, and pushes the result.
@@ -48,9 +37,14 @@ DIV               ; Pops two values, divides them, and pushes the result.
 JUMP label        ; Unconditionally jumps to a label.
 CJUMP label       ; Conditionally jumps based to a label if the top
                   ; value of the stack is not 0. Pops the top value.
-CALL label        ; Calls a function and pushes the return address.
-RET               ; Returns from a function, i.e. pops the return
-                  ; address and sets PC to its value.
+CALL label        ; Calls a function and pushes the return address and
+                  ; performs the function prologue, i.e. adds a new
+                  ; call frame (saves the old FP on the stack and sets
+                  ; FP to SP).
+RET               ; Performs the function epilogue (pops the saved FP
+                  ; from the stack and sets FP to it). It also pops
+                  ; all CALL parameters and finally jumps back to the
+                  ; return address.
 SYS name          ; Calls a built-in function, e.g. spawn, send, recv,
                   ; rand, sleep and println etc.
 AND               ; Pops two values, performs a logical AND, and
@@ -69,21 +63,6 @@ GT                ; Pops two values, checks if the first is greater than
                   ; the second, and pushes the result (0 or 1).
 NOP               ; No operation. Do nothing.
 HALT              ; Halts the stack machine execution.
-
-Call stack
-==========
-
-Explicit call stack management means that each function must govern
-its stack frame with careful updates of SP, FP and more.
-
-The CALL instruction pushes a return address on the stack (to be used
-by RET later on) and the function typically stores the previous FP
-on its stack frame and updates FP to SP, i.e. explicitly managing
-its own stack frame.
-
-If the final action of a function is to call itself it would be a
-waste of a stack frame to use a CALL instruction. Instead the current
-parameters can be updated inline followed by a plain JUMP back to itself.
 
 Example 1
 =========
@@ -202,11 +181,11 @@ summer(_M, 0, Ack) ->
 summer(M, N, Ack) ->
     summer(M, N - 1, Ack + M).
 
-It does the same as the example above but with an accumulated
+It does the same as the example 1 but with an accumulated
 parameter. This makes the function tail recursive, i.e. the stack
 frame can be reused for each recursion and the call stack will not
 grow. To achieve this a CALL is not used. Instead parameters are
-updated in the current stack frame and then a plain JUMP is done to
+patched in the current stack frame and then a plain JUMP is done to
 perform next iteration.
 
 This is how it could be written:
@@ -321,8 +300,8 @@ start() ->
     bar(Y, Z).
 
 bar(Y, Z) ->
-    io:format("~s\n", [Y]),
-    Z.
+    io:format("~p\n", [Z]),
+    Y.
 
 Yet another silly example introducing how to deal with local
 variables, string literals and the SYS instruction.
