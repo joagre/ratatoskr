@@ -90,12 +90,12 @@ struct Interpreter {
                 apply((operand1, operand2) => operand1 / operand2, fiber);
                 break;
             case JUMP:
-                auto byte_index = get_ulong(&byte_code[fiber.pc + 1]);
+                auto byte_index = get_long(&byte_code[fiber.pc + 1]);
                 fiber.pc = byte_index;
                 pc_updated = true;
                 break;
             case CJUMP:
-                auto byte_index = get_ulong(&byte_code[fiber.pc + 1]);
+                auto byte_index = get_long(&byte_code[fiber.pc + 1]);
                 auto conditional = pop(fiber);
                 if (conditional != 0) {
                     fiber.pc = byte_index;
@@ -105,7 +105,7 @@ struct Interpreter {
                 pc_updated = true;
                 break;
             case CALL:
-                auto byte_index = get_ulong(&byte_code[fiber.pc + 1]);
+                auto byte_index = get_long(&byte_code[fiber.pc + 1]);
                 push(fiber.pc + 1 + 8, fiber); // Add return address to stack
                 fiber.pc = byte_index;
                 pc_updated = true;
@@ -129,7 +129,7 @@ struct Interpreter {
                 pc_updated = true;
                 break;
             case SYS:
-                auto sys_name = get_ulong(&byte_code[fiber.pc + 1]);
+                auto sys_name = get_long(&byte_code[fiber.pc + 1]);
                 switch (sys_name) {
                     // WORK IN PROGRESS!!!!!!!!!!!!!
                 case SYS_SPAWN:
@@ -137,7 +137,7 @@ struct Interpreter {
                     auto number_of_parameters = fiber.stack[$ - 2];
                     // Kludge!
                     string filename = "foo.txt";
-                    ulong fib = scheduler.spawn(filename,
+                    long fib = scheduler.spawn(filename,
                                                 fiber.stack[$ - 3 .. $]);
                     //pop(1 + number_of_parameters);
                     //push(fib);

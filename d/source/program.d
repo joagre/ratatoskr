@@ -38,16 +38,12 @@ const ubyte GT     = 23;
 const ubyte NOP    = 24;
 const ubyte HALT   = 25;
 
-const ulong SYS_SPAWN   = 0;
-const ulong SYS_SEND    = 1;
-const ulong SYS_RECV    = 2;
-const ulong SYS_RAND    = 3;
-const ulong SYS_SLEEP   = 4;
-const ulong SYS_PRINTLN = 5;
-
-const ubyte LONG = 0;
-const ubyte ULONG = 1;
-const ubyte STRING = 2;
+const long SYS_SPAWN   = 0;
+const long SYS_SEND    = 1;
+const long SYS_RECV    = 2;
+const long SYS_RAND    = 3;
+const long SYS_SLEEP   = 4;
+const long SYS_PRINTLN = 5;
 
 class ByteCodeError : Exception {
     this(string msg, string file = __FILE__, size_t line = __LINE__) {
@@ -57,7 +53,7 @@ class ByteCodeError : Exception {
 
 struct Program {
     public ubyte[] byte_code;
-    public ulong[ulong] jump_table;
+    public long[long] jump_table;
     public string filename;
     private File file;
 
@@ -92,7 +88,7 @@ struct Program {
 
             switch (parts[0]) {
             case "LABEL":
-                jump_table[to!ulong(parts[1])] = byte_code.length;
+                jump_table[to!long(parts[1])] = byte_code.length;
                 continue;
             case "PUSH":
                 byte_code ~= PUSH << 3;
@@ -133,15 +129,15 @@ struct Program {
                 break;
             case "JUMP":
                 byte_code ~= JUMP << 3;
-                insert_ulong(to!ulong(parts[1]), byte_code);
+                insert_long(to!long(parts[1]), byte_code);
                 break;
             case "CJUMP":
                 byte_code ~= CJUMP << 3;
-                insert_ulong(to!ulong(parts[1]), byte_code);
+                insert_long(to!long(parts[1]), byte_code);
                 break;
             case "CALL":
                 byte_code ~= CALL << 3;
-                insert_ulong(to!ulong(parts[1]), byte_code);
+                insert_long(to!long(parts[1]), byte_code);
                 break;
             case "RET":
                 byte_code ~= RET << 3;
@@ -183,15 +179,15 @@ struct Program {
         }
 
         // Convert labels to byte indices
-        ulong i = 0;
+        long i = 0;
         while (i < byte_code.length) {
             auto opcode = byte_code[i] >> 3;
             if (opcode == PUSH) {
                 i += 8;
             } else if (opcode == JUMP || opcode == CJUMP || opcode == CALL) {
-                auto label = get_ulong(&byte_code[i + 1]);
+                auto label = get_long(&byte_code[i + 1]);
                 auto byte_index = jump_table[label];
-                set_ulong(byte_index, &byte_code[i + 1]);
+                set_long(byte_index, &byte_code[i + 1]);
                 i += 8;
             } else if (opcode == SYS) {
                 i += 8;
@@ -201,13 +197,6 @@ struct Program {
     }
 
     public void insert_long(long value, ref ubyte[] bytes) {
-        for (int i = 0; i < 8; i++){
-            bytes ~= cast(ubyte)(value & 0xFF);
-            value >>= 8;
-        }
-    }
-
-    public void insert_ulong(ulong value, ref ubyte[] bytes) {
         for (int i = 0; i < 8; i++){
             bytes ~= cast(ubyte)(value & 0xFF);
             value >>= 8;
@@ -235,7 +224,7 @@ struct Program {
     }
 
     private void insert_sys_name(string s, ref ubyte[] bytes) {
-        ulong sys_name;
+        long sys_name;
         if (s == "spawn") {
             sys_name = SYS_SPAWN;
         } else if (s == "send") {
@@ -251,17 +240,17 @@ struct Program {
         } else {
             throw new ByteCodeError("Unknown system function " ~ s);
         }
-        insert_ulong(sys_name, bytes);
+        insert_long(sys_name, bytes);
     }
 
     public void pretty_print() {
-        ulong i = 0;
+        long i = 0;
         while (i < byte_code.length) {
             i += 1 + pretty_print(&byte_code[i], true);
         }
     }
 
-    public ulong pretty_print(ubyte* bytes, bool show_labels) {
+    public long pretty_print(ubyte* bytes, bool show_labels) {
         switch (bytes[0] >> 3) {
         case PUSH:
             long value = get_long(&bytes[1]);
@@ -305,7 +294,7 @@ struct Program {
             writeln("DIV");
             break;
         case JUMP:
-            auto byte_index = get_ulong(&bytes[1]);
+            auto byte_index = get_long(&bytes[1]);
             if (show_labels) {
                 auto label = lookup_label(byte_index);
                 writeln("JUMP " ~ to!string(label));
@@ -314,7 +303,7 @@ struct Program {
             }
             return 8;
         case CJUMP:
-            auto byte_index = get_ulong(&bytes[1]);
+            auto byte_index = get_long(&bytes[1]);
             if (show_labels) {
                 auto label = lookup_label(byte_index);
                 writeln("CJUMP " ~ to!string(label));
@@ -323,7 +312,7 @@ struct Program {
             }
             return 8;
         case CALL:
-            auto byte_index = get_ulong(&bytes[1]);
+            auto byte_index = get_long(&bytes[1]);
             if (show_labels) {
                 auto label = lookup_label(byte_index);
                 writeln("CALL " ~ to!string(label));
@@ -335,7 +324,7 @@ struct Program {
             writeln("RET");
             break;
         case SYS:
-            ulong value = get_ulong(&bytes[1]);
+            long value = get_long(&bytes[1]);
             writeln("SYS " ~ to!string(value));
             return 8;
         case AND:
@@ -373,7 +362,7 @@ struct Program {
         return 0;
     }
 
-    private ulong lookup_label(ulong byte_index) {
+    private long lookup_label(long byte_index) {
         foreach (label, possible_byte_index; jump_table) {
             if (byte_index == possible_byte_index) {
                 return label;
@@ -400,22 +389,10 @@ long get_long(ubyte* bytes) {
     for (int i = 0; i < 8; i++) {
         value |= (cast(ulong)bytes[i]) << (i * 8);
     }
-    if ((value & (1UL << 63)) != 0) {
-        return -1 - (cast(long) (~value));
-    } else {
-        return cast(long) value;
-    }
+    return cast(long)value;
 }
 
-ulong get_ulong(ubyte* bytes) {
-    ulong value = 0;
-    for (int i = 0; i < 8; i++) {
-        value |= (cast(ulong)bytes[i]) << (i * 8);
-    }
-    return value;
-}
-
-void set_ulong(ulong value, ubyte* bytes) {
+void set_long(long value, ubyte* bytes) {
     for (int i = 0; i < 8; i++) {
         bytes[i] = cast(ubyte)(value & 0xFF);
         value >>= 8;

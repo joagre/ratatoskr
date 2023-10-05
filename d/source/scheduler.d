@@ -14,14 +14,14 @@ struct Scheduler {
     private Program[string] programs;
     private Duration time_slice;
     private uint timeout_granularity;
-    private ulong fid = 0;
+    private long fid = 0;
 
     this(Duration time_slice, uint timeout_granularity) {
         this.time_slice = time_slice;
         this.timeout_granularity = timeout_granularity;
     }
 
-    ulong spawn(string filename, long[] parameters) {
+    long spawn(string filename, long[] parameters) {
         Program* program = filename in programs;
         if (program == null) {
             programs[filename] = Program(filename);

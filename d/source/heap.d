@@ -11,10 +11,10 @@ class HeapError : Exception {
 }
 
 struct Heap {
-    private ulong nextAddress = 0;
-    private ubyte*[ulong] heap;
+    private long nextAddress = 0;
+    private ubyte*[long] heap;
 
-    ulong allocate(string content) {
+    long allocate(string content) {
         // +1 for null-terminator
         ubyte* memory = cast(ubyte*)_stdc_stdlib.malloc(content.length + 1);
         if (memory == null) {
@@ -25,7 +25,7 @@ struct Heap {
         return nextAddress++;
     }
 
-    void free(ulong address) {
+    void free(long address) {
         if (address in heap) {
             _stdc_stdlib.free(heap[address]);
             heap.remove(address);
