@@ -38,9 +38,10 @@ struct Interpreter {
             bool pc_updated = false;
             switch (byte_code[fiber.pc] >> 3) {
             case PUSH:
-                auto value = get_ulong(&byte_code[fiber.pc + 1]);
+                auto value = get_long(&byte_code[fiber.pc + 1]);
 
                 /*
+                  HMM!
                   auto unsigned_value = get_ulong(&byte_code[fiber.pc + 1]);
                   auto tagged_value = tag_ulong(unsigned_value, LONG);
                   fiber.stack ~= tagged_value;

@@ -96,7 +96,7 @@ struct Program {
                 continue;
             case "PUSH":
                 byte_code ~= PUSH << 3;
-                insert_ulong(to!ulong(parts[1]), byte_code);
+                insert_long(to!long(parts[1]), byte_code);
                 break;
             case "PUSHR":
                 byte_code ~= add_register(parts[1], PUSHR);
@@ -200,6 +200,13 @@ struct Program {
         }
     }
 
+    public void insert_long(long value, ref ubyte[] bytes) {
+        for (int i = 0; i < 8; i++){
+            bytes ~= cast(ubyte)(value & 0xFF);
+            value >>= 8;
+        }
+    }
+
     public void insert_ulong(ulong value, ref ubyte[] bytes) {
         for (int i = 0; i < 8; i++){
             bytes ~= cast(ubyte)(value & 0xFF);
@@ -257,7 +264,7 @@ struct Program {
     public ulong pretty_print(ubyte* bytes, bool show_labels) {
         switch (bytes[0] >> 3) {
         case PUSH:
-            ulong value = get_ulong(&bytes[1]);
+            long value = get_long(&bytes[1]);
             writeln("PUSH " ~ to!string(value));
             return 8;
         case PUSHR:
@@ -388,18 +395,22 @@ struct Program {
 
 }
 
-ulong get_ulong(ubyte* bytes) {
+long get_long(ubyte* bytes) {
     ulong value = 0;
     for (int i = 0; i < 8; i++) {
         value |= (cast(ulong)bytes[i]) << (i * 8);
     }
-    return value;
+    if ((value & (1UL << 63)) != 0) {
+        return -1 - (cast(long) (~value));
+    } else {
+        return cast(long) value;
+    }
 }
 
-ulong get_long(ubyte* bytes) {
-    long value = 0;
+ulong get_ulong(ubyte* bytes) {
+    ulong value = 0;
     for (int i = 0; i < 8; i++) {
-        value |= (cast(long)bytes[i]) << (i * 8);
+        value |= (cast(ulong)bytes[i]) << (i * 8);
     }
     return value;
 }
@@ -410,6 +421,10 @@ void set_ulong(ulong value, ubyte* bytes) {
         value >>= 8;
     }
 }
+
+/*
+
+KEEP: If I at some time feel the need to tag values on the stack
 
 Tuple!(ubyte, ulong) untag_ulong(ulong tagged_value) {
     return Tuple!(ubyte, ulong)
@@ -432,3 +447,21 @@ long ulong2long(ulong unsigned_value) {
 ulong long2ulong(long signed_value) {
     return cast(ulong)signed_value & ((1UL << 61) - 1);
 }
+
+unittest {
+    void insert_ulong(ulong value, ref ubyte[] bytes) {
+        for (int i = 0; i < 8; i++){
+            bytes ~= cast(ubyte)(value & 0xFF);
+            value >>= 8;
+        }
+    }
+    ubyte[] byte_code;
+    long signed = to!long("-455");
+    ulong unsigned = long2ulong(signed);
+    insert_ulong(unsigned, byte_code);
+    ulong a = get_ulong(&byte_code[0]);
+    long b = ulong2long(a);
+    assert(b == signed);
+}
+
+*/

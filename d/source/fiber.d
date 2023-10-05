@@ -5,7 +5,7 @@ import program;
 struct Fiber {
     public ulong fid;
     public Program* program;
-    public ulong[] stack;
+    public long[] stack;
     // sp is always stack.length - 1
     public ulong fp = 0;
     public ulong pc = 0;
