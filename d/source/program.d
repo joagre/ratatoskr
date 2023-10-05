@@ -9,34 +9,31 @@ import std.algorithm.searching : canFind;
 
 const ubyte SP = 0;
 const ubyte FP = 1;
-const ubyte PC = 2;
 
-const ubyte PUSH   = 0;
-const ubyte PUSHR  = 1;
-const ubyte POP    = 2;
-const ubyte DUP    = 3;
-const ubyte SWAP   = 4;
-const ubyte LOADR  = 5;
-const ubyte STORER = 6;
-const ubyte MOVER  = 7;
-const ubyte ADD    = 8;
-const ubyte SUB    = 9;
-const ubyte MUL    = 10;
-const ubyte DIV    = 11;
-const ubyte JUMP   = 12;
-const ubyte CJUMP  = 13;
-const ubyte CALL   = 14;
-const ubyte RET    = 15;
-const ubyte SYS    = 16;
-const ubyte AND    = 17;
-const ubyte OR     = 18;
-const ubyte NOT    = 19;
-const ubyte EQ     = 20;
-const ubyte NEQ    = 21;
-const ubyte LT     = 22;
-const ubyte GT     = 23;
-const ubyte NOP    = 24;
-const ubyte HALT   = 25;
+const ubyte PUSH  = 0;
+const ubyte POP   = 1;
+const ubyte DUP   = 2;
+const ubyte SWAP  = 3;
+const ubyte LOAD  = 4;
+const ubyte STORE = 5;
+const ubyte ADD   = 6;
+const ubyte SUB   = 7;
+const ubyte MUL   = 8;
+const ubyte DIV   = 9;
+const ubyte JUMP  = 10;
+const ubyte CJUMP = 11;
+const ubyte CALL  = 12;
+const ubyte RET   = 13;
+const ubyte SYS   = 14;
+const ubyte AND   = 15;
+const ubyte OR    = 16;
+const ubyte NOT   = 17;
+const ubyte EQ    = 18;
+const ubyte NEQ   = 19;
+const ubyte LT    = 20;
+const ubyte GT    = 21;
+const ubyte NOP   = 22;
+const ubyte HALT  = 23;
 
 const long SYS_SPAWN   = 0;
 const long SYS_SEND    = 1;
@@ -53,7 +50,7 @@ class ByteCodeError : Exception {
 
 struct Program {
     public ubyte[] byte_code;
-    public long[long] jump_table;
+    public int[int] jump_table;
     public string filename;
     private File file;
 
@@ -88,14 +85,11 @@ struct Program {
 
             switch (parts[0]) {
             case "LABEL":
-                jump_table[to!long(parts[1])] = byte_code.length;
+                jump_table[to!int(parts[1])] = cast(int)byte_code.length;
                 continue;
             case "PUSH":
                 byte_code ~= PUSH << 3;
                 insert_long(to!long(parts[1]), byte_code);
-                break;
-            case "PUSHR":
-                byte_code ~= add_register(parts[1], PUSHR);
                 break;
             case "POP":
                 byte_code ~= POP << 3;
@@ -106,14 +100,11 @@ struct Program {
             case "SWAP":
                 byte_code ~= SWAP << 3;
                 break;
-            case "LOADR":
-                byte_code ~= add_register(parts[1], ["SP", "FP"], LOADR);
+            case "LOAD":
+                byte_code ~= add_register(parts[1], LOAD);
                 break;
-            case "STORER":
-                byte_code ~= add_register(parts[1], ["SP", "FP"], STORER);
-                break;
-            case "MOVER":
-                byte_code ~= add_register(parts[1], MOVER);
+            case "STORE":
+                byte_code ~= add_register(parts[1], STORE);
                 break;
             case "ADD":
                 byte_code ~= ADD << 3;
@@ -137,7 +128,8 @@ struct Program {
                 break;
             case "CALL":
                 byte_code ~= CALL << 3;
-                insert_long(to!long(parts[1]), byte_code);
+                insert_int(to!int(parts[1]), byte_code);
+                insert_int(to!int(parts[2]), byte_code);
                 break;
             case "RET":
                 byte_code ~= RET << 3;
@@ -185,14 +177,21 @@ struct Program {
             if (opcode == PUSH) {
                 i += 8;
             } else if (opcode == JUMP || opcode == CJUMP || opcode == CALL) {
-                auto label = get_long(&byte_code[i + 1]);
+                auto label = get_int(&byte_code[i + 1]);
                 auto byte_index = jump_table[label];
-                set_long(byte_index, &byte_code[i + 1]);
+                set_int(byte_index, &byte_code[i + 1]);
                 i += 8;
             } else if (opcode == SYS) {
                 i += 8;
             }
             i++;
+        }
+    }
+
+    public void insert_int(int value, ref ubyte[] bytes) {
+        for (int i = 0; i < 4; i++) {
+            bytes ~= cast(ubyte)(value & 0xFF);
+            value >>= 8;
         }
     }
 
@@ -204,20 +203,10 @@ struct Program {
     }
 
     private ubyte add_register(string s, ubyte opcode) {
-        return add_register(s, ["SP", "FP", "PC"],  opcode);
-    }
-
-    private ubyte add_register(string s, string[] valid_registers,
-                               ubyte opcode) {
-        if (!valid_registers.canFind(s)) {
-            throw new ByteCodeError("Invalid register " ~ s);
-        }
         if (s == "SP") {
             return cast(ubyte)(opcode << 3) | SP;
         } else if (s == "FP") {
             return cast(ubyte)(opcode << 3) | FP;
-        } else if (s == "PC") {
-            return cast(ubyte)(opcode << 3) | PC;
         } else {
             throw new ByteCodeError("Invalid register " ~ s);
         }
@@ -256,10 +245,6 @@ struct Program {
             long value = get_long(&bytes[1]);
             writeln("PUSH " ~ to!string(value));
             return 8;
-        case PUSHR:
-            string register = get_register_string(bytes[0]);
-            writeln("PUSHR " ~ register);
-            break;
         case POP:
             writeln("POP");
             break;
@@ -269,17 +254,13 @@ struct Program {
         case SWAP:
             writeln("SWAP");
             break;
-        case LOADR:
+        case LOAD:
             string register = get_register_string(bytes[0]);
-            writeln("LOADR " ~ register);
+            writeln("LOAD " ~ register);
             break;
-        case STORER:
+        case STORE:
             string register = get_register_string(bytes[0]);
-            writeln("STORER " ~ register);
-            break;
-        case MOVER:
-            string register = get_register_string(bytes[0]);
-            writeln("MOVER " ~ register);
+            writeln("STORE " ~ register);
             break;
         case ADD:
             writeln("ADD");
@@ -312,12 +293,14 @@ struct Program {
             }
             return 8;
         case CALL:
-            auto byte_index = get_long(&bytes[1]);
+            int byte_index = get_int(&bytes[1]);
+            int arity = get_int(&bytes[5]);
             if (show_labels) {
                 auto label = lookup_label(byte_index);
-                writeln("CALL " ~ to!string(label));
+                writeln("CALL " ~ to!string(label) ~ " " ~ to!string(arity));
             } else {
-                writeln("CALL " ~ to!string(byte_index));
+                writeln("CALL " ~ to!string(byte_index) ~ " " ~
+                        to!string(arity));
             }
             return 8;
         case RET:
@@ -384,6 +367,21 @@ struct Program {
 
 }
 
+int get_int(ubyte* bytes) {
+    uint value = 0;
+    for (int i = 0; i < 4; i++) {
+        value |= (cast(uint)bytes[i]) << (i * 8);
+    }
+    return cast(int)value;
+}
+
+void set_int(int value, ubyte* bytes) {
+    for (int i = 0; i < 4; i++) {
+        bytes[i] = cast(ubyte)(value & 0xFF);
+        value >>= 8;
+    }
+}
+
 long get_long(ubyte* bytes) {
     ulong value = 0;
     for (int i = 0; i < 8; i++) {
@@ -398,47 +396,3 @@ void set_long(long value, ubyte* bytes) {
         value >>= 8;
     }
 }
-
-/*
-
-KEEP: If I at some time feel the need to tag values on the stack
-
-Tuple!(ubyte, ulong) untag_ulong(ulong tagged_value) {
-    return Tuple!(ubyte, ulong)
-                (cast(ubyte)((tagged_value >> 61) & 0x7),
-                tagged_value & ((1UL << 61) - 1));
-}
-
-ulong tag_ulong(ulong untagged_value, ubyte tag) {
-    return untagged_value | (cast(ulong)tag << 61);
-}
-
-long ulong2long(ulong unsigned_value) {
-    if ((unsigned_value & (1L << 60)) != 0) {
-        return cast(long)(unsigned_value | ~((1L << 61) - 1));
-    } else {
-        return cast(long)unsigned_value;
-    }
-}
-
-ulong long2ulong(long signed_value) {
-    return cast(ulong)signed_value & ((1UL << 61) - 1);
-}
-
-unittest {
-    void insert_ulong(ulong value, ref ubyte[] bytes) {
-        for (int i = 0; i < 8; i++){
-            bytes ~= cast(ubyte)(value & 0xFF);
-            value >>= 8;
-        }
-    }
-    ubyte[] byte_code;
-    long signed = to!long("-455");
-    ulong unsigned = long2ulong(signed);
-    insert_ulong(unsigned, byte_code);
-    ulong a = get_ulong(&byte_code[0]);
-    long b = ulong2long(a);
-    assert(b == signed);
-}
-
-*/

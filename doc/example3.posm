@@ -1,32 +1,33 @@
 LABEL 0          ; start/0
-  PUSH 1         ; X = 1
-  ALLOC "foo"    ; Y = "foo"
+  PUSH 1         ; Local variable X
+  PUSH "foo"     ; Local variable Y
   PUSH -1
   LOADR FP
   PUSH 1
-  ADD            ; Z = X + 1
+  ADD            ; Local variable Z
   ; Call bar(Y, Z)
   PUSH -2
-  LOADR FP       ; Pushes local variable Y
+  LOADR FP       ; Pushes parameter Y
   PUSH -3
-  LOAD FP        ; Pushes local variable Z
+  LOAD FP        ; Pushes parameter Z
   PUSH 2         ; Pushes number of parameters
   CALL 1
   ; Remove local variables
   SWAP
   POP            ; Pop local variable Z
   SWAP
-  FREE           ; Pop local variable Y and free memory
+  FREE
+  POP            ; Pop local variable Y (address N in data stack)
   SWAP
   POP            ; Pop local variable X
   RET
 
 LABEL 1          ; bar/2
   ; Call SYS println
-  PUSH 2
-  LOADR FP       ; Pushes parameter Y
+  PUSH 3
+  LOADR FP       ; Pushes parameter Z
   SYS println
   POP            ; Pops return value from println
-  PUSH 3
-  LOADR FP
+  PUSH 4
+  LOADR FP       ; Result
   RET

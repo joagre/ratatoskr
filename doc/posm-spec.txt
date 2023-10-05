@@ -4,14 +4,13 @@ A Plain Old Stack Machine (POSM)
 This document describes a Plain Old Stack Machine (POSM) intended to
 be used in experiments with different types of thread scheduling
 algorithms. POSM sports the following instructions: PUSH, PUSHR, POP,
-DUP, SWAP, LOADR, STORER, ADD, SUB, MUL, DIV, JUMP, CJUMP, CALL, RET,
+DUP, SWAP, LOAD, STORE, ADD, SUB, MUL, DIV, JUMP, CJUMP, CALL, RET,
 SYSCALL, AND, OR, NOT, EQ, NEQ, LT, GT, NOP and HALT.
 
-POSM also has three registers:
+POSM also has two read-only registers:
 
 SP: Stack pointer
 FP: Frame pointer
-PC: Program counter
 
 NOTE: The stack grows downwards.
 
@@ -20,14 +19,13 @@ Instruction set
 
 LABEL label       ; A jump label. This is a meta instruction.
 PUSH value        ; Pushes a value onto the stack.
-PUSHR SP|FP|PC    ; Pushes the content of a register onto the stack.
 POP               ; Removes the top value from the stack.
 DUP               ; Duplicates the top value on the stack.
 SWAP              ; Swaps the top two values on the stack.
-LOADR SP|FP       ; Copies a value on the stack to the top of the stack.
+LOAD SP|FP        ; Copies a value on the stack to the top of the stack.
                   ; The top value of the stack must be an offset to SP
                   ; or FP
-STORER SP|FP      ; Updates a value on the stack. The top value of the
+STORE SP|FP       ; Updates a value on the stack. The top value of the
                   ; stack must an offset to the SP or FP and the new
                   ; value comes next.
 ADD               ; Pops two values, adds them, and pushes the result.
@@ -37,14 +35,14 @@ DIV               ; Pops two values, divides them, and pushes the result.
 JUMP label        ; Unconditionally jumps to a label.
 CJUMP label       ; Conditionally jumps based to a label if the top
                   ; value of the stack is not 0. Pops the top value.
-CALL label        ; Calls a function and pushes the return address and
-                  ; performs the function prologue, i.e. adds a new
-                  ; call frame (saves the old FP on the stack and sets
-                  ; FP to SP).
-RET               ; Performs the function epilogue (pops the saved FP
-                  ; from the stack and sets FP to it). It also pops
-                  ; all CALL parameters and finally jumps back to the
-                  ; return address.
+CALL label arity  ; Calls a function implemented in label with the
+                  ; specified arity. Pushes the return address and
+                  ; previous FP onto the stack. Sets FP to the first
+                  ; parameter on the stack.
+RET               ; Removes the stack frame as specified by FP
+                  ; (everything below FP is nuked). Restores FP to the
+                  ; previous FP. Pushes the return value onto the stack and
+                  ; jumps to the return address.
 SYS name          ; Calls a built-in function, e.g. spawn, send, recv,
                   ; rand, sleep and println etc.
 AND               ; Pops two values, performs a logical AND, and
@@ -82,90 +80,84 @@ This is how it could be written:
 __EXAMPLE1_START__
 LABEL 0          ; start/0
   ;; Stack:
-  ;;   0 (number of parameters)
-  ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Return address <- FP
+  ;;   Previous FP
   ; Call summer(13, 10)
   PUSH 13        ; Pushes parameter M
   PUSH 10        ; Pushes parameter N
-  PUSH 2         ; Pushes number of parameters
   ;; Stack:
-  ;;   0 (number of parameters)
-  ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Return address <- FP
+  ;;   Previous FP
   ;;   13
   ;;   10
-  ;;   2
-  CALL 1
+  CALL 1 2
   ;; Stack:
-  ;;   0 (number of parameters)
-  ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Return address <- FP
+  ;;   Previous FP
   ;;   130
   RET
+  ;; Stack:
+  ;;   130
 
 LABEL 1          ; summer/2
   ;; Stack:
-  ;;   M
+  ;;   M <- FP
   ;;   N
-  ;;   2 (number of parameters)
   ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Previous FP
   ; Is it summer(_M, 0) clause?
-  PUSH 3
-  LOADR FP       ; Parameter  N
+  PUSH -1
+  LOAD FP       ; Parameter  N
   PUSH 0
   NEQ
   CJUMP 2
   PUSH 0
   ;; Stack:
-  ;;   M
+  ;;   M <- FP
   ;;   N
-  ;;   Number of parameters
   ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Previous FP
   ;;   0
   RET
+  ;; Stack:
+  ;;   0
 
 LABEL 2
   ;; Stack:
-  ;;   M
+  ;;   M <- FP
   ;;   N
-  ;;   2 (number of parameters)
   ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Previous FP
   ; It is summer(M, N) clause!
   ; Call summer(M, N - 1)
-  PUSH 4
-  LOADR FP       ; Parameter M
-  PUSH 4
-  LOADR FP       ; Pushes Parameter M
-  PUSH 3
-  LOADR FP       ; Parameter N
+  PUSH 0
+  LOAD FP       ; Parameter M
+  PUSH 0
+  LOAD FP       ; Pushes Parameter M
+  PUSH -1
+  LOAD FP       ; Parameter N
   PUSH 1
   SUB            ; Pushes parameter N - 1
-  PUSH 2         ; Pushes number of parameters
   ;; Stack:
-  ;;   M
+  ;;   M <- FP
   ;;   N
-  ;;   2 (number of parameters)
   ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Previous FP
   ;;   M
   ;;   N - 1
-  ;;   2
-  CALL 1
+  CALL 1 2
   ;; Stack:
   ;;   summer(M, N - 1)
   ADD            ; M + summer(M, N - 1)
   ;; Stack:
-  ;;   M
+  ;;   M <- FP
   ;;   N
-  ;;   2 (number of parameters)
   ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Previous FP
   ;;   M + summer(M, N - 1)
   RET
+  ;; Stack:
+  ;;   M + summer(M, N - 1)
 __EXAMPLE1_END__
 
 Example 2
@@ -193,96 +185,90 @@ This is how it could be written:
 __EXAMPLE2_START__
 LABEL 0          ; start/0
   ;; Stack:
-  ;;   0 (number of parameters)
-  ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Return address <- FP
+  ;;   Previous FP
   ; Call summer(13, 10)
   PUSH 13       ; Pushes parameter M
   PUSH 10       ; Pushes parameter N
   PUSH 0        ; Pushes parameter Ack
-  PUSH 3        ; Pushes number of parameters
   ;; Stack:
-  ;;   0 (number of parameters)
-  ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Return address <- FP
+  ;;   Previous FP
   ;;   13
   ;;   10
   ;;   0
-  ;;   3
-  CALL 1
+  CALL 1 3
   ;; Stack:
-  ;;   0 (number of parameters)
-  ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Return address <- FP
+  ;;   Previous FP
   ;;   130
   RET
+  ;; Stack:
+  ;;   130
 
 LABEL 1          ; summer/2
   ;; Stack:
-  ;;   M
+  ;;   M <- FP
   ;;   N
   ;;   Ack
-  ;;   3 (number of parameters)
   ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Previous FP
   ; Is it summer(_M, 0, Ack) clause?
-  PUSH 4
-  LOADR FP       ; Parameter N
+  PUSH -1
+  LOAD FP        ; Parameter N
   PUSH 0
   NEQ
   CJUMP 2
-  PUSH 3
-  LOADR FP
+  PUSH -2
+  LOAD FP        ; Ack
   ;; Stack:
-  ;;   M
+  ;;   M <- FP
   ;;   N
   ;;   Ack
-  ;;   3 (number of parameters)
   ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Previous FP
   ;;   Ack
   RET
+  ;; Stack:
+  ;;   Ack
 
 LABEL 2
   ;; Stack:
-  ;;   M
+  ;;   M <- FP
   ;;   N
   ;;   Ack
-  ;;   3 (number of parameters)
   ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Previous FP
   ; It is summer(M, N, Ack)!
   ; Call summer(M, N - 1, Ack + M)
-  PUSH 4
-  LOADR FP       ; Parameter N
+  PUSH -1
+  LOAD FP        ; Parameter N
   PUSH 1
   SUB            ; N - 1
-  PUSH 3
-  LOADR FP       ; Parameter Ack
-  PUSH 5
-  LOADR FP       ; Parameter M
+  PUSH -2
+  LOAD FP        ; Parameter Ack
+  PUSH 0
+  LOAD FP        ; Parameter M
   ADD
   ;; Stack:
-  ;;   M
+  ;;   M <- FP
   ;;   N
   ;;   Ack
-  ;;   3 (number of parameters)
   ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Previous FP
   ;;   N - 1
   ;;   Ack + M
   ; Patch (changed) parameters in place and jump to label 1
-  PUSH 3
-  STORER FP      ; Patches Ack -> Ack + M
-  PUSH 4
-  STORER FP      ; Patches N -> N - 1
+  PUSH -2
+  STORE FP      ; Patches Ack -> Ack + M
+  PUSH -1
+  STORE FP      ; Patches N -> N - 1
   ;; Stack:
-  ;;   M
+  ;;   M <- FP
   ;;   N - 1
   ;;   Ack + M
-  ;;   3 (number of parameters)
   ;;   Return address
-  ;;   Previous FP <- FP
+  ;;   Previous FP
   JUMP 1         ; Voila! The old stack frame is reused.
 __EXAMPLE2_END__
 
@@ -290,8 +276,6 @@ Example 3
 =========
 
 Consider this Erlang snippet:
-
-THIS EXAMPLE IS NOT RIGHT. EXPERIMANTATION!!!
 
 start() ->
     X = 1,
@@ -303,8 +287,8 @@ bar(Y, Z) ->
     io:format("~p\n", [Z]),
     Y.
 
-Yet another silly example introducing how to deal with local
-variables, string literals and the SYS instruction.
+This rather silly example introduces how to deal with local variables,
+string literals and the SYS instruction.
 
 __EXAMPLE3_START__
 LABEL 0          ; start/0
@@ -312,56 +296,60 @@ LABEL 0          ; start/0
   ;;   0 (number of parameters)
   ;;   Return address
   ;;   Previous FP <- FP
-  PUSH 1         ; X = 1
-  ALLOC "foo"    ; Y = "foo"
+  PUSH 1         ; Local variable X
+  PUSH "foo"     ; Local variable Y
   PUSH -1
   LOADR FP
   PUSH 1
-  ADD            ; Z = X + 1
+  ADD            ; Local variable Z
   ;; Stack:
   ;;   0 (number of parameters)
   ;;   Return address
   ;;   Previous FP <- FP
-  ;;   1 (X)
-  ;;   An address to "foo" (Y)
-  ;;   Z = X + 1
+  ;;   1 (Local variable X)
+  ;;   "foo" (Local variable Y [Copy N in data stack])
+  ;;   2 (Local variable Z)
   ; Call bar(Y, Z)
   PUSH -2
-  LOADR FP       ; Pushes local variable Y
+  LOADR FP       ; Pushes parameter Y
   PUSH -3
-  LOAD FP        ; Pushes local variable Z
+  LOAD FP        ; Pushes parameter Z
   PUSH 2         ; Pushes number of parameters
   ;; Stack:
   ;;   0 (number of parameters)
   ;;   Return address
   ;;   Previous FP <- FP
-  ;;   1 (X)
-  ;;   An address to "foo" (Y)
-  ;;   Z = X + 1
-  ;;   An address to "foo" (Y)
-  ;;   Z = X + 1
+  ;;   1 (Local variable X)
+  ;;   "foo" (Address N in data stack)
+  ;;   2 (Local variable Z)
+  ;;   "foo"  (Address N+1 in data stack)
+  ;;   2 (Z)
+  ;;   2 (Number of parameters)
   CALL 1
   ;; Stack:
   ;;   0 (number of parameters)
   ;;   Return address
   ;;   Previous FP <- FP
-  ;;   1 (X)
-  ;;   An address to "foo" (Y)
-  ;;   Z = X + 1
-  ;;   Z = X + 1 ; Return value from bar/2
+  ;;   1 (Local variable X)
+  ;;   The address to "foo" (Local variable Y)
+  ;;   2 (Local variable Z)
+  ;;   The address to "foo" (-> address N+2. Return value from bar/2)
   ; Remove local variables
   SWAP
   POP            ; Pop local variable Z
   SWAP
-  FREE           ; Pop local variable Y and free memory
+  FREE
+  POP            ; Pop local variable Y (address N in data stack)
   SWAP
   POP            ; Pop local variable X
   ;; Stack:
   ;;   0 (number of parameters)
   ;;   Return address
   ;;   Previous FP <- FP
-  ;;   Z = X + 1 ; Return value from bar/2
+  ;;   The address to "foo" (-> address N+2. Return value from bar/2)
   RET
+  ;; Stack:
+  ;;   The address to "foo" (Return value from bar/2)
 
 LABEL 1          ; bar/2
   ;; Stack:
@@ -371,15 +359,8 @@ LABEL 1          ; bar/2
   ;;   Return address
   ;;   Previous FP <- FP
   ; Call SYS println
-  PUSH 2
-  LOADR FP       ; Pushes parameter Y
-  ;; Stack:
-  ;;   Y
-  ;;   Z
-  ;;   2 (number of parameters)
-  ;;   Return address
-  ;;   Previous FP <- FP
-  ;;   Y
+  PUSH 3
+  LOADR FP       ; Pushes parameter Z
   SYS println
   ;; Stack:
   ;;   Y
@@ -387,16 +368,18 @@ LABEL 1          ; bar/2
   ;;   2 (number of parameters)
   ;;   Return address
   ;;   Previous FP <- FP
-  ;;   1
+  ;;   1 (Return value from println)
   POP            ; Pops return value from println
-  PUSH 3
-  LOADR FP
+  PUSH 4
+  LOADR FP       ; Result
   ;; Stack:
   ;;   Y
   ;;   Z
   ;;   2 (number of parameters)
   ;;   Return address
   ;;   Previous FP <- FP
-  ;;   Z
+  ;;   Y
   RET
+  ;; Stack:
+  ;;   Y
 __EXAMPLE3_END__

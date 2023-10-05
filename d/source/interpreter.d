@@ -3,8 +3,6 @@ module interpreter;
 import std.conv : to;
 import std.datetime : Duration, Clock;
 import std.stdio : writeln;
-import std.range : iota;
-import std.algorithm : each;
 import program;
 import fiber;
 import scheduler;
@@ -46,16 +44,6 @@ struct Interpreter {
                 fiber.pc += 8 + 1;
                 pc_updated = true;
                 break;
-            case PUSHR:
-                auto register = cast(ubyte)(byte_code[fiber.pc] & 0b00000111);
-                if (register == SP) {
-                    push(fiber.stack.length - 1, fiber);
-                } else if (register == FP) {
-                    push(fiber.fp, fiber);
-                } else { // Must be PC
-                    push(fiber.pc, fiber);
-                }
-                break;
             case POP:
                 pop(fiber);
                 break;
@@ -65,17 +53,13 @@ struct Interpreter {
             case SWAP:
                 swap(fiber);
                 break;
-            case LOADR:
+            case LOAD:
                 auto register = cast(ubyte)(byte_code[fiber.pc] & 0b00000111);
-                loadr(register, fiber);
+                load(register, fiber);
                 break;
-            case STORER:
+            case STORE:
                 auto register = cast(ubyte)(byte_code[fiber.pc] & 0b00000111);
-                storer(register, fiber);
-                break;
-            case MOVER:
-                auto register = cast(ubyte)(byte_code[fiber.pc] & 0b00000111);
-                pc_updated = mover(register, fiber);
+                store(register, fiber);
                 break;
             case ADD:
                 apply((operand1, operand2) => operand1 + operand2, fiber);
@@ -105,11 +89,16 @@ struct Interpreter {
                 pc_updated = true;
                 break;
             case CALL:
-                auto byte_index = get_long(&byte_code[fiber.pc + 1]);
-                push(fiber.pc + 1 + 8, fiber); // Add return address to stack
+                int byte_index = get_int(&byte_code[fiber.pc + 1]);
+                int arity = get_int(&byte_code[fiber.pc + 5]);
+                // Adds return address to stack
+                push(fiber.pc + 1 + 8, fiber);
+                // Saves previous FP on the stack
+                push(fiber.fp, fiber);
+                // Sets FP to first parameter
+                fiber.fp = fiber.stack.length - 2 - arity;
+                // Jump to CALL label
                 fiber.pc = byte_index;
-                push(fiber.fp, fiber); // Save previous FP on the stack
-                fiber.fp = fiber.stack.length - 1; // Sets FP to SP
                 pc_updated = true;
                 break;
             case RET:
@@ -117,15 +106,19 @@ struct Interpreter {
                     // The stack is exhausted!
                     return InterpreterResult.halt;
                 }
+                long fp = fiber.fp;
                 swap(fiber);
-                mover(FP, fiber); // Restores FP to saved FP
+                // Restores FP to saved FP
+                fiber.fp = pop(fiber);
                 swap(fiber);
                 auto return_address = pop(fiber);
                 auto return_value = pop(fiber);
-                auto number_of_parameters = pop(fiber);
-                pop(number_of_parameters, fiber);
+                // Remove stack frame
+                fiber.stack = fiber.stack[0 .. fp];
+                // Reinserts return value
                 push(return_value, fiber);
-                fiber.pc = return_address; // Jumps to return address
+                // Jumps to return address
+                fiber.pc = return_address;
                 pc_updated = true;
                 break;
             case SYS:
@@ -216,10 +209,6 @@ struct Interpreter {
         return topValue;
     }
 
-    private void pop(long n, ref Fiber fiber) {
-        iota(n).each!(_ => pop(fiber));
-    }
-
     private void dup(ref Fiber fiber) {
         auto topValue = fiber.stack[$ - 1];
         fiber.stack ~= topValue;
@@ -231,7 +220,7 @@ struct Interpreter {
         fiber.stack[$ - 2] = topValue;
     }
 
-    private void loadr(ubyte register, ref Fiber fiber) {
+    private void load(ubyte register, ref Fiber fiber) {
         auto offset = pop(fiber);
         if (register == SP) {
             push(fiber.stack[$ - 1 - offset], fiber);
@@ -240,27 +229,13 @@ struct Interpreter {
         }
     }
 
-    private void storer(ubyte register, ref Fiber fiber) {
+    private void store(ubyte register, ref Fiber fiber) {
         auto offset = pop(fiber);
         auto new_value = pop(fiber);
         if (register == SP) {
             fiber.stack[$ - 1 - offset] = new_value;
         } else { // Must be FP
             fiber.stack[fiber.fp - offset] = new_value;
-        }
-    }
-
-    private bool mover(ubyte register, ref Fiber fiber) {
-        auto topValue = pop(fiber);
-        if (register == SP) {
-            pop(fiber.stack.length - 1 - topValue, fiber);
-            return false;
-        } else if (register == FP) {
-            fiber.fp = topValue;
-            return false;
-        } else { // Must be PC
-            fiber.pc = topValue;
-            return true;
         }
     }
 

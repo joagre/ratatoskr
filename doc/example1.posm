@@ -2,14 +2,13 @@ LABEL 0          ; start/0
   ; Call summer(13, 10)
   PUSH 13        ; Pushes parameter M
   PUSH 10        ; Pushes parameter N
-  PUSH 2         ; Pushes number of parameters
-  CALL 1
+  CALL 1 2
   RET
 
 LABEL 1          ; summer/2
   ; Is it summer(_M, 0) clause?
-  PUSH 3
-  LOADR FP       ; Parameter  N
+  PUSH -1
+  LOAD FP       ; Parameter  N
   PUSH 0
   NEQ
   CJUMP 2
@@ -19,15 +18,14 @@ LABEL 1          ; summer/2
 LABEL 2
   ; It is summer(M, N) clause!
   ; Call summer(M, N - 1)
-  PUSH 4
-  LOADR FP       ; Parameter M
-  PUSH 4
-  LOADR FP       ; Pushes Parameter M
-  PUSH 3
-  LOADR FP       ; Parameter N
+  PUSH 0
+  LOAD FP       ; Parameter M
+  PUSH 0
+  LOAD FP       ; Pushes Parameter M
+  PUSH -1
+  LOAD FP       ; Parameter N
   PUSH 1
   SUB            ; Pushes parameter N - 1
-  PUSH 2         ; Pushes number of parameters
-  CALL 1
+  CALL 1 2
   ADD            ; M + summer(M, N - 1)
   RET
