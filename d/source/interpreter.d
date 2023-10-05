@@ -89,6 +89,10 @@ struct Interpreter {
                 pc_updated = true;
                 break;
             case CALL:
+                //
+                // Call stack management
+                //
+
                 int byte_index = get_int(&byte_code[fiber.pc + 1]);
                 int arity = get_int(&byte_code[fiber.pc + 5]);
                 // Adds return address to stack
@@ -100,13 +104,27 @@ struct Interpreter {
                 // Jump to CALL label
                 fiber.pc = byte_index;
                 pc_updated = true;
+
+                //
+                // Data stack management
+                //
+
+                // Saves previous Data FP on the data stack
+                insert_long(fiber.data_fp, fiber.data_stack);
+                fiber.data_fp = fiber.data_stack.length - 8;
+
                 break;
             case RET:
                 if (fiber.stack.length == 1) {
                     // The stack is exhausted!
                     return InterpreterResult.halt;
                 }
-                long fp = fiber.fp;
+
+                //
+                // Call stack management
+                //
+
+                auto current_fp = fiber.fp;
                 swap(fiber);
                 // Restores FP to saved FP
                 fiber.fp = pop(fiber);
@@ -114,12 +132,22 @@ struct Interpreter {
                 auto return_address = pop(fiber);
                 auto return_value = pop(fiber);
                 // Remove stack frame
-                fiber.stack = fiber.stack[0 .. fp];
+                fiber.stack = fiber.stack[0 .. current_fp];
                 // Reinserts return value
                 push(return_value, fiber);
                 // Jumps to return address
                 fiber.pc = return_address;
                 pc_updated = true;
+
+                //
+                // Data stack management
+                //
+
+                auto previous_data_fp =
+                    get_long(&fiber.data_stack[fiber.data_fp]);
+                fiber.data_stack = fiber.data_stack[0 .. fiber.data_fp];
+                fiber.data_fp = previous_data_fp;
+
                 break;
             case SYS:
                 auto sys_name = get_long(&byte_code[fiber.pc + 1]);

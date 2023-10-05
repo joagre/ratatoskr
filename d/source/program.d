@@ -188,20 +188,6 @@ struct Program {
         }
     }
 
-    public void insert_int(int value, ref ubyte[] bytes) {
-        for (int i = 0; i < 4; i++) {
-            bytes ~= cast(ubyte)(value & 0xFF);
-            value >>= 8;
-        }
-    }
-
-    public void insert_long(long value, ref ubyte[] bytes) {
-        for (int i = 0; i < 8; i++){
-            bytes ~= cast(ubyte)(value & 0xFF);
-            value >>= 8;
-        }
-    }
-
     private ubyte add_register(string s, ubyte opcode) {
         if (s == "SP") {
             return cast(ubyte)(opcode << 3) | SP;
@@ -365,6 +351,20 @@ struct Program {
         }
     }
 
+}
+
+public void insert_int(int value, ref ubyte[] bytes) {
+    for (int i = 0; i < 4; i++) {
+        bytes ~= cast(ubyte)(value & 0xFF);
+        value >>= 8;
+    }
+}
+
+public void insert_long(long value, ref ubyte[] bytes) {
+    for (int i = 0; i < 8; i++){
+        bytes ~= cast(ubyte)(value & 0xFF);
+        value >>= 8;
+    }
 }
 
 int get_int(ubyte* bytes) {
