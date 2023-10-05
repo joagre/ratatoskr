@@ -108,9 +108,9 @@ struct Interpreter {
                 auto byte_index = get_long(&byte_code[fiber.pc + 1]);
                 push(fiber.pc + 1 + 8, fiber); // Add return address to stack
                 fiber.pc = byte_index;
-                pc_updated = true;
                 push(fiber.fp, fiber); // Save previous FP on the stack
                 fiber.fp = fiber.stack.length - 1; // Sets FP to SP
+                pc_updated = true;
                 break;
             case RET:
                 if (fiber.stack.length == 1) {
@@ -125,7 +125,7 @@ struct Interpreter {
                 auto number_of_parameters = pop(fiber);
                 pop(number_of_parameters, fiber);
                 push(return_value, fiber);
-                fiber.pc = return_address;
+                fiber.pc = return_address; // Jumps to return address
                 pc_updated = true;
                 break;
             case SYS:
