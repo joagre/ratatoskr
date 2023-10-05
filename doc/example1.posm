@@ -1,21 +1,12 @@
 LABEL 0          ; start/0
-  ; Function prologue
-  PUSHR FP       ; Saves previous FP
-  PUSHR SP
-  MOVER FP       ; Sets FP to SP
   ; Call summer(13, 10)
   PUSH 13        ; Pushes parameter M
   PUSH 10        ; Pushes parameter N
   PUSH 2         ; Pushes number of parameters
   CALL 1
-  ; Common function epilogue
-  JUMP 1000
+  RET
 
 LABEL 1          ; summer/2
-  ; Function prologue
-  PUSHR FP       ; Saves previous FP
-  PUSHR SP
-  MOVER FP       ; Sets FP to SP
   ; Is it summer(_M, 0) clause?
   PUSH 3
   LOADR FP       ; Parameter  N
@@ -23,8 +14,7 @@ LABEL 1          ; summer/2
   NEQ
   CJUMP 2
   PUSH 0
-  ; Common function epilogue
-  JUMP 1000
+  RET
 
 LABEL 2
   ; It is summer(M, N) clause!
@@ -40,20 +30,4 @@ LABEL 2
   PUSH 2         ; Pushes number of parameters
   CALL 1
   ADD            ; M + summer(M, N - 1)
-  ; Common function epilogue
-  JUMP 1000
-
-; Common function epilogue
-LABEL 1000
-  ; Function epilogue
-  SWAP
-  MOVER FP       ; Restores FP to saved FP
-  PUSHR SP
-  PUSH 0
-  EQ
-  CJUMP 2000     ; If the stack is exhausted we are done!
-  SWAP
-  RET            ; Pops function parameters and jumps to return address
-
-LABEL 2000
-  HALT
+  RET

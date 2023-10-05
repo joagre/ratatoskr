@@ -102,10 +102,6 @@ This is how it could be written:
 
 __EXAMPLE1_START__
 LABEL 0          ; start/0
-  ; Function prologue
-  PUSHR FP       ; Saves previous FP
-  PUSHR SP
-  MOVER FP       ; Sets FP to SP
   ;; Stack:
   ;;   0 (number of parameters)
   ;;   Return address
@@ -127,14 +123,9 @@ LABEL 0          ; start/0
   ;;   Return address
   ;;   Previous FP <- FP
   ;;   130
-  ; Common function epilogue
-  JUMP 1000
+  RET
 
 LABEL 1          ; summer/2
-  ; Function prologue
-  PUSHR FP       ; Saves previous FP
-  PUSHR SP
-  MOVER FP       ; Sets FP to SP
   ;; Stack:
   ;;   M
   ;;   N
@@ -155,8 +146,7 @@ LABEL 1          ; summer/2
   ;;   Return address
   ;;   Previous FP <- FP
   ;;   0
-  ; Common function epilogue
-  JUMP 1000
+  RET
 
 LABEL 2
   ;; Stack:
@@ -196,36 +186,7 @@ LABEL 2
   ;;   Return address
   ;;   Previous FP <- FP
   ;;   M + summer(M, N - 1)
-  ; Common function epilogue
-  JUMP 1000
-
-; Common function epilogue
-LABEL 1000
-  ;; Stack:
-  ;;   Parameters...
-  ;;   Number of parameters
-  ;;   Return address
-  ;;   Previous FP <- FP
-  ;;   Result
-  ; Function epilogue
-  SWAP
-  MOVER FP       ; Restores FP to saved FP
-  PUSHR SP
-  PUSH 0
-  EQ
-  CJUMP 2000     ; If the stack is exhausted we are done!
-  SWAP
-  ;; Stack:
-  ;;   Parameters...
-  ;;   Number of parameters
-  ;;   Result
-  ;;   Return address
-  RET            ; Pops function parameters and jumps to return address
-  ;; Stack:
-  ;;   Result
-
-LABEL 2000
-  HALT
+  RET
 __EXAMPLE1_END__
 
 Example 2
@@ -252,19 +213,15 @@ This is how it could be written:
 
 __EXAMPLE2_START__
 LABEL 0          ; start/0
-  ; Function prologue
-  PUSHR FP       ; Saves previous FP
-  PUSHR SP
-  MOVER FP       ; Sets FP to SP
   ;; Stack:
   ;;   0 (number of parameters)
   ;;   Return address
   ;;   Previous FP <- FP
   ; Call summer(13, 10)
-  PUSH 13        ; Pushes parameter M
-  PUSH 10        ; Pushes parameter N
-  PUSH 0         ; Pushes parameter Ack
-  PUSH 3         ; Pushes number of parameters
+  PUSH 13       ; Pushes parameter M
+  PUSH 10       ; Pushes parameter N
+  PUSH 0        ; Pushes parameter Ack
+  PUSH 3        ; Pushes number of parameters
   ;; Stack:
   ;;   0 (number of parameters)
   ;;   Return address
@@ -279,17 +236,9 @@ LABEL 0          ; start/0
   ;;   Return address
   ;;   Previous FP <- FP
   ;;   130
-  ; Common function epilogue
-  JUMP 1000
+  RET
 
 LABEL 1          ; summer/2
-  ; Function prologue
-  PUSHR FP       ; Saves previous FP
-  PUSHR SP
-  MOVER FP     ; Sets FP to SP
-  JUMP 2
-
-LABEL 2
   ;; Stack:
   ;;   M
   ;;   N
@@ -302,7 +251,7 @@ LABEL 2
   LOADR FP       ; Parameter N
   PUSH 0
   NEQ
-  CJUMP 3
+  CJUMP 2
   PUSH 3
   LOADR FP
   ;; Stack:
@@ -313,10 +262,9 @@ LABEL 2
   ;;   Return address
   ;;   Previous FP <- FP
   ;;   Ack
-  ; Common function epilogue
-  JUMP 1000
+  RET
 
-LABEL 3
+LABEL 2
   ;; Stack:
   ;;   M
   ;;   N
@@ -339,12 +287,12 @@ LABEL 3
   ;;   M
   ;;   N
   ;;   Ack
+  ;;   3 (number of parameters)
   ;;   Return address
   ;;   Previous FP <- FP
-  ;;   M
   ;;   N - 1
   ;;   Ack + M
-  ; Patch (changed) parameters in place and jump to label 2
+  ; Patch (changed) parameters in place and jump to label 1
   PUSH 3
   STORER FP      ; Patches Ack -> Ack + M
   PUSH 4
@@ -353,29 +301,18 @@ LABEL 3
   ;;   M
   ;;   N - 1
   ;;   Ack + M
+  ;;   3 (number of parameters)
   ;;   Return address
   ;;   Previous FP <- FP
-  JUMP 2         ; Voila! The old stack frame is reused.
-
-; Common function epilogue (same as example 1)
-LABEL 1000
-  SWAP
-  MOVER FP       ; Restores FP to saved FP
-  PUSHR SP
-  PUSH 0
-  EQ
-  CJUMP 2000     ; If the stack is exhausted we are done!
-  SWAP
-  RET
-
-LABEL 2000
-  HALT
+  JUMP 1         ; Voila! The old stack frame is reused.
 __EXAMPLE2_END__
 
 Example 3
 =========
 
 Consider this Erlang snippet:
+
+THIS EXAMPLE IS NOT RIGHT. EXPERIMANTATION!!!
 
 start() ->
     X = 1,
@@ -392,10 +329,6 @@ variables, string literals and the SYS instruction.
 
 __EXAMPLE3_START__
 LABEL 0          ; start/0
-  ; Function prologue
-  PUSHR FP       ; Saves previous FP
-  PUSHR SP
-  MOVER FP       ; Sets FP to SP
   ;; Stack:
   ;;   0 (number of parameters)
   ;;   Return address
@@ -449,14 +382,9 @@ LABEL 0          ; start/0
   ;;   Return address
   ;;   Previous FP <- FP
   ;;   Z = X + 1 ; Return value from bar/2
-  ; Common function epilogue
-  JUMP 1000
+  RET
 
 LABEL 1          ; bar/2
-  ; Function prologue
-  PUSHR FP       ; Saves previous FP
-  PUSHR SP
-  MOVER FP       ; Sets FP to SP
   ;; Stack:
   ;;   Y
   ;;   Z
@@ -491,20 +419,5 @@ LABEL 1          ; bar/2
   ;;   Return address
   ;;   Previous FP <- FP
   ;;   Z
-  ; Common function epilogue
-  JUMP 1000
-
-; Common function epilogue (same as example 1)
-LABEL 1000
-  SWAP
-  MOVER FP       ; Restores FP to saved FP
-  PUSHR SP
-  PUSH 0
-  EQ
-  CJUMP 2000     ; If the stack is exhausted we are done!
-  SWAP
   RET
-
-LABEL 2000
-  HALT
 __EXAMPLE3_END__

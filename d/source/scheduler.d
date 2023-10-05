@@ -21,7 +21,7 @@ struct Scheduler {
         this.timeout_granularity = timeout_granularity;
     }
 
-    ulong spawn(string filename, ulong[] parameters) {
+    ulong spawn(string filename, long[] parameters) {
         Program* program = filename in programs;
         if (program == null) {
             programs[filename] = Program(filename);
@@ -42,7 +42,7 @@ struct Scheduler {
             auto fiber = readyQueue.front;
             readyQueue.removeFront;
             InterpreterResult result =
-                interpreter.run(fiber, time_slice, timeout_granularity);
+                interpreter.run(this, fiber, time_slice, timeout_granularity);
             final switch(result) {
             case InterpreterResult.halt:
                 debug(scheduler) {
