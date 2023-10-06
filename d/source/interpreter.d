@@ -36,22 +36,22 @@ struct Interpreter {
             //Thread.sleep(dur!"msecs"(50));
             //readln();
 
-            bool pc_updated = false;
-            switch (byte_code[fiber.pc] >> 3) {
+            auto pc = fiber.pc;
+            fiber.pc++;
+
+            switch (byte_code[pc] >> 3) {
             case PUSH:
-                auto value = get!long(&byte_code[fiber.pc + 1]);
+                auto value = get!long(&byte_code[fiber.pc]);
                 push(value, fiber);
-                fiber.pc += 1 + 8;
-                pc_updated = true;
+                fiber.pc += 8;
                 break;
             case PUSHS:
-                auto pc = fiber.pc + 1;
-                auto length = get!int(&byte_code[pc]);
+                auto length = get!int(&byte_code[fiber.pc]);
                 auto next_data_address = fiber.data_stack.length;
-                fiber.data_stack ~= byte_code[pc .. pc + 4 + length + 1];
+                fiber.data_stack ~=
+                    byte_code[fiber.pc .. fiber.pc + 4 + length + 1];
                 push(next_data_address, fiber);
-                fiber.pc += 1 + 4 + length;
-                pc_updated = true;
+                fiber.pc += 4 + length;
                 break;
             case POP:
                 pop(fiber);
@@ -63,11 +63,11 @@ struct Interpreter {
                 swap(fiber);
                 break;
             case LOAD:
-                auto register = cast(ubyte)(byte_code[fiber.pc] & 0b00000111);
+                auto register = cast(ubyte)(byte_code[pc] & 0b00000111);
                 load(register, fiber);
                 break;
             case STORE:
-                auto register = cast(ubyte)(byte_code[fiber.pc] & 0b00000111);
+                auto register = cast(ubyte)(byte_code[pc] & 0b00000111);
                 store(register, fiber);
                 break;
             case ADD:
@@ -83,33 +83,30 @@ struct Interpreter {
                 apply((operand1, operand2) => operand1 / operand2, fiber);
                 break;
             case JUMP:
-                auto byte_index = get!long(&byte_code[fiber.pc + 1]);
+                auto byte_index = get!long(&byte_code[fiber.pc]);
                 fiber.pc = byte_index;
-                pc_updated = true;
                 break;
             case CJUMP:
-                auto byte_index = get!long(&byte_code[fiber.pc + 1]);
+                auto byte_index = get!long(&byte_code[fiber.pc]);
                 auto conditional = pop(fiber);
                 if (conditional != 0) {
                     fiber.pc = byte_index;
                 } else {
-                    fiber.pc += 1 + 8;
+                    fiber.pc += 8;
                 }
-                pc_updated = true;
                 break;
             case CALL:
                 // Extract call operands
-                int byte_index = get!int(&byte_code[fiber.pc + 1]);
-                int arity = get!int(&byte_code[fiber.pc + 5]);
+                int byte_index = get!int(&byte_code[fiber.pc]);
+                int arity = get!int(&byte_code[fiber.pc + 4]);
                 // Add return address to stack
-                push(fiber.pc + 1 + 8, fiber);
+                push(fiber.pc + 8, fiber);
                 // Save previous FP on the stack
                 push(fiber.fp, fiber);
                 // Set FP to first parameter CALL parameter
                 fiber.fp = fiber.stack.length - 2 - arity;
                 // Jump to CALL byte index
                 fiber.pc = byte_index;
-                pc_updated = true;
                 // Save previous data FP on the data stack
                 insert(fiber.data_fp, fiber.data_stack);
                 // Set data FP to the previous data FP
@@ -139,7 +136,6 @@ struct Interpreter {
                 push(return_value, fiber);
                 // Jump to return address
                 fiber.pc = return_address;
-                pc_updated = true;
                 // Remove the data stack frame
                 auto previous_data_fp =
                     get!long(&fiber.data_stack[fiber.data_fp]);
@@ -147,7 +143,7 @@ struct Interpreter {
                 fiber.data_fp = previous_data_fp;
                 break;
             case SYS:
-                auto sys_name = get!long(&byte_code[fiber.pc + 1]);
+                auto sys_name = get!long(&byte_code[fiber.pc]);
                 switch (sys_name) {
                     // WORK IN PROGRESS!!!!!!!!!!!!!
                 case SYS_SPAWN:
@@ -204,12 +200,7 @@ struct Interpreter {
                 return InterpreterResult.halt;
             default:
                 throw new InterpreterError(
-                              "Invalid opcode" ~
-                              to!string(byte_code[fiber.pc] >> 3));
-            }
-
-            if (!pc_updated) {
-                fiber.pc++;
+                              "Invalid opcode" ~ to!string(byte_code[pc] >> 3));
             }
 
             if (instructions_executed ++ >= timeout_granularity) {
