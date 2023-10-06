@@ -36,10 +36,12 @@ struct Interpreter {
             //Thread.sleep(dur!"msecs"(50));
             //readln();
 
-            auto pc = fiber.pc;
-            fiber.pc++;
+            if (++fiber.pc >= byte_code.length) {
+                throw new InterpreterError(
+                              "Unexpected end of bytecode or invalid jump");
+            }
 
-            switch (byte_code[pc] >> 3) {
+            switch (byte_code[fiber.pc - 1] >> 3) {
             case PUSH:
                 auto value = get!long(&byte_code[fiber.pc]);
                 push(value, fiber);
@@ -63,11 +65,13 @@ struct Interpreter {
                 swap(fiber);
                 break;
             case LOAD:
-                auto register = cast(ubyte)(byte_code[pc] & 0b00000111);
+                auto register =
+                    cast(ubyte)(byte_code[fiber.pc - 1] & 0b00000111);
                 load(register, fiber);
                 break;
             case STORE:
-                auto register = cast(ubyte)(byte_code[pc] & 0b00000111);
+                auto register =
+                    cast(ubyte)(byte_code[fiber.pc - 1] & 0b00000111);
                 store(register, fiber);
                 break;
             case ADD:
@@ -118,7 +122,6 @@ struct Interpreter {
                 swap(fiber);
                 // Restore FP to previous FP
                 fiber.fp = pop(fiber);
-                writeln("WHAT: " ~ to!string(fiber.stack));
                 if (fiber.fp == -1) {
                     // Swap the return value and the return address
                     swap(fiber);
@@ -200,7 +203,8 @@ struct Interpreter {
                 return InterpreterResult.halt;
             default:
                 throw new InterpreterError(
-                              "Invalid opcode" ~ to!string(byte_code[pc] >> 3));
+                              "Invalid opcode" ~
+                              to!string(byte_code[fiber.pc - 1] >> 3));
             }
 
             if (instructions_executed ++ >= timeout_granularity) {
