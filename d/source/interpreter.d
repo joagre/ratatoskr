@@ -39,9 +39,18 @@ struct Interpreter {
             bool pc_updated = false;
             switch (byte_code[fiber.pc] >> 3) {
             case PUSH:
-                auto value = get_long(&byte_code[fiber.pc + 1]);
+                auto value = get!long(&byte_code[fiber.pc + 1]);
                 push(value, fiber);
-                fiber.pc += 8 + 1;
+                fiber.pc += 1 + 8;
+                pc_updated = true;
+                break;
+            case PUSHS:
+                auto pc = fiber.pc + 1;
+                auto length = get!int(&byte_code[pc]);
+                auto next_data_address = fiber.data_stack.length;
+                fiber.data_stack ~= byte_code[pc .. pc + 4 + length + 1];
+                push(next_data_address, fiber);
+                fiber.pc += 1 + 4 + length;
                 pc_updated = true;
                 break;
             case POP:
@@ -74,83 +83,71 @@ struct Interpreter {
                 apply((operand1, operand2) => operand1 / operand2, fiber);
                 break;
             case JUMP:
-                auto byte_index = get_long(&byte_code[fiber.pc + 1]);
+                auto byte_index = get!long(&byte_code[fiber.pc + 1]);
                 fiber.pc = byte_index;
                 pc_updated = true;
                 break;
             case CJUMP:
-                auto byte_index = get_long(&byte_code[fiber.pc + 1]);
+                auto byte_index = get!long(&byte_code[fiber.pc + 1]);
                 auto conditional = pop(fiber);
                 if (conditional != 0) {
                     fiber.pc = byte_index;
                 } else {
-                    fiber.pc += 8 + 1;
+                    fiber.pc += 1 + 8;
                 }
                 pc_updated = true;
                 break;
             case CALL:
-                //
-                // Call stack management
-                //
-
-                int byte_index = get_int(&byte_code[fiber.pc + 1]);
-                int arity = get_int(&byte_code[fiber.pc + 5]);
-                // Adds return address to stack
+                // Extract call operands
+                int byte_index = get!int(&byte_code[fiber.pc + 1]);
+                int arity = get!int(&byte_code[fiber.pc + 5]);
+                // Add return address to stack
                 push(fiber.pc + 1 + 8, fiber);
-                // Saves previous FP on the stack
+                // Save previous FP on the stack
                 push(fiber.fp, fiber);
-                // Sets FP to first parameter
+                // Set FP to first parameter CALL parameter
                 fiber.fp = fiber.stack.length - 2 - arity;
-                // Jump to CALL label
+                // Jump to CALL byte index
                 fiber.pc = byte_index;
                 pc_updated = true;
-
-                //
-                // Data stack management
-                //
-
-                // Saves previous Data FP on the data stack
-                insert_long(fiber.data_fp, fiber.data_stack);
+                // Save previous data FP on the data stack
+                insert(fiber.data_fp, fiber.data_stack);
+                // Set data FP to the previous data FP
                 fiber.data_fp = fiber.data_stack.length - 8;
-
                 break;
             case RET:
-                if (fiber.stack.length == 1) {
-                    // The stack is exhausted!
+                auto current_fp = fiber.fp;
+                // Swap return value and previous FP
+                swap(fiber);
+                // Restore FP to previous FP
+                fiber.fp = pop(fiber);
+                writeln("WHAT: " ~ to!string(fiber.stack));
+                if (fiber.fp == -1) {
+                    // Swap the return value and the return address
+                    swap(fiber);
+                    // Pop the return address
+                    pop(fiber);
                     return InterpreterResult.halt;
                 }
-
-                //
-                // Call stack management
-                //
-
-                auto current_fp = fiber.fp;
-                swap(fiber);
-                // Restores FP to saved FP
-                fiber.fp = pop(fiber);
+                // Swap the return value and the return address
                 swap(fiber);
                 auto return_address = pop(fiber);
                 auto return_value = pop(fiber);
-                // Remove stack frame
+                // Remove the stack frame
                 fiber.stack = fiber.stack[0 .. current_fp];
-                // Reinserts return value
+                // Reinsert return value
                 push(return_value, fiber);
-                // Jumps to return address
+                // Jump to return address
                 fiber.pc = return_address;
                 pc_updated = true;
-
-                //
-                // Data stack management
-                //
-
+                // Remove the data stack frame
                 auto previous_data_fp =
-                    get_long(&fiber.data_stack[fiber.data_fp]);
+                    get!long(&fiber.data_stack[fiber.data_fp]);
                 fiber.data_stack = fiber.data_stack[0 .. fiber.data_fp];
                 fiber.data_fp = previous_data_fp;
-
                 break;
             case SYS:
-                auto sys_name = get_long(&byte_code[fiber.pc + 1]);
+                auto sys_name = get!long(&byte_code[fiber.pc + 1]);
                 switch (sys_name) {
                     // WORK IN PROGRESS!!!!!!!!!!!!!
                 case SYS_SPAWN:

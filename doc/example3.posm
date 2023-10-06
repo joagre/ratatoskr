@@ -1,33 +1,26 @@
 LABEL 0          ; start/0
+  PUSH -1        ; Bogus return address
+  PUSH -1        ; Bogus FP
   PUSH 1         ; Local variable X
-  PUSH "foo"     ; Local variable Y
-  PUSH -1
-  LOADR FP
+  PUSHS "foo"    ; Local variable Y
+  PUSH -2
+  LOAD FP
   PUSH 1
   ADD            ; Local variable Z
   ; Call bar(Y, Z)
-  PUSH -2
-  LOADR FP       ; Pushes parameter Y
   PUSH -3
-  LOAD FP        ; Pushes parameter Z
-  PUSH 2         ; Pushes number of parameters
-  CALL 1
-  ; Remove local variables
-  SWAP
-  POP            ; Pop local variable Z
-  SWAP
-  FREE
-  POP            ; Pop local variable Y (address N in data stack)
-  SWAP
-  POP            ; Pop local variable X
+  LOAD FP        ; Parameter Y
+  PUSH -4
+  LOAD FP        ; Parameter Z
+  CALL 1 2
   RET
 
 LABEL 1          ; bar/2
   ; Call SYS println
-  PUSH 3
-  LOADR FP       ; Pushes parameter Z
+  PUSH -1
+  LOAD FP        ; Parameter Z
   SYS println
-  POP            ; Pops return value from println
-  PUSH 4
-  LOADR FP       ; Result
-  RET
+  POP            ; Ignores return bvalue
+  PUSH 0
+  LOAD FP
+  RETC

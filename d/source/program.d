@@ -6,34 +6,36 @@ import std.conv : to;
 import std.regex : regex, replace;
 import std.typecons : Tuple;
 import std.algorithm.searching : canFind;
+import std.utf: toUTF8;
 
 const ubyte SP = 0;
 const ubyte FP = 1;
 
 const ubyte PUSH  = 0;
-const ubyte POP   = 1;
-const ubyte DUP   = 2;
-const ubyte SWAP  = 3;
-const ubyte LOAD  = 4;
-const ubyte STORE = 5;
-const ubyte ADD   = 6;
-const ubyte SUB   = 7;
-const ubyte MUL   = 8;
-const ubyte DIV   = 9;
-const ubyte JUMP  = 10;
-const ubyte CJUMP = 11;
-const ubyte CALL  = 12;
-const ubyte RET   = 13;
-const ubyte SYS   = 14;
-const ubyte AND   = 15;
-const ubyte OR    = 16;
-const ubyte NOT   = 17;
-const ubyte EQ    = 18;
-const ubyte NEQ   = 19;
-const ubyte LT    = 20;
-const ubyte GT    = 21;
-const ubyte NOP   = 22;
-const ubyte HALT  = 23;
+const ubyte PUSHS = 1;
+const ubyte POP   = 2;
+const ubyte DUP   = 3;
+const ubyte SWAP  = 4;
+const ubyte LOAD  = 5;
+const ubyte STORE = 6;
+const ubyte ADD   = 7;
+const ubyte SUB   = 8;
+const ubyte MUL   = 9;
+const ubyte DIV   = 10;
+const ubyte JUMP  = 11;
+const ubyte CJUMP = 12;
+const ubyte CALL  = 13;
+const ubyte RET   = 14;
+const ubyte SYS   = 15;
+const ubyte AND   = 16;
+const ubyte OR    = 17;
+const ubyte NOT   = 18;
+const ubyte EQ    = 19;
+const ubyte NEQ   = 20;
+const ubyte LT    = 21;
+const ubyte GT    = 22;
+const ubyte NOP   = 23;
+const ubyte HALT  = 24;
 
 const long SYS_SPAWN   = 0;
 const long SYS_SEND    = 1;
@@ -81,7 +83,7 @@ struct Program {
                 continue;
             }
 
-            immutable auto parts = line.strip.split;
+            auto parts = line.strip.split;
 
             switch (parts[0]) {
             case "LABEL":
@@ -89,7 +91,13 @@ struct Program {
                 continue;
             case "PUSH":
                 byte_code ~= PUSH << 3;
-                insert_long(to!long(parts[1]), byte_code);
+                insert(to!long(parts[1]), byte_code);
+                break;
+            case "PUSHS":
+                byte_code ~= PUSHS << 3;
+                ubyte[] bytes = cast(ubyte[])toUTF8(parts[1].strip(`"`));
+                insert(cast(int)bytes.length, byte_code);
+                byte_code ~= bytes;
                 break;
             case "POP":
                 byte_code ~= POP << 3;
@@ -120,16 +128,16 @@ struct Program {
                 break;
             case "JUMP":
                 byte_code ~= JUMP << 3;
-                insert_long(to!long(parts[1]), byte_code);
+                insert(to!long(parts[1]), byte_code);
                 break;
             case "CJUMP":
                 byte_code ~= CJUMP << 3;
-                insert_long(to!long(parts[1]), byte_code);
+                insert(to!long(parts[1]), byte_code);
                 break;
             case "CALL":
                 byte_code ~= CALL << 3;
-                insert_int(to!int(parts[1]), byte_code);
-                insert_int(to!int(parts[2]), byte_code);
+                insert(to!int(parts[1]), byte_code);
+                insert(to!int(parts[2]), byte_code);
                 break;
             case "RET":
                 byte_code ~= RET << 3;
@@ -177,9 +185,9 @@ struct Program {
             if (opcode == PUSH) {
                 i += 8;
             } else if (opcode == JUMP || opcode == CJUMP || opcode == CALL) {
-                auto label = get_int(&byte_code[i + 1]);
+                auto label = get!int(&byte_code[i + 1]);
                 auto byte_index = jump_table[label];
-                set_int(byte_index, &byte_code[i + 1]);
+                set!int(byte_index, &byte_code[i + 1]);
                 i += 8;
             } else if (opcode == SYS) {
                 i += 8;
@@ -215,7 +223,7 @@ struct Program {
         } else {
             throw new ByteCodeError("Unknown system function " ~ s);
         }
-        insert_long(sys_name, bytes);
+        insert(sys_name, bytes);
     }
 
     public void pretty_print() {
@@ -228,9 +236,15 @@ struct Program {
     public long pretty_print(ubyte* bytes, bool show_labels) {
         switch (bytes[0] >> 3) {
         case PUSH:
-            long value = get_long(&bytes[1]);
+            long value = get!long(&bytes[1]);
             writeln("PUSH " ~ to!string(value));
             return 8;
+        case PUSHS:
+            auto length = get!int(&bytes[1]);
+            auto index = 1 + 4;
+            auto byte_string = bytes[index .. index + length + 1];
+            writeln("PUSHS \"" ~ cast(string)byte_string ~ "\"");
+            return 4 + length;
         case POP:
             writeln("POP");
             break;
@@ -261,7 +275,7 @@ struct Program {
             writeln("DIV");
             break;
         case JUMP:
-            auto byte_index = get_long(&bytes[1]);
+            auto byte_index = get!long(&bytes[1]);
             if (show_labels) {
                 auto label = lookup_label(byte_index);
                 writeln("JUMP " ~ to!string(label));
@@ -270,7 +284,7 @@ struct Program {
             }
             return 8;
         case CJUMP:
-            auto byte_index = get_long(&bytes[1]);
+            auto byte_index = get!long(&bytes[1]);
             if (show_labels) {
                 auto label = lookup_label(byte_index);
                 writeln("CJUMP " ~ to!string(label));
@@ -279,8 +293,8 @@ struct Program {
             }
             return 8;
         case CALL:
-            int byte_index = get_int(&bytes[1]);
-            int arity = get_int(&bytes[5]);
+            int byte_index = get!int(&bytes[1]);
+            int arity = get!int(&bytes[5]);
             if (show_labels) {
                 auto label = lookup_label(byte_index);
                 writeln("CALL " ~ to!string(label) ~ " " ~ to!string(arity));
@@ -293,7 +307,7 @@ struct Program {
             writeln("RET");
             break;
         case SYS:
-            long value = get_long(&bytes[1]);
+            long value = get!long(&bytes[1]);
             writeln("SYS " ~ to!string(value));
             return 8;
         case AND:
@@ -353,46 +367,14 @@ struct Program {
 
 }
 
-public void insert_int(int value, ref ubyte[] bytes) {
-    for (int i = 0; i < 4; i++) {
-        bytes ~= cast(ubyte)(value & 0xFF);
-        value >>= 8;
-    }
+public void insert(T)(T value, ref ubyte[] bytes) {
+    bytes ~= (cast(ubyte*)&value)[0 .. T.sizeof];
 }
 
-public void insert_long(long value, ref ubyte[] bytes) {
-    for (int i = 0; i < 8; i++){
-        bytes ~= cast(ubyte)(value & 0xFF);
-        value >>= 8;
-    }
+public T get(T)(ubyte* bytes) {
+    return *cast(T*)bytes;
 }
 
-int get_int(ubyte* bytes) {
-    uint value = 0;
-    for (int i = 0; i < 4; i++) {
-        value |= (cast(uint)bytes[i]) << (i * 8);
-    }
-    return cast(int)value;
-}
-
-void set_int(int value, ubyte* bytes) {
-    for (int i = 0; i < 4; i++) {
-        bytes[i] = cast(ubyte)(value & 0xFF);
-        value >>= 8;
-    }
-}
-
-long get_long(ubyte* bytes) {
-    ulong value = 0;
-    for (int i = 0; i < 8; i++) {
-        value |= (cast(ulong)bytes[i]) << (i * 8);
-    }
-    return cast(long)value;
-}
-
-void set_long(long value, ubyte* bytes) {
-    for (int i = 0; i < 8; i++) {
-        bytes[i] = cast(ubyte)(value & 0xFF);
-        value >>= 8;
-    }
+public void set(T)(T value, ubyte* bytes) {
+    *cast(T*)bytes = value;
 }

@@ -1,37 +1,39 @@
 LABEL 0          ; start/0
+  PUSH -1        ; Bogus return address
+  PUSH -1        ; Bogus FP
   ; Call summer(13, 10)
-  PUSH 13       ; Pushes parameter M
-  PUSH 10       ; Pushes parameter N
-  PUSH 0        ; Pushes parameter Ack
+  PUSH 13       ; Parameter M
+  PUSH 10       ; Parameter N
+  PUSH 0        ; Parameter Acc
   CALL 1 3
   RET
 
 LABEL 1          ; summer/2
-  ; Is it summer(_M, 0, Ack) clause?
+  ; Is it summer(_M, 0, Acc) clause?
   PUSH -1
-  LOAD FP        ; Parameter N
+  LOAD FP        ; Load parameter N
   PUSH 0
   NEQ
   CJUMP 2
   PUSH -2
-  LOAD FP        ; Ack
+  LOAD FP        ; Load parameter Acc
   RET
 
 LABEL 2
-  ; It is summer(M, N, Ack)!
-  ; Call summer(M, N - 1, Ack + M)
+  ; It is summer(M, N, Acc)!
+  ; Call summer(M, N - 1, Acc + M)
   PUSH -1
-  LOAD FP        ; Parameter N
+  LOAD FP        ; Load parameter N
   PUSH 1
   SUB            ; N - 1
   PUSH -2
-  LOAD FP        ; Parameter Ack
+  LOAD FP        ; Load parameter Acc
   PUSH 0
-  LOAD FP        ; Parameter M
+  LOAD FP        ; Load parameter M
   ADD
   ; Patch (changed) parameters in place and jump to label 1
   PUSH -2
-  STORE FP      ; Patches Ack -> Ack + M
+  STORE FP      ; Patches parameter Acc -> Acc + M
   PUSH -1
-  STORE FP      ; Patches N -> N - 1
+  STORE FP      ; Patches parameter N -> N - 1
   JUMP 1         ; Voila! The old stack frame is reused.
