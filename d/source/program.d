@@ -147,6 +147,8 @@ struct Program {
                 byteCode ~= addRegister(parts[0], Opcodes.STORE, line);
                 break;
             case "ADD":
+
+
                 assertNoOperands(operands, line);
                 byteCode ~= Opcodes.ADD << 3;
                 break;
