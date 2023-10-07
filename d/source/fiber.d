@@ -17,7 +17,7 @@ struct Fiber {
     // Data stack
     public ubyte[] dataStack;
     // Data Frame Pointer
-    public long DFP = 0;
+    public long DATA_FP = 0;
 
     this(long fid, Program* program) {
         this.fid = fid;

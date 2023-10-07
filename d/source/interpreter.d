@@ -111,9 +111,9 @@ struct Interpreter {
                 // Jump to CALL byte index
                 fiber.PC = byteIndex;
                 // Save previous data FP on the data stack
-                insert(fiber.DFP, fiber.dataStack);
+                insert(fiber.DATA_FP, fiber.dataStack);
                 // Set data FP to the previous data FP
-                fiber.DFP = fiber.dataStack.length - 8;
+                fiber.DATA_FP = fiber.dataStack.length - 8;
                 break;
             case Opcodes.RET:
                 // Is the return done by value or by copy?
@@ -145,10 +145,10 @@ struct Interpreter {
                 fiber.PC = returnAddress;
                 // Remove data stack frame
                 auto previousDFP =
-                    get!long(&fiber.dataStack[fiber.DFP]);
-                fiber.dataStack = fiber.dataStack[0 .. fiber.DFP];
+                    get!long(&fiber.dataStack[fiber.DATA_FP]);
+                fiber.dataStack = fiber.dataStack[0 .. fiber.DATA_FP];
                 // Restore data FP to previous data FP
-                fiber.DFP = previousDFP;
+                fiber.DATA_FP = previousDFP;
                 // Reinsert return value on call stack (and data stack)
                 if (returnMode == ReturnModes.COPY) {
                     // Copy the return data on to the caller's data stack
