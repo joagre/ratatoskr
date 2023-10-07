@@ -5,7 +5,7 @@ import std.datetime;
 import std.conv;
 import scheduler;
 import program : ByteCodeError;
-import interpreter : InterpreterError;
+import interpreter : Interpreter, InterpreterError;
 
 int main(const string[] args) {
     if (args.length != 4) {
@@ -20,10 +20,12 @@ int main(const string[] args) {
         return 2;
     }
 
+    Interpreter interpreter;
+
     try {
         auto timeSlice = msecs(to!uint(args[2]));
         auto timeoutGranularity = to!uint(args[3]);
-        auto scheduler = Scheduler(timeSlice, timeoutGranularity);
+        auto scheduler = Scheduler(interpreter, timeSlice, timeoutGranularity);
         scheduler.spawn(filename, []);
         scheduler.run();
     } catch (ConvException e) {

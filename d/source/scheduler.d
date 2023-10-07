@@ -16,7 +16,9 @@ struct Scheduler {
     private uint timeoutGranularity;
     private long fid = 0;
 
-    this(Duration timeSlice, uint timeoutGranularity) {
+    this(ref Interpreter interpreter, Duration timeSlice,
+         uint timeoutGranularity) {
+        this.interpreter = interpreter;
         this.timeSlice = timeSlice;
         this.timeoutGranularity = timeoutGranularity;
     }
