@@ -39,58 +39,58 @@ struct Interpreter {
 
             if (++fiber.PC > byte_code.length) {
                 throw new InterpreterError(
-                                           "Unexpected end of bytecode or invalid jump");
+                              "Unexpected end of bytecode or invalid jump");
             }
 
             switch (byte_code[fiber.PC - 1] >> 3) {
-            case PUSH:
+            case Opcodes.PUSH:
                 auto value = get!long(&byte_code[fiber.PC]);
                 push(value, fiber);
                 fiber.PC += 8;
                 break;
-            case PUSHS:
+            case Opcodes.PUSHS:
                 auto result = dpush(byte_code[fiber.PC .. $], fiber);
                 auto data_address = result[0];
                 auto length = result[1];
                 push(data_address, fiber);
                 fiber.PC += 4 + length;
                 break;
-            case POP:
+            case Opcodes.POP:
                 pop(fiber);
                 break;
-            case DUP:
+            case Opcodes.DUP:
                 dup(fiber);
                 break;
-            case SWAP:
+            case Opcodes.SWAP:
                 swap(fiber);
                 break;
-            case LOAD:
+            case Opcodes.LOAD:
                 auto register =
                     cast(ubyte)(byte_code[fiber.PC - 1] & 0b00000111);
                 load(register, fiber);
                 break;
-            case STORE:
+            case Opcodes.STORE:
                 auto register =
                     cast(ubyte)(byte_code[fiber.PC - 1] & 0b00000111);
                 store(register, fiber);
                 break;
-            case ADD:
+            case Opcodes.ADD:
                 apply((operand1, operand2) => operand1 + operand2, fiber);
                 break;
-            case SUB:
+            case Opcodes.SUB:
                 apply((operand1, operand2) => operand1 - operand2, fiber);
                 break;
-            case MUL:
+            case Opcodes.MUL:
                 apply((operand1, operand2) => operand1 * operand2, fiber);
                 break;
-            case DIV:
+            case Opcodes.DIV:
                 apply((operand1, operand2) => operand1 / operand2, fiber);
                 break;
-            case JUMP:
+            case Opcodes.JUMP:
                 auto byte_index = get!long(&byte_code[fiber.PC]);
                 fiber.PC = byte_index;
                 break;
-            case CJUMP:
+            case Opcodes.CJUMP:
                 auto byte_index = get!long(&byte_code[fiber.PC]);
                 auto conditional = pop(fiber);
                 if (conditional != 0) {
@@ -99,7 +99,7 @@ struct Interpreter {
                     fiber.PC += 8;
                 }
                 break;
-            case CALL:
+            case Opcodes.CALL:
                 // Extract call operands
                 int byte_index = get!int(&byte_code[fiber.PC]);
                 int arity = get!int(&byte_code[fiber.PC + 4]);
@@ -116,7 +116,7 @@ struct Interpreter {
                 // Set data FP to the previous data FP
                 fiber.DFP = fiber.data_stack.length - 8;
                 break;
-            case RET:
+            case Opcodes.RET:
                 // Is the return done by value or by copy?
                 auto return_mode =
                     cast(ubyte)(byte_code[fiber.PC - 1] & 0b00000111);
@@ -136,7 +136,7 @@ struct Interpreter {
                 // Pop return value
                 auto return_value = pop(fiber);
                 ubyte[] return_data = null;
-                if (return_mode == RETURN_COPY) {
+                if (return_mode == ReturnModes.COPY) {
                     // Extract return data
                     return_data = dpeek(return_value, fiber);
                 }
@@ -151,7 +151,7 @@ struct Interpreter {
                 // Restore data FP to previous data FP
                 fiber.DFP = previous_dfp;
                 // Reinsert return value on call stack (and data stack)
-                if (return_mode == RETURN_COPY) {
+                if (return_mode == ReturnModes.COPY) {
                     // Copy the return data on to the caller's data stack
                     auto result = dpush(return_data, fiber);
                     auto data_address = result[0];
@@ -162,12 +162,12 @@ struct Interpreter {
                     push(return_value, fiber);
                 }
                 break;
-            case SYS:
+            case Opcodes.SYS:
                 auto sys_name = get!long(&byte_code[fiber.PC]);
                 switch (sys_name) {
                     /*
                     // WORK IN PROGRESS!!!!!!!!!!!!!
-                    case SYS_SPAWN:
+                    case SystemCalls.SPAWN:
                     // auto file_index = fiber.stack[$ - 1];
                     auto number_of_parameters = fiber.stack[$ - 2];
                     // Kludge!
@@ -178,7 +178,7 @@ struct Interpreter {
                     //push(fib);
                     break;
                     */
-                case SYS_PRINTLN:
+                case SystemCalls.PRINTLN:
                     long data_address = pop(fiber);
                     auto bytes = dpeek(data_address, fiber);
                     writeln("PRINTLN: " ~ cast(char[])bytes[4 .. $]);
@@ -189,43 +189,43 @@ struct Interpreter {
                 }
                 fiber.PC += 8;
                 break;
-            case AND:
+            case Opcodes.AND:
                 apply((operand1, operand2) =>
                           (operand1 != 0) && (operand2 == 0) ? 1 : 0,
                       fiber);
                 break;
-            case OR:
+            case Opcodes.OR:
                 apply((operand1, operand2) =>
                           (operand1 != 0) || (operand2 != 0) ? 1 : 0,
                       fiber);
                 break;
-            case NOT:
+            case Opcodes.NOT:
                 auto operand = pop(fiber);
                 push(!(operand != 0) ? 1 : 0, fiber);
                 break;
-            case EQ:
+            case Opcodes.EQ:
                 apply((operand1, operand2) =>
                           (operand1 == operand2) ? 1 : 0,
                       fiber);
                 break;
-            case NEQ:
+            case Opcodes.NEQ:
                 apply((operand1, operand2) =>
                           (operand1 != operand2) ? 1 : 0,
                       fiber);
                 break;
-            case LT:
+            case Opcodes.LT:
                 apply((operand1, operand2) =>
                           operand1 < operand2 ? 1 : 0,
                       fiber);
                 break;
-            case GT:
+            case Opcodes.GT:
                 apply((operand1, operand2) =>
                           operand1 > operand2 ? 1 : 0,
                       fiber);
                 break;
-            case NOP:
+            case Opcodes.NOP:
                 break;
-            case HALT:
+            case Opcodes.HALT:
                 return InterpreterResult.halt;
             default:
                 throw new InterpreterError(
@@ -268,7 +268,7 @@ struct Interpreter {
 
     private void load(ubyte register, ref Fiber fiber) {
         auto offset = pop(fiber);
-        if (register == SP) {
+        if (register == Registers.SP) {
             push(fiber.stack[$ - 1 - offset], fiber);
         } else { // Must be FP
             push(fiber.stack[fiber.FP - offset], fiber);
@@ -278,7 +278,7 @@ struct Interpreter {
     private void store(ubyte register, ref Fiber fiber) {
         auto offset = pop(fiber);
         auto new_value = pop(fiber);
-        if (register == SP) {
+        if (register == Registers.SP) {
             fiber.stack[$ - 1 - offset] = new_value;
         } else { // Must be FP
             fiber.stack[fiber.FP - offset] = new_value;
