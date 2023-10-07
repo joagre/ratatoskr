@@ -7,20 +7,18 @@ LABEL 0          ; start/0
   LOAD FP
   PUSH 1
   ADD            ; Local variable Z
-  ; Call bar(Y, Z)
+  ; Call bar(Y)
   PUSH -3
   LOAD FP        ; Parameter Y
-  PUSH -4
-  LOAD FP        ; Parameter Z
-  CALL 1 2
-  RET
+  CALL 1 1
+  RET copy
 
 LABEL 1          ; bar/2
   ; Call SYS println
-  PUSH -1
-  LOAD FP        ; Parameter Z
+  PUSH 0
+  LOAD FP        ; Parameter Y
   SYS println
-  POP            ; Ignores return bvalue
+  POP            ; Ignores return value
   PUSH 0
   LOAD FP
-  RETC
+  RET copy

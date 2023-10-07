@@ -19,7 +19,7 @@ Instruction set
 
 LABEL label       ; A jump label. This is a meta instruction.
 PUSH value        ; Pushes a value onto the stack.
-PUSHS string      ; Pushes a string value onto the stack.
+PUSHS <string>    ; Pushes a string value onto the stack.
 POP               ; Removes the top value from the stack.
 DUP               ; Duplicates the top value on the stack.
 SWAP              ; Swaps the top two values on the stack.
@@ -40,10 +40,14 @@ CALL label arity  ; Calls a function implemented in label with the
                   ; specified arity. Pushes the return address and
                   ; previous FP onto the stack. Sets FP to the first
                   ; parameter on the stack.
-RET               ; Removes the stack frame as specified by FP
-                  ; (everything below FP is nuked). Restores FP to the
-                  ; previous FP. Pushes the return value onto the stack and
-                  ; jumps to the return address.
+RET [copy]        ; Removes the call stack frame, i.e. everything
+                  ; below FP is nuked, and does the same for the data
+                  ; stack. Restores FP to the previous FP both
+                  ; stacks. Pushes the return value onto the callers
+                  ; call stack. The copy operand is only meaningful if
+                  ; the return value is a string, i.e. the string
+                  ; return value's data is copied onto the callers
+                  ; data stack. Jumps to the return address.
 SYS name          ; Calls a built-in function, e.g. spawn, send, recv,
                   ; rand, sleep and println etc.
 AND               ; Pops two values, performs a logical AND, and
@@ -292,8 +296,8 @@ start() ->
     Z = X + 1,
     bar(Y, Z).
 
-bar(Y, Z) ->
-    io:format("~p\n", [Z]),
+bar(Y) ->
+    io:format("~p\n", [Y]),
     Y.
 
 This rather silly example introduces how to deal with local variables,
@@ -318,11 +322,9 @@ LABEL 0          ; start/0
   ;;   1 (Local variable X)
   ;;   "foo" (Local variable Y)
   ;;   2 (Local variable Z)
-  ; Call bar(Y, Z)
+  ; Call bar(Y)
   PUSH -3
   LOAD FP        ; Parameter Y
-  PUSH -4
-  LOAD FP        ; Parameter Z
   ;; Stack:
   ;;   Return address <- FP
   ;;   Previous FP
@@ -330,8 +332,7 @@ LABEL 0          ; start/0
   ;;   "foo" (Local variable Y)
   ;;   2 (Local variable Z)
   ;;   "foo" (Local variable Y)
-  ;;   2 (Local variable Z)
-  CALL 1 2
+  CALL 1 1
   ;; Stack:
   ;;   Return address <- FP
   ;;   Previous FP
@@ -339,42 +340,38 @@ LABEL 0          ; start/0
   ;;   "foo" (Local variable Y)
   ;;   2 (Local variable Z)
   ;;   "foo" (Local variable Y) (Return value)
-  RET
+  RET copy
   ;; Stack:
-  ;;   "foo" (NOTE: A copy placed on the callers data stack)
+  ;;   "foo" (NOTE: A copy is placed on the callers data stack)
 
 LABEL 1          ; bar/2
   ;; Stack:
   ;;   Y <- FP
-  ;;   Z
-  ;;   Return address <- FP
+  ;;   Return address
   ;;   Previous FP
   ; Call SYS println
-  PUSH -1
-  LOAD FP        ; Parameter Z
+  PUSH 0
+  LOAD FP        ; Parameter Y
   ;; Stack:
   ;;   Y <- FP
-  ;;   Z
-  ;;   Return address <- FP
+  ;;   Return address
   ;;   Previous FP
-  ;;   Z
+  ;;   Y
   SYS println
   ;; Stack:
   ;;   Y <- FP
-  ;;   Z
-  ;;   Return address <- FP
+  ;;   Return address
   ;;   Previous FP
   ;;   1 (Return value)
-  POP            ; Ignores return bvalue
+  POP            ; Ignores return value
   PUSH 0
   LOAD FP
   ;; Stack:
   ;;   Y <- FP
-  ;;   Z
   ;;   Return address
   ;;   Previous FP
   ;;   Y
-  RETC
+  RET copy
   ;; Stack:
   ;;   Y
 __EXAMPLE3_END__

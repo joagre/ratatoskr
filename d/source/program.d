@@ -1,8 +1,8 @@
 module program;
 
 import std.stdio : File, writeln;
-import std.string : strip, split;
-import std.conv : to;
+import std.string : strip, split, indexOf;
+import std.conv : to, ConvException;
 import std.regex : regex, replace;
 import std.typecons : Tuple;
 import std.algorithm.searching : canFind;
@@ -40,9 +40,10 @@ const ubyte HALT  = 24;
 const long SYS_SPAWN   = 0;
 const long SYS_SEND    = 1;
 const long SYS_RECV    = 2;
-const long SYS_RAND    = 3;
-const long SYS_SLEEP   = 4;
-const long SYS_PRINTLN = 5;
+const long SYS_PRINTLN = 3;
+
+const ubyte RETURN_VALUE = 0;
+const ubyte RETURN_COPY = 1;
 
 class ByteCodeError : Exception {
     this(string msg, string file = __FILE__, size_t line = __LINE__) {
@@ -72,109 +73,178 @@ struct Program {
 
             if (line.length == 0) {
                 continue;
+            } else {
+                // Remove comments
+                line = line.split(";")[0].strip;
+                // Remove duplicated whitespaces
+                line = replace(line, regex(`\s`), " ");
+                line = replace(line, regex(" "), " ");
+                if (line.length == 0) {
+                    continue;
+                }
             }
 
-            // Remove comments
-            line = line.split(";")[0];
-            // Remove duplicated whitespace and return with a single blankspace
-            line = replace(line, regex(`\s+`), " ");
-
-            if (line.length == 0) {
-                continue;
+            // Extract opcode and operands
+            auto first_blank = line.indexOf(" ");
+            string opcode;
+            string operands = null;
+            if (first_blank == -1) {
+                opcode = line.strip;
+            } else {
+                opcode = line[0 .. first_blank];
+                operands = line[first_blank + 1 .. $];
             }
 
-            auto parts = line.strip.split;
-
-            switch (parts[0]) {
+            switch (opcode) {
             case "LABEL":
-                jump_table[to!int(parts[1])] = cast(int)byte_code.length;
+                auto parts = operands.split;
+                assert_operands(parts.length, 1, line);
+                jump_table[parse!int(parts[0], line)] =
+                    cast(int)byte_code.length;
                 continue;
             case "PUSH":
+                auto parts = operands.split;
+                assert_operands(parts.length, 1, line);
                 byte_code ~= PUSH << 3;
-                insert(to!long(parts[1]), byte_code);
+                insert(parse!long(parts[0], line), byte_code);
                 break;
             case "PUSHS":
+                if (operands.length == 0) {
+                    throw new ByteCodeError("Invalid instruction " ~ line);
+                }
                 byte_code ~= PUSHS << 3;
-                ubyte[] bytes = cast(ubyte[])toUTF8(parts[1].strip(`"`));
+                ubyte[] bytes = cast(ubyte[])toUTF8(operands.strip(`"`));
                 insert(cast(int)bytes.length, byte_code);
                 byte_code ~= bytes;
                 break;
             case "POP":
+                assert_no_operands(operands, line);
                 byte_code ~= POP << 3;
                 break;
             case "DUP":
+                assert_no_operands(operands, line);
                 byte_code ~= DUP << 3;
                 break;
             case "SWAP":
+                assert_no_operands(operands, line);
                 byte_code ~= SWAP << 3;
                 break;
             case "LOAD":
-                byte_code ~= add_register(parts[1], LOAD);
+                auto parts = operands.split;
+                assert_operands(parts.length, 1, line);
+                byte_code ~= add_register(parts[0], LOAD, line);
                 break;
             case "STORE":
-                byte_code ~= add_register(parts[1], STORE);
+                auto parts = operands.split;
+                assert_operands(parts.length, 1, line);
+                byte_code ~= add_register(parts[0], STORE, line);
                 break;
             case "ADD":
+                assert_no_operands(operands, line);
                 byte_code ~= ADD << 3;
                 break;
             case "SUB":
+                assert_no_operands(operands, line);
                 byte_code ~= SUB << 3;
                 break;
             case "MUL":
+                assert_no_operands(operands, line);
                 byte_code ~= MUL << 3;
                 break;
             case "DIV":
+                assert_no_operands(operands, line);
                 byte_code ~= DIV << 3;
                 break;
             case "JUMP":
+                auto parts = operands.split;
+                assert_operands(parts.length, 1, line);
                 byte_code ~= JUMP << 3;
-                insert(to!long(parts[1]), byte_code);
+                insert(parse!long(parts[0], line), byte_code);
                 break;
             case "CJUMP":
+                auto parts = operands.split;
+                assert_operands(parts.length, 1, line);
                 byte_code ~= CJUMP << 3;
-                insert(to!long(parts[1]), byte_code);
+                insert(parse!long(parts[0], line), byte_code);
                 break;
             case "CALL":
+                auto parts = operands.split;
+                assert_operands(parts.length, 2, line);
                 byte_code ~= CALL << 3;
-                insert(to!int(parts[1]), byte_code);
-                insert(to!int(parts[2]), byte_code);
+                insert(parse!int(parts[0], line), byte_code);
+                insert(parse!int(parts[1], line), byte_code);
                 break;
             case "RET":
-                byte_code ~= RET << 3;
+                auto parts = operands.split;
+                if (parts.length == 0) {
+                    byte_code ~= (RET << 3) | RETURN_VALUE;
+                } else if (parts.length == 1 && parts[0] == "copy") {
+                    byte_code ~= (RET << 3) | RETURN_COPY;
+                } else {
+                    throw new ByteCodeError("Invalid instruction " ~ line);
+                }
                 break;
             case "SYS":
+                auto parts = operands.split;
+                assert_operands(parts.length, 1, line);
                 byte_code ~= SYS << 3;
-                insert_sys_name(parts[1], byte_code);
+                long sys_name;
+                switch(parts[0]) {
+                case "spawn":
+                    sys_name = SYS_SPAWN;
+                    break;
+                case "send":
+                    sys_name = SYS_SEND;
+                    break;
+                case "recv":
+                    sys_name = SYS_RECV;
+                    break;
+                case "println":
+                    sys_name = SYS_PRINTLN;
+                    break;
+                default:
+                    throw new ByteCodeError("Invalid instruction " ~ line);
+                }
+                insert(sys_name, byte_code);
                 break;
             case "AND":
+                assert_no_operands(operands, line);
                 byte_code ~= AND << 3;
                 break;
             case "OR":
+                assert_no_operands(operands, line);
                 byte_code ~= OR << 3;
                 break;
             case "NOT":
+                assert_no_operands(operands, line);
                 byte_code ~= NOT << 3;
                 break;
             case "EQ":
+                assert_no_operands(operands, line);
                 byte_code ~= EQ << 3;
                 break;
             case "NEQ":
+                assert_no_operands(operands, line);
                 byte_code ~= NEQ << 3;
                 break;
             case "LT":
+                assert_no_operands(operands, line);
                 byte_code ~= LT << 3;
                 break;
             case "GT":
+                assert_no_operands(operands, line);
                 byte_code ~= GT << 3;
                 break;
             case "NOP":
+                assert_no_operands(operands, line);
                 byte_code ~= NOP << 3;
                 break;
             case "HALT":
+                assert_no_operands(operands, line);
                 byte_code ~= HALT << 3;
                 break;
             default:
-                throw new ByteCodeError("Invalid instruction " ~ parts[0]);
+                throw new ByteCodeError("Invalid instruction " ~ line);
             }
         }
 
@@ -196,34 +266,35 @@ struct Program {
         }
     }
 
-    private ubyte add_register(string s, ubyte opcode) {
-        if (s == "SP") {
-            return cast(ubyte)(opcode << 3) | SP;
-        } else if (s == "FP") {
-            return cast(ubyte)(opcode << 3) | FP;
-        } else {
-            throw new ByteCodeError("Invalid register " ~ s);
+    private void assert_operands(ulong arity, int expected_arity, string line) {
+        if (arity != expected_arity) {
+            throw new ByteCodeError("Invalid instruction " ~ line);
         }
     }
 
-    private void insert_sys_name(string s, ref ubyte[] bytes) {
-        long sys_name;
-        if (s == "spawn") {
-            sys_name = SYS_SPAWN;
-        } else if (s == "send") {
-            sys_name = SYS_SEND;
-        } else if (s ==  "recv") {
-            sys_name = SYS_RECV;
-        } else if (s == "rand") {
-            sys_name = SYS_RAND;
-        } else if (s == "sleep") {
-            sys_name = SYS_SLEEP;
-        } else if (s == "println") {
-            sys_name = SYS_PRINTLN;
-        } else {
-            throw new ByteCodeError("Unknown system function " ~ s);
+    private T parse(T)(string value, string line)
+         if (is(T == int) || is(T == long)) {
+             try {
+                 return to!T(value);
+             } catch (ConvException) {
+                 throw new ByteCodeError("Invalid instruction " ~ line);
+             }
+         }
+
+    private void assert_no_operands(string operands, string line) {
+        if (operands.length != 0) {
+            throw new ByteCodeError("Invalid instruction " ~ line);
         }
-        insert(sys_name, bytes);
+    }
+
+    private ubyte add_register(string register, ubyte opcode, string line) {
+        if (register == "SP") {
+            return cast(ubyte)(opcode << 3) | SP;
+        } else if (register == "FP") {
+            return cast(ubyte)(opcode << 3) | FP;
+        } else {
+            throw new ByteCodeError("Invalid instruction " ~ line);
+        }
     }
 
     public void pretty_print() {
@@ -293,8 +364,8 @@ struct Program {
             }
             return 8;
         case CALL:
-            int byte_index = get!int(&bytes[1]);
-            int arity = get!int(&bytes[5]);
+            auto byte_index = get!int(&bytes[1]);
+            auto arity = get!int(&bytes[5]);
             if (show_labels) {
                 auto label = lookup_label(byte_index);
                 writeln("CALL " ~ to!string(label) ~ " " ~ to!string(arity));
@@ -304,7 +375,12 @@ struct Program {
             }
             return 8;
         case RET:
-            writeln("RET");
+            auto return_mode = bytes[0] & 0b00000111;
+            if (return_mode == RETURN_COPY) {
+                writeln("RET copy");
+            } else {
+                writeln("RET");
+            }
             break;
         case SYS:
             long value = get!long(&bytes[1]);
@@ -355,16 +431,13 @@ struct Program {
     }
 
     private string get_register_string(ubyte instruction) {
-        ubyte register = instruction & 0b00000111;
+        auto register = instruction & 0b00000111;
         if (register == SP) {
             return "SP";
-        } else if (register == FP) {
+        } else { // Must be FP
             return "FP";
-        } else { // Must be PC
-            return "PC";
         }
     }
-
 }
 
 public void insert(T)(T value, ref ubyte[] bytes) {
