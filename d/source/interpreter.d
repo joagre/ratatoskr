@@ -3,7 +3,6 @@ module interpreter;
 import std.conv : to;
 import std.datetime : Duration, Clock;
 import std.stdio : writeln;
-import std.typecons : Tuple;
 import program;
 import fiber;
 import scheduler;
@@ -45,46 +44,46 @@ struct Interpreter {
             switch (byteCode[fiber.PC - 1] >> 3) {
             case Opcodes.PUSH:
                 auto value = get!long(&byteCode[fiber.PC]);
-                push(value, fiber);
+                fiber.push(value);
                 fiber.PC += 8;
                 break;
             case Opcodes.PUSHS:
-                auto result = dpush(byteCode[fiber.PC .. $], fiber);
+                auto result = fiber.pushData(byteCode[fiber.PC .. $]);
                 auto dataAddress = result[0];
                 auto length = result[1];
-                push(dataAddress, fiber);
+                fiber.push(dataAddress);
                 fiber.PC += 4 + length;
                 break;
             case Opcodes.POP:
-                pop(fiber);
+                fiber.pop();
                 break;
             case Opcodes.DUP:
-                dup(fiber);
+                fiber.dup();
                 break;
             case Opcodes.SWAP:
-                swap(fiber);
+                fiber.swap();
                 break;
             case Opcodes.LOAD:
                 auto register =
                     cast(ubyte)(byteCode[fiber.PC - 1] & 0b00000111);
-                load(register, fiber);
+                fiber.load(register);
                 break;
             case Opcodes.STORE:
                 auto register =
                     cast(ubyte)(byteCode[fiber.PC - 1] & 0b00000111);
-                store(register, fiber);
+                fiber.store(register);
                 break;
             case Opcodes.ADD:
-                apply((operand1, operand2) => operand1 + operand2, fiber);
+                fiber.op((operand1, operand2) => operand1 + operand2);
                 break;
             case Opcodes.SUB:
-                apply((operand1, operand2) => operand1 - operand2, fiber);
+                fiber.op((operand1, operand2) => operand1 - operand2);
                 break;
             case Opcodes.MUL:
-                apply((operand1, operand2) => operand1 * operand2, fiber);
+                fiber.op((operand1, operand2) => operand1 * operand2);
                 break;
             case Opcodes.DIV:
-                apply((operand1, operand2) => operand1 / operand2, fiber);
+                fiber.op((operand1, operand2) => operand1 / operand2);
                 break;
             case Opcodes.JUMP:
                 auto byteIndex = get!long(&byteCode[fiber.PC]);
@@ -92,7 +91,7 @@ struct Interpreter {
                 break;
             case Opcodes.CJUMP:
                 auto byteIndex = get!long(&byteCode[fiber.PC]);
-                auto conditional = pop(fiber);
+                auto conditional = fiber.pop();
                 if (conditional != 0) {
                     fiber.PC = byteIndex;
                 } else {
@@ -104,9 +103,9 @@ struct Interpreter {
                 int byteIndex = get!int(&byteCode[fiber.PC]);
                 int arity = get!int(&byteCode[fiber.PC + 4]);
                 // Add return address to stack
-                push(fiber.PC + 8, fiber);
+                fiber.push(fiber.PC + 8);
                 // Save previous FP on the stack
-                push(fiber.FP, fiber);
+                fiber.push(fiber.FP);
                 // Set FP to first parameter CALL parameter
                 fiber.FP = fiber.stack.length - 2 - arity;
                 // Jump to CALL byte index
@@ -121,24 +120,24 @@ struct Interpreter {
                 auto returnMode =
                     cast(ubyte)(byteCode[fiber.PC - 1] & 0b00000111);
                 // Swap return value and previous FP
-                swap(fiber);
+                fiber.swap();
                 // Restore FP to previous FP
                 auto currentFP = fiber.FP;
-                fiber.FP = pop(fiber);
+                fiber.FP = fiber.pop();
                 // Swap return value and return address
-                swap(fiber);
+                fiber.swap();
                 // Pop return address
-                auto returnAddress = pop(fiber);
+                auto returnAddress = fiber.pop();
                 // Has stack been exhausted?
                 if (fiber.FP == -1 || returnAddress == 0) {
                     return InterpreterResult.halt;
                 }
                 // Pop return value
-                auto returnValue = pop(fiber);
+                auto returnValue = fiber.pop();
                 ubyte[] returnData = null;
                 if (returnMode == ReturnModes.COPY) {
                     // Extract return data
-                    returnData = dpeek(returnValue, fiber);
+                    returnData = fiber.peekData(returnValue);
                 }
                 // Remove call stack frame
                 fiber.stack = fiber.stack[0 .. currentFP];
@@ -153,13 +152,13 @@ struct Interpreter {
                 // Reinsert return value on call stack (and data stack)
                 if (returnMode == ReturnModes.COPY) {
                     // Copy the return data on to the caller's data stack
-                    auto result = dpush(returnData, fiber);
+                    auto result = fiber.pushData(returnData);
                     auto dataAddress = result[0];
                     // Push the return data address onto caller's call stack
-                    push(dataAddress, fiber);
+                    fiber.push(dataAddress);
                 } else {
                     // Push the return value onto caller's call stack
-                    push(returnValue, fiber);
+                    fiber.push(returnValue);
                 }
                 break;
             case Opcodes.SYS:
@@ -174,15 +173,15 @@ struct Interpreter {
                     string filename = "foo.txt";
                     long fib = scheduler.spawn(filename,
                                                 fiber.stack[$ - 3 .. $]);
-                    //pop(1 + number_of_parameters);
-                    //push(fib);
+                    //fiber.pop(1 + number_of_parameters);
+                    //fiber.push();
                     break;
                     */
                 case SystemCalls.PRINTLN:
-                    long dataAddress = pop(fiber);
-                    auto bytes = dpeek(dataAddress, fiber);
+                    long dataAddress = fiber.pop();
+                    auto bytes = fiber.peekData(dataAddress);
                     writeln("PRINTLN: " ~ cast(char[])bytes[4 .. $]);
-                    push(1, fiber);
+                    fiber.push(1);
                     break;
                 default:
                     throw new InterpreterError("SYS is not implemented");
@@ -190,38 +189,28 @@ struct Interpreter {
                 fiber.PC += 8;
                 break;
             case Opcodes.AND:
-                apply((operand1, operand2) =>
-                          (operand1 != 0) && (operand2 == 0) ? 1 : 0,
-                      fiber);
+                fiber.op((operand1, operand2) =>
+                          (operand1 != 0) && (operand2 == 0) ? 1 : 0);
                 break;
             case Opcodes.OR:
-                apply((operand1, operand2) =>
-                          (operand1 != 0) || (operand2 != 0) ? 1 : 0,
-                      fiber);
+                fiber.op((operand1, operand2) =>
+                         (operand1 != 0) || (operand2 != 0) ? 1 : 0);
                 break;
             case Opcodes.NOT:
-                auto operand = pop(fiber);
-                push(!(operand != 0) ? 1 : 0, fiber);
+                auto operand = fiber.pop();
+                fiber.push(!(operand != 0) ? 1 : 0);
                 break;
             case Opcodes.EQ:
-                apply((operand1, operand2) =>
-                          (operand1 == operand2) ? 1 : 0,
-                      fiber);
+                fiber.op((operand1, operand2) => (operand1 == operand2) ? 1 : 0);
                 break;
             case Opcodes.NEQ:
-                apply((operand1, operand2) =>
-                          (operand1 != operand2) ? 1 : 0,
-                      fiber);
+                fiber.op((operand1, operand2) => (operand1 != operand2) ? 1 : 0);
                 break;
             case Opcodes.LT:
-                apply((operand1, operand2) =>
-                          operand1 < operand2 ? 1 : 0,
-                      fiber);
+                fiber.op((operand1, operand2) => operand1 < operand2 ? 1 : 0);
                 break;
             case Opcodes.GT:
-                apply((operand1, operand2) =>
-                          operand1 > operand2 ? 1 : 0,
-                      fiber);
+                fiber.op((operand1, operand2) => operand1 > operand2 ? 1 : 0);
                 break;
             case Opcodes.NOP:
                 break;
@@ -243,64 +232,5 @@ struct Interpreter {
         }
 
         return interpreterResult;
-    }
-
-    private void push(long value, ref Fiber fiber) {
-        fiber.stack ~= value;
-    }
-
-    private long pop(ref Fiber fiber) {
-        auto topValue = fiber.stack[$ - 1];
-        fiber.stack = fiber.stack[0 .. $ - 1];
-        return topValue;
-    }
-
-    private void dup(ref Fiber fiber) {
-        auto topValue = fiber.stack[$ - 1];
-        fiber.stack ~= topValue;
-    }
-
-    private void swap(ref Fiber fiber) {
-        auto topValue = fiber.stack[$ - 1];
-        fiber.stack[$ - 1] = fiber.stack[$ - 2];
-        fiber.stack[$ - 2] = topValue;
-    }
-
-    private void load(ubyte register, ref Fiber fiber) {
-        auto offset = pop(fiber);
-        if (register == Registers.SP) {
-            push(fiber.stack[$ - 1 - offset], fiber);
-        } else { // Must be FP
-            push(fiber.stack[fiber.FP - offset], fiber);
-        }
-    }
-
-    private void store(ubyte register, ref Fiber fiber) {
-        auto offset = pop(fiber);
-        auto newValue = pop(fiber);
-        if (register == Registers.SP) {
-            fiber.stack[$ - 1 - offset] = newValue;
-        } else { // Must be FP
-            fiber.stack[fiber.FP - offset] = newValue;
-        }
-    }
-
-    private void apply(long delegate(long, long) op, ref Fiber fiber) {
-        auto operand2 = pop(fiber);
-        auto operand1 = pop(fiber);
-        push(op(operand1, operand2), fiber);
-    }
-
-    private Tuple!(long, int) dpush(ubyte[] bytes, ref Fiber fiber) {
-        auto length = get!int(&bytes[0]);
-        auto dataAddress = fiber.dataStack.length;
-        fiber.dataStack ~= bytes[0 .. 4 + length + 1];
-        return Tuple!(long, int)(dataAddress, length);
-    }
-
-    private ubyte[] dpeek(long dataAddress, ref Fiber fiber) {
-        ubyte[] bytes = fiber.dataStack[dataAddress .. $];
-        auto length = get!int(&bytes[0]);
-        return bytes[0 .. 4 + length + 1];
     }
 }
