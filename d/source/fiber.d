@@ -14,7 +14,7 @@ struct Fiber {
     public long FP = 0;
 
     // Data stack
-    public ubyte[] data_stack;
+    public ubyte[] dataStack;
     // Data Frame Pointer
     public long DFP = 0;
 

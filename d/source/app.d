@@ -21,9 +21,9 @@ int main(const string[] args) {
     }
 
     try {
-        auto time_slice = msecs(to!uint(args[2]));
-        auto timeout_granularity = to!uint(args[3]);
-        auto scheduler = Scheduler(time_slice, timeout_granularity);
+        auto timeSlice = msecs(to!uint(args[2]));
+        auto timeoutGranularity = to!uint(args[3]);
+        auto scheduler = Scheduler(timeSlice, timeoutGranularity);
         scheduler.spawn(filename, []);
         scheduler.run();
     } catch (ConvException e) {

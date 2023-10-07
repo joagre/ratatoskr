@@ -21,38 +21,38 @@ enum InterpreterResult {
 
 struct Interpreter {
     InterpreterResult run(ref Scheduler scheduler, ref Fiber fiber,
-                          Duration time_slice, uint timeout_granularity) {
-        auto start_time = Clock.currTime();
-        uint instructions_executed = 0;
+                          Duration timeSlice, uint timeoutGranularity) {
+        auto startTime = Clock.currTime();
+        uint instructionsExecuted = 0;
         InterpreterResult interpreterResult;
 
         while (true) {
-            auto byte_code = fiber.program.byte_code;
+            auto byteCode = fiber.program.byteCode;
 
             debug(interpreter) {
                 writeln(fiber.stack);
-                fiber.program.pretty_print(&byte_code[fiber.PC], true);
+                fiber.program.prettyPrint(&byteCode[fiber.PC], true);
             }
 
             //Thread.sleep(dur!"msecs"(50));
             //readln();
 
-            if (++fiber.PC > byte_code.length) {
+            if (++fiber.PC > byteCode.length) {
                 throw new InterpreterError(
                               "Unexpected end of bytecode or invalid jump");
             }
 
-            switch (byte_code[fiber.PC - 1] >> 3) {
+            switch (byteCode[fiber.PC - 1] >> 3) {
             case Opcodes.PUSH:
-                auto value = get!long(&byte_code[fiber.PC]);
+                auto value = get!long(&byteCode[fiber.PC]);
                 push(value, fiber);
                 fiber.PC += 8;
                 break;
             case Opcodes.PUSHS:
-                auto result = dpush(byte_code[fiber.PC .. $], fiber);
-                auto data_address = result[0];
+                auto result = dpush(byteCode[fiber.PC .. $], fiber);
+                auto dataAddress = result[0];
                 auto length = result[1];
-                push(data_address, fiber);
+                push(dataAddress, fiber);
                 fiber.PC += 4 + length;
                 break;
             case Opcodes.POP:
@@ -66,12 +66,12 @@ struct Interpreter {
                 break;
             case Opcodes.LOAD:
                 auto register =
-                    cast(ubyte)(byte_code[fiber.PC - 1] & 0b00000111);
+                    cast(ubyte)(byteCode[fiber.PC - 1] & 0b00000111);
                 load(register, fiber);
                 break;
             case Opcodes.STORE:
                 auto register =
-                    cast(ubyte)(byte_code[fiber.PC - 1] & 0b00000111);
+                    cast(ubyte)(byteCode[fiber.PC - 1] & 0b00000111);
                 store(register, fiber);
                 break;
             case Opcodes.ADD:
@@ -87,22 +87,22 @@ struct Interpreter {
                 apply((operand1, operand2) => operand1 / operand2, fiber);
                 break;
             case Opcodes.JUMP:
-                auto byte_index = get!long(&byte_code[fiber.PC]);
-                fiber.PC = byte_index;
+                auto byteIndex = get!long(&byteCode[fiber.PC]);
+                fiber.PC = byteIndex;
                 break;
             case Opcodes.CJUMP:
-                auto byte_index = get!long(&byte_code[fiber.PC]);
+                auto byteIndex = get!long(&byteCode[fiber.PC]);
                 auto conditional = pop(fiber);
                 if (conditional != 0) {
-                    fiber.PC = byte_index;
+                    fiber.PC = byteIndex;
                 } else {
                     fiber.PC += 8;
                 }
                 break;
             case Opcodes.CALL:
                 // Extract call operands
-                int byte_index = get!int(&byte_code[fiber.PC]);
-                int arity = get!int(&byte_code[fiber.PC + 4]);
+                int byteIndex = get!int(&byteCode[fiber.PC]);
+                int arity = get!int(&byteCode[fiber.PC + 4]);
                 // Add return address to stack
                 push(fiber.PC + 8, fiber);
                 // Save previous FP on the stack
@@ -110,61 +110,61 @@ struct Interpreter {
                 // Set FP to first parameter CALL parameter
                 fiber.FP = fiber.stack.length - 2 - arity;
                 // Jump to CALL byte index
-                fiber.PC = byte_index;
+                fiber.PC = byteIndex;
                 // Save previous data FP on the data stack
-                insert(fiber.DFP, fiber.data_stack);
+                insert(fiber.DFP, fiber.dataStack);
                 // Set data FP to the previous data FP
-                fiber.DFP = fiber.data_stack.length - 8;
+                fiber.DFP = fiber.dataStack.length - 8;
                 break;
             case Opcodes.RET:
                 // Is the return done by value or by copy?
-                auto return_mode =
-                    cast(ubyte)(byte_code[fiber.PC - 1] & 0b00000111);
+                auto returnMode =
+                    cast(ubyte)(byteCode[fiber.PC - 1] & 0b00000111);
                 // Swap return value and previous FP
                 swap(fiber);
                 // Restore FP to previous FP
-                auto current_fp = fiber.FP;
+                auto currentFP = fiber.FP;
                 fiber.FP = pop(fiber);
                 // Swap return value and return address
                 swap(fiber);
                 // Pop return address
-                auto return_address = pop(fiber);
+                auto returnAddress = pop(fiber);
                 // Has stack been exhausted?
-                if (fiber.FP == -1 || return_address == 0) {
+                if (fiber.FP == -1 || returnAddress == 0) {
                     return InterpreterResult.halt;
                 }
                 // Pop return value
-                auto return_value = pop(fiber);
-                ubyte[] return_data = null;
-                if (return_mode == ReturnModes.COPY) {
+                auto returnValue = pop(fiber);
+                ubyte[] returnData = null;
+                if (returnMode == ReturnModes.COPY) {
                     // Extract return data
-                    return_data = dpeek(return_value, fiber);
+                    returnData = dpeek(returnValue, fiber);
                 }
                 // Remove call stack frame
-                fiber.stack = fiber.stack[0 .. current_fp];
+                fiber.stack = fiber.stack[0 .. currentFP];
                 // Jump to return address
-                fiber.PC = return_address;
+                fiber.PC = returnAddress;
                 // Remove data stack frame
-                auto previous_dfp =
-                    get!long(&fiber.data_stack[fiber.DFP]);
-                fiber.data_stack = fiber.data_stack[0 .. fiber.DFP];
+                auto previousDFP =
+                    get!long(&fiber.dataStack[fiber.DFP]);
+                fiber.dataStack = fiber.dataStack[0 .. fiber.DFP];
                 // Restore data FP to previous data FP
-                fiber.DFP = previous_dfp;
+                fiber.DFP = previousDFP;
                 // Reinsert return value on call stack (and data stack)
-                if (return_mode == ReturnModes.COPY) {
+                if (returnMode == ReturnModes.COPY) {
                     // Copy the return data on to the caller's data stack
-                    auto result = dpush(return_data, fiber);
-                    auto data_address = result[0];
+                    auto result = dpush(returnData, fiber);
+                    auto dataAddress = result[0];
                     // Push the return data address onto caller's call stack
-                    push(data_address, fiber);
+                    push(dataAddress, fiber);
                 } else {
                     // Push the return value onto caller's call stack
-                    push(return_value, fiber);
+                    push(returnValue, fiber);
                 }
                 break;
             case Opcodes.SYS:
-                auto sys_name = get!long(&byte_code[fiber.PC]);
-                switch (sys_name) {
+                auto systemCall = get!long(&byteCode[fiber.PC]);
+                switch (systemCall) {
                     /*
                     // WORK IN PROGRESS!!!!!!!!!!!!!
                     case SystemCalls.SPAWN:
@@ -179,8 +179,8 @@ struct Interpreter {
                     break;
                     */
                 case SystemCalls.PRINTLN:
-                    long data_address = pop(fiber);
-                    auto bytes = dpeek(data_address, fiber);
+                    long dataAddress = pop(fiber);
+                    auto bytes = dpeek(dataAddress, fiber);
                     writeln("PRINTLN: " ~ cast(char[])bytes[4 .. $]);
                     push(1, fiber);
                     break;
@@ -230,15 +230,15 @@ struct Interpreter {
             default:
                 throw new InterpreterError(
                               "Invalid opcode" ~
-                              to!string(byte_code[fiber.PC - 1] >> 3));
+                              to!string(byteCode[fiber.PC - 1] >> 3));
             }
 
-            if (instructions_executed ++ >= timeout_granularity) {
-                if (Clock.currTime() - start_time >= time_slice) {
+            if (instructionsExecuted ++ >= timeoutGranularity) {
+                if (Clock.currTime() - startTime >= timeSlice) {
                     interpreterResult = InterpreterResult.timeout;
                     break;
                 }
-                instructions_executed = 0;
+                instructionsExecuted = 0;
             }
         }
 
@@ -277,11 +277,11 @@ struct Interpreter {
 
     private void store(ubyte register, ref Fiber fiber) {
         auto offset = pop(fiber);
-        auto new_value = pop(fiber);
+        auto newValue = pop(fiber);
         if (register == Registers.SP) {
-            fiber.stack[$ - 1 - offset] = new_value;
+            fiber.stack[$ - 1 - offset] = newValue;
         } else { // Must be FP
-            fiber.stack[fiber.FP - offset] = new_value;
+            fiber.stack[fiber.FP - offset] = newValue;
         }
     }
 
@@ -293,13 +293,13 @@ struct Interpreter {
 
     private Tuple!(long, int) dpush(ubyte[] bytes, ref Fiber fiber) {
         auto length = get!int(&bytes[0]);
-        auto data_address = fiber.data_stack.length;
-        fiber.data_stack ~= bytes[0 .. 4 + length + 1];
-        return Tuple!(long, int)(data_address, length);
+        auto dataAddress = fiber.dataStack.length;
+        fiber.dataStack ~= bytes[0 .. 4 + length + 1];
+        return Tuple!(long, int)(dataAddress, length);
     }
 
-    private ubyte[] dpeek(long data_address, ref Fiber fiber) {
-        ubyte[] bytes = fiber.data_stack[data_address .. $];
+    private ubyte[] dpeek(long dataAddress, ref Fiber fiber) {
+        ubyte[] bytes = fiber.dataStack[dataAddress .. $];
         auto length = get!int(&bytes[0]);
         return bytes[0 .. 4 + length + 1];
     }

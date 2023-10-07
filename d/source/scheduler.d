@@ -12,13 +12,13 @@ struct Scheduler {
     private Interpreter interpreter;
     private auto readyQueue = DList!Fiber();
     private Program[string] programs;
-    private Duration time_slice;
-    private uint timeout_granularity;
+    private Duration timeSlice;
+    private uint timeoutGranularity;
     private long fid = 0;
 
-    this(Duration time_slice, uint timeout_granularity) {
-        this.time_slice = time_slice;
-        this.timeout_granularity = timeout_granularity;
+    this(Duration timeSlice, uint timeoutGranularity) {
+        this.timeSlice = timeSlice;
+        this.timeoutGranularity = timeoutGranularity;
     }
 
     long spawn(string filename, long[] parameters) {
@@ -29,7 +29,7 @@ struct Scheduler {
         }
 
         debug(scheduler) {
-            program.pretty_print;
+            program.prettyPrint;
         }
 
         auto fiber = Fiber(fid, program);
@@ -42,7 +42,7 @@ struct Scheduler {
             auto fiber = readyQueue.front;
             readyQueue.removeFront;
             InterpreterResult result =
-                interpreter.run(this, fiber, time_slice, timeout_granularity);
+                interpreter.run(this, fiber, timeSlice, timeoutGranularity);
             final switch(result) {
             case InterpreterResult.halt:
                 debug(scheduler) {
