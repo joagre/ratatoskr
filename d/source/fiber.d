@@ -82,4 +82,10 @@ struct Fiber {
         auto length = get!int(&bytes[0]);
         return bytes[0 .. 4 + length + 1];
     }
+
+    public string popString() {
+        long dataAddress = pop();
+        auto bytes = peekData(dataAddress);
+        return cast(string)bytes[4 .. $];
+    }
 }

@@ -42,7 +42,7 @@ CALL label arity  ; Calls a function implemented in label with the
                   ; parameter on the stack.
 RET [copy]        ; Removes the call stack frame, i.e. everything
                   ; below FP is nuked, and does the same for the data
-                  ; stack. Restores FP to the previous FP both
+                  ; stack. Restores FP to the previous FP for both
                   ; stacks. Pushes the return value onto the callers
                   ; call stack. The copy operand is only meaningful if
                   ; the return value is a string, i.e. the string

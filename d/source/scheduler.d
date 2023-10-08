@@ -31,7 +31,7 @@ struct Scheduler {
         }
 
         debug(scheduler) {
-            program.prettyPrint;
+            //program.prettyPrint;
         }
 
         auto fiber = Fiber(fid, program);

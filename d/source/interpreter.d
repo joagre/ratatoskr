@@ -2,7 +2,11 @@ module interpreter;
 
 import std.conv : to;
 import std.datetime : Duration, Clock;
-import std.stdio : writeln;
+import std.stdio : write, writeln;
+import std.algorithm.iteration : map;
+import std.array;
+
+import std.range : iota;
 import program;
 import fiber;
 import scheduler;
@@ -29,7 +33,9 @@ struct Interpreter {
             auto byteCode = fiber.program.byteCode;
 
             debug(interpreter) {
+                write(to!string(fiber.fid) ~ ": ");
                 writeln(fiber.stack);
+                write(to!string(fiber.fid) ~ ": ");
                 fiber.program.prettyPrint(&byteCode[fiber.PC], true);
             }
 
@@ -164,23 +170,16 @@ struct Interpreter {
             case Opcodes.SYS:
                 auto systemCall = get!long(&byteCode[fiber.PC]);
                 switch (systemCall) {
-                    /*
-                    // WORK IN PROGRESS!!!!!!!!!!!!!
-                    case SystemCalls.SPAWN:
-                    // auto file_index = fiber.stack[$ - 1];
-                    auto number_of_parameters = fiber.stack[$ - 2];
-                    // Kludge!
-                    string filename = "foo.txt";
-                    long fib = scheduler.spawn(filename,
-                                                fiber.stack[$ - 3 .. $]);
-                    //fiber.pop(1 + number_of_parameters);
-                    //fiber.push();
+                case SystemCalls.SPAWN:
+                    long n = fiber.pop();
+                    long[] parameters = iota(n).map!(_ => fiber.pop()).array;
+                    string filename = fiber.popString();
+                    long fid = scheduler.spawn(filename, parameters);
+                    fiber.push(fid);
                     break;
-                    */
                 case SystemCalls.PRINTLN:
-                    long dataAddress = fiber.pop();
-                    auto bytes = fiber.peekData(dataAddress);
-                    writeln("PRINTLN: " ~ cast(char[])bytes[4 .. $]);
+                    string s = fiber.popString();
+                    writeln("PRINTLN: " ~ s);
                     fiber.push(1);
                     break;
                 default:

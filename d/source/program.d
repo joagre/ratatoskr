@@ -106,8 +106,7 @@ struct Program {
             case "LABEL":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                jumpTable[parse!int(parts[0], line)] =
-                    cast(int)byteCode.length;
+                jumpTable[parse!int(parts[0], line)] = cast(int)byteCode.length;
                 continue;
             case "PUSH":
                 auto parts = operands.split;
@@ -261,6 +260,9 @@ struct Program {
             auto opcode = byteCode[i] >> 3;
             if (opcode == Opcodes.PUSH) {
                 i += 8;
+            } else if (opcode == Opcodes.PUSHS) {
+                auto length = get!int(&byteCode[i + 1]);
+                i += 4 + length;
             } else if (opcode == Opcodes.JUMP || opcode == Opcodes.CJUMP ||
                        opcode == Opcodes.CALL) {
                 auto label = get!int(&byteCode[i + 1]);
@@ -274,7 +276,7 @@ struct Program {
         }
     }
 
-    private void assertOperands(ulong arity, int expectedArity, string line) {
+    private void assertOperands(long arity, int expectedArity, string line) {
         if (arity != expectedArity) {
             throw new ByteCodeError("Invalid instruction " ~ line);
         }
