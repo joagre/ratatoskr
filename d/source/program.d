@@ -46,6 +46,7 @@ struct SystemCalls {
     static const long SEND    = 1;
     static const long RECV    = 2;
     static const long PRINTLN = 3;
+    static const long DISPLAY = 4;
 }
 
 struct ReturnModes {
@@ -207,6 +208,9 @@ struct Program {
                     break;
                 case "println":
                     systemCall = SystemCalls.PRINTLN;
+                    break;
+                case "display":
+                    systemCall = SystemCalls.DISPLAY;
                     break;
                 default:
                     throw new ByteCodeError("Invalid instruction " ~ line);

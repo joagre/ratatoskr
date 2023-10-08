@@ -182,6 +182,11 @@ struct Interpreter {
                     writeln("PRINTLN: " ~ s);
                     fiber.push(1);
                     break;
+                case SystemCalls.DISPLAY:
+                    auto topValue = fiber.pop();
+                    writeln("DISPLAY: " ~ to!string(topValue));
+                    fiber.push(1);
+                    break;
                 default:
                     throw new InterpreterError("SYS is not implemented");
                 }

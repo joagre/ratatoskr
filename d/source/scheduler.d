@@ -47,7 +47,7 @@ struct Scheduler {
                 interpreter.run(this, fiber, timeSlice, timeoutGranularity);
             final switch(result) {
             case InterpreterResult.halt:
-                debug(scheduler) {
+                debug(user) {
                     writeln("Fiber " ~ to!string(fiber.fid) ~ " (" ~
                             fiber.program.filename ~ ") halted: " ~
                             to!string(fiber.stack));
