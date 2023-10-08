@@ -151,7 +151,7 @@ struct Interpreter {
                 fiber.DATA_FP = previousDFP;
                 // Reinsert return value on call stack (and data stack)
                 if (returnMode == ReturnModes.COPY) {
-                    // Copy the return data on to the caller's data stack
+                    // Copy the return data onto the caller's data stack
                     auto result = fiber.pushData(returnData);
                     auto dataAddress = result[0];
                     // Push the return data address onto caller's call stack
