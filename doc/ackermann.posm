@@ -1,0 +1,74 @@
+; start() ->
+;     ackermann(2, 2).
+;
+; ackermann(0, N) ->
+;     N + 1;
+; ackermann(M, 0) when M > 0 ->
+;     ackermann(M - 1, 1);
+;ackermann(M, N) when M > 0, N > 0 ->
+;     ackermann(M - 1, ackermann(M, N - 1)).
+
+LABEL 0          ; start/0
+  PUSH -1        ; Bogus return address
+  PUSH -1        ; Bogus FP
+  ; Call ackerman(2, 2)
+  PUSH 1
+  PUSH 1
+  CALL 1 1
+  RET
+
+LABEL 1          ; ackerman/2
+  PUSH 0
+  LOAD FP
+  PUSH 0
+  NEQ
+  CJUMP 2
+  PUSH -1
+  LOAD FP
+  PUSH 1
+  ADD
+  RET
+
+LABEL 2
+  PUSH -1
+  LOAD FP
+  PUSH 0
+  NEQ
+  CJUMP 3
+  PUSH 0
+  LOAD FP
+  PUSH 0
+  GT
+  NEQ
+  CJUMP 3
+  ; Call ackermann(M - 1, 1)
+  PUSH 0
+  LOAD FP
+  PUSH 1
+  SUB
+  PUSH 0
+  STORE FP
+  PUSH 1
+  PUSH -1
+  STORE FP
+  JUMP 1
+
+LABEL 3
+  ; Call ackermann(M, N - 1)
+  PUSH 0
+  LOAD FP
+  PUSH -1
+  LOAD FP
+  PUSH 1
+  SUB
+  CALL 1 2
+  ; Call ackermann(M - 1, ackermann(M, N - 1)).
+  PUSH 0
+  LOAD FP
+  PUSH 1
+  SUB
+  PUSH 0
+  STORE FP
+  PUSH -1
+  STORE FP
+  JUMP 1
