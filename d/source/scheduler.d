@@ -2,18 +2,25 @@ module scheduler;
 
 import std.stdio : writeln;
 import std.conv : to;
-import std.datetime : Duration;
+import std.datetime : Duration, msecs;
 import std.container : DList;
+import core.thread : Thread;
 import program;
 import interpreter;
 import fiber;
 
 struct Scheduler {
+    const uint EMPTY_READY_QUEUE_BACK_OFF = 25;
+
     private Interpreter interpreter;
     private auto readyQueue = DList!Fiber();
+    private auto waitingQueue = DList!Fiber();
+
     private Program[string] programs;
+
     private Duration timeSlice;
     private uint timeoutGranularity;
+
     private long fid = 0;
 
     this(ref Interpreter interpreter, Duration timeSlice,
@@ -31,7 +38,7 @@ struct Scheduler {
         }
 
         debug(scheduler) {
-            //program.prettyPrint;
+            program.prettyPrint;
         }
 
         auto fiber = Fiber(fid, program);
@@ -40,22 +47,28 @@ struct Scheduler {
     }
 
     void run() {
-        while (!readyQueue.empty) {
-            auto fiber = readyQueue.front;
-            readyQueue.removeFront;
-            InterpreterResult result =
-                interpreter.run(this, fiber, timeSlice, timeoutGranularity);
-            final switch(result) {
-            case InterpreterResult.halt:
-                debug(user) {
-                    writeln("Fiber " ~ to!string(fiber.fid) ~ " (" ~
-                            fiber.program.filename ~ ") halted: " ~
-                            to!string(fiber.stack));
+        while (!waitingQueue.empty || !readyQueue.empty) {
+            while (!readyQueue.empty) {
+                auto fiber = readyQueue.front;
+                readyQueue.removeFront;
+                InterpreterResult result =
+                    interpreter.run(this, fiber, timeSlice, timeoutGranularity);
+                final switch(result) {
+                case InterpreterResult.halt:
+                    debug(user) {
+                        writeln("Fiber " ~ to!string(fiber.fid) ~ " (" ~
+                                fiber.program.filename ~ ") halted: " ~
+                                to!string(fiber.stack));
+                    }
+                    break;
+                case InterpreterResult.recv:
+                    waitingQueue.insertBack(fiber);
+                    break;
+                case InterpreterResult.timeout:
+                    readyQueue.insertBack(fiber);
                 }
-                break;
-            case InterpreterResult.timeout:
-                readyQueue.insertBack(fiber);
             }
+            Thread.sleep(msecs(EMPTY_READY_QUEUE_BACK_OFF));
         }
     }
 }

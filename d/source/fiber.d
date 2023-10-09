@@ -80,7 +80,7 @@ struct Fiber {
     public ubyte[] peekData(long dataAddress) {
         ubyte[] bytes = dataStack[dataAddress .. $];
         auto length = get!int(&bytes[0]);
-        return bytes[0 .. 4 + length + 1];
+        return bytes[0 .. 4 + length];
     }
 
     public string popString() {

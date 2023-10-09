@@ -19,7 +19,8 @@ class InterpreterError : Exception {
 
 enum InterpreterResult {
     halt,
-    timeout
+    timeout,
+    recv
 }
 
 struct Interpreter {
@@ -177,9 +178,11 @@ struct Interpreter {
                     long fid = scheduler.spawn(filename, parameters);
                     fiber.push(fid);
                     break;
+                case SystemCalls.RECV:
+                    return InterpreterResult.recv;
                 case SystemCalls.PRINTLN:
                     string s = fiber.popString();
-                    writeln("PRINTLN: " ~ s);
+                    writeln("PRINTLN: " ~ s ~ " (" ~ to!string(s.length) ~ ")");
                     fiber.push(1);
                     break;
                 case SystemCalls.DISPLAY:

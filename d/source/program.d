@@ -327,7 +327,7 @@ struct Program {
         case Opcodes.PUSHS:
             auto length = get!int(&bytes[1]);
             auto index = 1 + 4;
-            auto byteString = bytes[index .. index + length + 1];
+            auto byteString = bytes[index .. index + length];
             writeln("PUSHS \"" ~ cast(string)byteString ~ "\"");
             return 4 + length;
         case Opcodes.POP:
