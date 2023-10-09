@@ -14,7 +14,7 @@ LABEL 0          ; start/0
   ; Call ackerman(2, 2)
   PUSH 1
   PUSH 1
-  CALL 1 1
+  CALL 1 2
   RET
 
 LABEL 1          ; ackerman/2
