@@ -1,26 +1,29 @@
-module fiber;
+module runcontext;
 
+import std.stdio : writeln;
+import std.conv : to;
 import std.typecons : Tuple;
 import program;
 
-struct Fiber {
-    public long fid;
+struct RunContext {
+    public long rcid;
+
     public Program* program;
     // Program Counter
-    public long PC = 0;
+    public long pc = 0;
 
     // Call stack
     public long[] stack;
     // Frame pointer
-    public long FP = 0;
+    public long fp = 0;
 
     // Data stack
     public ubyte[] dataStack;
     // Data Frame Pointer
-    public long DATA_FP = 0;
+    public long dataFp = 0;
 
-    this(long fid, Program* program) {
-        this.fid = fid;
+    this(long rcid, Program* program) {
+        this.rcid = rcid;
         this.program = program;
     }
 
@@ -47,20 +50,20 @@ struct Fiber {
 
     public void load(ubyte register) {
         auto offset = pop();
-        if (register == Registers.SP) {
+        if (register == Registers.sp) {
             push(stack[$ - 1 - offset]);
-        } else { // Must be FP
-            push(stack[FP - offset]);
+        } else { // Must be fp
+            push(stack[fp - offset]);
         }
     }
 
     public void store(ubyte register) {
         auto offset = pop();
         auto newValue = pop();
-        if (register == Registers.SP) {
+        if (register == Registers.sp) {
             stack[$ - 1 - offset] = newValue;
-        } else { // Must be FP
-            stack[FP - offset] = newValue;
+        } else { // Must be fp
+            stack[fp - offset] = newValue;
         }
     }
 
@@ -73,7 +76,7 @@ struct Fiber {
     public Tuple!(long, int) pushData(ubyte[] bytes) {
         auto length = get!int(&bytes[0]);
         auto dataAddress = dataStack.length;
-        dataStack ~= bytes[0 .. 4 + length + 1];
+        dataStack ~= bytes[0 .. 4 + length];
         return Tuple!(long, int)(dataAddress, length);
     }
 
@@ -84,8 +87,16 @@ struct Fiber {
     }
 
     public string popString() {
-        long dataAddress = pop();
+        auto dataAddress = pop();
         auto bytes = peekData(dataAddress);
         return cast(string)bytes[4 .. $];
+    }
+
+    public void setStack(long[] newStack) {
+        stack = newStack;
+    }
+
+    public void appendStack(long[] newStack) {
+        stack ~= newStack;
     }
 }

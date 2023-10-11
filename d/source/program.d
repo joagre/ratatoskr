@@ -9,49 +9,49 @@ import std.utf: toUTF8;
 import std.regex: replace, regex;
 
 struct Registers {
-    static const ubyte SP = 0;
-    static const ubyte FP = 1;
+    static const ubyte sp = 0;
+    static const ubyte fp = 1;
 }
 
 struct Opcodes {
-    static const ubyte PUSH  = 0;
-    static const ubyte PUSHS = 1;
-    static const ubyte POP   = 2;
-    static const ubyte DUP   = 3;
-    static const ubyte SWAP  = 4;
-    static const ubyte LOAD  = 5;
-    static const ubyte STORE = 6;
-    static const ubyte ADD   = 7;
-    static const ubyte SUB   = 8;
-    static const ubyte MUL   = 9;
-    static const ubyte DIV   = 10;
-    static const ubyte JUMP  = 11;
-    static const ubyte CJUMP = 12;
-    static const ubyte CALL  = 13;
-    static const ubyte RET   = 14;
-    static const ubyte SYS   = 15;
-    static const ubyte AND   = 16;
-    static const ubyte OR    = 17;
-    static const ubyte NOT   = 18;
-    static const ubyte EQ    = 19;
-    static const ubyte NEQ   = 20;
-    static const ubyte LT    = 21;
-    static const ubyte GT    = 22;
-    static const ubyte NOP   = 23;
-    static const ubyte HALT  = 24;
+    static const ubyte push  = 0;
+    static const ubyte pushs = 1;
+    static const ubyte pop   = 2;
+    static const ubyte dup   = 3;
+    static const ubyte swap  = 4;
+    static const ubyte load  = 5;
+    static const ubyte store = 6;
+    static const ubyte add   = 7;
+    static const ubyte sub   = 8;
+    static const ubyte mul   = 9;
+    static const ubyte div   = 10;
+    static const ubyte jump  = 11;
+    static const ubyte cjump = 12;
+    static const ubyte call  = 13;
+    static const ubyte ret   = 14;
+    static const ubyte sys   = 15;
+    static const ubyte and   = 16;
+    static const ubyte or    = 17;
+    static const ubyte not   = 18;
+    static const ubyte eq    = 19;
+    static const ubyte neq   = 20;
+    static const ubyte lt    = 21;
+    static const ubyte gt    = 22;
+    static const ubyte nop   = 23;
+    static const ubyte halt  = 24;
 }
 
 struct SystemCalls {
-    static const long SPAWN   = 0;
+    static const long spawn   = 0;
     static const long SEND    = 1;
-    static const long RECV    = 2;
-    static const long PRINTLN = 3;
-    static const long DISPLAY = 4;
+    static const long recv    = 2;
+    static const long println = 3;
+    static const long display = 4;
 }
 
 struct ReturnModes {
-    static const ubyte VALUE = 0;
-    static const ubyte COPY = 1;
+    static const ubyte value = 0;
+    static const ubyte copy = 1;
 }
 
 class ByteCodeError : Exception {
@@ -104,154 +104,154 @@ struct Program {
             }
 
             switch (opcode) {
-            case "LABEL":
+            case "label":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
                 jumpTable[parse!int(parts[0], line)] = cast(int)byteCode.length;
                 continue;
-            case "PUSH":
+            case "push":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                byteCode ~= Opcodes.PUSH << 3;
+                byteCode ~= Opcodes.push << 3;
                 insert(parse!long(parts[0], line), byteCode);
                 break;
-            case "PUSHS":
+            case "pushs":
                 if (operands.length == 0) {
                     throw new ByteCodeError("Invalid instruction " ~ line);
                 }
-                byteCode ~= Opcodes.PUSHS << 3;
+                byteCode ~= Opcodes.pushs << 3;
                 ubyte[] bytes = cast(ubyte[])toUTF8(operands.strip(`"`));
                 insert(cast(int)bytes.length, byteCode);
                 byteCode ~= bytes;
                 break;
-            case "POP":
+            case "pop":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.POP << 3;
+                byteCode ~= Opcodes.pop << 3;
                 break;
-            case "DUP":
+            case "dup":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.DUP << 3;
+                byteCode ~= Opcodes.dup << 3;
                 break;
-            case "SWAP":
+            case "swap":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.SWAP << 3;
+                byteCode ~= Opcodes.swap << 3;
                 break;
-            case "LOAD":
+            case "load":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                byteCode ~= addRegister(parts[0], Opcodes.LOAD, line);
+                byteCode ~= addRegister(parts[0], Opcodes.load, line);
                 break;
-            case "STORE":
+            case "store":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                byteCode ~= addRegister(parts[0], Opcodes.STORE, line);
+                byteCode ~= addRegister(parts[0], Opcodes.store, line);
                 break;
-            case "ADD":
+            case "add":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.ADD << 3;
+                byteCode ~= Opcodes.add << 3;
                 break;
-            case "SUB":
+            case "sub":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.SUB << 3;
+                byteCode ~= Opcodes.sub << 3;
                 break;
-            case "MUL":
+            case "mul":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.MUL << 3;
+                byteCode ~= Opcodes.mul << 3;
                 break;
-            case "DIV":
+            case "div":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.DIV << 3;
+                byteCode ~= Opcodes.div << 3;
                 break;
-            case "JUMP":
+            case "jump":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                byteCode ~= Opcodes.JUMP << 3;
+                byteCode ~= Opcodes.jump << 3;
                 insert(parse!long(parts[0], line), byteCode);
                 break;
-            case "CJUMP":
+            case "cjump":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                byteCode ~= Opcodes.CJUMP << 3;
+                byteCode ~= Opcodes.cjump << 3;
                 insert(parse!long(parts[0], line), byteCode);
                 break;
-            case "CALL":
+            case "call":
                 auto parts = operands.split;
                 assertOperands(parts.length, 2, line);
-                byteCode ~= Opcodes.CALL << 3;
+                byteCode ~= Opcodes.call << 3;
                 insert(parse!int(parts[0], line), byteCode);
                 insert(parse!int(parts[1], line), byteCode);
                 break;
-            case "RET":
+            case "ret":
                 auto parts = operands.split;
                 if (parts.length == 0) {
-                    byteCode ~= (Opcodes.RET << 3) | ReturnModes.VALUE;
+                    byteCode ~= (Opcodes.ret << 3) | ReturnModes.value;
                 } else if (parts.length == 1 && parts[0] == "copy") {
-                    byteCode ~= (Opcodes.RET << 3) | ReturnModes.COPY;
+                    byteCode ~= (Opcodes.ret << 3) | ReturnModes.copy;
                 } else {
                     throw new ByteCodeError("Invalid instruction " ~ line);
                 }
                 break;
-            case "SYS":
+            case "sys":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                byteCode ~= Opcodes.SYS << 3;
+                byteCode ~= Opcodes.sys << 3;
                 long systemCall;
                 switch(parts[0]) {
                 case "spawn":
-                    systemCall = SystemCalls.SPAWN;
+                    systemCall = SystemCalls.spawn;
                     break;
                 case "send":
                     systemCall = SystemCalls.SEND;
                     break;
                 case "recv":
-                    systemCall = SystemCalls.RECV;
+                    systemCall = SystemCalls.recv;
                     break;
                 case "println":
-                    systemCall = SystemCalls.PRINTLN;
+                    systemCall = SystemCalls.println;
                     break;
                 case "display":
-                    systemCall = SystemCalls.DISPLAY;
+                    systemCall = SystemCalls.display;
                     break;
                 default:
                     throw new ByteCodeError("Invalid instruction " ~ line);
                 }
                 insert(systemCall, byteCode);
                 break;
-            case "AND":
+            case "and":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.AND << 3;
+                byteCode ~= Opcodes.and << 3;
                 break;
-            case "OR":
+            case "or":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.OR << 3;
+                byteCode ~= Opcodes.or << 3;
                 break;
-            case "NOT":
+            case "not":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.NOT << 3;
+                byteCode ~= Opcodes.not << 3;
                 break;
-            case "EQ":
+            case "eq":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.EQ << 3;
+                byteCode ~= Opcodes.eq << 3;
                 break;
-            case "NEQ":
+            case "neq":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.NEQ << 3;
+                byteCode ~= Opcodes.neq << 3;
                 break;
-            case "LT":
+            case "lt":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.LT << 3;
+                byteCode ~= Opcodes.lt << 3;
                 break;
-            case "GT":
+            case "gt":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.GT << 3;
+                byteCode ~= Opcodes.gt << 3;
                 break;
-            case "NOP":
+            case "nop":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.NOP << 3;
+                byteCode ~= Opcodes.nop << 3;
                 break;
-            case "HALT":
+            case "halt":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.HALT << 3;
+                byteCode ~= Opcodes.halt << 3;
                 break;
             default:
                 throw new ByteCodeError("Invalid instruction " ~ line);
@@ -262,18 +262,18 @@ struct Program {
         long i = 0;
         while (i < byteCode.length) {
             auto opcode = byteCode[i] >> 3;
-            if (opcode == Opcodes.PUSH) {
+            if (opcode == Opcodes.push) {
                 i += 8;
-            } else if (opcode == Opcodes.PUSHS) {
+            } else if (opcode == Opcodes.pushs) {
                 auto length = get!int(&byteCode[i + 1]);
                 i += 4 + length;
-            } else if (opcode == Opcodes.JUMP || opcode == Opcodes.CJUMP ||
-                       opcode == Opcodes.CALL) {
+            } else if (opcode == Opcodes.jump || opcode == Opcodes.cjump ||
+                       opcode == Opcodes.call) {
                 auto label = get!int(&byteCode[i + 1]);
                 auto byteIndex = jumpTable[label];
                 set!int(byteIndex, &byteCode[i + 1]);
                 i += 8;
-            } else if (opcode == Opcodes.SYS) {
+            } else if (opcode == Opcodes.sys) {
                 i += 8;
             }
             i++;
@@ -302,10 +302,10 @@ struct Program {
     }
 
     private ubyte addRegister(string register, ubyte opcode, string line) {
-        if (register == "SP") {
-            return cast(ubyte)(opcode << 3) | Registers.SP;
-        } else if (register == "FP") {
-            return cast(ubyte)(opcode << 3) | Registers.FP;
+        if (register == "sp") {
+            return cast(ubyte)(opcode << 3) | Registers.sp;
+        } else if (register == "fp") {
+            return cast(ubyte)(opcode << 3) | Registers.fp;
         } else {
             throw new ByteCodeError("Invalid instruction " ~ line);
         }
@@ -320,112 +320,112 @@ struct Program {
 
     public long prettyPrint(ubyte* bytes, bool showLabels) {
         switch (bytes[0] >> 3) {
-        case Opcodes.PUSH:
-            long value = get!long(&bytes[1]);
-            writeln("PUSH " ~ to!string(value));
+        case Opcodes.push:
+            auto value = get!long(&bytes[1]);
+            writeln("push " ~ to!string(value));
             return 8;
-        case Opcodes.PUSHS:
+        case Opcodes.pushs:
             auto length = get!int(&bytes[1]);
             auto index = 1 + 4;
             auto byteString = bytes[index .. index + length];
-            writeln("PUSHS \"" ~ cast(string)byteString ~ "\"");
+            writeln("pushs \"" ~ cast(string)byteString ~ "\"");
             return 4 + length;
-        case Opcodes.POP:
-            writeln("POP");
+        case Opcodes.pop:
+            writeln("pop");
             break;
-        case Opcodes.DUP:
-            writeln("DUP");
+        case Opcodes.dup:
+            writeln("dup");
             break;
-        case Opcodes.SWAP:
-            writeln("SWAP");
+        case Opcodes.swap:
+            writeln("swap");
             break;
-        case Opcodes.LOAD:
+        case Opcodes.load:
             string register = getRegisterString(bytes[0]);
-            writeln("LOAD " ~ register);
+            writeln("load " ~ register);
             break;
-        case Opcodes.STORE:
+        case Opcodes.store:
             string register = getRegisterString(bytes[0]);
-            writeln("STORE " ~ register);
+            writeln("store " ~ register);
             break;
-        case Opcodes.ADD:
-            writeln("ADD");
+        case Opcodes.add:
+            writeln("add");
             break;
-        case Opcodes.SUB:
-            writeln("SUB");
+        case Opcodes.sub:
+            writeln("sub");
             break;
-        case Opcodes.MUL:
-            writeln("MUL");
+        case Opcodes.mul:
+            writeln("mul");
             break;
-        case Opcodes.DIV:
-            writeln("DIV");
+        case Opcodes.div:
+            writeln("div");
             break;
-        case Opcodes.JUMP:
+        case Opcodes.jump:
             auto byteIndex = get!long(&bytes[1]);
             if (showLabels) {
                 auto label = lookupLabel(byteIndex);
-                writeln("JUMP " ~ to!string(label));
+                writeln("jump " ~ to!string(label));
             } else {
-                writeln("JUMP " ~ to!string(byteIndex));
+                writeln("jump " ~ to!string(byteIndex));
             }
             return 8;
-        case Opcodes.CJUMP:
+        case Opcodes.cjump:
             auto byteIndex = get!long(&bytes[1]);
             if (showLabels) {
                 auto label = lookupLabel(byteIndex);
-                writeln("CJUMP " ~ to!string(label));
+                writeln("cjump " ~ to!string(label));
             } else {
-                writeln("CJUMP " ~ to!string(byteIndex));
+                writeln("cjump " ~ to!string(byteIndex));
             }
             return 8;
-        case Opcodes.CALL:
+        case Opcodes.call:
             auto byteIndex = get!int(&bytes[1]);
             auto arity = get!int(&bytes[5]);
             if (showLabels) {
                 auto label = lookupLabel(byteIndex);
-                writeln("CALL " ~ to!string(label) ~ " " ~ to!string(arity));
+                writeln("call " ~ to!string(label) ~ " " ~ to!string(arity));
             } else {
-                writeln("CALL " ~ to!string(byteIndex) ~ " " ~
+                writeln("call " ~ to!string(byteIndex) ~ " " ~
                         to!string(arity));
             }
             return 8;
-        case Opcodes.RET:
+        case Opcodes.ret:
             auto returnMode = bytes[0] & 0b00000111;
-            if (returnMode == ReturnModes.COPY) {
-                writeln("RET copy");
+            if (returnMode == ReturnModes.copy) {
+                writeln("ret copy");
             } else {
-                writeln("RET");
+                writeln("ret");
             }
             break;
-        case Opcodes.SYS:
-            long value = get!long(&bytes[1]);
-            writeln("SYS " ~ to!string(value));
+        case Opcodes.sys:
+            auto value = get!long(&bytes[1]);
+            writeln("sys " ~ to!string(value));
             return 8;
-        case Opcodes.AND:
-            writeln("AND");
+        case Opcodes.and:
+            writeln("and");
             break;
-        case Opcodes.OR:
-            writeln("OR");
+        case Opcodes.or:
+            writeln("or");
             break;
-        case Opcodes.NOT:
-            writeln("NOT");
+        case Opcodes.not:
+            writeln("not");
             break;
-        case Opcodes.EQ:
-            writeln("EQ");
+        case Opcodes.eq:
+            writeln("eq");
             break;
-        case Opcodes.NEQ:
-            writeln("NEQ");
+        case Opcodes.neq:
+            writeln("neq");
             break;
-        case Opcodes.LT:
-            writeln("LT");
+        case Opcodes.lt:
+            writeln("lt");
             break;
-        case Opcodes.GT:
-            writeln("GT");
+        case Opcodes.gt:
+            writeln("gt");
             break;
-        case Opcodes.NOP:
-            writeln("NOP");
+        case Opcodes.nop:
+            writeln("nop");
             break;
-        case Opcodes.HALT:
-            writeln("HALT");
+        case Opcodes.halt:
+            writeln("halt");
             break;
         default:
             throw new ByteCodeError("Unknown opcode " ~
@@ -446,10 +446,10 @@ struct Program {
 
     private string getRegisterString(ubyte instruction) {
         auto register = instruction & 0b00000111;
-        if (register == Registers.SP) {
-            return "SP";
-        } else { // Must be FP
-            return "FP";
+        if (register == Registers.sp) {
+            return "sp";
+        } else { // Must be fp
+            return "fp";
         }
     }
 }

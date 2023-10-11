@@ -7,21 +7,21 @@ import std.container : DList;
 import core.thread : Thread;
 import program;
 import interpreter;
-import fiber;
+import runcontext;
 
 struct Scheduler {
-    const uint EMPTY_READY_QUEUE_BACK_OFF = 25;
+    const uint emptyReadyQueueBackOff = 25;
 
     private Interpreter interpreter;
-    private auto readyQueue = DList!Fiber();
-    private auto waitingQueue = DList!Fiber();
+    private auto readyQueue = DList!RunContext();
+    private auto waitingQueue = DList!RunContext();
 
     private Program[string] programs;
 
     private Duration timeSlice;
     private uint timeoutGranularity;
 
-    private long fid = 0;
+    private long rcid = 0;
 
     this(ref Interpreter interpreter, Duration timeSlice,
          uint timeoutGranularity) {
@@ -41,34 +41,36 @@ struct Scheduler {
             program.prettyPrint;
         }
 
-        auto fiber = Fiber(fid, program);
-        readyQueue.insertBack(fiber);
-        return fid++;
+        auto runContext = RunContext(rcid, program);
+        runContext.appendStack(parameters);
+        readyQueue.insertBack(runContext);
+        return rcid++;
     }
 
     void run() {
         while (!waitingQueue.empty || !readyQueue.empty) {
             while (!readyQueue.empty) {
-                auto fiber = readyQueue.front;
+                auto runContext = readyQueue.front;
                 readyQueue.removeFront;
                 InterpreterResult result =
-                    interpreter.run(this, fiber, timeSlice, timeoutGranularity);
+                    interpreter.run(this, runContext, timeSlice,
+                                    timeoutGranularity);
                 final switch(result) {
                 case InterpreterResult.halt:
                     debug(user) {
-                        writeln("Fiber " ~ to!string(fiber.fid) ~ " (" ~
-                                fiber.program.filename ~ ") halted: " ~
-                                to!string(fiber.stack));
+                        writeln("RunContext " ~ to!string(runContext.rcid) ~
+                                " (" ~ runContext.program.filename ~
+                                ") halted: " ~ to!string(runContext.stack));
                     }
                     break;
                 case InterpreterResult.recv:
-                    waitingQueue.insertBack(fiber);
+                    waitingQueue.insertBack(runContext);
                     break;
                 case InterpreterResult.timeout:
-                    readyQueue.insertBack(fiber);
+                    readyQueue.insertBack(runContext);
                 }
             }
-            Thread.sleep(msecs(EMPTY_READY_QUEUE_BACK_OFF));
+            Thread.sleep(msecs(emptyReadyQueueBackOff));
         }
     }
 }

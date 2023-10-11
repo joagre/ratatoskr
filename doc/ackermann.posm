@@ -5,70 +5,70 @@
 ;     N + 1;
 ; ackermann(M, 0) when M > 0 ->
 ;     ackermann(M - 1, 1);
-;ackermann(M, N) when M > 0, N > 0 ->
+; ackermann(M, N) when M > 0, N > 0 ->
 ;     ackermann(M - 1, ackermann(M, N - 1)).
 
-LABEL 0          ; start/0
-  PUSH -1        ; Bogus return address
-  PUSH -1        ; Bogus FP
-  ; Call ackerman(2, 2)
-  PUSH 1
-  PUSH 1
-  CALL 1 2
-  RET
+label 0          ; start/0
+;  push -1        ; Bogus return address
+;  push -1        ; Bogus fp
+;  ; Call ackermann(3, 6)
+;  push 3
+;  push 6
+;  call 1 2
+;  ret
 
-LABEL 1          ; ackerman/2
-  PUSH 0
-  LOAD FP
-  PUSH 0
-  NEQ
-  CJUMP 2
-  PUSH -1
-  LOAD FP
-  PUSH 1
-  ADD
-  RET
+label 1          ; ackermann/2
+  push 0
+  load fp
+  push 0
+  neq
+  cjump 2
+  push -1
+  load fp
+  push 1
+  add
+  ret
 
-LABEL 2
-  PUSH -1
-  LOAD FP
-  PUSH 0
-  NEQ
-  CJUMP 3
-  PUSH 0
-  LOAD FP
-  PUSH 0
-  GT
-  NEQ
-  CJUMP 3
+label 2
+  push -1
+  load fp
+  push 0
+  neq
+  cjump 3
+  push 0
+  load fp
+  push 0
+  gt
+  not
+  cjump 3
   ; Call ackermann(M - 1, 1)
-  PUSH 0
-  LOAD FP
-  PUSH 1
-  SUB
-  PUSH 0
-  STORE FP
-  PUSH 1
-  PUSH -1
-  STORE FP
-  JUMP 1
+  push 0
+  load fp
+  push 1
+  sub
+  push 0
+  store fp
+  push 1
+  push -1
+  store fp
+  jump 1
 
-LABEL 3
+label 3
+  ; Call ackermann(M - 1, ackermann(M, N - 1))
+  push 0
+  load fp
+  push 1
+  sub
   ; Call ackermann(M, N - 1)
-  PUSH 0
-  LOAD FP
-  PUSH -1
-  LOAD FP
-  PUSH 1
-  SUB
-  CALL 1 2
-  ; Call ackermann(M - 1, ackermann(M, N - 1)).
-  PUSH 0
-  LOAD FP
-  PUSH 1
-  SUB
-  PUSH 0
-  STORE FP
-  PUSH -1
-  STORE FP
-  JUMP 1
+  push 0
+  load fp
+  push -1
+  load fp
+  push 1
+  sub
+  call 1 2
+  push -1
+  store fp
+  push 0
+  store fp
+  jump 1

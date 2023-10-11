@@ -36,18 +36,6 @@ eval(Stack, #{sp := SP} = Registers, {push, Value}) ->
     UpdatedSP = SP + 1,
     UpdatedStack = array:set(UpdatedSP, Value, Stack),
     {UpdatedStack, Registers#{sp => UpdatedSP}};
-eval(Stack, #{sp := SP} = Registers, {pushr, sp}) ->
-    UpdatedSP = SP + 1,
-    UpdatedStack = array:set(UpdatedSP, SP, Stack),
-    {UpdatedStack, Registers#{sp => UpdatedSP}};
-eval(Stack, #{sp := SP, fp := FP} = Registers, {pushr, fp}) ->
-    UpdatedSP = SP + 1,
-    UpdatedStack = array:set(UpdatedSP, FP, Stack),
-    {UpdatedStack, Registers#{sp => UpdatedSP}};
-eval(Stack, #{sp := SP, pc := PC} = Registers, {pushr, pc}) ->
-    UpdatedSP = SP + 1,
-    UpdatedStack = array:set(UpdatedSP, PC, Stack),
-    {UpdatedStack, Registers#{sp => UpdatedSP}};
 eval(Stack, #{sp := SP} = Registers, pop) ->
     UpdatedSP = SP - 1,
     {Stack, Registers#{sp => UpdatedSP}};
@@ -63,36 +51,27 @@ eval(Stack, #{sp := SP} = Registers, swap) ->
         array:set(SP, NextToTopValue,
                   array:set(UpdatedSP, TopValue, Stack)),
     {UpdatedStack, Registers};
-eval(Stack, #{sp := SP} = Registers, {loadr, sp}) ->
+eval(Stack, #{sp := SP} = Registers, {load, sp}) ->
     Offset = top1(Stack, SP),
     Value = array:get(SP - Offset, Stack),
     UpdatedStack = array:set(SP, Value, Stack),
     {UpdatedStack, Registers};
-eval(Stack, #{sp := SP, fp := FP} = Registers, {loadr, fp}) ->
+eval(Stack, #{sp := SP, fp := FP} = Registers, {load, fp}) ->
     Offset = top1(Stack, SP),
     Value = array:get(FP - Offset, Stack),
     UpdatedStack = array:set(SP, Value, Stack),
     {UpdatedStack, Registers};
-eval(Stack, #{sp := SP} = Registers, {storer, sp}) ->
+eval(Stack, #{sp := SP} = Registers, {store, sp}) ->
     {Offset, NewValue} = top2(Stack, SP),
     UpdatedSP = SP - 2,
     %% Do not count the STORER parameters
     UpdatedStack = array:set(UpdatedSP - Offset, NewValue, Stack),
     {UpdatedStack, Registers#{sp => UpdatedSP}};
-eval(Stack, #{sp := SP, fp := FP} = Registers, {storer, fp}) ->
+eval(Stack, #{sp := SP, fp := FP} = Registers, {store, fp}) ->
     {Offset, NewValue} = top2(Stack, SP),
     UpdatedStack = array:set(FP - Offset, NewValue, Stack),
     UpdatedSP = SP - 2,
     {UpdatedStack, Registers#{sp => UpdatedSP}};
-eval(Stack, #{sp := SP} = Registers, {mover, sp}) ->
-    TopValue = top1(Stack, SP),
-    {Stack, Registers#{sp => TopValue}};
-eval(Stack, #{sp := SP} = Registers, {mover, fp}) ->
-    TopValue = top1(Stack, SP),
-    {Stack, Registers#{sp => SP - 1, fp => TopValue}};
-eval(Stack, #{sp := SP} = Registers, {mover, pc}) ->
-    TopValue = top1(Stack, SP),
-    {Stack, Registers#{sp => SP - 1, pc => TopValue}};
 eval(Stack, #{sp := SP} = Registers, add) ->
     {Operand2, Operand1} = top2(Stack, SP),
     UpdatedSP = SP - 1,
@@ -121,11 +100,14 @@ eval(Stack, #{sp := SP} = Registers, {cjump, Address}) ->
         false ->
             {Stack, Registers#{sp => UpdatedSP}}
     end;
-eval(Stack, #{sp := SP, pc := PC} = Registers, {call, Address}) ->
+eval(Stack, #{sp := SP, pc := PC} = Registers, {call, Address, Arity}) ->
     UpdatedSP = SP + 1,
     ReturnAddress = PC + 1,
-    UpdatedStack = array:set(UpdatedSP, ReturnAddress, Stack),
-    {UpdatedStack, Registers#{sp => UpdatedSP, pc => Address}};
+    UpdatedStack = array:set(UpdatedSP, FP,
+                             array:set(UpdatedSP, ReturnAddress, Stack)),
+    {UpdatedStack, Registers#{sp => UpdatedSP,
+                              fp => SP - 2 - Arity,
+                              pc => Address}};
 eval(Stack, #{sp := SP} = Registers, ret) ->
     {ReturnAddress, Result, NumberOfParameters} = top3(Stack, SP),
     UpdatedSP = SP - 2 - NumberOfParameters,

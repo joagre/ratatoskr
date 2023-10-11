@@ -4,11 +4,12 @@ import std.conv : to;
 import std.datetime : Duration, Clock;
 import std.stdio : write, writeln;
 import std.algorithm.iteration : map;
+import std.algorithm.mutation : reverse;
 import std.array;
 
 import std.range : iota;
 import program;
-import fiber;
+import runcontext;
 import scheduler;
 
 class InterpreterError : Exception {
@@ -24,209 +25,213 @@ enum InterpreterResult {
 }
 
 struct Interpreter {
-    InterpreterResult run(ref Scheduler scheduler, ref Fiber fiber,
+    InterpreterResult run(ref Scheduler scheduler, ref RunContext runContext,
                           Duration timeSlice, uint timeoutGranularity) {
         auto startTime = Clock.currTime();
         uint instructionsExecuted = 0;
         InterpreterResult interpreterResult;
 
         while (true) {
-            auto byteCode = fiber.program.byteCode;
+            auto byteCode = runContext.program.byteCode;
 
             debug(interpreter) {
-                write(to!string(fiber.fid) ~ ": ");
-                writeln(fiber.stack);
-                write(to!string(fiber.fid) ~ ": ");
-                fiber.program.prettyPrint(&byteCode[fiber.PC], true);
+                write(to!string(runContext.rcid) ~ ": ");
+                writeln(runContext.stack);
+                write(to!string(runContext.rcid) ~ ": ");
+                runContext.program.prettyPrint(&byteCode[runContext.pc], true);
             }
 
             //Thread.sleep(dur!"msecs"(50));
             //readln();
 
-            if (++fiber.PC > byteCode.length) {
+            auto currentPc = runContext.pc;
+
+            if (++runContext.pc > byteCode.length) {
                 throw new InterpreterError(
                               "Unexpected end of bytecode or invalid jump");
             }
 
-            switch (byteCode[fiber.PC - 1] >> 3) {
-            case Opcodes.PUSH:
-                auto value = get!long(&byteCode[fiber.PC]);
-                fiber.push(value);
-                fiber.PC += 8;
+            switch (byteCode[currentPc] >> 3) {
+            case Opcodes.push:
+                auto value = get!long(&byteCode[runContext.pc]);
+                runContext.push(value);
+                runContext.pc += 8;
                 break;
-            case Opcodes.PUSHS:
-                auto result = fiber.pushData(byteCode[fiber.PC .. $]);
+            case Opcodes.pushs:
+                auto result = runContext.pushData(byteCode[runContext.pc .. $]);
                 auto dataAddress = result[0];
                 auto length = result[1];
-                fiber.push(dataAddress);
-                fiber.PC += 4 + length;
+                runContext.push(dataAddress);
+                runContext.pc += 4 + length;
                 break;
-            case Opcodes.POP:
-                fiber.pop();
+            case Opcodes.pop:
+                runContext.pop();
                 break;
-            case Opcodes.DUP:
-                fiber.dup();
+            case Opcodes.dup:
+                runContext.dup();
                 break;
-            case Opcodes.SWAP:
-                fiber.swap();
+            case Opcodes.swap:
+                runContext.swap();
                 break;
-            case Opcodes.LOAD:
-                auto register =
-                    cast(ubyte)(byteCode[fiber.PC - 1] & 0b00000111);
-                fiber.load(register);
+            case Opcodes.load:
+                auto register = cast(ubyte)(byteCode[currentPc] & 0b00000111);
+                runContext.load(register);
                 break;
-            case Opcodes.STORE:
-                auto register =
-                    cast(ubyte)(byteCode[fiber.PC - 1] & 0b00000111);
-                fiber.store(register);
+            case Opcodes.store:
+                auto register = cast(ubyte)(byteCode[currentPc] & 0b00000111);
+                runContext.store(register);
                 break;
-            case Opcodes.ADD:
-                fiber.op((operand1, operand2) => operand1 + operand2);
+            case Opcodes.add:
+                runContext.op((operand1, operand2) => operand1 + operand2);
                 break;
-            case Opcodes.SUB:
-                fiber.op((operand1, operand2) => operand1 - operand2);
+            case Opcodes.sub:
+                runContext.op((operand1, operand2) => operand1 - operand2);
                 break;
-            case Opcodes.MUL:
-                fiber.op((operand1, operand2) => operand1 * operand2);
+            case Opcodes.mul:
+                runContext.op((operand1, operand2) => operand1 * operand2);
                 break;
-            case Opcodes.DIV:
-                fiber.op((operand1, operand2) => operand1 / operand2);
+            case Opcodes.div:
+                runContext.op((operand1, operand2) => operand1 / operand2);
                 break;
-            case Opcodes.JUMP:
-                auto byteIndex = get!long(&byteCode[fiber.PC]);
-                fiber.PC = byteIndex;
+            case Opcodes.jump:
+                auto byteIndex = get!long(&byteCode[runContext.pc]);
+                runContext.pc = byteIndex;
                 break;
-            case Opcodes.CJUMP:
-                auto byteIndex = get!long(&byteCode[fiber.PC]);
-                auto conditional = fiber.pop();
+            case Opcodes.cjump:
+                auto byteIndex = get!long(&byteCode[runContext.pc]);
+                auto conditional = runContext.pop();
                 if (conditional != 0) {
-                    fiber.PC = byteIndex;
+                    runContext.pc = byteIndex;
                 } else {
-                    fiber.PC += 8;
+                    runContext.pc += 8;
                 }
                 break;
-            case Opcodes.CALL:
+            case Opcodes.call:
                 // Extract call operands
-                int byteIndex = get!int(&byteCode[fiber.PC]);
-                int arity = get!int(&byteCode[fiber.PC + 4]);
+                int byteIndex = get!int(&byteCode[runContext.pc]);
+                int arity = get!int(&byteCode[runContext.pc + 4]);
                 // Add return address to stack
-                fiber.push(fiber.PC + 8);
-                // Save previous FP on the stack
-                fiber.push(fiber.FP);
-                // Set FP to first parameter CALL parameter
-                fiber.FP = fiber.stack.length - 2 - arity;
+                runContext.push(runContext.pc + 8);
+                // Save previous fp on the stack
+                runContext.push(runContext.fp);
+                // Set fp to first parameter CALL parameter
+                runContext.fp = runContext.stack.length - 2 - arity;
                 // Jump to CALL byte index
-                fiber.PC = byteIndex;
-                // Save previous data FP on the data stack
-                insert(fiber.DATA_FP, fiber.dataStack);
-                // Set data FP to the previous data FP
-                fiber.DATA_FP = fiber.dataStack.length - 8;
+                runContext.pc = byteIndex;
+                // Save previous data fp on the data stack
+                insert(runContext.dataFp, runContext.dataStack);
+                // Set data fp to the previous data fp
+                runContext.dataFp = runContext.dataStack.length - 8;
                 break;
-            case Opcodes.RET:
+            case Opcodes.ret:
                 // Is the return done by value or by copy?
-                auto returnMode =
-                    cast(ubyte)(byteCode[fiber.PC - 1] & 0b00000111);
-                // Swap return value and previous FP
-                fiber.swap();
-                // Restore FP to previous FP
-                auto currentFP = fiber.FP;
-                fiber.FP = fiber.pop();
+                auto returnMode = cast(ubyte)(byteCode[currentPc] & 0b00000111);
+                // Swap return value and previous fp
+                runContext.swap();
+                // Restore fp to previous fp
+                auto currentFp = runContext.fp;
+                runContext.fp = runContext.pop();
                 // Swap return value and return address
-                fiber.swap();
+                runContext.swap();
                 // Pop return address
-                auto returnAddress = fiber.pop();
+                auto returnAddress = runContext.pop();
                 // Has stack been exhausted?
-                if (fiber.FP == -1 || returnAddress == 0) {
+                if (runContext.fp == -1 || returnAddress == 0) {
                     return InterpreterResult.halt;
                 }
                 // Pop return value
-                auto returnValue = fiber.pop();
+                auto returnValue = runContext.pop();
                 ubyte[] returnData = null;
-                if (returnMode == ReturnModes.COPY) {
+                if (returnMode == ReturnModes.copy) {
                     // Extract return data
-                    returnData = fiber.peekData(returnValue);
+                    returnData = runContext.peekData(returnValue);
                 }
                 // Remove call stack frame
-                fiber.stack = fiber.stack[0 .. currentFP];
+                runContext.stack = runContext.stack[0 .. currentFp];
                 // Jump to return address
-                fiber.PC = returnAddress;
+                runContext.pc = returnAddress;
                 // Remove data stack frame
-                auto previousDFP =
-                    get!long(&fiber.dataStack[fiber.DATA_FP]);
-                fiber.dataStack = fiber.dataStack[0 .. fiber.DATA_FP];
-                // Restore data FP to previous data FP
-                fiber.DATA_FP = previousDFP;
+                auto previousDataFp =
+                    get!long(&runContext.dataStack[runContext.dataFp]);
+                runContext.dataStack =
+                    runContext.dataStack[0 .. runContext.dataFp];
+                // Restore data fp to previous data fp
+                runContext.dataFp = previousDataFp;
                 // Reinsert return value on call stack (and data stack)
-                if (returnMode == ReturnModes.COPY) {
+                if (returnMode == ReturnModes.copy) {
                     // Copy the return data onto the caller's data stack
-                    auto result = fiber.pushData(returnData);
+                    auto result = runContext.pushData(returnData);
                     auto dataAddress = result[0];
                     // Push the return data address onto caller's call stack
-                    fiber.push(dataAddress);
+                    runContext.push(dataAddress);
                 } else {
                     // Push the return value onto caller's call stack
-                    fiber.push(returnValue);
+                    runContext.push(returnValue);
                 }
                 break;
-            case Opcodes.SYS:
-                auto systemCall = get!long(&byteCode[fiber.PC]);
+            case Opcodes.sys:
+                auto systemCall = get!long(&byteCode[runContext.pc]);
                 switch (systemCall) {
-                case SystemCalls.SPAWN:
-                    long n = fiber.pop();
-                    long[] parameters = iota(n).map!(_ => fiber.pop()).array;
-                    string filename = fiber.popString();
-                    long fid = scheduler.spawn(filename, parameters);
-                    fiber.push(fid);
+                case SystemCalls.spawn:
+                    auto n = runContext.pop();
+                    auto parameters = iota(n).map!(_ => runContext.pop()).array;
+                    auto filename = runContext.popString();
+                    auto rcid = scheduler.spawn(filename, parameters.reverse);
+                    runContext.push(rcid);
                     break;
-                case SystemCalls.RECV:
+                case SystemCalls.recv:
                     return InterpreterResult.recv;
-                case SystemCalls.PRINTLN:
-                    string s = fiber.popString();
-                    writeln("PRINTLN: " ~ s ~ " (" ~ to!string(s.length) ~ ")");
-                    fiber.push(1);
+                case SystemCalls.println:
+                    auto s = runContext.popString();
+                    writeln(s);
+                    runContext.push(1);
                     break;
-                case SystemCalls.DISPLAY:
-                    auto topValue = fiber.pop();
+                case SystemCalls.display:
+                    auto topValue = runContext.pop();
                     writeln("DISPLAY: " ~ to!string(topValue));
-                    fiber.push(1);
+                    runContext.push(1);
                     break;
                 default:
                     throw new InterpreterError("SYS is not implemented");
                 }
-                fiber.PC += 8;
+                runContext.pc += 8;
                 break;
-            case Opcodes.AND:
-                fiber.op((operand1, operand2) =>
+            case Opcodes.and:
+                runContext.op((operand1, operand2) =>
                           (operand1 != 0) && (operand2 == 0) ? 1 : 0);
                 break;
-            case Opcodes.OR:
-                fiber.op((operand1, operand2) =>
+            case Opcodes.or:
+                runContext.op((operand1, operand2) =>
                          (operand1 != 0) || (operand2 != 0) ? 1 : 0);
                 break;
-            case Opcodes.NOT:
-                auto operand = fiber.pop();
-                fiber.push(!(operand != 0) ? 1 : 0);
+            case Opcodes.not:
+                auto operand = runContext.pop();
+                runContext.push(!(operand != 0) ? 1 : 0);
                 break;
-            case Opcodes.EQ:
-                fiber.op((operand1, operand2) => (operand1 == operand2) ? 1 : 0);
+            case Opcodes.eq:
+                runContext.op((operand1, operand2) =>
+                              (operand1 == operand2) ? 1 : 0);
                 break;
-            case Opcodes.NEQ:
-                fiber.op((operand1, operand2) => (operand1 != operand2) ? 1 : 0);
+            case Opcodes.neq:
+                runContext.op((operand1, operand2) =>
+                              (operand1 != operand2) ? 1 : 0);
                 break;
-            case Opcodes.LT:
-                fiber.op((operand1, operand2) => operand1 < operand2 ? 1 : 0);
+            case Opcodes.lt:
+                runContext.op((operand1, operand2) =>
+                              operand1 < operand2 ? 1 : 0);
                 break;
-            case Opcodes.GT:
-                fiber.op((operand1, operand2) => operand1 > operand2 ? 1 : 0);
+            case Opcodes.gt:
+                runContext.op((operand1, operand2) =>
+                              operand1 > operand2 ? 1 : 0);
                 break;
-            case Opcodes.NOP:
+            case Opcodes.nop:
                 break;
-            case Opcodes.HALT:
+            case Opcodes.halt:
                 return InterpreterResult.halt;
             default:
                 throw new InterpreterError(
                               "Invalid opcode" ~
-                              to!string(byteCode[fiber.PC - 1] >> 3));
+                              to!string(byteCode[currentPc] >> 3));
             }
 
             if (instructionsExecuted ++ >= timeoutGranularity) {

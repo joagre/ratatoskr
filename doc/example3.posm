@@ -1,24 +1,24 @@
-LABEL 0          ; start/0
-  PUSH -1        ; Bogus return address
-  PUSH -1        ; Bogus FP
-  PUSH 1         ; Local variable X
-  PUSHS "foo"    ; Local variable Y
-  PUSH -2
-  LOAD FP
-  PUSH 1
-  ADD            ; Local variable Z
+label 0          ; start/0
+  push -1        ; Bogus return address
+  push -1        ; Bogus fp
+  push 1         ; Local variable X
+  pushs "foo"    ; Local variable Y
+  push -2
+  load fp
+  push 1
+  add            ; Local variable Z
   ; Call bar(Y)
-  PUSH -3
-  LOAD FP        ; Parameter Y
-  CALL 1 1
-  RET copy
+  push -3
+  load fp        ; Parameter Y
+  call 1 1
+  ret copy
 
-LABEL 1          ; bar/2
-  ; Call SYS println
-  PUSH 0
-  LOAD FP        ; Parameter Y
-  SYS println
-  POP            ; Ignores return value
-  PUSH 0
-  LOAD FP
-  RET copy
+label 1          ; bar/2
+  ; Call sys println
+  push 0
+  load fp        ; Parameter Y
+  sys println
+  pop            ; Ignores return value
+  push 0
+  load fp
+  ret copy

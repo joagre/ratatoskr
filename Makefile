@@ -8,7 +8,7 @@ erlbuild:
 	(cd doc; make build)
 
 docbuild:
-	(cd erlang; make build)
+	(cd doc; make build)
 
 d-example0: docbuild dbuild
 	./d/bin/posm doc/example0.posm 10000000 10
