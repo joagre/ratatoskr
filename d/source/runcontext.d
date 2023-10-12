@@ -7,24 +7,40 @@ import program;
 
 struct RunContext {
     public long rcid;
+    public long pc = 0; // FIXME: Do not set to zero, set in constructor
+    public CallStack callStack;
+    public DataStack dataStack;
 
+    // Remove
     public Program* program;
-    // Program Counter
-    public long pc = 0;
 
-    // Call stack
-    public long[] stack;
-    // Frame pointer
-    public long fp = 0;
-
-    // Data stack
-    public ubyte[] dataStack;
-    // Data Frame Pointer
-    public long dataFp = 0;
-
+    // FIXME: rework
     this(long rcid, Program* program) {
         this.rcid = rcid;
         this.program = program;
+    }
+
+    public string popString() {
+        auto dataAddress = callStack.pop();
+        auto bytes = dataStack.peek(dataAddress);
+        return cast(string)bytes[4 .. $];
+    }
+}
+
+struct CallStack  {
+    public long[] stack;
+    public long fp = 0;
+
+    public long length() {
+        return stack.length;
+    }
+
+    public void set(long[] newStack) {
+        stack = newStack;
+    }
+
+    public void append(long[] newStack) {
+        stack ~= newStack;
     }
 
     public void push(long value) {
@@ -72,31 +88,26 @@ struct RunContext {
         auto operand1 = pop();
         push(fun(operand1, operand2));
     }
+}
 
-    public Tuple!(long, int) pushData(ubyte[] bytes) {
+struct DataStack  {
+    public ubyte[] stack;
+    public long fp = 0;
+
+    public long length() {
+        return stack.length;
+    }
+
+    public Tuple!(long, int) push(ubyte[] bytes) {
         auto length = get!int(&bytes[0]);
-        auto dataAddress = dataStack.length;
-        dataStack ~= bytes[0 .. 4 + length];
+        auto dataAddress = stack.length;
+        stack ~= bytes[0 .. 4 + length];
         return Tuple!(long, int)(dataAddress, length);
     }
 
-    public ubyte[] peekData(long dataAddress) {
-        ubyte[] bytes = dataStack[dataAddress .. $];
+    public ubyte[] peek(long dataAddress) {
+        ubyte[] bytes = stack[dataAddress .. $];
         auto length = get!int(&bytes[0]);
         return bytes[0 .. 4 + length];
-    }
-
-    public string popString() {
-        auto dataAddress = pop();
-        auto bytes = peekData(dataAddress);
-        return cast(string)bytes[4 .. $];
-    }
-
-    public void setStack(long[] newStack) {
-        stack = newStack;
-    }
-
-    public void appendStack(long[] newStack) {
-        stack ~= newStack;
     }
 }

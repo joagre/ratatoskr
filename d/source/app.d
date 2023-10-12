@@ -6,8 +6,23 @@ import std.conv;
 import scheduler;
 import program : ByteCodeError;
 import interpreter : Interpreter, InterpreterError;
+import core.stdc.stdlib: exit;
+import loader;
 
 int main(const string[] args) {
+    Loader loader = Loader("./doc");
+    loader.loadPOSMCode("ackermann");
+    loader.loadPOSMCode("example1");
+    loader.prettyPrint("example1");
+
+
+
+
+    exit(2);
+
+
+
+    /*
     if (args.length != 4) {
         stderr.writeln("Usage " ~ baseName(args[0]) ~
                        ": <filename> <time-slice> <timeout-granularity>");
@@ -43,4 +58,5 @@ int main(const string[] args) {
     }
 
     return 0;
+    */
 }

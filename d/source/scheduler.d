@@ -42,7 +42,7 @@ struct Scheduler {
         }
 
         auto runContext = RunContext(rcid, program);
-        runContext.appendStack(parameters);
+        runContext.callStack.append(parameters);
         readyQueue.insertBack(runContext);
         return rcid++;
     }
@@ -60,7 +60,7 @@ struct Scheduler {
                     debug(user) {
                         writeln("RunContext " ~ to!string(runContext.rcid) ~
                                 " (" ~ runContext.program.filename ~
-                                ") halted: " ~ to!string(runContext.stack));
+                                ") halted: " ~ to!string(runContext.callStack.stack));
                     }
                     break;
                 case InterpreterResult.recv:
