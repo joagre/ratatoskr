@@ -3,9 +3,9 @@
 	"Joakim G."
     ],
     "copyright": "Copyright © 2023, Joakim G.",
-    "description": "An agnostic green threads scheduler",
+    "description": "The E programming language",
     "license": "MIT",
     "name": "d",
     "targetPath": "./bin",
-    "targetName": "posm",
+    "targetName": "e",
 }

@@ -1,13 +1,13 @@
 build: example1.posm example2.posm example3.posm
 
-example1.posm: spec.txt
-	awk '/__EXAMPLE1_START__/{flag=1;next}/__EXAMPLE1_END__/{flag=0}flag' spec.txt | grep -v '^[[:space:]]*;;' > example1.posm
+example1.posm: posm-spec.txt
+	awk '/__EXAMPLE1_START__/{flag=1;next}/__EXAMPLE1_END__/{flag=0}flag' posm-spec.txt | grep -v '^[[:space:]]*;;' > example1.posm
 
-example2.posm: spec.txt
-	awk '/__EXAMPLE2_START__/{flag=1;next}/__EXAMPLE2_END__/{flag=0}flag' spec.txt | grep -v '^[[:space:]]*;;' > example2.posm
+example2.posm: posm-spec.txt
+	awk '/__EXAMPLE2_START__/{flag=1;next}/__EXAMPLE2_END__/{flag=0}flag' posm-spec.txt | grep -v '^[[:space:]]*;;' > example2.posm
 
-example3.posm: spec.txt
-	awk '/__EXAMPLE3_START__/{flag=1;next}/__EXAMPLE3_END__/{flag=0}flag' spec.txt | grep -v '^[[:space:]]*;;' > example3.posm
+example3.posm: posm-spec.txt
+	awk '/__EXAMPLE3_START__/{flag=1;next}/__EXAMPLE3_END__/{flag=0}flag' posm-spec.txt | grep -v '^[[:space:]]*;;' > example3.posm
 
 clean:
 	rm -f example1.posm  example2.posm example3.posm

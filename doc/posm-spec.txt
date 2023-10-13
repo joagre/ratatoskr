@@ -1,11 +1,9 @@
-A Plain Old Stack Machine (POSM)
-================================
+# The Plain Old Stack Machine (POSM)
 
-This document describes a Plain Old Stack Machine (POSM) intended to
-be used in experiments with different types of thread scheduling
-algorithms. POSM sports the following instructions: push, pushs, pop,
-dup, swap, load, store, add, sub, mul, div, jump, cjump, call, ret,
-sys, and, or, not, eq, neq, lt, gt, nop and halt.
+Here follows a description of the Plain Old Stack Machine (POSM) and
+its (not so surprising) instructions: push, pushs, pop, dup, swap,
+load, store, add, sub, mul, div, jump, cjump, call, ret, sys, and, or,
+not, eq, neq, lt, gt, nop and halt.
 
 POSM also has two read-only registers:
 
@@ -25,7 +23,7 @@ dup               ; Duplicates the top value on the stack.
 swap              ; Swaps the top two values on the stack.
 load sp|fp        ; Copies a value on the stack to the top of the stack.
                   ; The top value of the stack must be an offset to sp
-                  ; or fp
+                  ; or fp.
 store sp|fp       ; Updates a value on the stack. The top value of the
                   ; stack must an offset to the sp or fp and the new
                   ; value comes next.
@@ -34,8 +32,8 @@ sub               ; Pops two values, subtracts them, and pushes the result.
 mul               ; Pops two values, multiplies them, and pushes the result.
 div               ; Pops two values, divides them, and pushes the result.
 jump label        ; Unconditionally jumps to a label.
-cjump label       ; Conditionally jumps based to a label if the top
-                  ; value of the stack is not 0. Pops the top value.
+cjump label       ; Conditionally jumps to a label if the top value of
+                  ; the stack is not 0. Pops the top value.
 call label arity  ; Calls a function implemented in label with the
                   ; specified arity. Pushes the return address and
                   ; previous fp onto the stack. Sets fp to the first
