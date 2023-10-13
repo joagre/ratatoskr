@@ -9,7 +9,7 @@ import std.array;
 
 import std.range : iota;
 import program;
-import runcontext;
+import job;
 import scheduler;
 
 class InterpreterError : Exception {
@@ -25,220 +25,213 @@ enum InterpreterResult {
 }
 
 struct Interpreter {
-    InterpreterResult run(ref Scheduler scheduler, ref RunContext runContext,
+    InterpreterResult run(ref Scheduler scheduler, ref Job job,
                           Duration timeSlice, uint timeoutGranularity) {
         auto startTime = Clock.currTime();
         uint instructionsExecuted = 0;
         InterpreterResult interpreterResult;
 
         while (true) {
-            auto byteCode = runContext.program.byteCode;
+            auto byteCode = job.program.byteCode;
 
             debug(interpreter) {
-                write(to!string(runContext.rcid) ~ ": ");
-                writeln(runContext.callStack.stack);
-                write(to!string(runContext.rcid) ~ ": ");
-                runContext.program.prettyPrint(&byteCode[runContext.pc], true);
+                write(to!string(job.jid) ~ ": ");
+                writeln(job.callStack.stack);
+                write(to!string(job.jid) ~ ": ");
+                job.program.prettyPrint(&byteCode[job.pc], true);
             }
 
             //Thread.sleep(dur!"msecs"(50));
             //readln();
 
-            auto currentPc = runContext.pc;
+            auto currentPc = job.pc;
 
-            if (++runContext.pc > byteCode.length) {
+            if (++job.pc > byteCode.length) {
                 throw new InterpreterError(
                               "Unexpected end of bytecode or invalid jump");
             }
 
             switch (byteCode[currentPc] >> 3) {
             case Opcodes.push:
-                auto value = get!long(&byteCode[runContext.pc]);
-                runContext.callStack.push(value);
-                runContext.pc += 8;
+                auto value = get!long(&byteCode[job.pc]);
+                job.callStack.push(value);
+                job.pc += 8;
                 break;
             case Opcodes.pushs:
-                auto result =
-                    runContext.dataStack.push(byteCode[runContext.pc .. $]);
+                auto result = job.dataStack.push(byteCode[job.pc .. $]);
                 auto dataAddress = result[0];
                 auto length = result[1];
-                runContext.callStack.push(dataAddress);
-                runContext.pc += 4 + length;
+                job.callStack.push(dataAddress);
+                job.pc += 4 + length;
                 break;
             case Opcodes.pop:
-                runContext.callStack.pop();
+                job.callStack.pop();
                 break;
             case Opcodes.dup:
-                runContext.callStack.dup();
+                job.callStack.dup();
                 break;
             case Opcodes.swap:
-                runContext.callStack.swap();
+                job.callStack.swap();
                 break;
             case Opcodes.load:
                 auto register = cast(ubyte)(byteCode[currentPc] & 0b00000111);
-                runContext.callStack.load(register);
+                job.callStack.load(register);
                 break;
             case Opcodes.store:
                 auto register = cast(ubyte)(byteCode[currentPc] & 0b00000111);
-                runContext.callStack.store(register);
+                job.callStack.store(register);
                 break;
             case Opcodes.add:
-                runContext.callStack.op((operand1, operand2) =>
-                                        operand1 + operand2);
+                job.callStack.op((operand1, operand2) => operand1 + operand2);
                 break;
             case Opcodes.sub:
-                runContext.callStack.op((operand1, operand2) =>
-                                        operand1 - operand2);
+                job.callStack.op((operand1, operand2) => operand1 - operand2);
                 break;
             case Opcodes.mul:
-                runContext.callStack.op((operand1, operand2) =>
-                                        operand1 * operand2);
+                job.callStack.op((operand1, operand2) => operand1 * operand2);
                 break;
             case Opcodes.div:
-                runContext.callStack.op((operand1, operand2) =>
-                                        operand1 / operand2);
+                job.callStack.op((operand1, operand2) => operand1 / operand2);
                 break;
             case Opcodes.jump:
-                auto byteIndex = get!long(&byteCode[runContext.pc]);
-                runContext.pc = byteIndex;
+                auto byteIndex = get!long(&byteCode[job.pc]);
+                job.pc = byteIndex;
                 break;
             case Opcodes.cjump:
-                auto byteIndex = get!long(&byteCode[runContext.pc]);
-                auto conditional = runContext.callStack.pop();
+                auto byteIndex = get!long(&byteCode[job.pc]);
+                auto conditional = job.callStack.pop();
                 if (conditional != 0) {
-                    runContext.pc = byteIndex;
+                    job.pc = byteIndex;
                 } else {
-                    runContext.pc += 8;
+                    job.pc += 8;
                 }
                 break;
             case Opcodes.call:
                 // Extract call operands
-                int byteIndex = get!int(&byteCode[runContext.pc]);
-                int arity = get!int(&byteCode[runContext.pc + 4]);
+                int byteIndex = get!int(&byteCode[job.pc]);
+                int arity = get!int(&byteCode[job.pc + 4]);
                 // Add return address to stack
-                runContext.callStack.push(runContext.pc + 8);
+                job.callStack.push(job.pc + 8);
                 // Save previous fp on the stack
-                runContext.callStack.push(runContext.callStack.fp);
+                job.callStack.push(job.callStack.fp);
                 // Set fp to first parameter CALL parameter
-                runContext.callStack.fp = runContext.callStack.length - 2 - arity;
+                job.callStack.fp = job.callStack.length - 2 - arity;
                 // Jump to CALL byte index
-                runContext.pc = byteIndex;
+                job.pc = byteIndex;
                 // Save previous data fp on the data stack
-                insert(runContext.dataStack.fp, runContext.dataStack.stack);
+                insert(job.dataStack.fp, job.dataStack.stack);
                 // Set data fp to the previous data fp
-                runContext.dataStack.fp = runContext.dataStack.length - 8;
+                job.dataStack.fp = job.dataStack.length - 8;
                 break;
             case Opcodes.ret:
                 // Is the return done by value or by copy?
                 auto returnMode = cast(ubyte)(byteCode[currentPc] & 0b00000111);
                 // Swap return value and previous fp
-                runContext.callStack.swap();
+                job.callStack.swap();
                 // Restore fp to previous fp
-                auto currentFp = runContext.callStack.fp;
-                runContext.callStack.fp = runContext.callStack.pop();
+                auto currentFp = job.callStack.fp;
+                job.callStack.fp = job.callStack.pop();
                 // Swap return value and return address
-                runContext.callStack.swap();
+                job.callStack.swap();
                 // Pop return address
-                auto returnAddress = runContext.callStack.pop();
+                auto returnAddress = job.callStack.pop();
                 // Has stack been exhausted?
-                if (runContext.callStack.fp == -1 || returnAddress == 0) {
+                if (job.callStack.fp == -1 || returnAddress == 0) {
                     return InterpreterResult.halt;
                 }
                 // Pop return value
-                auto returnValue = runContext.callStack.pop();
+                auto returnValue = job.callStack.pop();
                 ubyte[] returnData = null;
                 if (returnMode == ReturnModes.copy) {
                     // Extract return data
-                    returnData = runContext.dataStack.peek(returnValue);
+                    returnData = job.dataStack.peek(returnValue);
                 }
                 // Remove call stack frame
-                runContext.callStack.stack =
-                    runContext.callStack.stack[0 .. currentFp];
+                job.callStack.stack = job.callStack.stack[0 .. currentFp];
                 // Jump to return address
-                runContext.pc = returnAddress;
+                job.pc = returnAddress;
                 // Remove data stack frame
                 auto previousDataFp =
-                    get!long(&runContext.dataStack.stack[
-                                 runContext.dataStack.fp]);
-                runContext.dataStack.stack =
-                    runContext.dataStack.stack[0 .. runContext.dataStack.fp];
+                    get!long(&job.dataStack.stack[job.dataStack.fp]);
+                job.dataStack.stack =
+                    job.dataStack.stack[0 .. job.dataStack.fp];
                 // Restore data fp to previous data fp
-                runContext.dataStack.fp = previousDataFp;
+                job.dataStack.fp = previousDataFp;
                 // Reinsert return value on call stack (and data stack)
                 if (returnMode == ReturnModes.copy) {
                     // Copy the return data onto the caller's data stack
-                    auto result = runContext.dataStack.push(returnData);
+                    auto result = job.dataStack.push(returnData);
                     auto dataAddress = result[0];
                     // Push the return data address onto caller's call stack
-                    runContext.callStack.push(dataAddress);
+                    job.callStack.push(dataAddress);
                 } else {
                     // Push the return value onto caller's call stack
-                    runContext.callStack.push(returnValue);
+                    job.callStack.push(returnValue);
                 }
                 break;
             case Opcodes.sys:
-                auto systemCall = get!long(&byteCode[runContext.pc]);
+                auto systemCall = get!long(&byteCode[job.pc]);
                 switch (systemCall) {
                 case SystemCalls.spawn:
-                    auto n = runContext.callStack.pop();
-                    auto parameters = iota(n).map!(_ => runContext.callStack.pop()).array;
-                    auto filename = runContext.popString();
-                    auto rcid = scheduler.spawn(filename, parameters.reverse);
-                    runContext.callStack.push(rcid);
+                    auto n = job.callStack.pop();
+                    auto parameters =
+                        iota(n).map!(_ => job.callStack.pop()).array;
+                    auto filename = job.popString();
+                    auto jid = scheduler.spawn(filename, parameters.reverse);
+                    job.callStack.push(jid);
                     break;
                 case SystemCalls.recv:
                     return InterpreterResult.recv;
                 case SystemCalls.println:
-                    auto s = runContext.popString();
+                    auto s = job.popString();
                     writeln(s);
-                    runContext.callStack.push(1);
+                    job.callStack.push(1);
                     break;
                 case SystemCalls.display:
-                    auto topValue = runContext.callStack.pop();
+                    auto topValue = job.callStack.pop();
                     writeln("DISPLAY: " ~ to!string(topValue));
-                    runContext.callStack.push(1);
+                    job.callStack.push(1);
                     break;
                 default:
                     throw new InterpreterError("SYS is not implemented");
                 }
-                runContext.pc += 8;
+                job.pc += 8;
                 break;
             case Opcodes.and:
-                runContext.callStack.op((operand1, operand2) =>
-                                        (operand1 != 0) && (operand2 == 0) ? 1 : 0);
+                job.callStack.op((operand1, operand2) =>
+                                 (operand1 != 0) && (operand2 == 0) ? 1 : 0);
                 break;
             case Opcodes.or:
-                runContext.callStack.op((operand1, operand2) =>
-                                        (operand1 != 0) || (operand2 != 0) ? 1 : 0);
+                job.callStack.op((operand1, operand2) =>
+                                 (operand1 != 0) || (operand2 != 0) ? 1 : 0);
                 break;
             case Opcodes.not:
-                auto operand = runContext.callStack.pop();
-                runContext.callStack.push(!(operand != 0) ? 1 : 0);
+                auto operand = job.callStack.pop();
+                job.callStack.push(!(operand != 0) ? 1 : 0);
                 break;
             case Opcodes.eq:
-                runContext.callStack.op((operand1, operand2) =>
-                              (operand1 == operand2) ? 1 : 0);
+                job.callStack.op((operand1, operand2) =>
+                                 (operand1 == operand2) ? 1 : 0);
                 break;
             case Opcodes.neq:
-                runContext.callStack.op((operand1, operand2) =>
-                              (operand1 != operand2) ? 1 : 0);
+                job.callStack.op((operand1, operand2) =>
+                                 (operand1 != operand2) ? 1 : 0);
                 break;
             case Opcodes.lt:
-                runContext.callStack.op((operand1, operand2) =>
-                              operand1 < operand2 ? 1 : 0);
+                job.callStack.op((operand1, operand2) =>
+                                 operand1 < operand2 ? 1 : 0);
                 break;
             case Opcodes.gt:
-                runContext.callStack.op((operand1, operand2) =>
-                              operand1 > operand2 ? 1 : 0);
+                job.callStack.op((operand1, operand2) =>
+                                 operand1 > operand2 ? 1 : 0);
                 break;
             case Opcodes.nop:
                 break;
             case Opcodes.halt:
                 return InterpreterResult.halt;
             default:
-                throw new InterpreterError(
-                              "Invalid opcode" ~
-                              to!string(byteCode[currentPc] >> 3));
+                throw new InterpreterError("Invalid opcode" ~
+                                           to!string(byteCode[currentPc] >> 3));
             }
 
             if (instructionsExecuted ++ >= timeoutGranularity) {

@@ -14,13 +14,7 @@ int main(const string[] args) {
     loader.loadPOSMCode("ackermann");
     loader.loadPOSMCode("example1");
     loader.prettyPrint("example1");
-
-
-
-
     exit(2);
-
-
 
     /*
     if (args.length != 4) {
@@ -56,7 +50,6 @@ int main(const string[] args) {
         stderr.writeln("Unexpected error: ", e.msg);
         return 6;
     }
-
     return 0;
     */
 }

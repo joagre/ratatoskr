@@ -7,21 +7,21 @@ import std.container : DList;
 import core.thread : Thread;
 import program;
 import interpreter;
-import runcontext;
+import job;
 
 struct Scheduler {
     const uint emptyReadyQueueBackOff = 25;
 
     private Interpreter interpreter;
-    private auto readyQueue = DList!RunContext();
-    private auto waitingQueue = DList!RunContext();
+    private auto readyQueue = DList!Job();
+    private auto waitingQueue = DList!Job();
 
     private Program[string] programs;
 
     private Duration timeSlice;
     private uint timeoutGranularity;
 
-    private long rcid = 0;
+    private long jid = 0;
 
     this(ref Interpreter interpreter, Duration timeSlice,
          uint timeoutGranularity) {
@@ -31,6 +31,9 @@ struct Scheduler {
     }
 
     long spawn(string filename, long[] parameters) {
+
+
+
         Program* program = filename in programs;
         if (program == null) {
             programs[filename] = Program(filename);
@@ -41,33 +44,32 @@ struct Scheduler {
             program.prettyPrint;
         }
 
-        auto runContext = RunContext(rcid, program);
-        runContext.callStack.append(parameters);
-        readyQueue.insertBack(runContext);
-        return rcid++;
+        auto job = Job(jid, program);
+        job.callStack.append(parameters);
+        readyQueue.insertBack(job);
+        return jid++;
     }
 
     void run() {
         while (!waitingQueue.empty || !readyQueue.empty) {
             while (!readyQueue.empty) {
-                auto runContext = readyQueue.front;
+                auto job = readyQueue.front;
                 readyQueue.removeFront;
                 InterpreterResult result =
-                    interpreter.run(this, runContext, timeSlice,
-                                    timeoutGranularity);
+                    interpreter.run(this, job, timeSlice, timeoutGranularity);
                 final switch(result) {
                 case InterpreterResult.halt:
                     debug(user) {
-                        writeln("RunContext " ~ to!string(runContext.rcid) ~
-                                " (" ~ runContext.program.filename ~
-                                ") halted: " ~ to!string(runContext.callStack.stack));
+                        writeln("Job " ~ to!string(job.jid) ~ " (" ~
+                                job.program.filename ~ ") halted: " ~
+                                to!string(job.callStack.stack));
                     }
                     break;
                 case InterpreterResult.recv:
-                    waitingQueue.insertBack(runContext);
+                    waitingQueue.insertBack(job);
                     break;
                 case InterpreterResult.timeout:
-                    readyQueue.insertBack(runContext);
+                    readyQueue.insertBack(job);
                 }
             }
             Thread.sleep(msecs(emptyReadyQueueBackOff));

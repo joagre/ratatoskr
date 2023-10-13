@@ -1,12 +1,12 @@
-module runcontext;
+module job;
 
 import std.stdio : writeln;
 import std.conv : to;
 import std.typecons : Tuple;
 import program;
 
-struct RunContext {
-    public long rcid;
+struct Job {
+    public long jid;
     public long pc = 0; // FIXME: Do not set to zero, set in constructor
     public CallStack callStack;
     public DataStack dataStack;
@@ -15,8 +15,8 @@ struct RunContext {
     public Program* program;
 
     // FIXME: rework
-    this(long rcid, Program* program) {
-        this.rcid = rcid;
+    this(long jid, Program* program) {
+        this.jid = jid;
         this.program = program;
     }
 
