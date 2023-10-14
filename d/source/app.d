@@ -15,7 +15,7 @@ int main(string[] args) {
     string loadPath = "./";
 
     string usage =
-        "Usage: " ~ baseName(args[0]) ~ " [options] <module> <label> [parameter ...]\n" ~
+        "Usage: " ~ baseName(args[0]) ~ " [options] <module> <label> [<parameter> ...]\n" ~
         "Options:\n" ~
         "  -c <instructions>, --check-after=<instructions>\n" ~
         "    Check time slice after a number of <instructions> (" ~ to!string(checkAfter) ~ ")\n" ~
