@@ -82,8 +82,6 @@ This is how it could be written:
 
 __EXAMPLE1_START__
 label 0          ; start/0
-  push -1        ; Bogus return address
-  push -1        ; Bogus fp
   ;; Stack:
   ;;   Return address <- fp
   ;;   Previous fp
@@ -100,6 +98,9 @@ label 0          ; start/0
   ;;   Return address <- fp
   ;;   Previous fp
   ;;   130 (Return value)
+  dup
+  sys display
+  pop
   ret
   ;; Stack:
   ;;   130
@@ -193,14 +194,12 @@ This is how it could be written:
 
 __EXAMPLE2_START__
 label 0          ; start/0
-  push -1        ; Bogus return address
-  push -1        ; Bogus fp
   ;; Stack:
   ;;   Return address <- fp
   ;;   Previous fp
   ; Call summer(13, 10)
-  push 13       ; Parameter M
-  push 10       ; Parameter N
+  push 1       ; Parameter M
+  push 2       ; Parameter N
   push 0        ; Parameter Acc
   ;; Stack:
   ;;   Return address <- fp
@@ -213,6 +212,9 @@ label 0          ; start/0
   ;;   Return address <- fp
   ;;   Previous fp
   ;;   130 (Return value)
+  dup
+  sys display
+  pop
   ret
   ;; Stack:
   ;;   130
@@ -303,8 +305,6 @@ string literals and sys calls.
 
 __EXAMPLE3_START__
 label 0          ; start/0
-  push -1        ; Bogus return address
-  push -1        ; Bogus fp
   ;; Stack:
   ;;   Return address <- fp
   ;;   Previous fp
@@ -338,6 +338,9 @@ label 0          ; start/0
   ;;   "foo" (Local variable Y)
   ;;   2 (Local variable Z)
   ;;   "foo" (Local variable Y) (Return value)
+  dup
+  sys println
+  pop
   ret copy
   ;; Stack:
   ;;   "foo" (NOTE: A copy is placed on the callers data stack)

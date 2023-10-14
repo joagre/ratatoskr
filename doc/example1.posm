@@ -1,10 +1,11 @@
 label 0          ; start/0
-  push -1        ; Bogus return address
-  push -1        ; Bogus fp
   ; Call summer(13, 10)
   push 13        ; Parameter M
   push 10        ; Parameter N
   call 1 2
+  dup
+  sys display
+  pop
   ret
 
 label 1          ; summer/2

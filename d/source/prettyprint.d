@@ -1,30 +1,27 @@
 module prettyprint;
 
-import std.stdio : File, writeln;
+import std.stdio : File, writeln, writefln;
 import std.conv : to;
+
 import loader;
 
-struct PrettyPrint {
+class PrettyPrint {
     static public uint printInstruction(ubyte* bytes) {
-        string getRegisterString(ubyte instruction) {
-            auto register = instruction & 0b00000111;
-            if (register == Registers.sp) {
-                return "sp";
-            } else { // Must be fp
-                return "fp";
-            }
-        }
+        string[ubyte] registers = [
+                                   Registers.sp: "sp",
+                                   Registers.fp: "fp"
+                                   ];
 
-        switch (bytes[0] >> 3) {
+        switch (bytes[0] >> OPCODE_BITS) {
         case Opcodes.push:
             auto value = Loader.get!long(&bytes[1]);
-            writeln("push " ~ to!string(value));
+            writefln("push %d", value);
             return long.sizeof;
         case Opcodes.pushs:
             auto length = Loader.get!ushort(&bytes[1]);
             auto index = 1 + ushort.sizeof;
             auto byteString = bytes[index .. index + length];
-            writeln("pushs \"" ~ cast(string)byteString ~ "\"");
+            writefln("pushs \"%s\"", cast(string)byteString);
             return ushort.sizeof + length;
         case Opcodes.pop:
             writeln("pop");
@@ -36,12 +33,12 @@ struct PrettyPrint {
             writeln("swap");
             break;
         case Opcodes.load:
-            string register = getRegisterString(bytes[0]);
-            writeln("load " ~ register);
+            auto register = registers[bytes[0] & OPCODE_OPERAND_MASK];
+            writefln("load %s", register);
             break;
         case Opcodes.store:
-            string register = getRegisterString(bytes[0]);
-            writeln("store " ~ register);
+            auto register = registers[bytes[0] & OPCODE_OPERAND_MASK];
+            writefln("store %s", register);
             break;
         case Opcodes.add:
             writeln("add");
@@ -57,24 +54,22 @@ struct PrettyPrint {
             break;
         case Opcodes.jump:
             auto byteIndex = Loader.get!uint(&bytes[1]);
-            writeln("jump " ~ to!string(byteIndex));
+            writefln("jump %d", byteIndex);
             return uint.sizeof;
         case Opcodes.cjump:
             auto byteIndex = Loader.get!uint(&bytes[1]);
-            writeln("cjump " ~ to!string(byteIndex));
+            writefln("cjump %d", byteIndex);
             return uint.sizeof;
         case Opcodes.call:
             auto byteIndex = Loader.get!uint(&bytes[1]);
             auto arity = Loader.get!ubyte(&bytes[1 + uint.sizeof]);
-            writeln("call " ~ to!string(byteIndex) ~ " " ~ to!string(arity));
+            writefln("call %d %d", byteIndex, arity);
             return uint.sizeof + ubyte.sizeof;
         case Opcodes.mcall:
-            auto byteIndex = Loader.get!uint(&bytes[1]);
-            auto arity = Loader.get!ubyte(&bytes[1 + uint.sizeof]);
-            writeln("call " ~ to!string(byteIndex) ~ " " ~ to!string(arity));
-            return uint.sizeof + ubyte.sizeof;
+            writeln("mcall");
+            break;
         case Opcodes.ret:
-            auto returnMode = bytes[0] & 0b00000111;
+            auto returnMode = bytes[0] & OPCODE_OPERAND_MASK;
             if (returnMode == ReturnModes.copy) {
                 writeln("ret copy");
             } else {
@@ -83,7 +78,7 @@ struct PrettyPrint {
             break;
         case Opcodes.sys:
             auto value = Loader.get!uint(&bytes[1]);
-            writeln("sys " ~ to!string(value));
+            writefln("sys %d",  value);
             return uint.sizeof;
         case Opcodes.and:
             writeln("and");
@@ -112,9 +107,17 @@ struct PrettyPrint {
         case Opcodes.halt:
             writeln("halt");
             break;
+        case Opcodes.spawn:
+            auto byteIndex = Loader.get!uint(&bytes[1]);
+            auto arity = Loader.get!ubyte(&bytes[1 + uint.sizeof]);
+            writefln("spawn %d %d", byteIndex, arity);
+            return uint.sizeof + ubyte.sizeof;
+        case Opcodes.mspawn:
+            writeln("mspawn");
+            break;
         default:
             throw new LoaderError("Unknown opcode " ~
-                                    to!string(bytes[0] >> 3));
+                                  to!string(bytes[0] >> OPCODE_BITS));
         }
 
         return 0;

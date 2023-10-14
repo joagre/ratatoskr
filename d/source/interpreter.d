@@ -2,15 +2,16 @@ module interpreter;
 
 import std.conv : to;
 import std.datetime : Duration, Clock;
-import std.stdio : write, writeln;
+import std.stdio : write, writeln, writefln, writef;
 import std.algorithm.iteration : map;
 import std.algorithm.mutation : reverse;
 import std.array;
-
 import std.range : iota;
-import program;
+
 import job;
 import scheduler;
+import loader;
+import prettyprint;
 
 class InterpreterError : Exception {
     this(string msg, string file = __FILE__, size_t line = __LINE__) {
@@ -18,27 +19,33 @@ class InterpreterError : Exception {
     }
 }
 
-enum InterpreterResult {
+enum InterpreterResult : ubyte {
     halt,
     timeout,
-    recv
+    recv,
+    exit
 }
 
-struct Interpreter {
-    InterpreterResult run(ref Scheduler scheduler, ref Job job,
-                          Duration timeSlice, uint timeoutGranularity) {
+class Interpreter {
+    Loader loader;
+
+    this(Loader loader) {
+        this.loader = loader;
+    }
+
+    InterpreterResult run(Scheduler scheduler, Job job,
+                          Duration timeSlice, uint checkAfter) {
         auto startTime = Clock.currTime();
         uint instructionsExecuted = 0;
         InterpreterResult interpreterResult;
 
         while (true) {
-            auto byteCode = job.program.byteCode;
+            auto byteCode = loader.byteCode;
 
             debug(interpreter) {
-                write(to!string(job.jid) ~ ": ");
-                writeln(job.callStack.stack);
-                write(to!string(job.jid) ~ ": ");
-                job.program.prettyPrint(&byteCode[job.pc], true);
+                writefln("%d: %s", job.jid, to!string(job.callStack.stack));
+                writef("%d: ", job.jid);
+                PrettyPrint.printInstruction(&byteCode[job.pc]);
             }
 
             //Thread.sleep(dur!"msecs"(50));
@@ -51,18 +58,18 @@ struct Interpreter {
                               "Unexpected end of bytecode or invalid jump");
             }
 
-            switch (byteCode[currentPc] >> 3) {
+            switch (byteCode[currentPc] >> OPCODE_BITS) {
             case Opcodes.push:
-                auto value = get!long(&byteCode[job.pc]);
+                auto value = Loader.get!long(&byteCode[job.pc]);
                 job.callStack.push(value);
-                job.pc += 8;
+                job.pc += long.sizeof;
                 break;
             case Opcodes.pushs:
                 auto result = job.dataStack.push(byteCode[job.pc .. $]);
                 auto dataAddress = result[0];
                 auto length = result[1];
                 job.callStack.push(dataAddress);
-                job.pc += 4 + length;
+                job.pc += ushort.sizeof + length;
                 break;
             case Opcodes.pop:
                 job.callStack.pop();
@@ -74,11 +81,13 @@ struct Interpreter {
                 job.callStack.swap();
                 break;
             case Opcodes.load:
-                auto register = cast(ubyte)(byteCode[currentPc] & 0b00000111);
+                auto register =
+                    cast(ubyte)(byteCode[currentPc] & OPCODE_OPERAND_MASK);
                 job.callStack.load(register);
                 break;
             case Opcodes.store:
-                auto register = cast(ubyte)(byteCode[currentPc] & 0b00000111);
+                auto register =
+                    cast(ubyte)(byteCode[currentPc] & OPCODE_OPERAND_MASK);
                 job.callStack.store(register);
                 break;
             case Opcodes.add:
@@ -94,38 +103,44 @@ struct Interpreter {
                 job.callStack.op((operand1, operand2) => operand1 / operand2);
                 break;
             case Opcodes.jump:
-                auto byteIndex = get!long(&byteCode[job.pc]);
+                auto byteIndex = Loader.get!uint(&byteCode[job.pc]);
                 job.pc = byteIndex;
                 break;
             case Opcodes.cjump:
-                auto byteIndex = get!long(&byteCode[job.pc]);
+                auto byteIndex = Loader.get!uint(&byteCode[job.pc]);
                 auto conditional = job.callStack.pop();
                 if (conditional != 0) {
                     job.pc = byteIndex;
                 } else {
-                    job.pc += 8;
+                    job.pc += uint.sizeof;
                 }
                 break;
             case Opcodes.call:
                 // Extract call operands
-                int byteIndex = get!int(&byteCode[job.pc]);
-                int arity = get!int(&byteCode[job.pc + 4]);
-                // Add return address to stack
-                job.callStack.push(job.pc + 8);
-                // Save previous fp on the stack
-                job.callStack.push(job.callStack.fp);
-                // Set fp to first parameter CALL parameter
-                job.callStack.fp = job.callStack.length - 2 - arity;
-                // Jump to CALL byte index
-                job.pc = byteIndex;
-                // Save previous data fp on the data stack
-                insert(job.dataStack.fp, job.dataStack.stack);
-                // Set data fp to the previous data fp
-                job.dataStack.fp = job.dataStack.length - 8;
+                auto byteIndex = Loader.get!uint(&byteCode[job.pc]);
+                auto arity = Loader.get!ubyte(&byteCode[job.pc + uint.sizeof]);
+                call(job, byteIndex, arity);
+                break;
+            case Opcodes.mcall:
+                // Extract call parameters from stack (keep parameters on stack)
+                auto label = job.callStack.pop();
+                auto moduleName = job.popString();
+                auto arity = job.callStack.pop();
+                // Ensure that the module is loaded
+                if (!loader.isModuleLoaded(moduleName)) {
+                    loader.loadPOSMCode(moduleName);
+                    debug(scheduler) {
+                        loader.prettyPrint(moduleName);
+                    }
+                }
+                auto byteIndex =
+                    loader.lookupByteIndex(moduleName, cast(uint)label);
+                call(job, cast(uint)byteIndex, cast(ubyte)arity);
                 break;
             case Opcodes.ret:
                 // Is the return done by value or by copy?
-                auto returnMode = cast(ubyte)(byteCode[currentPc] & 0b00000111);
+                auto returnMode =
+                    cast(ubyte)(byteCode[currentPc] & OPCODE_OPERAND_MASK);
                 // Swap return value and previous fp
                 job.callStack.swap();
                 // Restore fp to previous fp
@@ -136,7 +151,9 @@ struct Interpreter {
                 // Pop return address
                 auto returnAddress = job.callStack.pop();
                 // Has stack been exhausted?
-                if (job.callStack.fp == -1 || returnAddress == 0) {
+                if (job.callStack.fp == -1) {
+                    // Just keep the result and throw away any parameters
+                    job.callStack.stack = job.callStack.stack[$ - 1 .. $];
                     return InterpreterResult.halt;
                 }
                 // Pop return value
@@ -149,10 +166,10 @@ struct Interpreter {
                 // Remove call stack frame
                 job.callStack.stack = job.callStack.stack[0 .. currentFp];
                 // Jump to return address
-                job.pc = returnAddress;
+                job.pc = cast(uint)returnAddress;
                 // Remove data stack frame
                 auto previousDataFp =
-                    get!long(&job.dataStack.stack[job.dataStack.fp]);
+                    Loader.get!long(&job.dataStack.stack[job.dataStack.fp]);
                 job.dataStack.stack =
                     job.dataStack.stack[0 .. job.dataStack.fp];
                 // Restore data fp to previous data fp
@@ -170,16 +187,8 @@ struct Interpreter {
                 }
                 break;
             case Opcodes.sys:
-                auto systemCall = get!long(&byteCode[job.pc]);
+                auto systemCall = Loader.get!uint(&byteCode[job.pc]);
                 switch (systemCall) {
-                case SystemCalls.spawn:
-                    auto n = job.callStack.pop();
-                    auto parameters =
-                        iota(n).map!(_ => job.callStack.pop()).array;
-                    auto filename = job.popString();
-                    auto jid = scheduler.spawn(filename, parameters.reverse);
-                    job.callStack.push(jid);
-                    break;
                 case SystemCalls.recv:
                     return InterpreterResult.recv;
                 case SystemCalls.println:
@@ -189,13 +198,15 @@ struct Interpreter {
                     break;
                 case SystemCalls.display:
                     auto topValue = job.callStack.pop();
-                    writeln("DISPLAY: " ~ to!string(topValue));
+                    writefln("%d", topValue);
                     job.callStack.push(1);
                     break;
+                case SystemCalls.exit:
+                    return InterpreterResult.exit;
                 default:
                     throw new InterpreterError("SYS is not implemented");
                 }
-                job.pc += 8;
+                job.pc += uint.sizeof;
                 break;
             case Opcodes.and:
                 job.callStack.op((operand1, operand2) =>
@@ -229,12 +240,31 @@ struct Interpreter {
                 break;
             case Opcodes.halt:
                 return InterpreterResult.halt;
+            case Opcodes.spawn:
+                auto byteIndex = Loader.get!uint(&byteCode[job.pc]);
+                auto arity = Loader.get!ubyte(&byteCode[job.pc + uint.sizeof]);
+                auto parameters =
+                    iota(arity).map!(_ => job.callStack.pop()).array;
+                auto jid = scheduler.spawn(byteIndex, parameters.reverse);
+                job.callStack.push(jid);
+                break;
+            case Opcodes.mspawn:
+                auto label = job.callStack.pop();
+                auto moduleName = job.popString();
+                auto arity = job.callStack.pop();
+                auto parameters =
+                    iota(arity).map!(_ => job.callStack.pop()).array;
+                auto jid = scheduler.mspawn(moduleName,
+                                            cast(uint)label, parameters);
+                job.callStack.push(jid);
+                break;
             default:
-                throw new InterpreterError("Invalid opcode" ~
-                                           to!string(byteCode[currentPc] >> 3));
+                throw new InterpreterError(
+                              "Invalid opcode" ~
+                              to!string(byteCode[currentPc] >> OPCODE_BITS));
             }
 
-            if (instructionsExecuted ++ >= timeoutGranularity) {
+            if (instructionsExecuted ++ >= checkAfter) {
                 if (Clock.currTime() - startTime >= timeSlice) {
                     interpreterResult = InterpreterResult.timeout;
                     break;
@@ -244,5 +274,20 @@ struct Interpreter {
         }
 
         return interpreterResult;
+    }
+
+    void call(Job job, uint byteIndex, ubyte arity) {
+        // Add return address to stack
+        job.callStack.push(job.pc + uint.sizeof + ubyte.sizeof);
+        // Save previous fp on the stack
+        job.callStack.push(job.callStack.fp);
+        // Set fp to first CALL parameter (NOTE: We just pushed two values)
+        job.callStack.fp = job.callStack.length - 2 - arity;
+        // Jump to CALL byte index
+        job.pc = byteIndex;
+        // Save previous data fp on the data stack
+        Loader.insert(job.dataStack.fp, job.dataStack.stack);
+        // Set data fp to the previous data fp
+        job.dataStack.fp = job.dataStack.length - long.sizeof;
     }
 }

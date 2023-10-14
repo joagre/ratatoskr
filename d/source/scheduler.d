@@ -1,51 +1,54 @@
 module scheduler;
 
-import std.stdio : writeln;
+import std.stdio : writeln, writefln;
 import std.conv : to;
 import std.datetime : Duration, msecs;
 import std.container : DList;
 import core.thread : Thread;
-import program;
+
 import interpreter;
 import job;
+import loader;
 
-struct Scheduler {
-    const uint emptyReadyQueueBackOff = 25;
+class Scheduler {
+    private uint jid = 0;
 
-    private Interpreter interpreter;
     private auto readyQueue = DList!Job();
     private auto waitingQueue = DList!Job();
 
-    private Program[string] programs;
-
     private Duration timeSlice;
-    private uint timeoutGranularity;
+    private uint checkAfter;
 
-    private long jid = 0;
+    private Interpreter interpreter;
+    private Loader loader;
 
-    this(ref Interpreter interpreter, Duration timeSlice,
-         uint timeoutGranularity) {
+    this(Loader loader, Interpreter interpreter, uint timeSlice,
+         uint checkAfter) {
+        this.loader = loader;
         this.interpreter = interpreter;
-        this.timeSlice = timeSlice;
-        this.timeoutGranularity = timeoutGranularity;
+        this.timeSlice = msecs(timeSlice);
+        this.checkAfter = checkAfter;
     }
 
-    long spawn(string filename, long[] parameters) {
+    uint spawn(uint byteIndex, long[] parameters) {
+        auto job = new Job(jid, byteIndex);
+        long[] bogusStackFrame = [-1, -1];
+        job.callStack.set(parameters ~ bogusStackFrame);
+        readyQueue.insertBack(job);
+        return jid++;
+    }
 
-
-
-        Program* program = filename in programs;
-        if (program == null) {
-            programs[filename] = Program(filename);
-            program = &programs[filename];
+    uint mspawn(string moduleName, uint label, long[] parameters) {
+        if (!loader.isModuleLoaded(moduleName)) {
+            loader.loadPOSMCode(moduleName);
+            debug(scheduler) {
+                loader.prettyPrint(moduleName);
+            }
         }
-
-        debug(scheduler) {
-            program.prettyPrint;
-        }
-
-        auto job = Job(jid, program);
-        job.callStack.append(parameters);
+        auto byteIndex = loader.lookupByteIndex(moduleName, label);
+        auto job = new Job(jid, byteIndex);
+        long[] bogusStackFrame = [-1, -1];
+        job.callStack.set(parameters ~ bogusStackFrame);
         readyQueue.insertBack(job);
         return jid++;
     }
@@ -56,13 +59,12 @@ struct Scheduler {
                 auto job = readyQueue.front;
                 readyQueue.removeFront;
                 InterpreterResult result =
-                    interpreter.run(this, job, timeSlice, timeoutGranularity);
+                    interpreter.run(this, job, timeSlice, checkAfter);
                 final switch(result) {
                 case InterpreterResult.halt:
                     debug(user) {
-                        writeln("Job " ~ to!string(job.jid) ~ " (" ~
-                                job.program.filename ~ ") halted: " ~
-                                to!string(job.callStack.stack));
+                        writefln("Job %d halted: %s",  job.jid,
+                                 to!string(job.callStack.stack));
                     }
                     break;
                 case InterpreterResult.recv:
@@ -70,9 +72,12 @@ struct Scheduler {
                     break;
                 case InterpreterResult.timeout:
                     readyQueue.insertBack(job);
+                    break;
+                case InterpreterResult.exit:
+                    return;
                 }
             }
-            Thread.sleep(msecs(emptyReadyQueueBackOff));
+            Thread.sleep(timeSlice);
         }
     }
 }

@@ -3,21 +3,18 @@ module job;
 import std.stdio : writeln;
 import std.conv : to;
 import std.typecons : Tuple;
-import program;
 
-struct Job {
-    public long jid;
-    public long pc = 0; // FIXME: Do not set to zero, set in constructor
-    public CallStack callStack;
-    public DataStack dataStack;
+import loader;
 
-    // Remove
-    public Program* program;
+class Job {
+    public uint jid;
+    public uint pc;
+    public CallStack callStack = new CallStack;
+    public DataStack dataStack = new DataStack;
 
-    // FIXME: rework
-    this(long jid, Program* program) {
+    this(uint jid, uint pc) {
         this.jid = jid;
-        this.program = program;
+        this.pc = pc;
     }
 
     public string popString() {
@@ -27,7 +24,7 @@ struct Job {
     }
 }
 
-struct CallStack  {
+class CallStack  {
     public long[] stack;
     public long fp = 0;
 
@@ -37,10 +34,6 @@ struct CallStack  {
 
     public void set(long[] newStack) {
         stack = newStack;
-    }
-
-    public void append(long[] newStack) {
-        stack ~= newStack;
     }
 
     public void push(long value) {
@@ -90,7 +83,7 @@ struct CallStack  {
     }
 }
 
-struct DataStack  {
+class DataStack  {
     public ubyte[] stack;
     public long fp = 0;
 
@@ -98,16 +91,16 @@ struct DataStack  {
         return stack.length;
     }
 
-    public Tuple!(long, int) push(ubyte[] bytes) {
-        auto length = get!int(&bytes[0]);
-        auto dataAddress = stack.length;
-        stack ~= bytes[0 .. 4 + length];
-        return Tuple!(long, int)(dataAddress, length);
+    public Tuple!(long, ushort) push(ubyte[] bytes) {
+        auto length = Loader.get!ushort(&bytes[0]);
+        long dataAddress = stack.length;
+        stack ~= bytes[0 .. ushort.sizeof + length];
+        return Tuple!(long, ushort)(dataAddress, length);
     }
 
     public ubyte[] peek(long dataAddress) {
         ubyte[] bytes = stack[dataAddress .. $];
-        auto length = get!int(&bytes[0]);
-        return bytes[0 .. 4 + length];
+        auto length = Loader.get!ushort(&bytes[0]);
+        return bytes[0 .. ushort.sizeof + length];
     }
 }

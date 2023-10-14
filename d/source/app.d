@@ -1,68 +1,92 @@
 import std.stdio;
-import std.file;
 import std.path;
-import std.datetime;
 import std.conv;
-import scheduler;
-import program : ByteCodeError;
-import interpreter : Interpreter, InterpreterError;
-import core.stdc.stdlib: exit;
+import std.getopt;
+import std.algorithm;
+import std.array;
+
+import interpreter;
 import loader;
+import scheduler;
 
-int main(const string[] args) {
-    /*
-    Loader loader = Loader("./doc");
-    loader.loadPOSMCode("ackermann");
-    loader.loadPOSMCode("example1");
-    loader.prettyPrint("example1");
-    exit(2);
-    */
+int main(string[] args) {
+    uint timeSlice = 25;
+    ushort checkAfter = 100;
+    string loadPath = "./";
 
+    string usage =
+        "Usage: " ~ baseName(args[0]) ~ " [options] <module> <label> [parameter ...]\n" ~
+        "Options:\n" ~
+        "  -c <instructions>, --check-after=<instructions>\n" ~
+        "    Check time slice after a number of <instructions> (" ~ to!string(checkAfter) ~ ")\n" ~
+        "  -h, --help\n" ~
+        "    Print this message and exit\n" ~
+        "  -l <directory>, --load-path=<directory>\n" ~
+        "    Load POSM files from <directory> (" ~ loadPath ~ ")\n" ~
+        "  -t <milli-seconds>, --time-slice=<milli-seconds>\n" ~
+        "    <milli-seconds> spent by each job before context switch (" ~ to!string(timeSlice) ~ "ms)";
 
-
-
-
-
-
-
-
-
-
-
-
-
-    if (args.length != 4) {
-        stderr.writeln("Usage " ~ baseName(args[0]) ~
-                       ": <filename> <time-slice> <timeout-granularity>");
-        return 1;
+    enum ReturnCode : int {
+        SUCCESS = 0,
+        PARAMETER_ERROR = 1,
+        LOADER_ERROR = 2,
+        INTERPRETER_ERROR = 3,
+        UNEXPECTED_ERROR = 4
     }
-
-    auto filename = args[1];
-    if (!exists(filename)) {
-        stderr.writeln("Parameter error: " ~ filename ~ " does not exist");
-        return 2;
-    }
-
-    Interpreter interpreter;
 
     try {
-        auto timeSlice = msecs(to!uint(args[2]));
-        auto timeoutGranularity = to!uint(args[3]);
-        auto scheduler = Scheduler(interpreter, timeSlice, timeoutGranularity);
-        scheduler.spawn(filename, []);
-        scheduler.run();
+        auto helpInformation =
+            args.getopt("t|time-slice", &timeSlice,
+                        "c|check-after", &checkAfter,
+                        "l|load-path", &loadPath);
+        if (helpInformation.helpWanted) {
+            stderr.writeln(usage);
+            return ReturnCode.PARAMETER_ERROR;
+        }
     } catch (ConvException e) {
-        stderr.writeln("Parameter error: ", e.msg);
-        return 3;
-    } catch (ByteCodeError e) {
-        stderr.writeln("Byte code error: ", e.msg);
-        return 4;
+        stderr.writeln("Parameter error: " ~ e.msg);
+        return ReturnCode.PARAMETER_ERROR;
+    } catch (GetOptException e) {
+        stderr.writeln("Parameter error: " ~ e.msg);
+        stderr.writeln(usage);
+        return ReturnCode.PARAMETER_ERROR;
+    }
+
+    string moduleName;
+    uint label;
+    long[] parameters;
+
+    if (args.length < 3) {
+        stderr.writeln(usage);
+        return ReturnCode.PARAMETER_ERROR;
+    }
+
+    moduleName = args[1];
+    try {
+        label = to!uint(args[2]);
+        parameters = args[3 .. $].map!(s => s.to!long).array;
+    } catch (ConvException e) {
+        stderr.writeln("Parameter error: " ~ e.msg);
+        stderr.writeln(usage);
+        return ReturnCode.PARAMETER_ERROR;
+    }
+
+    try {
+        auto loader = new Loader(loadPath);
+        auto interpreter = new Interpreter(loader);
+        auto scheduler = new Scheduler(loader, interpreter, timeSlice, checkAfter);
+        scheduler.mspawn(moduleName, label, parameters);
+        scheduler.run();
+    } catch (LoaderError e) {
+        stderr.writeln("Loader error: ", e.msg);
+        return ReturnCode.LOADER_ERROR;
     } catch (InterpreterError e) {
         stderr.writeln("Interpreter error: ", e.msg);
-        return 5;
+        return ReturnCode.INTERPRETER_ERROR;
     } catch (Exception e) {
         stderr.writeln("Unexpected error: ", e.msg);
-        return 6;
+        return ReturnCode.UNEXPECTED_ERROR;
     }
+
     return 0;
 }

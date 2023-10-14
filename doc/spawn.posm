@@ -25,7 +25,18 @@ LABEL 2
   PUSH 3        ; Parameter M
   PUSH 1        ; Parameter N
   PUSH 2
-  SYS spawn
+  mspawn
+
+
+  ; Call summer(13, 10)
+  PUSH 3        ; Parameter M
+  PUSH 1        ; Parameter N
+  spawn 2 2
+
+
+
+
+
   SYS display
   POP
   PUSH 0

@@ -1,6 +1,4 @@
 label 0          ; start/0
-  push -1        ; Bogus return address
-  push -1        ; Bogus fp
   push 1         ; Local variable X
   pushs "foo"    ; Local variable Y
   push -2
@@ -11,6 +9,9 @@ label 0          ; start/0
   push -3
   load fp        ; Parameter Y
   call 1 1
+  dup
+  sys println
+  pop
   ret copy
 
 label 1          ; bar/2

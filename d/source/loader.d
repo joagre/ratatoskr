@@ -10,53 +10,56 @@ import std.regex: replace, regex;
 import std.path: buildPath;
 import std.range: empty;
 import std.file: exists;
+
 import prettyprint;
 
-struct Registers {
-    static const ubyte sp = 0;
-    static const ubyte fp = 1;
+enum Registers : ubyte {
+    sp = 0,
+    fp = 1
 }
 
-struct Opcodes {
-    static const ubyte push  = 0;
-    static const ubyte pushs = 1;
-    static const ubyte pop   = 2;
-    static const ubyte dup   = 3;
-    static const ubyte swap  = 4;
-    static const ubyte load  = 5;
-    static const ubyte store = 6;
-    static const ubyte add   = 7;
-    static const ubyte sub   = 8;
-    static const ubyte mul   = 9;
-    static const ubyte div   = 10;
-    static const ubyte jump  = 11;
-    static const ubyte cjump = 12;
-    static const ubyte call  = 13;
-    static const ubyte mcall = 14;
-    static const ubyte ret   = 15;
-    static const ubyte sys   = 16;
-    static const ubyte and   = 17;
-    static const ubyte or    = 18;
-    static const ubyte not   = 19;
-    static const ubyte eq    = 20;
-    static const ubyte neq   = 21;
-    static const ubyte lt    = 22;
-    static const ubyte gt    = 23;
-    static const ubyte nop   = 24;
-    static const ubyte halt  = 25;
+enum Opcodes : ubyte {
+     push   = 0,
+     pushs  = 1,
+     pop    = 2,
+     dup    = 3,
+     swap   = 4,
+     load   = 5,
+     store  = 6,
+     add    = 7,
+     sub    = 8,
+     mul    = 9,
+     div    = 10,
+     jump   = 11,
+     cjump  = 12,
+     call   = 13,
+     mcall  = 14,
+     ret    = 15,
+     sys    = 16,
+     and    = 17,
+     or     = 18,
+     not    = 19,
+     eq     = 20,
+     neq    = 21,
+     lt     = 22,
+     gt     = 23,
+     nop    = 24,
+     halt   = 25,
+     spawn  = 26,
+     mspawn = 27
 }
 
-struct SystemCalls {
-    static const ushort spawn   = 0;
-    static const ushort send    = 1;
-    static const ushort recv    = 2;
-    static const ushort println = 3;
-    static const ushort display = 4;
+enum SystemCalls : ushort {
+    send    = 0,
+    recv    = 1,
+    println = 2,
+    display = 3,
+    exit    = 4
 }
 
-struct ReturnModes {
-    static const ubyte value = 0;
-    static const ubyte copy = 1;
+enum ReturnModes : ubyte {
+    value = 0,
+    copy = 1
 }
 
 class LoaderError : Exception {
@@ -65,7 +68,10 @@ class LoaderError : Exception {
     }
 }
 
-struct Loader {
+const ubyte OPCODE_OPERAND_MASK = 0b00000111;
+const ubyte OPCODE_BITS = 3;
+
+class Loader {
     public ubyte[] byteCode;
     private string loadPath;
     private Module[string] modules;
@@ -75,27 +81,7 @@ struct Loader {
         this.loadPath = loadPath;
     }
 
-    public bool isModuleLoaded(string moduleName) {
-        return (moduleName in modules) != null;
-    }
-
-    public void loadPOSMCode(string moduleName) {
-        auto filename = buildPath(loadPath, moduleName ~ ".posm");
-        if (!exists(filename)) {
-            throw new LoaderError(filename ~  " can not be found");
-        }
-        file = File(filename, "r");
-        Module module_ = Module(cast(uint)byteCode.length);
-        try {
-            generateByteCode(module_);
-        } finally {
-            file.close;
-        }
-        module_.stopByteIndex = cast(uint)byteCode.length - 1;
-        modules[moduleName] = module_;
-    }
-
-    private void generateByteCode(ref Module module_) {
+    private void generateByteCode(Module module_) {
         while (!file.eof) {
             string line = file.readln.strip;
 
@@ -132,29 +118,29 @@ struct Loader {
             case "push":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                byteCode ~= Opcodes.push << 3;
+                byteCode ~= Opcodes.push << OPCODE_BITS;
                 insert(parse!long(parts[0], line), byteCode);
                 break;
             case "pushs":
                 if (operands.length == 0) {
                     throw new LoaderError("Invalid instruction " ~ line);
                 }
-                byteCode ~= Opcodes.pushs << 3;
+                byteCode ~= Opcodes.pushs << OPCODE_BITS;
                 ubyte[] bytes = cast(ubyte[])toUTF8(operands.strip(`"`));
                 insert(cast(ushort)bytes.length, byteCode);
                 byteCode ~= bytes;
                 break;
             case "pop":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.pop << 3;
+                byteCode ~= Opcodes.pop << OPCODE_BITS;
                 break;
             case "dup":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.dup << 3;
+                byteCode ~= Opcodes.dup << OPCODE_BITS;
                 break;
             case "swap":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.swap << 3;
+                byteCode ~= Opcodes.swap << OPCODE_BITS;
                 break;
             case "load":
                 auto parts = operands.split;
@@ -168,52 +154,50 @@ struct Loader {
                 break;
             case "add":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.add << 3;
+                byteCode ~= Opcodes.add << OPCODE_BITS;
                 break;
             case "sub":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.sub << 3;
+                byteCode ~= Opcodes.sub << OPCODE_BITS;
                 break;
             case "mul":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.mul << 3;
+                byteCode ~= Opcodes.mul << OPCODE_BITS;
                 break;
             case "div":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.div << 3;
+                byteCode ~= Opcodes.div << OPCODE_BITS;
                 break;
             case "jump":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                byteCode ~= Opcodes.jump << 3;
+                byteCode ~= Opcodes.jump << OPCODE_BITS;
                 insert(parse!uint(parts[0], line), byteCode);
                 break;
             case "cjump":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                byteCode ~= Opcodes.cjump << 3;
+                byteCode ~= Opcodes.cjump << OPCODE_BITS;
                 insert(parse!uint(parts[0], line), byteCode);
                 break;
             case "call":
                 auto parts = operands.split;
                 assertOperands(parts.length, 2, line);
-                byteCode ~= Opcodes.call << 3;
+                byteCode ~= Opcodes.call << OPCODE_BITS;
                 insert(parse!uint(parts[0], line), byteCode);
                 insert(parse!ubyte(parts[1], line), byteCode);
                 break;
             case "mcall":
-                auto parts = operands.split;
-                assertOperands(parts.length, 2, line);
-                byteCode ~= Opcodes.mcall << 3;
-                insert(parse!uint(parts[0], line), byteCode);
-                insert(parse!ubyte(parts[1], line), byteCode);
+                assertNoOperands(operands, line);
+                byteCode ~= Opcodes.mcall << OPCODE_BITS;
                 break;
             case "ret":
                 auto parts = operands.split;
                 if (parts.length == 0) {
-                    byteCode ~= (Opcodes.ret << 3) | ReturnModes.value;
+                    byteCode ~=
+                        (Opcodes.ret << OPCODE_BITS) | ReturnModes.value;
                 } else if (parts.length == 1 && parts[0] == "copy") {
-                    byteCode ~= (Opcodes.ret << 3) | ReturnModes.copy;
+                    byteCode ~= (Opcodes.ret << OPCODE_BITS) | ReturnModes.copy;
                 } else {
                     throw new LoaderError("Invalid instruction " ~ line);
                 }
@@ -221,12 +205,9 @@ struct Loader {
             case "sys":
                 auto parts = operands.split;
                 assertOperands(parts.length, 1, line);
-                byteCode ~= Opcodes.sys << 3;
+                byteCode ~= Opcodes.sys << OPCODE_BITS;
                 uint systemCall;
                 switch(parts[0]) {
-                case "spawn":
-                    systemCall = SystemCalls.spawn;
-                    break;
                 case "send":
                     systemCall = SystemCalls.send;
                     break;
@@ -239,6 +220,9 @@ struct Loader {
                 case "display":
                     systemCall = SystemCalls.display;
                     break;
+                case "exit":
+                    systemCall = SystemCalls.exit;
+                    break;
                 default:
                     throw new LoaderError("Invalid instruction " ~ line);
                 }
@@ -246,39 +230,50 @@ struct Loader {
                 break;
             case "and":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.and << 3;
+                byteCode ~= Opcodes.and << OPCODE_BITS;
                 break;
             case "or":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.or << 3;
+                byteCode ~= Opcodes.or << OPCODE_BITS;
                 break;
             case "not":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.not << 3;
+                byteCode ~= Opcodes.not << OPCODE_BITS;
                 break;
             case "eq":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.eq << 3;
+                byteCode ~= Opcodes.eq << OPCODE_BITS;
                 break;
             case "neq":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.neq << 3;
+                byteCode ~= Opcodes.neq << OPCODE_BITS;
                 break;
             case "lt":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.lt << 3;
+                byteCode ~= Opcodes.lt << OPCODE_BITS;
                 break;
             case "gt":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.gt << 3;
+                byteCode ~= Opcodes.gt << OPCODE_BITS;
                 break;
             case "nop":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.nop << 3;
+                byteCode ~= Opcodes.nop << OPCODE_BITS;
                 break;
             case "halt":
                 assertNoOperands(operands, line);
-                byteCode ~= Opcodes.halt << 3;
+                byteCode ~= Opcodes.halt << OPCODE_BITS;
+                break;
+            case "spawn":
+                auto parts = operands.split;
+                assertOperands(parts.length, 2, line);
+                byteCode ~= Opcodes.spawn << OPCODE_BITS;
+                insert(parse!uint(parts[0], line), byteCode);
+                insert(parse!ubyte(parts[1], line), byteCode);
+                break;
+            case "mspawn":
+                assertNoOperands(operands, line);
+                byteCode ~= Opcodes.mspawn << OPCODE_BITS;
                 break;
             default:
                 throw new LoaderError("Invalid instruction " ~ line);
@@ -288,7 +283,7 @@ struct Loader {
         // Convert labels to byte indices
         uint byteIndex = module_.startByteIndex;
         while (byteIndex < byteCode.length) {
-            auto opcode = byteCode[byteIndex] >> 3;
+            auto opcode = byteCode[byteIndex] >> OPCODE_BITS;
             if (opcode == Opcodes.push) {
                 byteIndex += long.sizeof;
             } else if (opcode == Opcodes.pushs) {
@@ -304,8 +299,10 @@ struct Loader {
                 auto labelByteIndex = module_.lookupByteIndex(label);
                 set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
                 byteIndex += uint.sizeof + ubyte.sizeof;
-            } else if (opcode == Opcodes.mcall) {
-                // NOTE: These are patched dynamically in runtime
+            } else if (opcode == Opcodes.spawn) {
+                auto label = get!uint(&byteCode[byteIndex + 1]);
+                auto labelByteIndex = module_.lookupByteIndex(label);
+                set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
                 byteIndex += uint.sizeof + ubyte.sizeof;
             } else if (opcode == Opcodes.sys) {
                 byteIndex += uint.sizeof;
@@ -339,12 +336,37 @@ struct Loader {
 
     private ubyte addRegister(string register, ubyte opcode, string line) {
         if (register == "sp") {
-            return cast(ubyte)(opcode << 3) | Registers.sp;
+            return cast(ubyte)(opcode << OPCODE_BITS) | Registers.sp;
         } else if (register == "fp") {
-            return cast(ubyte)(opcode << 3) | Registers.fp;
+            return cast(ubyte)(opcode << OPCODE_BITS) | Registers.fp;
         } else {
             throw new LoaderError("Invalid instruction " ~ line);
         }
+    }
+
+    public bool isModuleLoaded(string moduleName) {
+        return (moduleName in modules) != null;
+    }
+
+    public uint lookupByteIndex(string moduleName, uint label) {
+        auto module_ = moduleName in modules;
+        return module_.lookupByteIndex(label);
+    }
+
+    public void loadPOSMCode(string moduleName) {
+        auto filename = buildPath(loadPath, moduleName ~ ".posm");
+        if (!exists(filename)) {
+            throw new LoaderError(filename ~  " can not be found");
+        }
+        file = File(filename, "r");
+        Module module_ = new Module(cast(uint)byteCode.length);
+        try {
+            generateByteCode(module_);
+        } finally {
+            file.close;
+        }
+        module_.stopByteIndex = cast(uint)byteCode.length - 1;
+        modules[moduleName] = module_;
     }
 
     public void prettyPrint() {
@@ -375,11 +397,10 @@ struct Loader {
     }
 }
 
-struct Module {
+class Module {
     public uint startByteIndex;
     public uint stopByteIndex;
     private uint[uint] jumpTable;
-    //ExternalCalls[] externalCalls;
 
     this(uint startByteIndex) {
         this.startByteIndex = startByteIndex;
@@ -401,15 +422,4 @@ struct Module {
         }
         throw new LoaderError("Internal Error");
     }
-
-    //unresolvedCallLabels?
-
-    //public reverseLookup?
 }
-
-//struct ExternalCalls {
-//    string moduleName;
-//    uint label;
-//    uint byteCodeIndex;
-//    bool resolved = false;
-//}
