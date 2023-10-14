@@ -41,7 +41,7 @@ int main(string[] args) {
                         "l|load-path", &loadPath);
         if (helpInformation.helpWanted) {
             stderr.writeln(usage);
-            return ReturnCode.PARAMETER_ERROR;
+            return ReturnCode.SUCCESS;
         }
     } catch (ConvException e) {
         stderr.writeln("Parameter error: " ~ e.msg);
@@ -88,5 +88,5 @@ int main(string[] args) {
         return ReturnCode.UNEXPECTED_ERROR;
     }
 
-    return 0;
+    return ReturnCode.SUCCESS;
 }
