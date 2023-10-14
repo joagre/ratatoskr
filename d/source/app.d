@@ -18,7 +18,7 @@ int main(string[] args) {
         "Usage: " ~ baseName(args[0]) ~ " [options] <module> <label> [<parameter> ...]\n" ~
         "Options:\n" ~
         "  -c <instructions>, --check-after=<instructions>\n" ~
-        "    Check time slice after a number of <instructions> (" ~ to!string(checkAfter) ~ ")\n" ~
+        "    Check time slice timeout each number of <instructions> (" ~ to!string(checkAfter) ~ ")\n" ~
         "  -h, --help\n" ~
         "    Print this message and exit\n" ~
         "  -l <directory>, --load-path=<directory>\n" ~
