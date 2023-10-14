@@ -30,29 +30,6 @@ class Scheduler {
         this.checkAfter = checkAfter;
     }
 
-    uint spawn(uint byteIndex, long[] parameters) {
-        auto job = new Job(jid, byteIndex);
-        long[] bogusStackFrame = [-1, -1];
-        job.callStack.set(parameters ~ bogusStackFrame);
-        readyQueue.insertBack(job);
-        return jid++;
-    }
-
-    uint mspawn(string moduleName, uint label, long[] parameters) {
-        if (!loader.isModuleLoaded(moduleName)) {
-            loader.loadPOSMCode(moduleName);
-            debug(scheduler) {
-                loader.prettyPrint(moduleName);
-            }
-        }
-        auto byteIndex = loader.lookupByteIndex(moduleName, label);
-        auto job = new Job(jid, byteIndex);
-        long[] bogusStackFrame = [-1, -1];
-        job.callStack.set(parameters ~ bogusStackFrame);
-        readyQueue.insertBack(job);
-        return jid++;
-    }
-
     void run() {
         while (!waitingQueue.empty || !readyQueue.empty) {
             while (!readyQueue.empty) {
@@ -79,5 +56,28 @@ class Scheduler {
             }
             Thread.sleep(timeSlice);
         }
+    }
+
+    uint spawn(uint byteIndex, long[] parameters) {
+        auto job = new Job(jid, byteIndex);
+        long[] bogusStackFrame = [-1, -1];
+        job.callStack.set(parameters ~ bogusStackFrame);
+        readyQueue.insertBack(job);
+        return jid++;
+    }
+
+    uint mspawn(string moduleName, uint label, long[] parameters) {
+        if (!loader.isModuleLoaded(moduleName)) {
+            loader.loadPOSMCode(moduleName);
+            debug(scheduler) {
+                loader.prettyPrint(moduleName);
+            }
+        }
+        auto byteIndex = loader.lookupByteIndex(moduleName, label);
+        auto job = new Job(jid, byteIndex);
+        long[] bogusStackFrame = [-1, -1];
+        job.callStack.set(parameters ~ bogusStackFrame);
+        readyQueue.insertBack(job);
+        return jid++;
     }
 }
