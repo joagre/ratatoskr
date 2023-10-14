@@ -8,14 +8,15 @@
 ; ackermann(M, N) when M > 0, N > 0 ->
 ;     ackermann(M - 1, ackermann(M, N - 1)).
 
-;label 0          ; start/0
-;  push -1        ; Bogus return address
-;  push -1        ; Bogus fp
-;  ; Call ackermann(3, 6)
-;  push 3
-;  push 6
-;  call 1 2
-;  ret
+label 0          ; start/0
+  ; Call ackermann(3, 6)
+  push 3
+  push 6
+  call 1 2
+  dup
+  sys display
+  pop
+  ret
 
 label 1          ; ackermann/2
   push 0
