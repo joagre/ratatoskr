@@ -122,7 +122,7 @@ class Interpreter {
                 call(job, byteIndex, arity);
                 break;
             case Opcodes.mcall:
-                // Extract call parameters from stack (keep parameters on stack)
+                // Extract call operands from stack (keep parameters on stack)
                 auto label = job.callStack.pop();
                 auto moduleName = job.popString();
                 auto arity = job.callStack.pop();
