@@ -20,7 +20,7 @@ class Job {
     public string popString() {
         auto dataAddress = callStack.pop();
         auto bytes = dataStack.peek(dataAddress);
-        return cast(string)bytes[4 .. $];
+        return cast(string)bytes[ushort.sizeof .. $];
     }
 }
 
