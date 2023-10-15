@@ -1,14 +1,33 @@
 label 0          ; start/0
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
   ; Call summer(13, 10)
   push 13        ; Parameter M
   push 10        ; Parameter N
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ;;   13
+  ;;   10
   call 1 2
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ;;   130 (Return value)
   dup
   sys display
   pop
   ret
+  ;; Stack:
+  ;;   130
 
 label 1          ; summer/2
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
   ; Is it summer(_M, 0) clause?
   push -1
   load fp       ; Load parameter N
@@ -16,9 +35,22 @@ label 1          ; summer/2
   neq
   cjump 2
   push 0
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
+  ;;   0
   ret
+  ;; Stack:
+  ;;   0
 
 label 2
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
   ; It is summer(M, N) clause!
   ; Call summer(M, N - 1)
   push 0
@@ -29,6 +61,27 @@ label 2
   load fp       ; Load parameter N
   push 1
   sub           ; Parameter N - 1
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
+  ;;   M
+  ;;   N - 1
   call 1 2
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
+  ;;   summer(M, N - 1) (Return value)
   add           ; M + summer(M, N - 1)
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
+  ;;   M + summer(M, N - 1)
   ret
+  ;; Stack:
+  ;;   M + summer(M, N - 1)

@@ -1,13 +1,9 @@
-build: example1.posm example2.posm example3.posm
+POSM_FILES=hello_world.posm fac.posm tfac.posm module_calls.posm ackermann.posm
 
-example1.posm: posm-spec.txt
-	awk '/__EXAMPLE1_START__/{flag=1;next}/__EXAMPLE1_END__/{flag=0}flag' posm-spec.txt | grep -v '^[[:space:]]*;;' > example1.posm
+build: $(POSM_FILES)
 
-example2.posm: posm-spec.txt
-	awk '/__EXAMPLE2_START__/{flag=1;next}/__EXAMPLE2_END__/{flag=0}flag' posm-spec.txt | grep -v '^[[:space:]]*;;' > example2.posm
-
-example3.posm: posm-spec.txt
-	awk '/__EXAMPLE3_START__/{flag=1;next}/__EXAMPLE3_END__/{flag=0}flag' posm-spec.txt | grep -v '^[[:space:]]*;;' > example3.posm
+%.posm: posm-spec.txt
+	awk "/__$*__start__/{flag=1;next}/__$*__end__/{flag=0}flag" $< > $@
 
 clean:
-	rm -f example1.posm  example2.posm example3.posm
+	rm -f $(POSM_FILES)
