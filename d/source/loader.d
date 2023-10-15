@@ -390,6 +390,7 @@ class Loader {
         bytes ~= (cast(ubyte*)&value)[0 .. T.sizeof];
     }
 
+    pragma(inline, true)
     static public T get(T)(ubyte* bytes) {
         return *cast(T*)bytes;
     }

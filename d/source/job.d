@@ -42,27 +42,32 @@ class CallStack  {
     //    stack = newStack;
     // }
 
+    pragma(inline, true)
     public void push(long value) {
         stack ~= value;
     }
 
+    pragma(inline, true)
     public long pop() {
         auto topValue = stack[$ - 1];
         stack = stack[0 .. $ - 1];
         return topValue;
     }
 
+    pragma(inline, true)
     public void dup() {
         auto topValue = stack[$ - 1];
         stack ~= topValue;
     }
 
+    pragma(inline, true)
     public void swap() {
         auto topValue = stack[$ - 1];
         stack[$ - 1] = stack[$ - 2];
         stack[$ - 2] = topValue;
     }
 
+    pragma(inline, true)
     public void load(ubyte register) {
         auto offset = pop();
         if (register == Registers.sp) {
@@ -72,6 +77,7 @@ class CallStack  {
         }
     }
 
+    pragma(inline, true)
     public void store(ubyte register) {
         auto offset = pop();
         auto newValue = pop();
@@ -82,6 +88,7 @@ class CallStack  {
         }
     }
 
+    pragma(inline, true)
     public void op(long delegate(long, long) fun) {
         auto operand2 = pop();
         auto operand1 = pop();
@@ -93,10 +100,12 @@ class DataStack  {
     public ubyte[] stack;
     public long fp = 0;
 
+    pragma(inline, true)
     public long length() {
         return stack.length;
     }
 
+    pragma(inline, true)
     public Tuple!(long, ushort) push(ubyte[] bytes) {
         auto length = Loader.get!ushort(&bytes[0]);
         long dataAddress = stack.length;
@@ -104,6 +113,7 @@ class DataStack  {
         return Tuple!(long, ushort)(dataAddress, length);
     }
 
+    pragma(inline, true)
     public ubyte[] peek(long dataAddress) {
         ubyte[] bytes = stack[dataAddress .. $];
         auto length = Loader.get!ushort(&bytes[0]);

@@ -13,7 +13,7 @@
 ;
 ; ackermann(0, N) ->
 ;     N + 1;
-; ackermann(M, 0) when M > 0 >-
+; ackermann(M, 0) when M > 0 ->
 ;     ackermann(M - 1, 1);
 ; ackermann(M, N) when M > 0, N > 0 ->
 ;     ackermann(M - 1, ackermann(M, N - 1)).
@@ -21,7 +21,7 @@
 label 0          ; start()
   push 3         ; M
   push 6         ; N
-  call 1 2       ; ackermann(3, 7)
+  call 1 2       ; ackermann(3, 6)
   dup
   sys display
   pop
