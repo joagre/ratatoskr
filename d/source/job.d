@@ -9,12 +9,14 @@ import loader;
 class Job {
     public uint jid;
     public uint pc;
-    public CallStack callStack = new CallStack;
-    public DataStack dataStack = new DataStack;
+    public CallStack callStack;
+    public DataStack dataStack;
 
     this(uint jid, uint pc) {
         this.jid = jid;
         this.pc = pc;
+        this.callStack = new CallStack;
+        this.dataStack = new DataStack;
     }
 
     public string popString() {
@@ -26,15 +28,19 @@ class Job {
 
 class CallStack  {
     public long[] stack;
-    public long fp = 0;
+    public long fp = -1;
 
     public long length() {
         return stack.length;
     }
 
-    public void set(long[] newStack) {
-        stack = newStack;
+    public void append(long[] trailingStack) {
+        stack ~= trailingStack;
     }
+
+    //    public void set(long[] newStack) {
+    //    stack = newStack;
+    // }
 
     public void push(long value) {
         stack ~= value;

@@ -44,7 +44,7 @@ class Interpreter {
 
             debug(interpreter) {
                 writefln("%d: %s", job.jid, to!string(job.callStack.stack));
-                writef("%d: ", job.jid);
+                writef("%d:%d: ", job.jid, job.pc);
                 PrettyPrint.printInstruction(&byteCode[job.pc]);
             }
 
@@ -119,13 +119,14 @@ class Interpreter {
                 // Extract call operands
                 auto byteIndex = Loader.get!uint(&byteCode[job.pc]);
                 auto arity = Loader.get!ubyte(&byteCode[job.pc + uint.sizeof]);
-                call(job, byteIndex, arity);
+                call(job, byteIndex, arity, uint.sizeof + ubyte.sizeof);
                 break;
             case Opcodes.mcall:
                 // Extract call operands from stack (keep parameters on stack)
                 auto label = job.callStack.pop();
                 auto moduleName = job.popString();
                 auto arity = job.callStack.pop();
+                // NOTE: Only the parameters are now left on the stack
                 // Ensure that the module is loaded
                 if (!loader.isModuleLoaded(moduleName)) {
                     loader.loadPOSMCode(moduleName);
@@ -135,7 +136,7 @@ class Interpreter {
                 }
                 auto byteIndex =
                     loader.lookupByteIndex(moduleName, cast(uint)label);
-                call(job, cast(uint)byteIndex, cast(ubyte)arity);
+                call(job, cast(uint)byteIndex, cast(ubyte)arity, 0);
                 break;
             case Opcodes.ret:
                 // Is the return done by value or by copy?
@@ -151,7 +152,7 @@ class Interpreter {
                 // Pop return address
                 auto returnAddress = job.callStack.pop();
                 // Has stack been exhausted?
-                if (job.callStack.fp == -1) {
+                if (job.callStack.length == 1 || returnAddress == -1) {
                     // Just keep the result and throw away any parameters
                     job.callStack.stack = job.callStack.stack[$ - 1 .. $];
                     return InterpreterResult.halt;
@@ -247,6 +248,7 @@ class Interpreter {
                     iota(arity).map!(_ => job.callStack.pop()).array;
                 auto jid = scheduler.spawn(byteIndex, parameters.reverse);
                 job.callStack.push(jid);
+                job.pc += uint.sizeof + ubyte.sizeof;
                 break;
             case Opcodes.mspawn:
                 auto label = job.callStack.pop();
@@ -254,13 +256,12 @@ class Interpreter {
                 auto arity = job.callStack.pop();
                 auto parameters =
                     iota(arity).map!(_ => job.callStack.pop()).array;
-                auto jid = scheduler.mspawn(moduleName,
-                                            cast(uint)label, parameters);
+                auto jid = scheduler.mspawn(moduleName, cast(uint)label, parameters);
                 job.callStack.push(jid);
                 break;
             default:
                 throw new InterpreterError(
-                              "Invalid opcode" ~
+                              "Invalid opcode " ~
                               to!string(byteCode[currentPc] >> OPCODE_BITS));
             }
 
@@ -276,9 +277,9 @@ class Interpreter {
         return interpreterResult;
     }
 
-    void call(Job job, uint byteIndex, ubyte arity) {
+    void call(Job job, uint byteIndex, ubyte arity, ubyte stackAddition) {
         // Add return address to stack
-        job.callStack.push(job.pc + uint.sizeof + ubyte.sizeof);
+        job.callStack.push(job.pc + stackAddition);
         // Save previous fp on the stack
         job.callStack.push(job.callStack.fp);
         // Set fp to first CALL parameter (NOTE: We just pushed two values)

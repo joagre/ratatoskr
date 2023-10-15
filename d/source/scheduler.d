@@ -60,8 +60,14 @@ class Scheduler {
 
     uint spawn(uint byteIndex, long[] parameters) {
         auto job = new Job(jid, byteIndex);
-        long[] bogusStackFrame = [-1, -1];
-        job.callStack.set(parameters ~ bogusStackFrame);
+        // Push parameters
+        job.callStack.append(parameters);
+        // Add bogus return address to stack
+        job.callStack.push(-1);
+        // Save previous fp on the stack
+        job.callStack.push(job.callStack.fp);
+        // Set fp to first CALL parameter (NOTE: We just pushed two values)
+        job.callStack.fp = job.callStack.length - 2 - parameters.length;
         readyQueue.insertBack(job);
         return jid++;
     }
@@ -75,8 +81,14 @@ class Scheduler {
         }
         auto byteIndex = loader.lookupByteIndex(moduleName, label);
         auto job = new Job(jid, byteIndex);
-        long[] bogusStackFrame = [-1, -1];
-        job.callStack.set(parameters ~ bogusStackFrame);
+        // Push parameters
+        job.callStack.append(parameters);
+        // Add bogus return address to stack
+        job.callStack.push(-1);
+        // Save previous fp on the stack
+        job.callStack.push(job.callStack.fp);
+        // Set fp to first CALL parameter (NOTE: We just pushed two values)
+        job.callStack.fp = job.callStack.length - 2 - parameters.length;
         readyQueue.insertBack(job);
         return jid++;
     }

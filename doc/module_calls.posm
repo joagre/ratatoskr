@@ -1,0 +1,27 @@
+; File: ./doc/module_calls.posm
+; Run: ./d/bin/e -l ./doc module_calls 0 10
+;
+; start(N) ->
+;     io:format("~w\n", [fac:fac(N)]),
+;     io:format("~w\n", [tfac:fac(N + 2)]).
+
+label 0          ; start(N)
+  push 0
+  load fp        ; N
+  push 1         ; Arity
+  pushs "fac"    ; Module name
+  push 0
+  mcall          ; fac:fac(N)
+  sys display
+  pop
+  push 0
+  load fp        ; N
+  push 2
+  add            ; N + 2
+  push 1         ; Acc
+  push 2         ; Arity
+  pushs "tfac"   ; Module name
+  push 0         ; Label
+  mcall          ; tfac:fac(N, 1)
+  sys display
+  ret

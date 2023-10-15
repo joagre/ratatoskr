@@ -1,0 +1,29 @@
+; File: ./doc/fac.posm
+; Run: ./d/bin/e -l ./doc fac 0 10
+;
+; fac(1) ->
+;     1;
+; fac(N) ->
+;     N * fac(N - 1).
+
+label 0          ; fib(1)
+  push 0
+  load fp        ; N
+  push 1
+  neq
+  cjump 1
+  push 1
+  ret
+
+label 1          ; fib(N)
+  push 0
+  load fp        ; N
+  push 0
+  load fp        ; N
+  push 1
+  sub            ; N - 1
+  call 0 1       ; fac(N - 1).
+  mul            ; N * fac(N - 1).
+  ret
+
+; ./d/bin/e -l ./doc fac 0 10

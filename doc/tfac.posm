@@ -1,0 +1,36 @@
+; File: ./doc/tfac.posm
+; Run: ./d/bin/e -l ./doc tfac 0 10 1
+;
+; fac(N) when N >= 0 ->
+;     fac(N, 1).
+;
+; fac(0, Acc) ->
+;     Acc;
+; fac(N, Acc) when N > 0 ->
+;     fac(N - 1, N * Acc).
+
+label 0          ; fac(0, Acc)
+  push 0
+  load fp        ; N
+  push 0
+  neq
+  cjump 1
+  push -1
+  load fp        ; Acc
+  ret
+
+label 1          ; fac(N, Acc)
+  push 0
+  load fp        ; N
+  push 1
+  sub            ; N - 1
+  push 0
+  load fp        ; N
+  push -1
+  load fp        ; Ack
+  mul
+  push -1
+  store fp       ; Replace parameter Acc
+  push 0
+  store fp       ; Replace parameter N
+  jump 0         ; fac(N - 1, N * Acc).

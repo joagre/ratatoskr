@@ -1,6 +1,6 @@
 module loader;
 
-import std.stdio : File, writeln;
+import std.stdio : File, writeln, writef, writefln;
 import std.string : strip, split, indexOf;
 import std.conv : to, ConvException;
 import std.typecons : Tuple;
@@ -287,7 +287,7 @@ class Loader {
             if (opcode == Opcodes.push) {
                 byteIndex += long.sizeof;
             } else if (opcode == Opcodes.pushs) {
-                auto length = get!uint(&byteCode[byteIndex + 1]);
+                auto length = get!ushort(&byteCode[byteIndex + 1]);
                 byteIndex += ushort.sizeof + length;
             } else if (opcode == Opcodes.jump || opcode == Opcodes.cjump) {
                 auto label = get!uint(&byteCode[byteIndex + 1]);
@@ -372,6 +372,7 @@ class Loader {
     public void prettyPrint() {
         uint byteIndex = 0;
         while (byteIndex < byteCode.length) {
+            writef("%d: ", byteIndex);
             byteIndex += 1 + PrettyPrint.printInstruction(&byteCode[byteIndex]);
         }
     }
@@ -380,6 +381,7 @@ class Loader {
         auto module_ = modules[moduleName];
         auto byteIndex = module_.startByteIndex;
         while (byteIndex < module_.stopByteIndex + 1) {
+            writef("%d: ", byteIndex);
             byteIndex += 1 + PrettyPrint.printInstruction(&byteCode[byteIndex]);
         }
     }

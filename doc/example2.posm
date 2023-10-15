@@ -1,7 +1,7 @@
 label 0          ; start/0
   ; Call summer(13, 10)
-  push 1       ; Parameter M
-  push 2       ; Parameter N
+  push 13       ; Parameter M
+  push 10       ; Parameter N
   push 0        ; Parameter Acc
   call 1 3
   dup
