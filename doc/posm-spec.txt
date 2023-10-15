@@ -226,7 +226,7 @@ __ackermann__start__
 label 0          ; start()
   push 3         ; M
   push 6         ; N
-  call 1 2       ; ackermann(3, 7)
+  call 1 2       ; ackermann(3, 6)
   dup
   sys display
   pop
