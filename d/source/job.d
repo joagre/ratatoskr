@@ -38,10 +38,6 @@ class CallStack  {
         stack ~= trailingStack;
     }
 
-    //    public void set(long[] newStack) {
-    //    stack = newStack;
-    // }
-
     pragma(inline, true)
     public void push(long value) {
         stack ~= value;
