@@ -1,0 +1,388 @@
+# The Plain Old Stack Machine (POSM)
+
+Here follows a description of the Plain Old Stack Machine (POSM) and
+its (not so surprising) instructions: push, pushs, pop, dup, swap,
+load, store, add, sub, mul, div, jump, cjump, call, ret, sys, and, or,
+not, eq, neq, lt, gt, nop and halt.
+
+POSM also has two read-only registers:
+
+sp: Stack pointer
+fp: Frame pointer
+
+NOTE: The stack grows downwards.
+
+Instruction set
+===============
+
+label label       ; A jump label. This is a meta instruction.
+push value        ; Pushes a value onto the stack.
+pushs <string>    ; Pushes a string value onto the stack.
+pop               ; Removes the top value from the stack.
+dup               ; Duplicates the top value on the stack.
+swap              ; Swaps the top two values on the stack.
+load sp|fp        ; Copies a value from the stack, using a relative
+                  ; sp or fp offset, to the top of the stack. The
+                  ; offset is expected to be on the stack.
+store sp|fp       ; Updates a value on the stack using a relative sp
+                  ; or fp offset. The new value and the offset are
+                  ; expected to be on the stack.
+                  ; from the stack.
+add               ; Pops two values, adds them, and pushes the result.
+sub               ; Pops two values, subtracts them, and pushes the result.
+mul               ; Pops two values, multiplies them, and pushes the result.
+div               ; Pops two values, divides them, and pushes the result.
+jump label        ; Unconditionally jumps to a label.
+cjump label       ; Conditionally jumps to a label if the top value of
+                  ; the stack is not 0.
+call label arity  ; Calls a function located in label with the
+                  ; specified arity. Pushes the return address and
+                  ; previous fp onto the stack. Sets fp to the first
+                  ; parameter on the stack. The arity corresponds with
+                  ; the number of parameters.
+mcall             ; Works as "call" but label and arity (and more) are
+                  ; expected to be on the stack in the is order arity
+                  ; number of parameters, the arity, the string module
+                  ; name and the label. The module is loaded
+                  ; automatically and after that the same thing
+                  ; happens as described for "call".
+ret [copy]        ; Removes the call stack frame, i.e. everything
+                  ; below fp is nuked, and does the same for the data
+                  ; stack. Restores fp to the previous fp for both
+                  ; stacks. Pushes the return value onto the callers
+                  ; call stack. The copy operand is only meaningful if
+                  ; the return value is a string, i.e. the string
+                  ; return value's data is copied onto the callers
+                  ; data stack. Jumps to the return address.
+sys name          ; Calls a built-in function, e.g. send, recv,
+                  ; println, display and exit etc.
+and               ; Pops two values, performs a logical and, and
+                  ; pushes the result.
+or                ; Pops two values, performs a logical or, and
+                  ; pushes the result.
+not               ; Pops two values, performs a logical not, and
+                  ; pushes the result.
+eq                ; Pops two values, checks if they are equal, and
+                  ; pushes the result (0 or 1).
+neq               ; Pops two values, checks if they are not equal, and
+                  ; pushes the result (0 or 1).
+lt                ; Pops two values, checks if the first is less than
+                  ; the second, and pushes the result (0 or 1).
+gt                ; Pops two values, checks if the first is greater than
+                  ; the second, and pushes the result (0 or 1).
+nop               ; No operation. Do nothing.
+halt              ; Halts the stack machine execution.
+spawn label arity ; Works as "call" but spawns a new job.
+mspawn            ; Works as "mcall" but spawns a new job.
+
+Example 1
+=========
+
+Consider this Erlang snippet:
+
+start() ->
+    summer(13, 10).
+
+summer(_M, 0) ->
+    0;
+summer(M, N) ->
+    M + summer(M, N - 1).
+
+This is how it could be written:
+
+__EXAMPLE1_START__
+label 0          ; start/0
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ; Call summer(13, 10)
+  push 13        ; Parameter M
+  push 10        ; Parameter N
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ;;   13
+  ;;   10
+  call 1 2
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ;;   130 (Return value)
+  dup
+  sys display
+  pop
+  ret
+  ;; Stack:
+  ;;   130
+
+label 1          ; summer/2
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
+  ; Is it summer(_M, 0) clause?
+  push -1
+  load fp       ; Load parameter N
+  push 0
+  neq
+  cjump 2
+  push 0
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
+  ;;   0
+  ret
+  ;; Stack:
+  ;;   0
+
+label 2
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
+  ; It is summer(M, N) clause!
+  ; Call summer(M, N - 1)
+  push 0
+  load fp       ; Load parameter M
+  push 0
+  load fp       ; Parameter M
+  push -1
+  load fp       ; Load parameter N
+  push 1
+  sub           ; Parameter N - 1
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
+  ;;   M
+  ;;   N - 1
+  call 1 2
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
+  ;;   summer(M, N - 1) (Return value)
+  add           ; M + summer(M, N - 1)
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Return address
+  ;;   Previous fp
+  ;;   M + summer(M, N - 1)
+  ret
+  ;; Stack:
+  ;;   M + summer(M, N - 1)
+__EXAMPLE1_END__
+
+Example 2
+=========
+
+Consider this Erlang snippet:
+
+start() ->
+    summer(13, 10, 0).
+
+summer(_M, 0, Acc) ->
+    Acc;
+summer(M, N, Acc) ->
+    summer(M, N - 1, Acc + M).
+
+It does the same as the example 1 but with an accumulated
+parameter. This makes the function tail recursive, i.e. the stack
+frame can be reused for each recursion and the call stack will not
+grow. To achieve this a call is not used. Instead parameters are
+patched in the current stack frame and then a plain jump is done to
+perform next iteration.
+
+This is how it could be written:
+
+__EXAMPLE2_START__
+label 0          ; start/0
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ; Call summer(13, 10)
+  push 13       ; Parameter M
+  push 10       ; Parameter N
+  push 0        ; Parameter Acc
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ;;   13
+  ;;   10
+  ;;   0
+  call 1 3
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ;;   130 (Return value)
+  dup
+  sys display
+  pop
+  ret
+  ;; Stack:
+  ;;   130
+
+label 1          ; summer/2
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Acc
+  ;;   Return address
+  ;;   Previous fp
+  ; Is it summer(_M, 0, Acc) clause?
+  push -1
+  load fp        ; Load parameter N
+  push 0
+  neq
+  cjump 2
+  push -2
+  load fp        ; Load parameter Acc
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Acc
+  ;;   Return address
+  ;;   Previous fp
+  ;;   Acc
+  ret
+  ;; Stack:
+  ;;   Acc
+
+label 2
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Acc
+  ;;   Return address
+  ;;   Previous fp
+  ; It is summer(M, N, Acc)!
+  ; Call summer(M, N - 1, Acc + M)
+  push -1
+  load fp        ; Load parameter N
+  push 1
+  sub            ; N - 1
+  push -2
+  load fp        ; Load parameter Acc
+  push 0
+  load fp        ; Load parameter M
+  add
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N
+  ;;   Acc
+  ;;   Return address
+  ;;   Previous fp
+  ;;   N - 1
+  ;;   Acc + M
+  ; Patch (changed) parameters in place and jump to label 1
+  push -2
+  store fp      ; Patches parameter Acc -> Acc + M
+  push -1
+  store fp      ; Patches parameter N -> N - 1
+  ;; Stack:
+  ;;   M <- fp
+  ;;   N - 1
+  ;;   Acc + M
+  ;;   Return address
+  ;;   Previous fp
+  jump 1         ; Voila! The old stack frame is reused.
+__EXAMPLE2_END__
+
+Example 3
+=========
+
+Consider this Erlang snippet:
+
+start() ->
+    X = 1,
+    Y = "foo",
+    Z = X + 1,
+    bar(Y, Z).
+
+bar(Y) ->
+    io:format("~p\n", [Y]),
+    Y.
+
+This rather silly example introduces how to deal with local variables,
+string literals and sys calls.
+
+__EXAMPLE3_START__
+label 0          ; start/0
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  push 1         ; Local variable X
+  pushs "foo"    ; Local variable Y
+  push -2
+  load fp
+  push 1
+  add            ; Local variable Z
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ;;   1 (Local variable X)
+  ;;   "foo" (Local variable Y)
+  ;;   2 (Local variable Z)
+  ; Call bar(Y)
+  push -3
+  load fp        ; Parameter Y
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ;;   1 (Local variable X)
+  ;;   "foo" (Local variable Y)
+  ;;   2 (Local variable Z)
+  ;;   "foo" (Local variable Y)
+  call 1 1
+  ;; Stack:
+  ;;   Return address <- fp
+  ;;   Previous fp
+  ;;   1 (Local variable X)
+  ;;   "foo" (Local variable Y)
+  ;;   2 (Local variable Z)
+  ;;   "foo" (Local variable Y) (Return value)
+  dup
+  sys println
+  pop
+  ret copy
+  ;; Stack:
+  ;;   "foo" (NOTE: A copy is placed on the callers data stack)
+
+label 1          ; bar/2
+  ;; Stack:
+  ;;   Y <- fp
+  ;;   Return address
+  ;;   Previous fp
+  ; Call sys println
+  push 0
+  load fp        ; Parameter Y
+  ;; Stack:
+  ;;   Y <- fp
+  ;;   Return address
+  ;;   Previous fp
+  ;;   Y
+  sys println
+  ;; Stack:
+  ;;   Y <- fp
+  ;;   Return address
+  ;;   Previous fp
+  ;;   1 (Return value)
+  pop            ; Ignores return value
+  push 0
+  load fp
+  ;; Stack:
+  ;;   Y <- fp
+  ;;   Return address
+  ;;   Previous fp
+  ;;   Y
+  ret copy
+  ;; Stack:
+  ;;   Y
+__EXAMPLE3_END__
