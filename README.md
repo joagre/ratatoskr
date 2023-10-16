@@ -23,8 +23,8 @@ POSM has two read-only register, `sp` (stack pointer) `fp` (frame
 pointer), and for now implements the instructions listed below.
 
 > [!NOTE]
-> The stack machine only understands two primitive datatype for now,
-> i.e. long and string values. :-)
+> The stack machine only understands two primitive datatypes for now,
+> i.e. 'ulong` integers and string values. :-) This will change.
 
 > [!IMPORTANT]
 > The stack grows downwards.
