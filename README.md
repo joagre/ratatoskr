@@ -5,9 +5,10 @@ The Ratatoskr programming language is based on a Plain Old Stack Machine
 as a surprise: `push, pushs, pop, dup, swap, load, store, add, sub,
 mul, div, jump, cjump, call, ret, sys, and, or, not, eq, neq, lt, gt,
 nop and halt`. Additional special instructions such as `mcall, spawn,
-mspawn, send and recv` (send and receive are sys calls) and more has
-been added to cover for the concurrency oriened and functional flavor
-of the Ratatoskr programming language. More on that later.
+mspawn, send and recv` (send and receive are actually sys calls for
+the moment) and more has been added to cover for the concurrency
+oriened and functional flavor of the Ratatoskr programming
+language. More on that later.
 
 [!NOTE]
 This is very much work in progress and starting with the
