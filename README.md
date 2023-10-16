@@ -101,6 +101,7 @@ mspawn            ; Works as mcall but spawns a new concurrent job.
 Below follows a number of examples and they can be run using the r
 command tool:
 
+```
 Usage: r [options] <module> <label> [<parameter> ...]
 Options:
   -c <instructions>, --check-after=<instructions>
@@ -111,6 +112,7 @@ Options:
     Load POSM files from <directory> (./)
   -t <milli-seconds>, --time-slice=<milli-seconds>
     <milli-seconds> spent by each job before context switch (25ms)
+```
 
 On to the examples.
 
