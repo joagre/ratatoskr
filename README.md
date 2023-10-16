@@ -83,7 +83,7 @@ nop               ; No operation. Do nothing.
 halt              ; Halts the stack machine execution.
 ```
 
-The not so standard instruction are for now:
+The not so standard instructions are for now:
 
 ```
 mcall             ; Works as call but label and arity etc are expected
