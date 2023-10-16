@@ -1,4 +1,4 @@
-# The Ratatoskr Pprogramming Language
+# The Ratatoskr Programming Language
 
 The Ratatoskr programming language is based on a Plain Old Stack Machine
 (POSM) with special features. Its base instructions does not come
