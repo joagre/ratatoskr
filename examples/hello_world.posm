@@ -1,5 +1,5 @@
-; File: ./doc/hello_word.posm
-; Run: ./d/bin/e -l ./doc hello_world 0
+; File: ./examples/hello_word.posm
+; Run: ./d/bin/r -l ./examples hello_world 0
 ;
 ; start() ->
 ;     io:format("Hello world!\n").

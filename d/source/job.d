@@ -3,37 +3,51 @@ module job;
 import std.stdio : writeln;
 import std.conv : to;
 import std.typecons : Tuple;
+import std.container : DList;
 
 import loader;
 
+enum JobMode : ubyte {
+    idle,
+    running,
+    ready,
+    waiting
+}
+
 class Job {
     public uint jid;
+    public JobMode mode;
     public uint pc;
-    public CallStack callStack;
     public DataStack dataStack;
+    public CallStack callStack;
+    public MessageBox messageBox;
 
     this(uint jid, uint pc) {
         this.jid = jid;
+        this.mode = JobMode.ready;
         this.pc = pc;
-        this.callStack = new CallStack;
         this.dataStack = new DataStack;
-    }
-
-    public string popString() {
-        auto dataAddress = callStack.pop();
-        auto bytes = dataStack.peek(dataAddress);
-        return cast(string)bytes[ushort.sizeof .. $];
+        this.callStack = new CallStack(this.dataStack);
+        this.messageBox = new MessageBox;
     }
 }
 
 class CallStack  {
     public long[] stack;
-    public long fp = -1;
+    public long fp;
+    public DataStack dataStack;
 
+    this(DataStack dataStack) {
+        this.fp = -1;
+        this.dataStack = dataStack;
+    }
+
+    pragma(inline, true)
     public long length() {
         return stack.length;
     }
 
+    pragma(inline, true)
     public void append(long[] trailingStack) {
         stack ~= trailingStack;
     }
@@ -41,6 +55,13 @@ class CallStack  {
     pragma(inline, true)
     public void push(long value) {
         stack ~= value;
+    }
+
+    pragma(inline, true)
+    public string popString() {
+        auto dataAddress = pop();
+        auto bytes = dataStack.peek(dataAddress);
+        return cast(string)bytes[ushort.sizeof .. $];
     }
 
     pragma(inline, true)
@@ -94,7 +115,11 @@ class CallStack  {
 
 class DataStack  {
     public ubyte[] stack;
-    public long fp = 0;
+    public long fp;
+
+    this() {
+        this.fp = 0;
+    }
 
     pragma(inline, true)
     public long length() {
@@ -114,5 +139,25 @@ class DataStack  {
         ubyte[] bytes = stack[dataAddress .. $];
         auto length = Loader.get!ushort(&bytes[0]);
         return bytes[0 .. ushort.sizeof + length];
+    }
+}
+
+class MessageBox {
+    private DList!long messageBox;
+
+    this() {
+        this.messageBox = DList!long();
+    }
+
+    pragma(inline, true)
+    public long dequeue() {
+        auto message = messageBox.front;
+        messageBox.removeFront;
+        return message;
+    }
+
+    pragma(inline, true)
+    public void enqueue(long message) {
+        messageBox.insertBack(message);
     }
 }

@@ -1,7 +1,7 @@
-; File: ./doc/ackermann.posm
-; Run: ./d/bin/e -l ./doc ackermann 0
-; Run: ./d/bin/e -l ./doc ackermann 10
-; Run: ./d/bin/e -l ./doc ackermann 1 3 6
+; File: ./examples/ackermann.posm
+; Run: ./d/bin/r -l ./examples ackermann 0
+; Run: ./d/bin/r -l ./examples ackermann 10
+; Run: ./d/bin/r -l ./examples ackermann 1 3 6
 ;
 ; start() ->
 ;     ackermann(3, 6).

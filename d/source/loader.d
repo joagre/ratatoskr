@@ -50,11 +50,12 @@ enum Opcodes : ubyte {
 }
 
 enum SystemCalls : ushort {
-    send    = 0,
-    recv    = 1,
-    println = 2,
-    display = 3,
-    exit    = 4
+    self    = 0,
+    send    = 1,
+    recv    = 2,
+    println = 3,
+    display = 4,
+    exit    = 5
 }
 
 enum ReturnModes : ubyte {
@@ -208,6 +209,9 @@ class Loader {
                 byteCode ~= Opcodes.sys << OPCODE_BITS;
                 uint systemCall;
                 switch(parts[0]) {
+                case "self":
+                    systemCall = SystemCalls.self;
+                    break;
                 case "send":
                     systemCall = SystemCalls.send;
                     break;

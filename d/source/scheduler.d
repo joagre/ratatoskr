@@ -11,10 +11,10 @@ import job;
 import loader;
 
 class Scheduler {
-    private uint jid = 0;
+    private uint jid;
 
-    private auto readyQueue = DList!Job();
-    private auto waitingQueue = DList!Job();
+    private DList!Job readyQueue;
+    private DList!Job waitingQueue;
 
     private Duration timeSlice;
     private uint checkAfter;
@@ -22,39 +22,88 @@ class Scheduler {
     private Interpreter interpreter;
     private Loader loader;
 
+    private Job runningJob;
+
     this(Loader loader, Interpreter interpreter, uint timeSlice,
          uint checkAfter) {
+        this.jid = 0;
         this.loader = loader;
         this.interpreter = interpreter;
         this.timeSlice = msecs(timeSlice);
         this.checkAfter = checkAfter;
+        this.readyQueue = DList!Job();
+        this.waitingQueue = DList!Job();
+        this.runningJob = null;
+    }
+
+    public void sendMessage(uint jid, long value) {
+        auto job = findJob(jid);
+        if (job !is null) {
+            job.messageBox.enqueue(value);
+            if (job.mode == JobMode.waiting) {
+                removeFromWaitingQueue(job);
+                readyQueue.insertBack(job);
+            }
+        }
+    }
+
+    private void removeFromWaitingQueue(Job job) {
+        auto range = waitingQueue[];
+        while (!range.empty) {
+            if (range.front is job) {
+                waitingQueue.remove(range);
+                break;
+            }
+            range.popFront();
+        }
+    }
+
+    private Job findJob(uint jid) {
+        if (runningJob !is null && runningJob.jid == jid) {
+            return runningJob;
+        }
+        foreach(job; readyQueue[]) {
+            if(job.jid == jid) {
+                return job;
+            }
+        }
+        foreach(job; waitingQueue[]) {
+            if(job.jid == jid) {
+                return job;
+            }
+        }
+        return null;
     }
 
     void run() {
         while (!waitingQueue.empty || !readyQueue.empty) {
             while (!readyQueue.empty) {
-                auto job = readyQueue.front;
+                auto nextJob = readyQueue.front;
                 readyQueue.removeFront;
+                nextJob.mode = JobMode.running;
+                runningJob = nextJob;
                 InterpreterResult result =
-                    interpreter.run(this, job, timeSlice, checkAfter);
+                    interpreter.run(this, nextJob, timeSlice, checkAfter);
                 final switch(result) {
                 case InterpreterResult.halt:
                     debug(user) {
-                        writefln("Job %d halted: %s",  job.jid,
-                                 to!string(job.callStack.stack));
+                        writefln("Job %d halted: %s",  runningJob.jid,
+                                 to!string(runningJob.callStack.stack));
                     }
                     break;
                 case InterpreterResult.recv:
-                    waitingQueue.insertBack(job);
+                    waitingQueue.insertBack(runningJob);
+                    runningJob.mode = JobMode.waiting;
                     break;
                 case InterpreterResult.timeout:
-                    readyQueue.insertBack(job);
+                    readyQueue.insertBack(runningJob);
+                    runningJob.mode = JobMode.ready;
                     break;
                 case InterpreterResult.exit:
                     return;
                 }
             }
-            Thread.sleep(timeSlice);
+            Thread.sleep(timeSlice); // FIXME: A bit ugly
         }
     }
 

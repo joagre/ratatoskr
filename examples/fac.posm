@@ -1,5 +1,5 @@
-; File: ./doc/fac.posm
-; Run: ./d/bin/e -l ./doc fac 0 10
+; File: ./examples/fac.posm
+; Run: ./d/bin/r -l ./examples fac 0 10
 ;
 ; fac(1) ->
 ;     1;

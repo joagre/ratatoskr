@@ -8,7 +8,7 @@
 
     "name": "d",
     "targetPath": "./bin",
-    "targetName": "e",
+    "targetName": "r",
 
     "buildTypes": {
         "release": {

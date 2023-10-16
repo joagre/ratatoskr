@@ -1,5 +1,5 @@
-; File: ./doc/module_calls.posm
-; Run: ./d/bin/e -l ./doc module_calls 0 10
+; File: ./examples/module_calls.posm
+; Run: ./d/bin/r -l ./examples module_calls 0 10
 ;
 ; start(N) ->
 ;     io:format("~w\n", [fac:fac(N)]),

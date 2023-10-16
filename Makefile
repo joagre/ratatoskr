@@ -1,36 +1,40 @@
 all: build
-build: dbuild erlbuild docbuild
+build: dbuild examplesbuild
 
 dbuild:
 	(cd d; make build)
 
-erlbuild:
-	(cd doc; make build)
+examplesbuild:
+	(cd examples; make build)
 
-docbuild:
-	(cd doc; make build)
+examples: hello_world fac tfac module_calls ackermann0 ackermann10 ackermann1 message_passing
 
-d-example0: docbuild dbuild
-	./d/bin/posm doc/example0.posm 10000000 10
+hello_world: examplesbuild
+	./d/bin/r -l ./examples hello_world 0
 
-d-example1: docbuild dbuild
-	./d/bin/posm doc/example1.posm 10000000 10
+fac: examplesbuild dbuild
+	./d/bin/r -l ./examples fac 0 10
 
-d-example2: docbuild dbuild
-	./d/bin/posm doc/example2.posm 10000000 10
+tfac: examplesbuild dbuild
+	./d/bin/r -l ./examples tfac 0 10 1
 
-d-example3: docbuild dbuild
-	./d/bin/posm doc/example3.posm 10000000 10
+module_calls: examplesbuild dbuild
+	./d/bin/r -l ./examples module_calls 0 10
 
-erl-example1: docbuild erlbuild
-	env ERL_LIBS=erlang erl -noinput -run posm start doc/example1.posm 0
+ackermann0: examplesbuild dbuild
+	./d/bin/r -l ./examples ackermann 0
 
-erl-example2: docbuild erlbuild
-	env ERL_LIBS=erlang erl -noinput -run posm start doc/example2.posm 0
+ackermann10: examplesbuild dbuild
+	./d/bin/r -l ./examples ackermann 10
+
+ackermann1: examplesbuild dbuild
+	./d/bin/r -l ./examples ackermann 1 3 6
+
+message_passing: examplesbuild dbuild
+	./d/bin/r -l ./examples message_passing 0 7
 
 clean:
-	(cd doc; make clean)
-	(cd erlang; make clean)
+	(cd examples; make clean)
 	(cd d; make clean)
 
 mrproper: clean

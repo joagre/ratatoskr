@@ -124,7 +124,7 @@ class Interpreter {
             case Opcodes.mcall:
                 // Extract call operands from stack (keep parameters on stack)
                 auto label = job.callStack.pop();
-                auto moduleName = job.popString();
+                auto moduleName = job.callStack.popString();
                 auto arity = job.callStack.pop();
                 // NOTE: Only the parameters are now left on the stack
                 // Ensure that the module is loaded
@@ -189,11 +189,20 @@ class Interpreter {
                 break;
             case Opcodes.sys:
                 auto systemCall = Loader.get!uint(&byteCode[job.pc]);
-                switch (systemCall) {
+                final switch (systemCall) {
+                case SystemCalls.self:
+                    job.callStack.push(job.jid);
+                    break;
+                case SystemCalls.send:
+                    auto value = job.callStack.pop();
+                    auto jid = job.callStack.pop();
+                    scheduler.sendMessage(cast(uint)jid, value);
+                    job.callStack.push(1);
+                    break;
                 case SystemCalls.recv:
                     return InterpreterResult.recv;
                 case SystemCalls.println:
-                    auto s = job.popString();
+                    auto s = job.callStack.popString();
                     writeln(s);
                     job.callStack.push(1);
                     break;
@@ -204,8 +213,6 @@ class Interpreter {
                     break;
                 case SystemCalls.exit:
                     return InterpreterResult.exit;
-                default:
-                    throw new InterpreterError("SYS is not implemented");
                 }
                 job.pc += uint.sizeof;
                 break;
@@ -252,7 +259,7 @@ class Interpreter {
                 break;
             case Opcodes.mspawn:
                 auto label = job.callStack.pop();
-                auto moduleName = job.popString();
+                auto moduleName = job.callStack.popString();
                 auto arity = job.callStack.pop();
                 auto parameters =
                     iota(arity).map!(_ => job.callStack.pop()).array;
