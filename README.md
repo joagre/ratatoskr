@@ -10,10 +10,10 @@ the moment) and more has been added to cover for the concurrency
 oriented and functional flavor of the Ratatoskr programming
 language. More on that later.
 
-[!NOTE]
-This is very much work in progress and starting with the
-stack machine in a bottom up fashion, and at the same time starting
-with the target language top down, is a deliberate choice.
+> [!NOTE]
+> This is very much work in progress and starting with the
+> stack machine in a bottom up fashion, and at the same time starting
+w> ith the target language top down, is a deliberate choice.
 
 # A Plain Old Stack Machine (POSM)
 
@@ -22,12 +22,12 @@ with the target language top down, is a deliberate choice.
 POSM has two read-only register, `sp` (stack pointer) `fp` (frame
 pointer), and for now implements the instructions listed below.
 
-[!NOTE]
-The stack machine only understands two primitive datatype for now,
-i.e. long and string values. :-)
+> [!NOTE]
+> The stack machine only understands two primitive datatype for now,
+> i.e. long and string values. :-)
 
-[!IMPORTANT]
-The stack grows downwards.
+> [!IMPORTANT]
+> The stack grows downwards.
 
 ```
 label label       ; A jump label. This is a meta instruction.
