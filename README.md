@@ -13,7 +13,7 @@ language. More on that later.
 > [!NOTE]
 > This is very much work in progress and starting with the
 > stack machine in a bottom up fashion, and at the same time starting
-w> ith the target language top down, is a deliberate choice.
+> with the target language top down, is a deliberate choice.
 
 # A Plain Old Stack Machine (POSM)
 
