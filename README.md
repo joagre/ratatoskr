@@ -379,6 +379,7 @@ label 0          ; start(N)
   push 0
   load fp        ; N
   call 10 2      ; spawn_all(self(), N),
+  pop
   push 0
   load fp        ; N
   call 20 1      ; wait_for_all(N).
@@ -386,7 +387,7 @@ label 0          ; start(N)
 
 label 10         ; spawn_all(_Self, 0)
   push -1
-  loadf fp       ; N
+  load fp        ; N
   push 0
   neq
   cjump 11
@@ -397,16 +398,17 @@ label 10         ; spawn_all(_Self, 0)
 label 11         ; spawn_all(Self, N)
   push 0
   load fp        ; Self
-  load -1
+  push -1
   load fp        ; N
   spawn 12 2     ; fun() -> Self ! ackermann:ackermann(3, N) end)
+  pop
   push 0
   load fp        ; Self
   push -1
   load fp        ; N
   push 1
   sub            ; N - 1
-  call 10 2       ; spawn_all(Self, N - 1)
+  call 10 2      ; spawn_all(Self, N - 1)
   ret
 
 label 12         ; ackermann:ackermann(3, N)
@@ -425,7 +427,7 @@ label 12         ; ackermann:ackermann(3, N)
 
 label 20         ; wait_for_all(0)
   push 0
-  loadf fp       ; N
+  load fp        ; N
   push 0
   neq
   cjump 21
@@ -436,11 +438,12 @@ label 20         ; wait_for_all(0)
 label 21         ; wait_for_all(N)
   sys recv
   sys display
+  pop
   push 0
   load fp        ; N
   push 1
   sub            ; N - 1
-  call 20        ; wait_for_all(N - 1)
+  call 20 1      ; wait_for_all(N - 1)
   ret
-__message_passing__start__
+__message_passing__end__
 ```

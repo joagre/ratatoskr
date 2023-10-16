@@ -8,7 +8,7 @@ import std.container : DList;
 import loader;
 
 enum JobMode : ubyte {
-    idle,
+    init,
     running,
     ready,
     waiting
@@ -24,7 +24,7 @@ class Job {
 
     this(uint jid, uint pc) {
         this.jid = jid;
-        this.mode = JobMode.ready;
+        this.mode = JobMode.init;
         this.pc = pc;
         this.dataStack = new DataStack;
         this.callStack = new CallStack(this.dataStack);
@@ -144,20 +144,24 @@ class DataStack  {
 
 class MessageBox {
     private DList!long messageBox;
+    public uint length;
 
     this() {
         this.messageBox = DList!long();
+        length = 0;
     }
 
     pragma(inline, true)
     public long dequeue() {
         auto message = messageBox.front;
         messageBox.removeFront;
+        length--;
         return message;
     }
 
     pragma(inline, true)
     public void enqueue(long message) {
         messageBox.insertBack(message);
+        length++;
     }
 }

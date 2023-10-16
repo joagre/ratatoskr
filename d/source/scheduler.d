@@ -5,10 +5,18 @@ import std.conv : to;
 import std.datetime : Duration, msecs;
 import std.container : DList;
 import core.thread : Thread;
+import std.algorithm : remove;
+import std.array;
 
 import interpreter;
 import job;
 import loader;
+
+class SchedulerError : Exception {
+    this(string msg, string file = __FILE__, size_t line = __LINE__) {
+        super(msg, file, line);
+    }
+}
 
 class Scheduler {
     private uint jid;
@@ -36,45 +44,6 @@ class Scheduler {
         this.runningJob = null;
     }
 
-    public void sendMessage(uint jid, long value) {
-        auto job = findJob(jid);
-        if (job !is null) {
-            job.messageBox.enqueue(value);
-            if (job.mode == JobMode.waiting) {
-                removeFromWaitingQueue(job);
-                readyQueue.insertBack(job);
-            }
-        }
-    }
-
-    private void removeFromWaitingQueue(Job job) {
-        auto range = waitingQueue[];
-        while (!range.empty) {
-            if (range.front is job) {
-                waitingQueue.remove(range);
-                break;
-            }
-            range.popFront();
-        }
-    }
-
-    private Job findJob(uint jid) {
-        if (runningJob !is null && runningJob.jid == jid) {
-            return runningJob;
-        }
-        foreach(job; readyQueue[]) {
-            if(job.jid == jid) {
-                return job;
-            }
-        }
-        foreach(job; waitingQueue[]) {
-            if(job.jid == jid) {
-                return job;
-            }
-        }
-        return null;
-    }
-
     void run() {
         while (!waitingQueue.empty || !readyQueue.empty) {
             while (!readyQueue.empty) {
@@ -83,7 +52,7 @@ class Scheduler {
                 nextJob.mode = JobMode.running;
                 runningJob = nextJob;
                 InterpreterResult result =
-                    interpreter.run(this, nextJob, timeSlice, checkAfter);
+                    interpreter.run(this, runningJob, timeSlice, checkAfter);
                 final switch(result) {
                 case InterpreterResult.halt:
                     debug(user) {
@@ -92,12 +61,12 @@ class Scheduler {
                     }
                     break;
                 case InterpreterResult.recv:
-                    waitingQueue.insertBack(runningJob);
                     runningJob.mode = JobMode.waiting;
+                    waitingQueue.insertBack(runningJob);
                     break;
                 case InterpreterResult.timeout:
-                    readyQueue.insertBack(runningJob);
                     runningJob.mode = JobMode.ready;
+                    readyQueue.insertBack(runningJob);
                     break;
                 case InterpreterResult.exit:
                     return;
@@ -117,6 +86,7 @@ class Scheduler {
         job.callStack.push(job.callStack.fp);
         // Set fp to first CALL parameter (NOTE: We just pushed two values)
         job.callStack.fp = job.callStack.length - 2 - parameters.length;
+        job.mode = JobMode.ready;
         readyQueue.insertBack(job);
         return jid++;
     }
@@ -138,7 +108,49 @@ class Scheduler {
         job.callStack.push(job.callStack.fp);
         // Set fp to first CALL parameter (NOTE: We just pushed two values)
         job.callStack.fp = job.callStack.length - 2 - parameters.length;
+        job.mode = JobMode.ready;
         readyQueue.insertBack(job);
         return jid++;
+    }
+
+    public void sendMessage(uint jid, long value) {
+        auto job = findJob(jid);
+        if (job !is null) {
+            job.messageBox.enqueue(value);
+            if (job.mode == JobMode.waiting) {
+                removeFromWaitingQueue(job.jid);
+                job.mode = JobMode.ready;
+                readyQueue.insertBack(job);
+            }
+        } else {
+            throw new SchedulerError("A job has gone missing!");
+        }
+    }
+
+    private Job findJob(uint jid) {
+        if (runningJob !is null && runningJob.jid == jid) {
+            return runningJob;
+        }
+        foreach(job; readyQueue[]) {
+            if(job.jid == jid) {
+                return job;
+            }
+        }
+        foreach(job; waitingQueue[]) {
+            if(job.jid == jid) {
+                return job;
+            }
+        }
+        return null;
+    }
+
+    // FIXME: This is very boring!
+    private void removeFromWaitingQueue(uint jid) {
+        auto arr = waitingQueue[].array;
+        arr = arr.remove!(job => job.jid == jid);
+        waitingQueue.clear();
+        foreach(job; arr) {
+            waitingQueue.insertBack(job);
+        }
     }
 }

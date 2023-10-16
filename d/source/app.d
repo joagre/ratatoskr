@@ -31,7 +31,8 @@ int main(string[] args) {
         PARAMETER_ERROR = 1,
         LOADER_ERROR = 2,
         INTERPRETER_ERROR = 3,
-        UNEXPECTED_ERROR = 4
+        SCHEDULER_ERROR = 4,
+        UNEXPECTED_ERROR = 5
     }
 
     try {
@@ -83,6 +84,9 @@ int main(string[] args) {
     } catch (InterpreterError e) {
         stderr.writeln("Interpreter error: ", e.msg);
         return ReturnCode.INTERPRETER_ERROR;
+    } catch (SchedulerError e) {
+        stderr.writeln("Scheduler error: ", e.msg);
+        return ReturnCode.SCHEDULER_ERROR;
     } catch (Exception e) {
         stderr.writeln("Unexpected error: ", e.msg);
         return ReturnCode.UNEXPECTED_ERROR;

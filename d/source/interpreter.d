@@ -197,10 +197,15 @@ class Interpreter {
                     auto value = job.callStack.pop();
                     auto jid = job.callStack.pop();
                     scheduler.sendMessage(cast(uint)jid, value);
-                    job.callStack.push(1);
+                    job.callStack.push(value);
                     break;
                 case SystemCalls.recv:
-                    return InterpreterResult.recv;
+                    if (job.messageBox.length == 0) {
+                        --job.pc;
+                        return InterpreterResult.recv;
+                    }
+                    job.callStack.push(job.messageBox.dequeue());
+                    break;
                 case SystemCalls.println:
                     auto s = job.callStack.popString();
                     writeln(s);
