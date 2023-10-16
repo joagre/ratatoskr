@@ -7,7 +7,7 @@ mul, div, jump, cjump, call, ret, sys, and, or, not, eq, neq, lt, gt,
 nop and halt`. Additional special instructions such as `mcall, spawn,
 mspawn, send and recv` (send and receive are actually sys calls for
 the moment) and more has been added to cover for the concurrency
-oriened and functional flavor of the Ratatoskr programming
+oriented and functional flavor of the Ratatoskr programming
 language. More on that later.
 
 [!NOTE]
