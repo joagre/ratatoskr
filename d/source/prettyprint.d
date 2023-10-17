@@ -7,11 +7,6 @@ import loader;
 
 class PrettyPrint {
     static public uint printInstruction(ubyte* bytes) {
-        string[ubyte] registers = [
-                                   Registers.sp: "sp",
-                                   Registers.fp: "fp"
-                                   ];
-
         switch (bytes[0] >> OPCODE_BITS) {
         case Opcodes.push:
             auto value = Loader.get!long(&bytes[1]);
@@ -33,12 +28,10 @@ class PrettyPrint {
             writeln("swap");
             break;
         case Opcodes.load:
-            auto register = registers[bytes[0] & OPCODE_OPERAND_MASK];
-            writefln("load %s", register);
+            writeln("load");
             break;
         case Opcodes.store:
-            auto register = registers[bytes[0] & OPCODE_OPERAND_MASK];
-            writefln("store %s", register);
+            writeln("store");
             break;
         case Opcodes.add:
             writeln("add");

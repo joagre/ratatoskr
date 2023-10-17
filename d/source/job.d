@@ -85,24 +85,16 @@ class CallStack  {
     }
 
     pragma(inline, true)
-    public void load(ubyte register) {
+    public void load() {
         auto offset = pop();
-        if (register == Registers.sp) {
-            push(stack[$ - 1 - offset]);
-        } else { // Must be fp
-            push(stack[fp - offset]);
-        }
+        push(stack[fp + offset]);
     }
 
     pragma(inline, true)
-    public void store(ubyte register) {
+    public void store() {
         auto offset = pop();
         auto newValue = pop();
-        if (register == Registers.sp) {
-            stack[$ - 1 - offset] = newValue;
-        } else { // Must be fp
-            stack[fp - offset] = newValue;
-        }
+        stack[fp + offset] = newValue;
     }
 
     pragma(inline, true)

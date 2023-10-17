@@ -19,9 +19,6 @@ language. More on that later.
 
 ## Instruction set
 
-POSM has two read-only register, `sp` (stack pointer) `fp` (frame
-pointer), and for now implements the instructions listed below.
-
 > [!NOTE]
 > The stack machine only understands two primitive datatypes for now,
 > i.e. 'ulong` integers and string values. :-) This will change.
@@ -33,14 +30,15 @@ pointer), and for now implements the instructions listed below.
 label label       ; A jump label. This is a meta instruction.
 push value        ; Pushes a value onto the stack.
 pushs <string>    ; Pushes a string value onto the stack.
-pop               ; Removes the top value from the stack.
-dup               ; Duplicates the top value on the stack.
-swap              ; Swaps the top two values on the stack.
-load sp|fp        ; Copies a value from the stack, using a relative
-                  ; sp or fp offset, to the top of the stack. The
-                  ; offset is expected to be on the stack.
-store sp|fp       ; Updates a value on the stack using a relative sp
-                  ; or fp offset. The new value and the offset are
+pop               ; Removes a value from the stack.
+dup               ; Duplicates the value on the stack.
+swap              ; Swaps two values on the stack.
+load              ; Copies a value onto the from an offset relative
+                  ; the frame pointer given as a value on the stack.
+store             ; Updates a value on the stack in a position given
+                  ; by as an offset relative to the frame pointer, and
+                  ; with the value on top of tyhe stack.
+                  ; new value is alsand the offset are
                   ; expected to be on the stack.
                   ; from the stack.
 add               ; Pops two values, adds them, and pushes the result.
@@ -147,7 +145,7 @@ __fac__start__
 
 label 0          ; fac(1)
   push 0
-  load fp        ; N
+  load           ; N
   push 1
   neq
   cjump 1
@@ -156,9 +154,9 @@ label 0          ; fac(1)
 
 label 1          ; fac(N)
   push 0
-  load fp        ; N
+  load           ; N
   push 0
-  load fp        ; N
+  load          ; N
   push 1
   sub            ; N - 1
   call 0 1       ; fac(N - 1).
@@ -184,28 +182,28 @@ __tfac__start__
 
 label 0          ; fac(0, Acc)
   push 0
-  load fp        ; N
+  load           ; N
   push 0
   neq
   cjump 1
-  push -1
-  load fp        ; Acc
+  push 1
+  load           ; Acc
   ret
 
 label 1          ; fac(N, Acc)
   push 0
-  load fp        ; N
+  load           ; N
   push 1
   sub            ; N - 1
   push 0
-  load fp        ; N
-  push -1
-  load fp        ; Ack
+  load           ; N
+  push 1
+  load           ; Ack
   mul
-  push -1
-  store fp       ; Replace parameter Acc
+  push 1
+  store          ; Replace parameter Acc
   push 0
-  store fp       ; Replace parameter N
+  store          ; Replace parameter N
   jump 0         ; fac(N - 1, N * Acc).
 __tfac__end__
 ```
@@ -223,7 +221,7 @@ __module_calls__start__
 
 label 0          ; start(N)
   push 0
-  load fp        ; N
+  load           ; N
   push 1         ; Arity
   pushs "fac"    ; Module name
   push 0
@@ -231,7 +229,7 @@ label 0          ; start(N)
   sys display
   pop
   push 0
-  load fp        ; N
+  load           ; N
   push 2
   add            ; N + 2
   push 1         ; Acc
@@ -295,55 +293,55 @@ label 10         ; start2()
 
 label 1          ; ackermann(0, N)
   push 0
-  load fp        ; M
+  load           ; M
   push 0
   neq            ; M == 0?
   cjump 2
-  push -1
-  load fp        ; N
+  push 1
+  load           ; N
   push 1
   add            ; N + 1
   ret
 
 label 2          ; ackermann(M, 0) when M > 0
-  push -1
-  load fp        ; N
+  push 1
+  load           ; N
   push 0
   neq
   cjump 3
   push 0
-  load fp        ; M
+  load           ; M
   push 0
   gt             ; M > 0 ?
   not
   cjump 3
   push 0         ; M
-  load fp
+  load
   push 1
   sub            ; M - 1
   push 0
-  store fp       ; Replace parameter M
+  store          ; Replace parameter M
   push 1
-  push -1
-  store fp       ; Replace parameter N
+  push 1
+  store          ; Replace parameter N
   jump 1         ; ackermann(M - 1, 1);
 
 label 3          ; ackermann(M, N) when M > 0, N > 0
   push 0
-  load fp        ; M
+  load           ; M
   push 1
   sub            ; M - 1
   push 0
-  load fp        ; M
-  push -1
-  load fp        ; N
+  load           ; M
+  push 1
+  load           ; N
   push 1
   sub            ; N - 1
   call 1 2       ; ackermann(M, N - 1)
-  push -1
-  store fp       ; Replace parameter N
+  push 1
+  store          ; Replace parameter N
   push 0
-  store fp       ; Replace parameter M
+  store          ; Replace parameter M
   jump 1         ; ackermann(M - 1, ackermann(M, N - 1))
 __ackermann__end__
 ```
@@ -377,17 +375,17 @@ __message_passing__start__
 label 0          ; start(N)
   sys self       ; self()
   push 0
-  load fp        ; N
+  load           ; N
   call 10 2      ; spawn_all(self(), N),
   pop
   push 0
-  load fp        ; N
+  load           ; N
   call 20 1      ; wait_for_all(N).
   ret
 
 label 10         ; spawn_all(_Self, 0)
-  push -1
-  load fp        ; N
+  push 1
+  load           ; N
   push 0
   neq
   cjump 11
@@ -397,15 +395,15 @@ label 10         ; spawn_all(_Self, 0)
 
 label 11         ; spawn_all(Self, N)
   push 0
-  load fp        ; Self
-  push -1
-  load fp        ; N
+  load           ; Self
+  push 1
+  load           ; N
   spawn 12 2     ; fun() -> Self ! ackermann:ackermann(3, N) end)
   pop
   push 0
-  load fp        ; Self
-  push -1
-  load fp        ; N
+  load           ; Self
+  push 1
+  load           ; N
   push 1
   sub            ; N - 1
   call 10 2      ; spawn_all(Self, N - 1)
@@ -413,21 +411,21 @@ label 11         ; spawn_all(Self, N)
 
 label 12         ; ackermann:ackermann(3, N)
   push 3         ; M
-  push -1
-  load fp        ; N
+  push 1
+  load           ; N
   push 2         ; Arity
   pushs "ackermann"
   push 1         ; Label
   mcall          ; ackermann:ackermann(3, N)
   push 0
-  load fp        ; Self
+  load           ; Self
   swap
   sys send
   ret
 
 label 20         ; wait_for_all(0)
   push 0
-  load fp        ; N
+  load           ; N
   push 0
   neq
   cjump 21
@@ -440,7 +438,7 @@ label 21         ; wait_for_all(N)
   sys display
   pop
   push 0
-  load fp        ; N
+  load           ; N
   push 1
   sub            ; N - 1
   call 20 1      ; wait_for_all(N - 1)

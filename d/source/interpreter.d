@@ -81,14 +81,10 @@ class Interpreter {
                 job.callStack.swap();
                 break;
             case Opcodes.load:
-                auto register =
-                    cast(ubyte)(byteCode[currentPc] & OPCODE_OPERAND_MASK);
-                job.callStack.load(register);
+                job.callStack.load();
                 break;
             case Opcodes.store:
-                auto register =
-                    cast(ubyte)(byteCode[currentPc] & OPCODE_OPERAND_MASK);
-                job.callStack.store(register);
+                job.callStack.store();
                 break;
             case Opcodes.add:
                 job.callStack.op((operand1, operand2) => operand1 + operand2);

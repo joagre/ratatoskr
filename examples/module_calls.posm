@@ -7,7 +7,7 @@
 
 label 0          ; start(N)
   push 0
-  load fp        ; N
+  load           ; N
   push 1         ; Arity
   pushs "fac"    ; Module name
   push 0
@@ -15,7 +15,7 @@ label 0          ; start(N)
   sys display
   pop
   push 0
-  load fp        ; N
+  load           ; N
   push 2
   add            ; N + 2
   push 1         ; Acc

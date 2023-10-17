@@ -13,11 +13,6 @@ import std.file: exists;
 
 import prettyprint;
 
-enum Registers : ubyte {
-    sp = 0,
-    fp = 1
-}
-
 enum Opcodes : ubyte {
      push   = 0,
      pushs  = 1,
@@ -91,124 +86,117 @@ class Loader {
             } else {
                 // Remove comments
                 line = line.split(";")[0].strip;
-                // Remove duplicated whitespaces with single blanks
-                line = line.replace(regex(r"\s+"), " ");
                 if (line.empty) {
                     continue;
                 }
+                // Remove duplicated whitespaces with single blanks
+                line = line.replace(regex(r"\s+"), " ");
             }
 
             // Extract opcode and operands
             auto firstBlank = line.indexOf(" ");
             string opcode;
-            string operands = null;
+            string operandsAsString = null;
+            string[] operands = null;
             if (firstBlank == -1) {
                 opcode = line.strip;
             } else {
                 opcode = line[0 .. firstBlank];
-                operands = line[firstBlank + 1 .. $];
+                operandsAsString = line[firstBlank + 1 .. $];
+                operands = operandsAsString.split;
             }
 
             switch (opcode) {
             case "label":
-                auto parts = operands.split;
-                assertOperands(parts.length, 1, line);
-                module_.insertLabel(parse!uint(parts[0], line),
+                assertOperands(operands.length, 1, line);
+                module_.insertLabel(parse!uint(operands[0], line),
                                     cast(uint)byteCode.length);
                 continue;
             case "push":
-                auto parts = operands.split;
-                assertOperands(parts.length, 1, line);
+                assertOperands(operands.length, 1, line);
                 byteCode ~= Opcodes.push << OPCODE_BITS;
-                insert(parse!long(parts[0], line), byteCode);
+                insert(parse!long(operands[0], line), byteCode);
                 break;
             case "pushs":
                 if (operands.length == 0) {
-                    throw new LoaderError("Invalid instruction " ~ line);
+                    throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
                 byteCode ~= Opcodes.pushs << OPCODE_BITS;
-                ubyte[] bytes = cast(ubyte[])toUTF8(operands.strip(`"`));
+                ubyte[] bytes = cast(ubyte[])toUTF8(operandsAsString.strip(`"`));
                 insert(cast(ushort)bytes.length, byteCode);
                 byteCode ~= bytes;
                 break;
             case "pop":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.pop << OPCODE_BITS;
                 break;
             case "dup":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.dup << OPCODE_BITS;
                 break;
             case "swap":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.swap << OPCODE_BITS;
                 break;
             case "load":
-                auto parts = operands.split;
-                assertOperands(parts.length, 1, line);
-                byteCode ~= addRegister(parts[0], Opcodes.load, line);
+                assertOperands(operands.length, 0, line);
+                byteCode ~= Opcodes.load << OPCODE_BITS;
                 break;
             case "store":
-                auto parts = operands.split;
-                assertOperands(parts.length, 1, line);
-                byteCode ~= addRegister(parts[0], Opcodes.store, line);
+                assertOperands(operands.length, 0, line);
+                byteCode ~= Opcodes.store << OPCODE_BITS;
                 break;
             case "add":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.add << OPCODE_BITS;
                 break;
             case "sub":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.sub << OPCODE_BITS;
                 break;
             case "mul":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.mul << OPCODE_BITS;
                 break;
             case "div":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.div << OPCODE_BITS;
                 break;
             case "jump":
-                auto parts = operands.split;
-                assertOperands(parts.length, 1, line);
+                assertOperands(operands.length, 1, line);
                 byteCode ~= Opcodes.jump << OPCODE_BITS;
-                insert(parse!uint(parts[0], line), byteCode);
+                insert(parse!uint(operands[0], line), byteCode);
                 break;
             case "cjump":
-                auto parts = operands.split;
-                assertOperands(parts.length, 1, line);
+                assertOperands(operands.length, 1, line);
                 byteCode ~= Opcodes.cjump << OPCODE_BITS;
-                insert(parse!uint(parts[0], line), byteCode);
+                insert(parse!uint(operands[0], line), byteCode);
                 break;
             case "call":
-                auto parts = operands.split;
-                assertOperands(parts.length, 2, line);
+                assertOperands(operands.length, 2, line);
                 byteCode ~= Opcodes.call << OPCODE_BITS;
-                insert(parse!uint(parts[0], line), byteCode);
-                insert(parse!ubyte(parts[1], line), byteCode);
+                insert(parse!uint(operands[0], line), byteCode);
+                insert(parse!ubyte(operands[1], line), byteCode);
                 break;
             case "mcall":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.mcall << OPCODE_BITS;
                 break;
             case "ret":
-                auto parts = operands.split;
-                if (parts.length == 0) {
+                if (operands.length == 0) {
                     byteCode ~=
                         (Opcodes.ret << OPCODE_BITS) | ReturnModes.value;
-                } else if (parts.length == 1 && parts[0] == "copy") {
+                } else if (operands.length == 1 && operands[0] == "copy") {
                     byteCode ~= (Opcodes.ret << OPCODE_BITS) | ReturnModes.copy;
                 } else {
-                    throw new LoaderError("Invalid instruction " ~ line);
+                    throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
                 break;
             case "sys":
-                auto parts = operands.split;
-                assertOperands(parts.length, 1, line);
+                assertOperands(operands.length, 1, line);
                 byteCode ~= Opcodes.sys << OPCODE_BITS;
                 uint systemCall;
-                switch(parts[0]) {
+                switch(operands[0]) {
                 case "self":
                     systemCall = SystemCalls.self;
                     break;
@@ -228,59 +216,58 @@ class Loader {
                     systemCall = SystemCalls.exit;
                     break;
                 default:
-                    throw new LoaderError("Invalid instruction " ~ line);
+                    throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
                 insert(systemCall, byteCode);
                 break;
             case "and":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.and << OPCODE_BITS;
                 break;
             case "or":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.or << OPCODE_BITS;
                 break;
             case "not":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.not << OPCODE_BITS;
                 break;
             case "eq":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.eq << OPCODE_BITS;
                 break;
             case "neq":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.neq << OPCODE_BITS;
                 break;
             case "lt":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.lt << OPCODE_BITS;
                 break;
             case "gt":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.gt << OPCODE_BITS;
                 break;
             case "nop":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.nop << OPCODE_BITS;
                 break;
             case "halt":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.halt << OPCODE_BITS;
                 break;
             case "spawn":
-                auto parts = operands.split;
-                assertOperands(parts.length, 2, line);
+                assertOperands(operands.length, 2, line);
                 byteCode ~= Opcodes.spawn << OPCODE_BITS;
-                insert(parse!uint(parts[0], line), byteCode);
-                insert(parse!ubyte(parts[1], line), byteCode);
+                insert(parse!uint(operands[0], line), byteCode);
+                insert(parse!ubyte(operands[1], line), byteCode);
                 break;
             case "mspawn":
-                assertNoOperands(operands, line);
+                assertOperands(operands.length, 0, line);
                 byteCode ~= Opcodes.mspawn << OPCODE_BITS;
                 break;
             default:
-                throw new LoaderError("Invalid instruction " ~ line);
+                throw new LoaderError("Invalid instruction '" ~ line ~ "'");
             }
         }
 
@@ -317,7 +304,7 @@ class Loader {
 
     private void assertOperands(ulong arity, ubyte expectedArity, string line) {
         if (arity != expectedArity) {
-            throw new LoaderError("Invalid instruction " ~ line);
+            throw new LoaderError("Invalid instruction '" ~ line ~ "'");
         }
     }
 
@@ -328,25 +315,9 @@ class Loader {
              try {
                  return to!T(value);
              } catch (ConvException) {
-                 throw new LoaderError("Invalid instruction " ~ line);
+                 throw new LoaderError("Invalid instruction '" ~ line ~ "'");
              }
          }
-
-    private void assertNoOperands(string operands, string line) {
-        if (operands.length != 0) {
-            throw new LoaderError("Invalid instruction " ~ line);
-        }
-    }
-
-    private ubyte addRegister(string register, ubyte opcode, string line) {
-        if (register == "sp") {
-            return cast(ubyte)(opcode << OPCODE_BITS) | Registers.sp;
-        } else if (register == "fp") {
-            return cast(ubyte)(opcode << OPCODE_BITS) | Registers.fp;
-        } else {
-            throw new LoaderError("Invalid instruction " ~ line);
-        }
-    }
 
     public bool isModuleLoaded(string moduleName) {
         return (moduleName in modules) != null;
