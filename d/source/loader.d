@@ -64,9 +64,6 @@ class LoaderError : Exception {
     }
 }
 
-const ubyte OPCODE_OPERAND_MASK = 0b00000111;
-const ubyte OPCODE_BITS = 3;
-
 class Loader {
     public ubyte[] byteCode;
     private string loadPath;
@@ -114,87 +111,90 @@ class Loader {
                 continue;
             case "push":
                 assertOperands(operands.length, 1, line);
-                byteCode ~= Opcodes.push << OPCODE_BITS;
+                byteCode ~= Opcodes.push;
                 insert(parse!long(operands[0], line), byteCode);
                 break;
             case "pushs":
                 if (operands.length == 0) {
                     throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
-                byteCode ~= Opcodes.pushs << OPCODE_BITS;
+                byteCode ~= Opcodes.pushs;
                 ubyte[] bytes = cast(ubyte[])toUTF8(operandsAsString.strip(`"`));
                 insert(cast(ushort)bytes.length, byteCode);
                 byteCode ~= bytes;
                 break;
             case "pop":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.pop << OPCODE_BITS;
+                byteCode ~= Opcodes.pop;
                 break;
             case "dup":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.dup << OPCODE_BITS;
+                byteCode ~= Opcodes.dup;
                 break;
             case "swap":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.swap << OPCODE_BITS;
+                byteCode ~= Opcodes.swap;
                 break;
             case "load":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.load << OPCODE_BITS;
+                byteCode ~= Opcodes.load;
                 break;
             case "store":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.store << OPCODE_BITS;
+                byteCode ~= Opcodes.store;
                 break;
             case "add":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.add << OPCODE_BITS;
+                byteCode ~= Opcodes.add;
                 break;
             case "sub":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.sub << OPCODE_BITS;
+                byteCode ~= Opcodes.sub;
                 break;
             case "mul":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.mul << OPCODE_BITS;
+                byteCode ~= Opcodes.mul;
                 break;
             case "div":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.div << OPCODE_BITS;
+                byteCode ~= Opcodes.div;
                 break;
             case "jump":
                 assertOperands(operands.length, 1, line);
-                byteCode ~= Opcodes.jump << OPCODE_BITS;
+                byteCode ~= Opcodes.jump;
                 insert(parse!uint(operands[0], line), byteCode);
                 break;
             case "cjump":
                 assertOperands(operands.length, 1, line);
-                byteCode ~= Opcodes.cjump << OPCODE_BITS;
+                byteCode ~= Opcodes.cjump;
                 insert(parse!uint(operands[0], line), byteCode);
                 break;
             case "call":
                 assertOperands(operands.length, 2, line);
-                byteCode ~= Opcodes.call << OPCODE_BITS;
+                byteCode ~= Opcodes.call;
                 insert(parse!uint(operands[0], line), byteCode);
                 insert(parse!ubyte(operands[1], line), byteCode);
                 break;
             case "mcall":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.mcall << OPCODE_BITS;
+                byteCode ~= Opcodes.mcall;
                 break;
             case "ret":
+                /// FIXME
+                ///////////////assertOperands(operands.length, 0, line);
+                ///////////////assertOperands(operands.length, 0, line); or 1
+                byteCode ~= Opcodes.ret;
                 if (operands.length == 0) {
-                    byteCode ~=
-                        (Opcodes.ret << OPCODE_BITS) | ReturnModes.value;
-                } else if (operands.length == 1 && operands[0] == "copy") {
-                    byteCode ~= (Opcodes.ret << OPCODE_BITS) | ReturnModes.copy;
+                    insert(ReturnModes.value, byteCode);
+                } else if (operands[0] == "copy") {
+                    insert(ReturnModes.copy, byteCode);
                 } else {
                     throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
                 break;
             case "sys":
                 assertOperands(operands.length, 1, line);
-                byteCode ~= Opcodes.sys << OPCODE_BITS;
+                byteCode ~= Opcodes.sys;
                 uint systemCall;
                 switch(operands[0]) {
                 case "self":
@@ -222,49 +222,49 @@ class Loader {
                 break;
             case "and":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.and << OPCODE_BITS;
+                byteCode ~= Opcodes.and;
                 break;
             case "or":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.or << OPCODE_BITS;
+                byteCode ~= Opcodes.or;
                 break;
             case "not":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.not << OPCODE_BITS;
+                byteCode ~= Opcodes.not;
                 break;
             case "eq":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.eq << OPCODE_BITS;
+                byteCode ~= Opcodes.eq;
                 break;
             case "neq":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.neq << OPCODE_BITS;
+                byteCode ~= Opcodes.neq;
                 break;
             case "lt":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.lt << OPCODE_BITS;
+                byteCode ~= Opcodes.lt;
                 break;
             case "gt":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.gt << OPCODE_BITS;
+                byteCode ~= Opcodes.gt;
                 break;
             case "nop":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.nop << OPCODE_BITS;
+                byteCode ~= Opcodes.nop;
                 break;
             case "halt":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.halt << OPCODE_BITS;
+                byteCode ~= Opcodes.halt;
                 break;
             case "spawn":
                 assertOperands(operands.length, 2, line);
-                byteCode ~= Opcodes.spawn << OPCODE_BITS;
+                byteCode ~= Opcodes.spawn;
                 insert(parse!uint(operands[0], line), byteCode);
                 insert(parse!ubyte(operands[1], line), byteCode);
                 break;
             case "mspawn":
                 assertOperands(operands.length, 0, line);
-                byteCode ~= Opcodes.mspawn << OPCODE_BITS;
+                byteCode ~= Opcodes.mspawn;
                 break;
             default:
                 throw new LoaderError("Invalid instruction '" ~ line ~ "'");
@@ -274,7 +274,7 @@ class Loader {
         // Convert labels to byte indices
         uint byteIndex = module_.startByteIndex;
         while (byteIndex < byteCode.length) {
-            auto opcode = byteCode[byteIndex] >> OPCODE_BITS;
+            auto opcode = byteCode[byteIndex];
             if (opcode == Opcodes.push) {
                 byteIndex += long.sizeof;
             } else if (opcode == Opcodes.pushs) {
@@ -290,6 +290,8 @@ class Loader {
                 auto labelByteIndex = module_.lookupByteIndex(label);
                 set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
                 byteIndex += uint.sizeof + ubyte.sizeof;
+            } else if (opcode == Opcodes.ret) {
+                byteIndex += ubyte.sizeof;
             } else if (opcode == Opcodes.spawn) {
                 auto label = get!uint(&byteCode[byteIndex + 1]);
                 auto labelByteIndex = module_.lookupByteIndex(label);

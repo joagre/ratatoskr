@@ -7,7 +7,7 @@ import loader;
 
 class PrettyPrint {
     static public uint printInstruction(ubyte* bytes) {
-        switch (bytes[0] >> OPCODE_BITS) {
+        switch (bytes[0]) {
         case Opcodes.push:
             auto value = Loader.get!long(&bytes[1]);
             writefln("push %d", value);
@@ -62,13 +62,13 @@ class PrettyPrint {
             writeln("mcall");
             break;
         case Opcodes.ret:
-            auto returnMode = bytes[0] & OPCODE_OPERAND_MASK;
+            auto returnMode = Loader.get!ubyte(&bytes[1]);
             if (returnMode == ReturnModes.copy) {
                 writeln("ret copy");
             } else {
                 writeln("ret");
             }
-            break;
+            return ubyte.sizeof;
         case Opcodes.sys:
             auto value = Loader.get!uint(&bytes[1]);
             writefln("sys %d",  value);
@@ -109,8 +109,7 @@ class PrettyPrint {
             writeln("mspawn");
             break;
         default:
-            throw new LoaderError("Unknown opcode " ~
-                                  to!string(bytes[0] >> OPCODE_BITS));
+            throw new LoaderError("Unknown opcode " ~ to!string(bytes[0]));
         }
 
         return 0;

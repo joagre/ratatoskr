@@ -58,7 +58,7 @@ class Interpreter {
                               "Unexpected end of bytecode or invalid jump");
             }
 
-            switch (byteCode[currentPc] >> OPCODE_BITS) {
+            switch (byteCode[currentPc]) {
             case Opcodes.push:
                 auto value = Loader.get!long(&byteCode[job.pc]);
                 job.callStack.push(value);
@@ -136,8 +136,7 @@ class Interpreter {
                 break;
             case Opcodes.ret:
                 // Is the return done by value or by copy?
-                auto returnMode =
-                    cast(ubyte)(byteCode[currentPc] & OPCODE_OPERAND_MASK);
+                auto returnMode = Loader.get!ubyte(&byteCode[job.pc]);
                 // Swap return value and previous fp
                 job.callStack.swap();
                 // Restore fp to previous fp
@@ -264,13 +263,14 @@ class Interpreter {
                 auto arity = job.callStack.pop();
                 auto parameters =
                     iota(arity).map!(_ => job.callStack.pop()).array;
-                auto jid = scheduler.mspawn(moduleName, cast(uint)label, parameters);
+                auto jid = scheduler.mspawn(moduleName, cast(uint)label,
+                                            parameters);
                 job.callStack.push(jid);
                 break;
             default:
                 throw new InterpreterError(
                               "Invalid opcode " ~
-                              to!string(byteCode[currentPc] >> OPCODE_BITS));
+                              to!string(byteCode[currentPc]));
             }
 
             if (instructionsExecuted ++ >= checkAfter) {
