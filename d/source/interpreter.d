@@ -48,9 +48,6 @@ class Interpreter {
                 PrettyPrint.printInstruction(&byteCode[job.pc]);
             }
 
-            //Thread.sleep(dur!"msecs"(50));
-            //readln();
-
             auto currentPc = job.pc;
 
             if (++job.pc > byteCode.length) {
@@ -183,7 +180,7 @@ class Interpreter {
                 }
                 break;
             case Opcodes.sys:
-                auto systemCall = Loader.get!uint(&byteCode[job.pc]);
+                auto systemCall = Loader.get!ushort(&byteCode[job.pc]);
                 final switch (systemCall) {
                 case SystemCalls.self:
                     job.callStack.push(job.jid);
@@ -214,7 +211,7 @@ class Interpreter {
                 case SystemCalls.exit:
                     return InterpreterResult.exit;
                 }
-                job.pc += uint.sizeof;
+                job.pc += ushort.sizeof;
                 break;
             case Opcodes.and:
                 job.callStack.op((operand1, operand2) =>
