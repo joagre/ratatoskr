@@ -82,10 +82,6 @@ class Loader {
                 Instructions.insert(register, byteCode);
                 Instructions.insert(parse!uint(operands[1], line), byteCode);
                 break;
-
-
-
-
             // Stack machone instructions
             case Opcodes.push:
                 assertOperands(operands.length, 1, line);
