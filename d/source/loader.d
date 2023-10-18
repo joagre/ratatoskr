@@ -6,11 +6,12 @@ import std.conv : to, ConvException;
 import std.typecons : Tuple;
 import std.algorithm.searching : canFind;
 import std.utf: toUTF8;
-import std.regex: replace, regex;
+import std.regex: replace, regex, matchFirst;
 import std.path: buildPath;
 import std.range: empty;
 import std.file: exists;
 
+import instructions;
 import prettyprint;
 
 class LoaderError : Exception {
@@ -19,58 +20,7 @@ class LoaderError : Exception {
     }
 }
 
-enum Opcodes : ubyte {
-     push   = 0,
-     pushs  = 1,
-     pop    = 2,
-     dup    = 3,
-     swap   = 4,
-     load   = 5,
-     store  = 6,
-     add    = 7,
-     sub    = 8,
-     mul    = 9,
-     div    = 10,
-     jump   = 11,
-     cjump  = 12,
-     call   = 13,
-     ret    = 14,
-     sys    = 15,
-     and    = 16,
-     or     = 17,
-     not    = 18,
-     eq     = 19,
-     neq    = 20,
-     lt     = 21,
-     gt     = 22,
-     nop    = 23,
-     halt   = 24,
-     mcall  = 25,
-     spawn  = 26,
-     mspawn = 27
-}
-
-enum SystemCalls : ushort {
-    self    = 0,
-    send    = 1,
-    recv    = 2,
-    println = 3,
-    display = 4,
-    exit    = 5
-}
-
-enum ReturnModes : ubyte {
-    value = 0,
-    copy = 1
-}
 class Loader {
-    static string[Opcodes] opcodeToString;
-    static Opcodes[string] stringToOpcode;
-    static string[SystemCalls] systemCallToString;
-    static SystemCalls[string] stringToSystemCall;
-    static string[ReturnModes] returnModeToString;
-    static ReturnModes[string] stringToReturnMode;
-
     public ubyte[] byteCode;
     private string loadPath;
     private Module[string] modules;
@@ -78,78 +28,6 @@ class Loader {
 
     this(string loadPath) {
         this.loadPath = loadPath;
-    }
-
-    static this() {
-        string[Opcodes] opcodeToString = [
-            Opcodes.push   : "push",
-            Opcodes.pushs  : "pushs",
-            Opcodes.pop    : "pop",
-            Opcodes.dup    : "dup",
-            Opcodes.swap   : "swap",
-            Opcodes.load   : "load",
-            Opcodes.store  : "store",
-            Opcodes.add    : "add",
-            Opcodes.sub    : "sub",
-            Opcodes.mul    : "mul",
-            Opcodes.div    : "div",
-            Opcodes.jump   : "jump",
-            Opcodes.cjump  : "cjump",
-            Opcodes.call   : "call",
-            Opcodes.ret    : "ret",
-            Opcodes.sys    : "sys",
-            Opcodes.and    : "and",
-            Opcodes.or     : "or",
-            Opcodes.not    : "not",
-            Opcodes.eq     : "eq",
-            Opcodes.neq    : "neq",
-            Opcodes.lt     : "lt",
-            Opcodes.gt     : "gt",
-            Opcodes.nop    : "nop",
-            Opcodes.halt   : "halt",
-            Opcodes.mcall  : "mcall",
-            Opcodes.spawn  : "spawn",
-            Opcodes.mspawn : "mspawn"
-        ];
-
-        foreach (opcode, string; opcodeToString) {
-            stringToOpcode[string] = opcode;
-        }
-
-        string[SystemCalls] systemCallToString = [
-            SystemCalls.self    : "self",
-            SystemCalls.send    : "send",
-            SystemCalls.recv    : "recv",
-            SystemCalls.println : "println",
-            SystemCalls.display : "display",
-            SystemCalls.exit    : "exit"
-        ];
-
-        foreach (systemCall, string; systemCallToString) {
-            stringToSystemCall[string] = systemCall;
-        }
-
-        string[ReturnModes] returnModeToString = [
-            ReturnModes.value : "value",
-            ReturnModes.copy : "copy"
-        ];
-
-        foreach (returnMode, string; returnModeToString) {
-            stringToReturnMode[string] = returnMode;
-        }
-    }
-
-    static void insert(T)(T value, ref ubyte[] bytes) {
-        bytes ~= (cast(ubyte*)&value)[0 .. T.sizeof];
-    }
-
-    pragma(inline, true)
-    static T get(T)(ubyte* bytes) {
-        return *cast(T*)bytes;
-    }
-
-    static void set(T)(T value, ubyte* bytes) {
-        *cast(T*)bytes = value;
     }
 
     private void generateByteCode(Module module_) {
@@ -189,41 +67,53 @@ class Loader {
             }
 
             Opcodes opcode;
-            if (opcodeString in stringToOpcode) {
-                opcode = stringToOpcode[opcodeString];
+            if (opcodeString in Instructions.stringToOpcode) {
+                opcode = Instructions.stringToOpcode[opcodeString];
                 byteCode ~= opcode;
             } else {
                 throw new LoaderError("Invalid instruction '" ~ line ~ "'");
             }
 
             switch (opcode) {
+                // Register machine instructions
+            case Opcodes.jmprnze:
+                assertOperands(operands.length, 2, line);
+                auto register = parseRegister(operands[0], line);
+                Instructions.insert(register, byteCode);
+                Instructions.insert(parse!uint(operands[1], line), byteCode);
+                break;
+
+
+
+
+            // Stack machone instructions
             case Opcodes.push:
                 assertOperands(operands.length, 1, line);
-                insert(parse!long(operands[0], line), byteCode);
+                Instructions.insert(parse!long(operands[0], line), byteCode);
                 break;
             case Opcodes.pushs:
                 if (operandsAsString.length == 0) {
                     throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
                 ubyte[] bytes = cast(ubyte[])toUTF8(operandsAsString.strip(`"`));
-                insert(cast(ushort)bytes.length, byteCode);
+                Instructions.insert(cast(ushort)bytes.length, byteCode);
                 byteCode ~= bytes;
                 break;
             case Opcodes.call:
                 assertOperands(operands.length, 2, line);
-                insert(parse!uint(operands[0], line), byteCode);
-                insert(parse!ubyte(operands[1], line), byteCode);
+                Instructions.insert(parse!uint(operands[0], line), byteCode);
+                Instructions.insert(parse!ubyte(operands[1], line), byteCode);
                 break;
             case Opcodes.cjump:
                 assertOperands(operands.length, 1, line);
-                insert(parse!uint(operands[0], line), byteCode);
+                Instructions.insert(parse!uint(operands[0], line), byteCode);
                 break;
             case Opcodes.ret:
                 assertOperands(operands.length, [0, 1], line);
                 if (operands.length == 0) {
-                    insert(ReturnModes.value, byteCode);
+                    Instructions.insert(ReturnModes.value, byteCode);
                 } else if (operands[0] == "copy") {
-                    insert(ReturnModes.copy, byteCode);
+                    Instructions.insert(ReturnModes.copy, byteCode);
                 } else {
                     throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
@@ -231,21 +121,21 @@ class Loader {
             case Opcodes.sys:
                 assertOperands(operands.length, 1, line);
                 SystemCalls systemCall;
-                if (operands[0] in stringToSystemCall) {
-                    systemCall = stringToSystemCall[operands[0]];
+                if (operands[0] in Instructions.stringToSystemCall) {
+                    systemCall = Instructions.stringToSystemCall[operands[0]];
                 } else {
                     throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
-                insert(systemCall, byteCode);
+                Instructions.insert(systemCall, byteCode);
                 break;
             case Opcodes.spawn:
                 assertOperands(operands.length, 2, line);
-                insert(parse!uint(operands[0], line), byteCode);
-                insert(parse!ubyte(operands[1], line), byteCode);
+                Instructions.insert(parse!uint(operands[0], line), byteCode);
+                Instructions.insert(parse!ubyte(operands[1], line), byteCode);
                 break;
             case Opcodes.jump:
                 assertOperands(operands.length, 1, line);
-                insert(parse!uint(operands[0], line), byteCode);
+                Instructions.insert(parse!uint(operands[0], line), byteCode);
                 break;
             default:
                 // All is done above!
@@ -259,24 +149,24 @@ class Loader {
             if (opcode == Opcodes.push) {
                 byteIndex += long.sizeof;
             } else if (opcode == Opcodes.pushs) {
-                auto length = get!ushort(&byteCode[byteIndex + 1]);
+                auto length = Instructions.get!ushort(&byteCode[byteIndex + 1]);
                 byteIndex += ushort.sizeof + length;
             } else if (opcode == Opcodes.jump || opcode == Opcodes.cjump) {
-                auto label = get!uint(&byteCode[byteIndex + 1]);
+                auto label = Instructions.get!uint(&byteCode[byteIndex + 1]);
                 auto labelByteIndex = module_.lookupByteIndex(label);
-                set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
+                Instructions.set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
                 byteIndex += uint.sizeof;
             } else if (opcode == Opcodes.call) {
-                auto label = get!uint(&byteCode[byteIndex + 1]);
+                auto label = Instructions.get!uint(&byteCode[byteIndex + 1]);
                 auto labelByteIndex = module_.lookupByteIndex(label);
-                set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
+                Instructions.set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
                 byteIndex += uint.sizeof + ubyte.sizeof;
             } else if (opcode == Opcodes.ret) {
                 byteIndex += ubyte.sizeof;
             } else if (opcode == Opcodes.spawn) {
-                auto label = get!uint(&byteCode[byteIndex + 1]);
+                auto label = Instructions.get!uint(&byteCode[byteIndex + 1]);
                 auto labelByteIndex = module_.lookupByteIndex(label);
-                set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
+                Instructions.set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
                 byteIndex += uint.sizeof + ubyte.sizeof;
             } else if (opcode == Opcodes.sys) {
                 byteIndex += ushort.sizeof;
@@ -310,6 +200,17 @@ class Loader {
                  throw new LoaderError("Invalid instruction '" ~ line ~ "'");
              }
          }
+
+    private ubyte parseRegister(string registerString, string line) {
+        auto match = matchFirst(registerString, regex(`^r([0-9]{1,3})`));
+        if (match) {
+            auto register = parse!ubyte(match.captures[1], line);
+            if (register >= 0 && register <= 63) {
+                return register;
+            }
+        }
+        throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+    }
 
     public bool isModuleLoaded(string moduleName) {
         return (moduleName in modules) != null;

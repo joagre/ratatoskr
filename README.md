@@ -156,7 +156,7 @@ label 1          ; fac(N)
   push 0
   load           ; N
   push 0
-  load          ; N
+  load           ; N
   push 1
   sub            ; N - 1
   call 0 1       ; fac(N - 1).

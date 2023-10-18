@@ -12,6 +12,7 @@ import job;
 import scheduler;
 import loader;
 import prettyprint;
+import instructions;
 
 class InterpreterError : Exception {
     this(string msg, string file = __FILE__, size_t line = __LINE__) {
@@ -57,7 +58,7 @@ class Interpreter {
 
             switch (byteCode[currentPc]) {
             case Opcodes.push:
-                auto value = Loader.get!long(&byteCode[job.pc]);
+                auto value = Instructions.get!long(&byteCode[job.pc]);
                 job.callStack.push(value);
                 job.pc += long.sizeof;
                 break;
@@ -96,11 +97,11 @@ class Interpreter {
                 job.callStack.op((operand1, operand2) => operand1 / operand2);
                 break;
             case Opcodes.jump:
-                auto byteIndex = Loader.get!uint(&byteCode[job.pc]);
+                auto byteIndex = Instructions.get!uint(&byteCode[job.pc]);
                 job.pc = byteIndex;
                 break;
             case Opcodes.cjump:
-                auto byteIndex = Loader.get!uint(&byteCode[job.pc]);
+                auto byteIndex = Instructions.get!uint(&byteCode[job.pc]);
                 auto conditional = job.callStack.pop();
                 if (conditional != 0) {
                     job.pc = byteIndex;
@@ -110,8 +111,8 @@ class Interpreter {
                 break;
             case Opcodes.call:
                 // Extract call operands
-                auto byteIndex = Loader.get!uint(&byteCode[job.pc]);
-                auto arity = Loader.get!ubyte(&byteCode[job.pc + uint.sizeof]);
+                auto byteIndex = Instructions.get!uint(&byteCode[job.pc]);
+                auto arity = Instructions.get!ubyte(&byteCode[job.pc + uint.sizeof]);
                 call(job, byteIndex, arity, uint.sizeof + ubyte.sizeof);
                 break;
             case Opcodes.mcall:
@@ -133,7 +134,7 @@ class Interpreter {
                 break;
             case Opcodes.ret:
                 // Is the return done by value or by copy?
-                auto returnMode = Loader.get!ubyte(&byteCode[job.pc]);
+                auto returnMode = Instructions.get!ubyte(&byteCode[job.pc]);
                 // Swap return value and previous fp
                 job.callStack.swap();
                 // Restore fp to previous fp
@@ -162,7 +163,7 @@ class Interpreter {
                 job.pc = cast(uint)returnAddress;
                 // Remove data stack frame
                 auto previousDataFp =
-                    Loader.get!long(&job.dataStack.stack[job.dataStack.fp]);
+                    Instructions.get!long(&job.dataStack.stack[job.dataStack.fp]);
                 job.dataStack.stack =
                     job.dataStack.stack[0 .. job.dataStack.fp];
                 // Restore data fp to previous data fp
@@ -180,7 +181,7 @@ class Interpreter {
                 }
                 break;
             case Opcodes.sys:
-                auto systemCall = Loader.get!ushort(&byteCode[job.pc]);
+                auto systemCall = Instructions.get!ushort(&byteCode[job.pc]);
                 final switch (systemCall) {
                 case SystemCalls.self:
                     job.callStack.push(job.jid);
@@ -246,8 +247,8 @@ class Interpreter {
             case Opcodes.halt:
                 return InterpreterResult.halt;
             case Opcodes.spawn:
-                auto byteIndex = Loader.get!uint(&byteCode[job.pc]);
-                auto arity = Loader.get!ubyte(&byteCode[job.pc + uint.sizeof]);
+                auto byteIndex = Instructions.get!uint(&byteCode[job.pc]);
+                auto arity = Instructions.get!ubyte(&byteCode[job.pc + uint.sizeof]);
                 auto parameters =
                     iota(arity).map!(_ => job.callStack.pop()).array;
                 auto jid = scheduler.spawn(byteIndex, parameters.reverse);
@@ -292,7 +293,7 @@ class Interpreter {
         // Jump to CALL byte index
         job.pc = byteIndex;
         // Save previous data fp on the data stack
-        Loader.insert(job.dataStack.fp, job.dataStack.stack);
+        Instructions.insert(job.dataStack.fp, job.dataStack.stack);
         // Set data fp to the previous data fp
         job.dataStack.fp = job.dataStack.length - long.sizeof;
     }

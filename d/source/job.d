@@ -5,7 +5,7 @@ import std.conv : to;
 import std.typecons : Tuple;
 import std.container : DList;
 
-import loader;
+import instructions;
 
 enum JobMode : ubyte {
     init,
@@ -21,6 +21,7 @@ class Job {
     public DataStack dataStack;
     public CallStack callStack;
     public MessageBox messageBox;
+    public long[64] registers;
 
     this(uint jid, uint pc) {
         this.jid = jid;
@@ -120,7 +121,7 @@ class DataStack  {
 
     pragma(inline, true)
     public Tuple!(long, ushort) push(ubyte[] bytes) {
-        auto length = Loader.get!ushort(&bytes[0]);
+        auto length = Instructions.get!ushort(&bytes[0]);
         long dataAddress = stack.length;
         stack ~= bytes[0 .. ushort.sizeof + length];
         return Tuple!(long, ushort)(dataAddress, length);
@@ -129,7 +130,7 @@ class DataStack  {
     pragma(inline, true)
     public ubyte[] peek(long dataAddress) {
         ubyte[] bytes = stack[dataAddress .. $];
-        auto length = Loader.get!ushort(&bytes[0]);
+        auto length = Instructions.get!ushort(&bytes[0]);
         return bytes[0 .. ushort.sizeof + length];
     }
 }
