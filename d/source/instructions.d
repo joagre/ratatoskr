@@ -3,10 +3,14 @@ enum Opcodes : ubyte {
     jmprnze,
     jmpringt,
     subrri,
+    subrsi,
+    addrri,
+
     loadri,
     pushr,
     loadrs,
     loadrr,
+
     rcall,
     rret,
     jmp,
@@ -64,15 +68,19 @@ class Instructions {
     static ReturnModes[string] stringToReturnMode;
 
     static this() {
-        string[Opcodes] opcodeToString = [
+        opcodeToString = [
             // String machine opcodes
             Opcodes.jmprnze : "jmprnze",
             Opcodes.jmpringt : "jmpringt",
             Opcodes.subrri : "subrri",
+            Opcodes.subrsi : "subrsi",
+            Opcodes.addrri : "addrri",
             Opcodes.loadri : "loadri",
             Opcodes.pushr : "pushr",
             Opcodes.loadrs : "loadrs",
             Opcodes.loadrr : "loadrr",
+            Opcodes.rcall : "rcall",
+            Opcodes.rret : "rret",
             Opcodes.jmp : "jmp",
             // Stack machine opcodes
             Opcodes.push : "push",
@@ -109,7 +117,7 @@ class Instructions {
             stringToOpcode[string] = opcode;
         }
 
-        string[SystemCalls] systemCallToString = [
+        systemCallToString = [
             SystemCalls.self : "self",
             SystemCalls.send : "send",
             SystemCalls.recv : "recv",
@@ -122,7 +130,7 @@ class Instructions {
             stringToSystemCall[string] = systemCall;
         }
 
-        string[ReturnModes] returnModeToString = [
+        returnModeToString = [
             ReturnModes.value : "value",
             ReturnModes.copy : "copy"
         ];

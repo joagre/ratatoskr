@@ -13,6 +13,7 @@ import std.file: exists;
 
 import instructions;
 import prettyprint;
+import job;
 
 class LoaderError : Exception {
     this(string msg, string file = __FILE__, size_t line = __LINE__) {
@@ -75,14 +76,116 @@ class Loader {
             }
 
             switch (opcode) {
-                // Register machine instructions
+            // Register machine instructions
             case Opcodes.jmprnze:
                 assertOperands(operands.length, 2, line);
                 auto register = parseRegister(operands[0], line);
+                auto label = parse!uint(operands[1], line);
                 Instructions.insert(register, byteCode);
-                Instructions.insert(parse!uint(operands[1], line), byteCode);
+                Instructions.insert(label, byteCode);
+            break;
+            case Opcodes.jmpringt:
+                //rilParse(operands,
+
+
+
+
+                assertOperands(operands.length, 3, line);
+                auto register = parseRegister(operands[0], line);
+                auto value = parseImmediateValue(operands[1], line);
+                auto label = parse!uint(operands[2], line);
+                Instructions.insert(register, byteCode);
+                Instructions.insert(value, byteCode);
+                Instructions.insert(label, byteCode);
                 break;
-            // Stack machone instructions
+            case Opcodes.subrri:
+                assertOperands(operands.length, 3, line);
+                auto firstRegister = parseRegister(operands[0], line);
+                auto secondRegister = parseRegister(operands[1], line);
+                auto value = parseImmediateValue(operands[2], line);
+                Instructions.insert(firstRegister, byteCode);
+                Instructions.insert(secondRegister, byteCode);
+                Instructions.insert(value, byteCode);
+                break;
+
+            case Opcodes.subrsi:
+                assertOperands(operands.length, 3, line);
+                auto register = parseRegister(operands[0], line);
+                auto stackOffset = parseStackOffset(operands[1], line);
+                auto value = parseImmediateValue(operands[2], line);
+                Instructions.insert(register, byteCode);
+                Instructions.insert(stackOffset, byteCode);
+                Instructions.insert(value, byteCode);
+                break;
+
+
+            case Opcodes.addrri:
+                assertOperands(operands.length, 3, line);
+                auto firstRegister = parseRegister(operands[0], line);
+                auto secondRegister = parseRegister(operands[1], line);
+                auto value = parseImmediateValue(operands[2], line);
+                Instructions.insert(firstRegister, byteCode);
+                Instructions.insert(secondRegister, byteCode);
+                Instructions.insert(value, byteCode);
+                break;
+            case Opcodes.loadri:
+                assertOperands(operands.length, 2, line);
+                auto register = parseRegister(operands[0], line);
+                auto value = parseImmediateValue(operands[1], line);
+                Instructions.insert(register, byteCode);
+                Instructions.insert(value, byteCode);
+                break;
+            case Opcodes.pushr:
+                assertOperands(operands.length, 1, line);
+                auto register = parseRegister(operands[0], line);
+                Instructions.insert(register, byteCode);
+                break;
+            case Opcodes.loadrs:
+                assertOperands(operands.length, 2, line);
+                auto register = parseRegister(operands[0], line);
+                auto stackOffset = parseStackOffset(operands[1], line);
+                Instructions.insert(register, byteCode);
+                // NOTE: The stack offset is relative to the current
+                // FP. The current FP points to the return address and
+                // after the return address comes the previous
+                // FP. Compensate for these two stack positions.
+                Instructions.insert(stackOffset, byteCode);
+                break;
+            case Opcodes.loadrr:
+                assertOperands(operands.length, 2, line);
+                auto firstRegister = parseRegister(operands[0], line);
+                auto secondRegister = parseRegister(operands[1], line);
+                Instructions.insert(firstRegister, byteCode);
+                Instructions.insert(secondRegister, byteCode);
+                break;
+
+
+
+
+
+
+
+
+
+            case Opcodes.rcall:
+                assertOperands(operands.length, 1, line);
+                auto label = parse!uint(operands[0], line);
+                Instructions.insert(label, byteCode);
+                break;
+            case Opcodes.jmp:
+                assertOperands(operands.length, 1, line);
+                auto label = parse!uint(operands[0], line);
+                Instructions.insert(label, byteCode);
+                break;
+
+
+
+
+
+
+
+
+            // Stack machine instructions
             case Opcodes.push:
                 assertOperands(operands.length, 1, line);
                 Instructions.insert(parse!long(operands[0], line), byteCode);
@@ -91,7 +194,8 @@ class Loader {
                 if (operandsAsString.length == 0) {
                     throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
-                ubyte[] bytes = cast(ubyte[])toUTF8(operandsAsString.strip(`"`));
+                ubyte[] bytes =
+                    cast(ubyte[])toUTF8(operandsAsString.strip(`"`));
                 Instructions.insert(cast(ushort)bytes.length, byteCode);
                 byteCode ~= bytes;
                 break;
@@ -138,46 +242,88 @@ class Loader {
             }
         }
 
-        // Convert labels to byte indices
-        uint byteIndex = module_.startByteIndex;
-        while (byteIndex < byteCode.length) {
-            auto opcode = byteCode[byteIndex];
+        // Resolve labels to addresses
+        uint address = module_.startAddress;
+        while (address < byteCode.length) {
+            auto opcode = byteCode[address];
+            // Register machine instructions
+            if (opcode == Opcodes.jmprnze) {
+                auto label = Instructions.get!uint(&byteCode[address + 1 + ubyte.sizeof]);
+                auto labelAddress = module_.lookupAddress(label);
+                Instructions.set!uint(labelAddress, &byteCode[address + 1 + ubyte.sizeof]);
+                address += ubyte.sizeof + uint.sizeof;
+            } else if (opcode == Opcodes.jmpringt) {
+                auto label = Instructions.get!uint(&byteCode[address + 1 + ubyte.sizeof + long.sizeof]);
+                auto labelAddress = module_.lookupAddress(label);
+                Instructions.set!uint(labelAddress, &byteCode[address + 1 + ubyte.sizeof + long.sizeof]);
+                address += ubyte.sizeof + long.sizeof + uint.sizeof;
+            } else if (opcode == Opcodes.subrri) {
+                address += ubyte.sizeof + ubyte.sizeof + long.sizeof;
+            } else if (opcode == Opcodes.subrsi) {
+                address += ubyte.sizeof + uint.sizeof + long.sizeof;
+            } else if (opcode == Opcodes.addrri) {
+                address += ubyte.sizeof + ubyte.sizeof + long.sizeof;
+            } else if (opcode == Opcodes.loadri) {
+                address += ubyte.sizeof + long.sizeof;
+            } else if (opcode == Opcodes.pushr) {
+                address += ubyte.sizeof;
+            } else if (opcode == Opcodes.loadrs) {
+                address += ubyte.sizeof + uint.sizeof;
+            } else if (opcode == Opcodes.loadrr) {
+                address += ubyte.sizeof + ubyte.sizeof;
+            } else if (opcode == Opcodes.rcall) {
+                auto label = Instructions.get!uint(&byteCode[address + 1]);
+                auto labelAddress = module_.lookupAddress(label);
+                Instructions.set!uint(labelAddress, &byteCode[address + 1]);
+                address += uint.sizeof;
+            } else if (opcode == Opcodes.jmp) {
+                auto label = Instructions.get!uint(&byteCode[address + 1]);
+                auto labelAddress = module_.lookupAddress(label);
+                Instructions.set!uint(labelAddress, &byteCode[address + 1]);
+                address += uint.sizeof;
+            } else
+
+
+
+            // Stack machine instructions
             if (opcode == Opcodes.push) {
-                byteIndex += long.sizeof;
+                address += long.sizeof;
             } else if (opcode == Opcodes.pushs) {
-                auto length = Instructions.get!ushort(&byteCode[byteIndex + 1]);
-                byteIndex += ushort.sizeof + length;
+                auto length = Instructions.get!ushort(&byteCode[address + 1]);
+                address += ushort.sizeof + length;
             } else if (opcode == Opcodes.jump || opcode == Opcodes.cjump) {
-                auto label = Instructions.get!uint(&byteCode[byteIndex + 1]);
-                auto labelByteIndex = module_.lookupByteIndex(label);
-                Instructions.set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
-                byteIndex += uint.sizeof;
+                auto label = Instructions.get!uint(&byteCode[address + 1]);
+                auto labelAddress = module_.lookupAddress(label);
+                Instructions.set!uint(labelAddress, &byteCode[address + 1]);
+                address += uint.sizeof;
             } else if (opcode == Opcodes.call) {
-                auto label = Instructions.get!uint(&byteCode[byteIndex + 1]);
-                auto labelByteIndex = module_.lookupByteIndex(label);
-                Instructions.set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
-                byteIndex += uint.sizeof + ubyte.sizeof;
+                auto label = Instructions.get!uint(&byteCode[address + 1]);
+                auto labelAddress = module_.lookupAddress(label);
+                Instructions.set!uint(labelAddress, &byteCode[address + 1]);
+                address += uint.sizeof + ubyte.sizeof;
             } else if (opcode == Opcodes.ret) {
-                byteIndex += ubyte.sizeof;
+                address += ubyte.sizeof;
             } else if (opcode == Opcodes.spawn) {
-                auto label = Instructions.get!uint(&byteCode[byteIndex + 1]);
-                auto labelByteIndex = module_.lookupByteIndex(label);
-                Instructions.set!uint(labelByteIndex, &byteCode[byteIndex + 1]);
-                byteIndex += uint.sizeof + ubyte.sizeof;
+                auto label = Instructions.get!uint(&byteCode[address + 1]);
+                auto labelAddress = module_.lookupAddress(label);
+                Instructions.set!uint(labelAddress, &byteCode[address + 1]);
+                address += uint.sizeof + ubyte.sizeof;
             } else if (opcode == Opcodes.sys) {
-                byteIndex += ushort.sizeof;
+                address += ushort.sizeof;
             }
-            byteIndex++;
+            address++;
         }
     }
 
-    private void assertOperands(ulong arity, ubyte expectedArity, string line) {
+        private void assertOperands(ulong arity, ubyte expectedArity,
+                                    string line) {
         if (arity != expectedArity) {
             throw new LoaderError("Invalid instruction '" ~ line ~ "'");
         }
     }
 
-    private void assertOperands(ulong arity, ubyte[] expectedArities, string line) {
+    private void assertOperands(ulong arity, ubyte[] expectedArities,
+                                string line) {
         foreach (expectedArity; expectedArities) {
             if (arity == expectedArity) {
                 return;
@@ -198,12 +344,30 @@ class Loader {
          }
 
     private ubyte parseRegister(string registerString, string line) {
-        auto match = matchFirst(registerString, regex(`^r([0-9]{1,3})`));
+        auto match = matchFirst(registerString, regex(`^r([0-9]+)`));
         if (match) {
             auto register = parse!ubyte(match.captures[1], line);
-            if (register >= 0 && register <= 63) {
+            if (register >= 0 && register <= Job.REGISTERS) {
                 return register;
             }
+        }
+        throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+    }
+
+    private long parseImmediateValue(string valueString, string line) {
+        auto match = matchFirst(valueString, regex(`^#([0-9]+)`));
+        if (match) {
+            auto value = parse!long(match.captures[1], line);
+            return value;
+        }
+        throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+    }
+
+    private uint parseStackOffset(string stackOffsetString, string line) {
+        auto match = matchFirst(stackOffsetString, regex(`^@([0-9]+)`));
+        if (match) {
+            auto stackOffset = parse!uint(match.captures[1], line);
+            return stackOffset + 2;
         }
         throw new LoaderError("Invalid instruction '" ~ line ~ "'");
     }
@@ -212,9 +376,9 @@ class Loader {
         return (moduleName in modules) != null;
     }
 
-    public uint lookupByteIndex(string moduleName, uint label) {
+    public uint lookupAddress(string moduleName, uint label) {
         auto module_ = moduleName in modules;
-        return module_.lookupByteIndex(label);
+        return module_.lookupAddress(label);
     }
 
     public void loadPOSMCode(string moduleName) {
@@ -229,48 +393,48 @@ class Loader {
         } finally {
             file.close;
         }
-        module_.stopByteIndex = cast(uint)byteCode.length - 1;
+        module_.stopAddress = cast(uint)byteCode.length - 1;
         modules[moduleName] = module_;
     }
 
     public void prettyPrint() {
-        uint byteIndex = 0;
-        while (byteIndex < byteCode.length) {
-            writef("%d: ", byteIndex);
-            byteIndex += 1 + PrettyPrint.printInstruction(&byteCode[byteIndex]);
+        uint address = 0;
+        while (address < byteCode.length) {
+            writef("%d: ", address);
+            address += 1 + PrettyPrint.printInstruction(&byteCode[address]);
         }
     }
 
     public void prettyPrint(string moduleName) {
         auto module_ = modules[moduleName];
-        auto byteIndex = module_.startByteIndex;
-        while (byteIndex < module_.stopByteIndex + 1) {
-            writef("%d: ", byteIndex);
-            byteIndex += 1 + PrettyPrint.printInstruction(&byteCode[byteIndex]);
+        auto address = module_.startAddress;
+        while (address < module_.stopAddress + 1) {
+            writef("%d: ", address);
+            address += 1 + PrettyPrint.printInstruction(&byteCode[address]);
         }
     }
 }
 
 class Module {
-    public uint startByteIndex;
-    public uint stopByteIndex;
+    public uint startAddress;
+    public uint stopAddress;
     private uint[uint] jumpTable;
 
-    this(uint startByteIndex) {
-        this.startByteIndex = startByteIndex;
+    this(uint startAddress) {
+        this.startAddress = startAddress;
     }
 
-    public void insertLabel(uint label, uint byteIndex) {
-        jumpTable[label] = byteIndex;
+    public void insertLabel(uint label, uint address) {
+        jumpTable[label] = address;
     }
 
-    public uint lookupByteIndex(uint label) {
+    public uint lookupAddress(uint label) {
         return jumpTable[label];
     }
 
-    public uint lookupLabel(uint byteIndex) {
-        foreach (label, possibleByteIndex; jumpTable) {
-            if (byteIndex == possibleByteIndex) {
+    public uint lookupLabel(uint address) {
+        foreach (label, possibleAddress; jumpTable) {
+            if (address == possibleAddress) {
                 return label;
             }
         }

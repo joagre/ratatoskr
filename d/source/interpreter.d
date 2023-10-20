@@ -44,6 +44,11 @@ class Interpreter {
             auto byteCode = loader.byteCode;
 
             debug(interpreter) {
+                writefln("%d: r0 = %d, r1 = %d, r2 = %d",
+                         job.jid,
+                         job.registers[0],
+                         job.registers[1],
+                         job.registers[2]);
                 writefln("%d: %s", job.jid, to!string(job.callStack.stack));
                 writef("%d:%d: ", job.jid, job.pc);
                 PrettyPrint.printInstruction(&byteCode[job.pc]);
@@ -57,6 +62,147 @@ class Interpreter {
             }
 
             switch (byteCode[currentPc]) {
+            // Register machine instructions
+            case Opcodes.jmprnze:
+                auto register = Instructions.get!ubyte(&byteCode[job.pc]);
+                if (job.registers[register] != 0) {
+                    job.pc =
+                        Instructions.get!uint(&byteCode[job.pc + ubyte.sizeof]);
+                } else {
+                    job.pc += ubyte.sizeof + uint.sizeof;
+                }
+                break;
+            case Opcodes.jmpringt:
+                /*
+                '(register, immediateValue, address) =
+                    registerValueAddress(job.pc, byte_code);
+                if (!(job.registers[register] > immediateValue)) {
+                    job.pc = get!ubyte(&byteCode[job.pc + rilSize]);
+                } else {
+                    job.pc += rilSize;
+                }
+                */
+
+
+
+
+
+                auto register = Instructions.get!ubyte(&byteCode[job.pc]);
+                auto value =
+                    Instructions.get!long(&byteCode[job.pc + ubyte.sizeof]);
+                if (!(job.registers[register] > value)) {
+                    job.pc = Instructions.get!ubyte(
+                                 &byteCode[job.pc + ubyte.sizeof +
+                                           long.sizeof]);
+                } else {
+                    job.pc += ubyte.sizeof + ulong.sizeof + uint.sizeof;
+                }
+                break;
+            case Opcodes.subrri:
+                auto firstRegister = Instructions.get!ubyte(&byteCode[job.pc]);
+                auto secondRegister =
+                    Instructions.get!ubyte(&byteCode[job.pc + ubyte.sizeof]);
+                auto value =
+                    Instructions.get!long(
+                        &byteCode[job.pc + ubyte.sizeof + ubyte.sizeof]);
+                job.registers[firstRegister] =
+                    job.registers[secondRegister] - value;
+                job.pc += ubyte.sizeof + ubyte.sizeof + long.sizeof;
+                break;
+
+
+            case Opcodes.subrsi:
+                auto register = Instructions.get!ubyte(&byteCode[job.pc]);
+                auto stackOffset =
+                    Instructions.get!ubyte(&byteCode[job.pc + ubyte.sizeof]);
+                auto value =
+                    Instructions.get!long(
+                        &byteCode[job.pc + ubyte.sizeof + uint.sizeof]);
+                job.registers[register] =
+                    job.callStack.stack[job.callStack.fp + stackOffset] - value;
+                job.pc += ubyte.sizeof + uint.sizeof + long.sizeof;
+                break;
+
+
+
+
+            case Opcodes.addrri:
+                auto firstRegister = Instructions.get!ubyte(&byteCode[job.pc]);
+                auto secondRegister =
+                    Instructions.get!ubyte(&byteCode[job.pc + ubyte.sizeof]);
+                auto value =
+                    Instructions.get!long(
+                        &byteCode[job.pc + ubyte.sizeof + ubyte.sizeof]);
+                job.registers[firstRegister] =
+                    job.registers[secondRegister] + value;
+                job.pc += ubyte.sizeof + ubyte.sizeof + long.sizeof;
+                break;
+            case Opcodes.loadri:
+                auto register = Instructions.get!ubyte(&byteCode[job.pc]);
+                auto value = Instructions.get!long(
+                                 &byteCode[job.pc + ubyte.sizeof]);
+                job.registers[register] = value;
+                job.pc += ubyte.sizeof + long.sizeof;
+                break;
+            case Opcodes.pushr:
+                auto register = Instructions.get!ubyte(&byteCode[job.pc]);
+                job.callStack.push(job.registers[register]);
+                job.pc += ubyte.sizeof;
+                break;
+            case Opcodes.loadrs:
+                auto register = Instructions.get!ubyte(&byteCode[job.pc]);
+                auto stackOffset = Instructions.get!uint(
+                                 &byteCode[job.pc + ubyte.sizeof]);
+                job.registers[register] =
+                    job.callStack.stack[job.callStack.fp + stackOffset];
+                job.pc += ubyte.sizeof + uint.sizeof;
+                break;
+            case Opcodes.loadrr:
+                auto firstRegister = Instructions.get!ubyte(&byteCode[job.pc]);
+                auto secondRegister =
+                    Instructions.get!ubyte(&byteCode[job.pc + ubyte.sizeof]);
+                job.registers[firstRegister] = job.registers[secondRegister];
+                job.pc += ubyte.sizeof + ubyte.sizeof;
+                break;
+
+
+
+
+
+            case Opcodes.rcall:
+                // Extract rcall operand
+                auto address = Instructions.get!uint(&byteCode[job.pc]);
+                // Add return address to stack
+                job.callStack.push(job.pc + uint.sizeof);
+                // Save previous FP on the stack
+                job.callStack.push(job.callStack.fp);
+                // Set FP to point to return address
+                job.callStack.fp = job.callStack.length - 2;
+                // Jump to CALL address
+                job.pc = address;
+                break;
+            case Opcodes.rret:
+                auto returnAddress = job.callStack.stack[job.callStack.fp];
+                // Restore FP to previous FP
+                auto currentFp = job.callStack.fp;
+                job.callStack.fp = job.callStack.stack[job.callStack.fp + 1];
+                // Remove call stack frame
+                job.callStack.stack = job.callStack.stack[0 .. currentFp];
+                // Has stack been exhausted?
+                if (job.callStack.length == 1 || returnAddress == -1) {
+                    return InterpreterResult.halt;
+                }
+                // Jump to return address
+                job.pc = cast(uint)returnAddress;
+                break;
+            case Opcodes.jmp:
+                auto address = Instructions.get!uint(&byteCode[job.pc]);
+                job.pc = address;
+                break;
+
+
+
+            // Stack machine instructions
             case Opcodes.push:
                 auto value = Instructions.get!long(&byteCode[job.pc]);
                 job.callStack.push(value);
@@ -97,23 +243,24 @@ class Interpreter {
                 job.callStack.op((operand1, operand2) => operand1 / operand2);
                 break;
             case Opcodes.jump:
-                auto byteIndex = Instructions.get!uint(&byteCode[job.pc]);
-                job.pc = byteIndex;
+                auto address = Instructions.get!uint(&byteCode[job.pc]);
+                job.pc = address;
                 break;
             case Opcodes.cjump:
-                auto byteIndex = Instructions.get!uint(&byteCode[job.pc]);
+                auto address = Instructions.get!uint(&byteCode[job.pc]);
                 auto conditional = job.callStack.pop();
                 if (conditional != 0) {
-                    job.pc = byteIndex;
+                    job.pc = address;
                 } else {
                     job.pc += uint.sizeof;
                 }
                 break;
             case Opcodes.call:
                 // Extract call operands
-                auto byteIndex = Instructions.get!uint(&byteCode[job.pc]);
-                auto arity = Instructions.get!ubyte(&byteCode[job.pc + uint.sizeof]);
-                call(job, byteIndex, arity, uint.sizeof + ubyte.sizeof);
+                auto address = Instructions.get!uint(&byteCode[job.pc]);
+                auto arity =
+                    Instructions.get!ubyte(&byteCode[job.pc + uint.sizeof]);
+                call(job, address, arity, uint.sizeof + ubyte.sizeof);
                 break;
             case Opcodes.mcall:
                 // Extract call operands from stack (keep parameters on stack)
@@ -128,16 +275,59 @@ class Interpreter {
                         loader.prettyPrint(moduleName);
                     }
                 }
-                auto byteIndex =
-                    loader.lookupByteIndex(moduleName, cast(uint)label);
-                call(job, cast(uint)byteIndex, cast(ubyte)arity, 0);
+                auto address =
+                    loader.lookupAddress(moduleName, cast(uint)label);
+                call(job, cast(uint)address, cast(ubyte)arity, 0);
                 break;
             case Opcodes.ret:
+                /*
+                // Save essential information from the call stack
+                auto returnValue = job.callStack.pop();
+                auto arity = job.callStack.stack[job.callStack.fp];
+                auto returnAddress =
+                    job.callStack.stack[job.callStack.fp + arity + 1];
+                auto previousFp =
+                    job.callStack.stack[job.callStack.fp + arity + 2];
+                // Remove the call stack
+                job.callStack.stack = job.callStack.stack[0 .. job.callStack.fp + ];
+                // Push the return value onto the caller's call stack
+                auto returnMode = Instructions.get!ubyte(&byteCode[job.pc]);
+                if (returnMode == ReturnModes.copy) {
+                    returnData = job.dataStack.peek(returnValue);
+                    // Copy the return data onto the caller's data stack
+                    auto returnDataCopy = job.dataStack.push(returnData);
+                    auto dataAddress = returnDataCopy[0];
+                    // Push the return data address onto caller's call stack
+                    job.callStack.push(dataAddress);
+                } else {
+                    // Push the return value onto caller's call stack
+                    job.callStack.push(returnValue);
+                }
+                // Remove the data stack frame
+                auto previousDataFp =
+                    Instructions.get!long(
+                        &job.dataStack.stack[job.dataStack.fp]);
+                job.dataStack.stack =
+                    job.dataStack.stack[0 .. job.dataStack.fp];
+                // Restore data FP to previous data FP
+                job.dataStack.fp = previousDataFp;
+                // Has the call stack been exhausted?
+                if (job.callStack.length == 1 || returnAddress == -1) {
+                    // Just keep the result and throw away any parameters
+                    job.callStack.stack = job.callStack.stack[$ - 1 .. $];
+                    return InterpreterResult.halt;
+                } else {
+                    // Restore previous FP and jump to return address
+                    job.callStack.fp = previousFp;
+                    job.pc = cast(uint)returnAddress;
+                }
+                break;
+                */
                 // Is the return done by value or by copy?
                 auto returnMode = Instructions.get!ubyte(&byteCode[job.pc]);
-                // Swap return value and previous fp
+                // Swap return value and previous FP
                 job.callStack.swap();
-                // Restore fp to previous fp
+                // Restore FP to previous FP
                 auto currentFp = job.callStack.fp;
                 job.callStack.fp = job.callStack.pop();
                 // Swap return value and return address
@@ -163,10 +353,11 @@ class Interpreter {
                 job.pc = cast(uint)returnAddress;
                 // Remove data stack frame
                 auto previousDataFp =
-                    Instructions.get!long(&job.dataStack.stack[job.dataStack.fp]);
+                    Instructions.get!long(
+                        &job.dataStack.stack[job.dataStack.fp]);
                 job.dataStack.stack =
                     job.dataStack.stack[0 .. job.dataStack.fp];
-                // Restore data fp to previous data fp
+                // Restore data FP to previous data FP
                 job.dataStack.fp = previousDataFp;
                 // Reinsert return value on call stack (and data stack)
                 if (returnMode == ReturnModes.copy) {
@@ -247,11 +438,12 @@ class Interpreter {
             case Opcodes.halt:
                 return InterpreterResult.halt;
             case Opcodes.spawn:
-                auto byteIndex = Instructions.get!uint(&byteCode[job.pc]);
-                auto arity = Instructions.get!ubyte(&byteCode[job.pc + uint.sizeof]);
+                auto address = Instructions.get!uint(&byteCode[job.pc]);
+                auto arity =
+                    Instructions.get!ubyte(&byteCode[job.pc + uint.sizeof]);
                 auto parameters =
                     iota(arity).map!(_ => job.callStack.pop()).array;
-                auto jid = scheduler.spawn(byteIndex, parameters.reverse);
+                auto jid = scheduler.spawn(address, parameters.reverse);
                 job.callStack.push(jid);
                 job.pc += uint.sizeof + ubyte.sizeof;
                 break;
@@ -283,18 +475,18 @@ class Interpreter {
         return interpreterResult;
     }
 
-    void call(Job job, uint byteIndex, ubyte arity, ubyte stackAddition) {
+    void call(Job job, uint address, ubyte arity, ubyte stackAddition) {
         // Add return address to stack
         job.callStack.push(job.pc + stackAddition);
-        // Save previous fp on the stack
+        // Save previous FP on the stack
         job.callStack.push(job.callStack.fp);
-        // Set fp to first CALL parameter (NOTE: We just pushed two values)
+        // Set FP to first CALL parameter (NOTE: We just pushed two values)
         job.callStack.fp = job.callStack.length - 2 - arity;
-        // Jump to CALL byte index
-        job.pc = byteIndex;
-        // Save previous data fp on the data stack
+        // Jump to CALL address
+        job.pc = address;
+        // Save previous data FP on the data stack
         Instructions.insert(job.dataStack.fp, job.dataStack.stack);
-        // Set data fp to the previous data fp
+        // Set data FP to the previous data FP
         job.dataStack.fp = job.dataStack.length - long.sizeof;
     }
 }

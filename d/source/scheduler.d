@@ -56,8 +56,8 @@ class Scheduler {
                 final switch(result) {
                 case InterpreterResult.halt:
                     debug(user) {
-                        writefln("Job %d halted: %s",  runningJob.jid,
-                                 to!string(runningJob.callStack.stack));
+                        writefln("Job %d halted: %s (r0 = %d)", runningJob.jid,
+                                 to!string(runningJob.callStack.stack), runningJob.registers[0]);
                     }
                     break;
                 case InterpreterResult.recv:
@@ -98,7 +98,7 @@ class Scheduler {
                 loader.prettyPrint(moduleName);
             }
         }
-        auto byteIndex = loader.lookupByteIndex(moduleName, label);
+        auto byteIndex = loader.lookupAddress(moduleName, label);
         auto job = new Job(jid, byteIndex);
         // Push parameters
         job.callStack.append(parameters);

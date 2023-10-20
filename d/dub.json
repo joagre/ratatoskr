@@ -3,12 +3,14 @@
 	"Joakim G."
     ],
     "copyright": "Copyright © 2023, Joakim G.",
-    "description": "The E programming language",
+    "description": "The Ratatorskr programming language",
     "license": "MIT",
 
     "name": "d",
     "targetPath": "./bin",
     "targetName": "r",
+
+    "dflags-ldc": ["-O3", "-release", "-inline", "-noboundscheck", "-mcpu=native"],
 
     "buildTypes": {
         "release": {

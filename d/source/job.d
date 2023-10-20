@@ -15,13 +15,15 @@ enum JobMode : ubyte {
 }
 
 class Job {
+    static const ubyte REGISTERS = 64;
+
     public uint jid;
     public JobMode mode;
     public uint pc;
     public DataStack dataStack;
     public CallStack callStack;
     public MessageBox messageBox;
-    public long[64] registers;
+    public long[REGISTERS] registers;
 
     this(uint jid, uint pc) {
         this.jid = jid;
@@ -41,14 +43,14 @@ class CallStack  {
     this(DataStack dataStack) {
         this.fp = -1;
         this.dataStack = dataStack;
+        stack.reserve(100000);
+
     }
 
-    pragma(inline, true)
     public long length() {
         return stack.length;
     }
 
-    pragma(inline, true)
     public void append(long[] trailingStack) {
         stack ~= trailingStack;
     }
@@ -58,7 +60,6 @@ class CallStack  {
         stack ~= value;
     }
 
-    pragma(inline, true)
     public string popString() {
         auto dataAddress = pop();
         auto bytes = dataStack.peek(dataAddress);
@@ -72,33 +73,28 @@ class CallStack  {
         return topValue;
     }
 
-    pragma(inline, true)
     public void dup() {
         auto topValue = stack[$ - 1];
         stack ~= topValue;
     }
 
-    pragma(inline, true)
     public void swap() {
         auto topValue = stack[$ - 1];
         stack[$ - 1] = stack[$ - 2];
         stack[$ - 2] = topValue;
     }
 
-    pragma(inline, true)
     public void load() {
         auto offset = pop();
         push(stack[fp + offset]);
     }
 
-    pragma(inline, true)
     public void store() {
         auto offset = pop();
         auto newValue = pop();
         stack[fp + offset] = newValue;
     }
 
-    pragma(inline, true)
     public void op(long delegate(long, long) fun) {
         auto operand2 = pop();
         auto operand1 = pop();
@@ -114,12 +110,10 @@ class DataStack  {
         this.fp = 0;
     }
 
-    pragma(inline, true)
     public long length() {
         return stack.length;
     }
 
-    pragma(inline, true)
     public Tuple!(long, ushort) push(ubyte[] bytes) {
         auto length = Instructions.get!ushort(&bytes[0]);
         long dataAddress = stack.length;
@@ -127,7 +121,6 @@ class DataStack  {
         return Tuple!(long, ushort)(dataAddress, length);
     }
 
-    pragma(inline, true)
     public ubyte[] peek(long dataAddress) {
         ubyte[] bytes = stack[dataAddress .. $];
         auto length = Instructions.get!ushort(&bytes[0]);
@@ -144,7 +137,6 @@ class MessageBox {
         length = 0;
     }
 
-    pragma(inline, true)
     public long dequeue() {
         auto message = messageBox.front;
         messageBox.removeFront;
@@ -152,7 +144,6 @@ class MessageBox {
         return message;
     }
 
-    pragma(inline, true)
     public void enqueue(long message) {
         messageBox.insertBack(message);
         length++;
