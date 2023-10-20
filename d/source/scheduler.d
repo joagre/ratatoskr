@@ -34,7 +34,6 @@ class Scheduler {
 
     this(Loader loader, Interpreter interpreter, uint timeSlice,
          uint checkAfter) {
-        this.jid = 0;
         this.loader = loader;
         this.interpreter = interpreter;
         this.timeSlice = Datetime.msecs(timeSlice);
@@ -49,7 +48,7 @@ class Scheduler {
     }
 
     public void run() {
-`        while (!waitingQueue.empty || !readyQueue.empty) {
+        while (!waitingQueue.empty || !readyQueue.empty) {
             while (!readyQueue.empty) {
                 auto nextJob = readyQueue.front;
                 readyQueue.removeFront;
