@@ -381,7 +381,7 @@ class Loader {
         return module_.lookupAddress(label);
     }
 
-    public void loadPOSMCode(string moduleName) {
+    public void loadModule(string moduleName) {
         auto filename = buildPath(loadPath, moduleName ~ ".posm");
         if (!exists(filename)) {
             throw new LoaderError(filename ~  " can not be found");

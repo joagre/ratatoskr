@@ -170,28 +170,30 @@ class Interpreter {
 
 
             case Opcodes.rcall:
-                // Extract rcall operand
+                // Extract address to function
                 auto address = Instructions.get!uint(&byteCode[job.pc]);
-                // Add return address to stack
+                // Add return address to call stack
                 job.callStack.push(job.pc + uint.sizeof);
-                // Save previous FP on the stack
+                // Save previous FP on call stack
                 job.callStack.push(job.callStack.fp);
                 // Set FP to point to return address
                 job.callStack.fp = job.callStack.length - 2;
-                // Jump to CALL address
+                // Jump to function address
                 job.pc = address;
                 break;
             case Opcodes.rret:
                 auto returnAddress = job.callStack.stack[job.callStack.fp];
-                // Restore FP to previous FP
-                auto currentFp = job.callStack.fp;
-                job.callStack.fp = job.callStack.stack[job.callStack.fp + 1];
+                // Save previous FP
+                auto previousFp = job.callStack.stack[job.callStack.fp + 1];
                 // Remove call stack frame
-                job.callStack.stack = job.callStack.stack[0 .. currentFp];
+                job.callStack.stack =
+                    job.callStack.stack[0 .. job.callStack.fp];
                 // Has stack been exhausted?
                 if (job.callStack.length == 1 || returnAddress == -1) {
                     return InterpreterResult.halt;
                 }
+                // Restore FP to previous FP
+                job.callStack.fp = previousFp;
                 // Jump to return address
                 job.pc = cast(uint)returnAddress;
                 break;
@@ -256,25 +258,26 @@ class Interpreter {
                 }
                 break;
             case Opcodes.call:
-                // Extract call operands
+                // Extract address to function and its arity
                 auto address = Instructions.get!uint(&byteCode[job.pc]);
                 auto arity =
                     Instructions.get!ubyte(&byteCode[job.pc + uint.sizeof]);
                 call(job, address, arity, uint.sizeof + ubyte.sizeof);
                 break;
             case Opcodes.mcall:
-                // Extract call operands from stack (keep parameters on stack)
+                // Extract function label, module name and function arity
+                // NOTE: Parameters are left on the call stack
                 auto label = job.callStack.pop();
                 auto moduleName = job.callStack.popString();
                 auto arity = job.callStack.pop();
-                // NOTE: Only the parameters are now left on the stack
                 // Ensure that the module is loaded
                 if (!loader.isModuleLoaded(moduleName)) {
-                    loader.loadPOSMCode(moduleName);
+                    loader.loadModule(moduleName);
                     debug(scheduler) {
                         loader.prettyPrint(moduleName);
                     }
                 }
+                // Extract address to function
                 auto address =
                     loader.lookupAddress(moduleName, cast(uint)label);
                 call(job, cast(uint)address, cast(ubyte)arity, 0);
@@ -480,9 +483,8 @@ class Interpreter {
         long fp = -1;
         long[] initialCallStack = parameters ~ returnAddress ~ fp;
         auto jid = Scheduler.nextJid();
-        writefln("NEW LOCAL JOB: %s", to!string(initialCallStack));
         auto job = new Job(jid, address, initialCallStack);
-        // Set FP to first CALL parameter
+        // Set FP to first call parameter
         job.callStack.fp = job.callStack.length - 2 - parameters.length;
         scheduler.spawn(job);
         return jid;
@@ -491,7 +493,7 @@ class Interpreter {
     static uint mspawn(Loader loader, Scheduler scheduler, string moduleName,
                        uint label, long[] parameters) {
         if (!loader.isModuleLoaded(moduleName)) {
-            loader.loadPOSMCode(moduleName);
+            loader.loadModule(moduleName);
             debug(scheduler) {
                 loader.prettyPrint(moduleName);
             }
@@ -501,9 +503,8 @@ class Interpreter {
         long fp = -1;
         long[] initialCallStack = parameters ~ returnAddress ~ fp;
         auto jid = Scheduler.nextJid();
-        writefln("NEW JOB: %s", to!string(initialCallStack));
         auto job = new Job(jid, address, initialCallStack);
-        // Set FP to first CALL parameter
+        // Set FP to first call parameter
         job.callStack.fp = job.callStack.length - 2 - parameters.length;
         scheduler.spawn(job);
         return jid;
