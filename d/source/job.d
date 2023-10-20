@@ -25,12 +25,12 @@ class Job {
     public MessageBox messageBox;
     public long[REGISTERS] registers;
 
-    this(uint jid, uint pc) {
+    this(uint jid, uint pc, long[] initialCallStack) {
         this.jid = jid;
         this.mode = JobMode.init;
         this.pc = pc;
         this.dataStack = new DataStack;
-        this.callStack = new CallStack(this.dataStack);
+        this.callStack = new CallStack(initialCallStack, this.dataStack);
         this.messageBox = new MessageBox;
     }
 }
@@ -40,19 +40,14 @@ class CallStack  {
     public long fp;
     public DataStack dataStack;
 
-    this(DataStack dataStack) {
-        this.fp = -1;
+    this(long[] initialCallStack, DataStack dataStack) {
+        this.stack = initialCallStack;
+        this.fp = 0;
         this.dataStack = dataStack;
-        stack.reserve(100000);
-
     }
 
     public long length() {
         return stack.length;
-    }
-
-    public void append(long[] trailingStack) {
-        stack ~= trailingStack;
     }
 
     pragma(inline, true)

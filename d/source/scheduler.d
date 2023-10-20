@@ -1,12 +1,12 @@
 module scheduler;
 
-import std.stdio : writeln, writefln;
-import std.conv : to;
-import std.datetime : Duration, msecs;
-import std.container : DList;
-import core.thread : Thread;
-import std.algorithm : remove;
-import std.array;
+import Stdio = std.stdio;
+import Container = std.container;
+import Datetime = std.datetime;
+import Conv = std.conv;
+import Thread = core.thread;
+import Algorithm = std.algorithm;
+import Range = std.range;
 
 import interpreter;
 import job;
@@ -19,12 +19,12 @@ class SchedulerError : Exception {
 }
 
 class Scheduler {
-    private uint jid;
+    static uint jid = 0;
 
-    private DList!Job readyQueue;
-    private DList!Job waitingQueue;
+    private Container.DList!Job readyQueue;
+    private Container.DList!Job waitingQueue;
 
-    private Duration timeSlice;
+    private Datetime.Duration timeSlice;
     private uint checkAfter;
 
     private Interpreter interpreter;
@@ -37,15 +37,19 @@ class Scheduler {
         this.jid = 0;
         this.loader = loader;
         this.interpreter = interpreter;
-        this.timeSlice = msecs(timeSlice);
+        this.timeSlice = Datetime.msecs(timeSlice);
         this.checkAfter = checkAfter;
-        this.readyQueue = DList!Job();
-        this.waitingQueue = DList!Job();
+        this.readyQueue = Container.DList!Job();
+        this.waitingQueue = Container.DList!Job();
         this.runningJob = null;
     }
 
-    void run() {
-        while (!waitingQueue.empty || !readyQueue.empty) {
+    static uint nextJid() {
+        return jid++;
+    }
+
+    public void run() {
+`        while (!waitingQueue.empty || !readyQueue.empty) {
             while (!readyQueue.empty) {
                 auto nextJob = readyQueue.front;
                 readyQueue.removeFront;
@@ -56,8 +60,11 @@ class Scheduler {
                 final switch(result) {
                 case InterpreterResult.halt:
                     debug(user) {
-                        writefln("Job %d halted: %s (r0 = %d)", runningJob.jid,
-                                 to!string(runningJob.callStack.stack), runningJob.registers[0]);
+                        Stdio.writefln(
+                            "Job %d halted: %s (r0 = %d)",
+                            runningJob.jid,
+                            Conv.to!string(runningJob.callStack.stack),
+                            runningJob.registers[0]);
                     }
                     break;
                 case InterpreterResult.recv:
@@ -72,45 +79,13 @@ class Scheduler {
                     return;
                 }
             }
-            Thread.sleep(timeSlice); // FIXME: A bit ugly
+            Thread.Thread.sleep(timeSlice); // FIXME: A bit ugly
         }
     }
 
-    uint spawn(uint byteIndex, long[] parameters) {
-        auto job = new Job(jid, byteIndex);
-        // Push parameters
-        job.callStack.append(parameters);
-        // Add bogus return address to stack
-        job.callStack.push(-1);
-        // Save previous fp on the stack
-        job.callStack.push(job.callStack.fp);
-        // Set fp to first CALL parameter (NOTE: We just pushed two values)
-        job.callStack.fp = job.callStack.length - 2 - parameters.length;
+    public void spawn(Job job) {
         job.mode = JobMode.ready;
         readyQueue.insertBack(job);
-        return jid++;
-    }
-
-    uint mspawn(string moduleName, uint label, long[] parameters) {
-        if (!loader.isModuleLoaded(moduleName)) {
-            loader.loadPOSMCode(moduleName);
-            debug(scheduler) {
-                loader.prettyPrint(moduleName);
-            }
-        }
-        auto byteIndex = loader.lookupAddress(moduleName, label);
-        auto job = new Job(jid, byteIndex);
-        // Push parameters
-        job.callStack.append(parameters);
-        // Add bogus return address to stack
-        job.callStack.push(-1);
-        // Save previous fp on the stack
-        job.callStack.push(job.callStack.fp);
-        // Set fp to first CALL parameter (NOTE: We just pushed two values)
-        job.callStack.fp = job.callStack.length - 2 - parameters.length;
-        job.mode = JobMode.ready;
-        readyQueue.insertBack(job);
-        return jid++;
     }
 
     public void sendMessage(uint jid, long value) {
@@ -144,13 +119,12 @@ class Scheduler {
         return null;
     }
 
-    // FIXME: This is very boring!
     private void removeFromWaitingQueue(uint jid) {
-        auto arr = waitingQueue[].array;
-        arr = arr.remove!(job => job.jid == jid);
-        waitingQueue.clear();
-        foreach(job; arr) {
-            waitingQueue.insertBack(job);
+        auto allJobs = waitingQueue[];
+        auto foundJobs = Algorithm.find!(job => job.jid == jid)(allJobs);
+        auto toRemove = Range.take(foundJobs, 1);
+        if (!toRemove.empty) {
+            waitingQueue.linearRemove(toRemove);
         }
     }
 }

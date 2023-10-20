@@ -442,8 +442,8 @@ class Interpreter {
                 auto arity =
                     Instructions.get!ubyte(&byteCode[job.pc + uint.sizeof]);
                 auto parameters =
-                    iota(arity).map!(_ => job.callStack.pop()).array;
-                auto jid = scheduler.spawn(address, parameters.reverse);
+                    iota(arity).map!(_ => job.callStack.pop()).array.reverse;
+                auto jid = spawn(scheduler, address, parameters);
                 job.callStack.push(jid);
                 job.pc += uint.sizeof + ubyte.sizeof;
                 break;
@@ -452,9 +452,9 @@ class Interpreter {
                 auto moduleName = job.callStack.popString();
                 auto arity = job.callStack.pop();
                 auto parameters =
-                    iota(arity).map!(_ => job.callStack.pop()).array;
-                auto jid = scheduler.mspawn(moduleName, cast(uint)label,
-                                            parameters);
+                    iota(arity).map!(_ => job.callStack.pop()).array.reverse;
+                auto jid = mspawn(loader, scheduler, moduleName, cast(uint)label,
+                                  parameters);
                 job.callStack.push(jid);
                 break;
             default:
@@ -473,6 +473,40 @@ class Interpreter {
         }
 
         return interpreterResult;
+    }
+
+    private uint spawn(Scheduler scheduler, uint address, long[] parameters) {
+        long returnAddress = -1;
+        long fp = -1;
+        long[] initialCallStack = parameters ~ returnAddress ~ fp;
+        auto jid = Scheduler.nextJid();
+        writefln("NEW LOCAL JOB: %s", to!string(initialCallStack));
+        auto job = new Job(jid, address, initialCallStack);
+        // Set FP to first CALL parameter
+        job.callStack.fp = job.callStack.length - 2 - parameters.length;
+        scheduler.spawn(job);
+        return jid;
+    }
+
+    static uint mspawn(Loader loader, Scheduler scheduler, string moduleName,
+                       uint label, long[] parameters) {
+        if (!loader.isModuleLoaded(moduleName)) {
+            loader.loadPOSMCode(moduleName);
+            debug(scheduler) {
+                loader.prettyPrint(moduleName);
+            }
+        }
+        auto address = loader.lookupAddress(moduleName, label);
+        long returnAddress = -1;
+        long fp = -1;
+        long[] initialCallStack = parameters ~ returnAddress ~ fp;
+        auto jid = Scheduler.nextJid();
+        writefln("NEW JOB: %s", to!string(initialCallStack));
+        auto job = new Job(jid, address, initialCallStack);
+        // Set FP to first CALL parameter
+        job.callStack.fp = job.callStack.length - 2 - parameters.length;
+        scheduler.spawn(job);
+        return jid;
     }
 
     void call(Job job, uint address, ubyte arity, ubyte stackAddition) {
