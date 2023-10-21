@@ -1,15 +1,15 @@
 module loader;
 
-import std.stdio : File, writeln, writef, writefln;
-import std.string : strip, split, indexOf;
-import std.conv : to, ConvException;
-import std.typecons : Tuple;
-import std.algorithm.searching : canFind;
-import std.utf: toUTF8;
-import std.regex: replace, regex, matchFirst;
-import std.path: buildPath;
-import std.range: empty;
-import std.file: exists;
+import std.stdio;
+import std.string;
+import std.conv;
+import std.typecons;
+import std.algorithm.searching;
+import std.utf;
+import std.regex;
+import std.path;
+import std.range;
+import std.file;
 
 import instructions;
 import prettyprint;
@@ -192,7 +192,7 @@ class Loader {
                 break;
             case Opcodes.pushs:
                 if (operandsAsString.length == 0) {
-                    throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+                    throw new LoaderError("Invalid operand in '" ~ line ~ "'");
                 }
                 ubyte[] bytes =
                     cast(ubyte[])toUTF8(operandsAsString.strip(`"`));
@@ -215,7 +215,7 @@ class Loader {
                 } else if (operands[0] == "copy") {
                     Instructions.insert(ReturnModes.copy, byteCode);
                 } else {
-                    throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+                    throw new LoaderError("Invalid operand '" ~ line ~ "'");
                 }
                 break;
             case Opcodes.sys:
@@ -224,7 +224,8 @@ class Loader {
                 if (operands[0] in Instructions.stringToSystemCall) {
                     systemCall = Instructions.stringToSystemCall[operands[0]];
                 } else {
-                    throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+                    throw new LoaderError("Invalid system call in '" ~ line ~
+                                          "'");
                 }
                 Instructions.insert(systemCall, byteCode);
                 break;
@@ -258,6 +259,7 @@ class Loader {
                 Instructions.set!uint(labelAddress, &byteCode[address + 1 + ubyte.sizeof + long.sizeof]);
                 address += ubyte.sizeof + long.sizeof + uint.sizeof;
             } else if (opcode == Opcodes.subrri) {
+                // address += Instructions.registerRegisterValueSize
                 address += ubyte.sizeof + ubyte.sizeof + long.sizeof;
             } else if (opcode == Opcodes.subrsi) {
                 address += ubyte.sizeof + uint.sizeof + long.sizeof;
@@ -315,10 +317,10 @@ class Loader {
         }
     }
 
-        private void assertOperands(ulong arity, ubyte expectedArity,
-                                    string line) {
+    private void assertOperands(ulong arity, ubyte expectedArity,
+                                string line) {
         if (arity != expectedArity) {
-            throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+            throw new LoaderError("Invalid operands in '" ~ line ~ "'");
         }
     }
 
@@ -329,7 +331,7 @@ class Loader {
                 return;
             }
         }
-        throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+        throw new LoaderError("Invalid operands in '" ~ line ~ "'");
     }
 
     private T parse(T)(string value, string line)
@@ -339,7 +341,7 @@ class Loader {
              try {
                  return to!T(value);
              } catch (ConvException) {
-                 throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+                 throw new LoaderError("Invalid operands in '" ~ line ~ "'");
              }
          }
 
@@ -351,7 +353,7 @@ class Loader {
                 return register;
             }
         }
-        throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+        throw new LoaderError("Invalid register in '" ~ line ~ "'");
     }
 
     private long parseImmediateValue(string valueString, string line) {
@@ -360,7 +362,7 @@ class Loader {
             auto value = parse!long(match.captures[1], line);
             return value;
         }
-        throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+        throw new LoaderError("Invalid immediate value in '" ~ line ~ "'");
     }
 
     private uint parseStackOffset(string stackOffsetString, string line) {
@@ -369,7 +371,7 @@ class Loader {
             auto stackOffset = parse!uint(match.captures[1], line);
             return stackOffset + 2;
         }
-        throw new LoaderError("Invalid instruction '" ~ line ~ "'");
+        throw new LoaderError("Invalid stack offset in '" ~ line ~ "'");
     }
 
     public bool isModuleLoaded(string moduleName) {

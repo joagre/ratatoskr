@@ -44,54 +44,54 @@ label 10         ; start2()
   ret
 
 label 1          ; ackermann(0, N)
-  push 0
+  push -2
   load           ; M
   push 0
   neq            ; M == 0?
   cjump 2
-  push 1
+  push -1
   load           ; N
   push 1
   add            ; N + 1
   ret
 
 label 2          ; ackermann(M, 0) when M > 0
-  push 1
+  push -1
   load           ; N
   push 0
   neq
   cjump 3
-  push 0
+  push -2
   load           ; M
   push 0
   gt             ; M > 0 ?
   not
   cjump 3
-  push 0         ; M
+  push -2        ; M
   load
   push 1
   sub            ; M - 1
-  push 0
+  push -2
   store          ; Replace parameter M
   push 1
-  push 1
+  push -1
   store          ; Replace parameter N
   jump 1         ; ackermann(M - 1, 1);
 
 label 3          ; ackermann(M, N) when M > 0, N > 0
-  push 0
+  push -2
   load           ; M
   push 1
   sub            ; M - 1
-  push 0
+  push -2
   load           ; M
-  push 1
+  push -1
   load           ; N
   push 1
   sub            ; N - 1
   call 1 2       ; ackermann(M, N - 1)
-  push 1
+  push -1
   store          ; Replace parameter N
-  push 0
+  push -2
   store          ; Replace parameter M
   jump 1         ; ackermann(M - 1, ackermann(M, N - 1))

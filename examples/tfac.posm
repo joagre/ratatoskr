@@ -10,27 +10,27 @@
 ;     fac(N - 1, N * Acc).
 
 label 0          ; fac(0, Acc)
-  push 0
+  push -2
   load           ; N
   push 0
   neq
   cjump 1
-  push 1
+  push -1
   load           ; Acc
   ret
 
 label 1          ; fac(N, Acc)
-  push 0
+  push -2
   load           ; N
   push 1
   sub            ; N - 1
-  push 0
+  push -2
   load           ; N
-  push 1
+  push -1
   load           ; Ack
   mul
-  push 1
+  push -1
   store          ; Replace parameter Acc
-  push 0
+  push -2
   store          ; Replace parameter N
   jump 0         ; fac(N - 1, N * Acc).

@@ -144,7 +144,7 @@ __fac__start__
 ;     N * fac(N - 1).
 
 label 0          ; fac(1)
-  push 0
+  push -1
   load           ; N
   push 1
   neq
@@ -153,9 +153,9 @@ label 0          ; fac(1)
   ret
 
 label 1          ; fac(N)
-  push 0
+  push -1
   load           ; N
-  push 0
+  push -1
   load           ; N
   push 1
   sub            ; N - 1
@@ -181,28 +181,28 @@ __tfac__start__
 ;     fac(N - 1, N * Acc).
 
 label 0          ; fac(0, Acc)
-  push 0
+  push -2
   load           ; N
   push 0
   neq
   cjump 1
-  push 1
+  push -1
   load           ; Acc
   ret
 
 label 1          ; fac(N, Acc)
-  push 0
+  push -2
   load           ; N
   push 1
   sub            ; N - 1
-  push 0
+  push -2
   load           ; N
-  push 1
+  push -1
   load           ; Ack
   mul
-  push 1
+  push -1
   store          ; Replace parameter Acc
-  push 0
+  push -2
   store          ; Replace parameter N
   jump 0         ; fac(N - 1, N * Acc).
 __tfac__end__
@@ -220,7 +220,7 @@ __module_calls__start__
 ;     io:format("~w\n", [tfac:fac(N + 2)]).
 
 label 0          ; start(N)
-  push 0
+  push -1
   load           ; N
   push 1         ; Arity
   pushs "fac"    ; Module name
@@ -228,7 +228,7 @@ label 0          ; start(N)
   mcall          ; fac:fac(N)
   sys display
   pop
-  push 0
+  push -1
   load           ; N
   push 2
   add            ; N + 2
@@ -292,55 +292,55 @@ label 10         ; start2()
   ret
 
 label 1          ; ackermann(0, N)
-  push 0
+  push -2
   load           ; M
   push 0
   neq            ; M == 0?
   cjump 2
-  push 1
+  push -1
   load           ; N
   push 1
   add            ; N + 1
   ret
 
 label 2          ; ackermann(M, 0) when M > 0
-  push 1
+  push -1
   load           ; N
   push 0
   neq
   cjump 3
-  push 0
+  push -2
   load           ; M
   push 0
   gt             ; M > 0 ?
   not
   cjump 3
-  push 0         ; M
+  push -2        ; M
   load
   push 1
   sub            ; M - 1
-  push 0
+  push -2
   store          ; Replace parameter M
   push 1
-  push 1
+  push -1
   store          ; Replace parameter N
   jump 1         ; ackermann(M - 1, 1);
 
 label 3          ; ackermann(M, N) when M > 0, N > 0
-  push 0
+  push -2
   load           ; M
   push 1
   sub            ; M - 1
-  push 0
+  push -2
   load           ; M
-  push 1
+  push -1
   load           ; N
   push 1
   sub            ; N - 1
   call 1 2       ; ackermann(M, N - 1)
-  push 1
+  push -1
   store          ; Replace parameter N
-  push 0
+  push -2
   store          ; Replace parameter M
   jump 1         ; ackermann(M - 1, ackermann(M, N - 1))
 __ackermann__end__
@@ -374,17 +374,17 @@ __message_passing__start__
 
 label 0          ; start(N)
   sys self       ; self()
-  push 0
+  push -1
   load           ; N
   call 10 2      ; spawn_all(self(), N),
   pop
-  push 0
+  push -1
   load           ; N
   call 20 1      ; wait_for_all(N).
   ret
 
 label 10         ; spawn_all(_Self, 0)
-  push 1
+  push -1
   load           ; N
   push 0
   neq
@@ -394,37 +394,37 @@ label 10         ; spawn_all(_Self, 0)
   ret
 
 label 11         ; spawn_all(Self, N)
-  push 0
+  push -2
   load           ; Self
-  push 1
+  push -1
   load           ; N
   spawn 12 2     ; fun() -> Self ! ackermann:ackermann(3, N) end)
   pop
-  push 0
+  push -2
   load           ; Self
-  push 1
+  push -1
   load           ; N
   push 1
   sub            ; N - 1
   call 10 2      ; spawn_all(Self, N - 1)
   ret
 
-label 12         ; ackermann:ackermann(3, N)
+label 12         ; fun(Self, N)
   push 3         ; M
-  push 1
+  push -1
   load           ; N
   push 2         ; Arity
   pushs "ackermann"
   push 1         ; Label
   mcall          ; ackermann:ackermann(3, N)
-  push 0
+  push -2
   load           ; Self
   swap
   sys send
   ret
 
 label 20         ; wait_for_all(0)
-  push 0
+  push -1
   load           ; N
   push 0
   neq
@@ -437,7 +437,7 @@ label 21         ; wait_for_all(N)
   sys recv
   sys display
   pop
-  push 0
+  push -1
   load           ; N
   push 1
   sub            ; N - 1

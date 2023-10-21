@@ -22,17 +22,17 @@
 
 label 0          ; start(N)
   sys self       ; self()
-  push 0
+  push -1
   load           ; N
   call 10 2      ; spawn_all(self(), N),
   pop
-  push 0
+  push -1
   load           ; N
   call 20 1      ; wait_for_all(N).
   ret
 
 label 10         ; spawn_all(_Self, 0)
-  push 1
+  push -1
   load           ; N
   push 0
   neq
@@ -42,37 +42,37 @@ label 10         ; spawn_all(_Self, 0)
   ret
 
 label 11         ; spawn_all(Self, N)
-  push 0
+  push -2
   load           ; Self
-  push 1
+  push -1
   load           ; N
   spawn 12 2     ; fun() -> Self ! ackermann:ackermann(3, N) end)
   pop
-  push 0
+  push -2
   load           ; Self
-  push 1
+  push -1
   load           ; N
   push 1
   sub            ; N - 1
   call 10 2      ; spawn_all(Self, N - 1)
   ret
 
-label 12         ; ackermann:ackermann(3, N)
+label 12         ; fun(Self, N)
   push 3         ; M
-  push 1
+  push -1
   load           ; N
   push 2         ; Arity
   pushs "ackermann"
   push 1         ; Label
   mcall          ; ackermann:ackermann(3, N)
-  push 0
+  push -2
   load           ; Self
   swap
   sys send
   ret
 
 label 20         ; wait_for_all(0)
-  push 0
+  push -1
   load           ; N
   push 0
   neq
@@ -85,7 +85,7 @@ label 21         ; wait_for_all(N)
   sys recv
   sys display
   pop
-  push 0
+  push -1
   load           ; N
   push 1
   sub            ; N - 1

@@ -6,7 +6,7 @@
 ;     io:format("~w\n", [tfac:fac(N + 2)]).
 
 label 0          ; start(N)
-  push 0
+  push -1
   load           ; N
   push 1         ; Arity
   pushs "fac"    ; Module name
@@ -14,7 +14,7 @@ label 0          ; start(N)
   mcall          ; fac:fac(N)
   sys display
   pop
-  push 0
+  push -1
   load           ; N
   push 2
   add            ; N + 2

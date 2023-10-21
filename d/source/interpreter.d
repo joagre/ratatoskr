@@ -1,12 +1,12 @@
 module interpreter;
 
-import std.conv : to;
-import std.datetime : Duration, Clock;
-import std.stdio : write, writeln, writefln, writef;
-import std.algorithm.iteration : map;
-import std.algorithm.mutation : reverse;
+import std.conv;
+import std.datetime;
+import std.stdio;
+import std.algorithm.iteration;
+import std.algorithm.mutation;
 import std.array;
-import std.range : iota;
+import std.range;
 
 import job;
 import scheduler;
@@ -119,7 +119,8 @@ class Interpreter {
                     Instructions.get!long(
                         &byteCode[job.pc + ubyte.sizeof + uint.sizeof]);
                 job.registers[register] =
-                    job.callStack.stack[job.callStack.fp + stackOffset] - value;
+                    job.callStack.stack[job.callStack.fp + stackOffset] -
+                    value;
                 job.pc += ubyte.sizeof + uint.sizeof + long.sizeof;
                 break;
 
@@ -172,23 +173,23 @@ class Interpreter {
             case Opcodes.rcall:
                 // Extract address to function
                 auto address = Instructions.get!uint(&byteCode[job.pc]);
-                // Add return address to call stack
+                // Push return address onto call stack
                 job.callStack.push(job.pc + uint.sizeof);
-                // Save previous FP on call stack
+                // Push previous FP onto call stack
                 job.callStack.push(job.callStack.fp);
-                // Set FP to point to return address
+                // Set FP to point at return address
                 job.callStack.fp = job.callStack.length - 2;
                 // Jump to function address
                 job.pc = address;
                 break;
             case Opcodes.rret:
                 auto returnAddress = job.callStack.stack[job.callStack.fp];
-                // Save previous FP
+                // Remember previous FP
                 auto previousFp = job.callStack.stack[job.callStack.fp + 1];
                 // Remove call stack frame
                 job.callStack.stack =
                     job.callStack.stack[0 .. job.callStack.fp];
-                // Has stack been exhausted?
+                // Has call stack been exhausted?
                 if (job.callStack.length == 1 || returnAddress == -1) {
                     return InterpreterResult.halt;
                 }
@@ -266,113 +267,59 @@ class Interpreter {
                 break;
             case Opcodes.mcall:
                 // Extract function label, module name and function arity
-                // NOTE: Parameters are left on the call stack
                 auto label = job.callStack.pop();
                 auto moduleName = job.callStack.popString();
                 auto arity = job.callStack.pop();
-                // Ensure that the module is loaded
+                // Ensure that module is loaded
                 if (!loader.isModuleLoaded(moduleName)) {
                     loader.loadModule(moduleName);
                     debug(scheduler) {
                         loader.prettyPrint(moduleName);
                     }
                 }
-                // Extract address to function
                 auto address =
                     loader.lookupAddress(moduleName, cast(uint)label);
                 call(job, cast(uint)address, cast(ubyte)arity, 0);
                 break;
             case Opcodes.ret:
-                /*
-                // Save essential information from the call stack
+                // Remember essential stack information
                 auto returnValue = job.callStack.pop();
                 auto arity = job.callStack.stack[job.callStack.fp];
-                auto returnAddress =
-                    job.callStack.stack[job.callStack.fp + arity + 1];
-                auto previousFp =
-                    job.callStack.stack[job.callStack.fp + arity + 2];
-                // Remove the call stack
-                job.callStack.stack = job.callStack.stack[0 .. job.callStack.fp + ];
-                // Push the return value onto the caller's call stack
+                auto returnAddress = job.callStack.stack[job.callStack.fp + 1];
+                auto previousFp = job.callStack.stack[job.callStack.fp + 2];
+                // Remove stack frame
+                job.callStack.stack =
+                    job.callStack.stack[0 .. job.callStack.fp - arity];
+                // Push return value onto caller's stack
                 auto returnMode = Instructions.get!ubyte(&byteCode[job.pc]);
                 if (returnMode == ReturnModes.copy) {
-                    returnData = job.dataStack.peek(returnValue);
-                    // Copy the return data onto the caller's data stack
+                    ubyte[] returnData = job.dataStack.peek(returnValue);
+                    // Copy data onto caller's data stack
                     auto returnDataCopy = job.dataStack.push(returnData);
                     auto dataAddress = returnDataCopy[0];
-                    // Push the return data address onto caller's call stack
+                    // Push data address onto caller's stack
                     job.callStack.push(dataAddress);
                 } else {
-                    // Push the return value onto caller's call stack
+                    // Push return value onto caller's stack
                     job.callStack.push(returnValue);
                 }
-                // Remove the data stack frame
-                auto previousDataFp =
-                    Instructions.get!long(
-                        &job.dataStack.stack[job.dataStack.fp]);
-                job.dataStack.stack =
-                    job.dataStack.stack[0 .. job.dataStack.fp];
-                // Restore data FP to previous data FP
-                job.dataStack.fp = previousDataFp;
-                // Has the call stack been exhausted?
-                if (job.callStack.length == 1 || returnAddress == -1) {
-                    // Just keep the result and throw away any parameters
-                    job.callStack.stack = job.callStack.stack[$ - 1 .. $];
-                    return InterpreterResult.halt;
-                } else {
-                    // Restore previous FP and jump to return address
-                    job.callStack.fp = previousFp;
-                    job.pc = cast(uint)returnAddress;
-                }
-                break;
-                */
-                // Is the return done by value or by copy?
-                auto returnMode = Instructions.get!ubyte(&byteCode[job.pc]);
-                // Swap return value and previous FP
-                job.callStack.swap();
-                // Restore FP to previous FP
-                auto currentFp = job.callStack.fp;
-                job.callStack.fp = job.callStack.pop();
-                // Swap return value and return address
-                job.callStack.swap();
-                // Pop return address
-                auto returnAddress = job.callStack.pop();
                 // Has stack been exhausted?
                 if (job.callStack.length == 1 || returnAddress == -1) {
-                    // Just keep the result and throw away any parameters
+                    // Just keep result
                     job.callStack.stack = job.callStack.stack[$ - 1 .. $];
                     return InterpreterResult.halt;
                 }
-                // Pop return value
-                auto returnValue = job.callStack.pop();
-                ubyte[] returnData = null;
-                if (returnMode == ReturnModes.copy) {
-                    // Extract return data
-                    returnData = job.dataStack.peek(returnValue);
-                }
-                // Remove call stack frame
-                job.callStack.stack = job.callStack.stack[0 .. currentFp];
-                // Jump to return address
-                job.pc = cast(uint)returnAddress;
                 // Remove data stack frame
                 auto previousDataFp =
                     Instructions.get!long(
                         &job.dataStack.stack[job.dataStack.fp]);
                 job.dataStack.stack =
                     job.dataStack.stack[0 .. job.dataStack.fp];
-                // Restore data FP to previous data FP
+                // Restore FP and data FP
+                job.callStack.fp = previousFp;
                 job.dataStack.fp = previousDataFp;
-                // Reinsert return value on call stack (and data stack)
-                if (returnMode == ReturnModes.copy) {
-                    // Copy the return data onto the caller's data stack
-                    auto result = job.dataStack.push(returnData);
-                    auto dataAddress = result[0];
-                    // Push the return data address onto caller's call stack
-                    job.callStack.push(dataAddress);
-                } else {
-                    // Push the return value onto caller's call stack
-                    job.callStack.push(returnValue);
-                }
+                // Jump to return address
+                job.pc = cast(uint)returnAddress;
                 break;
             case Opcodes.sys:
                 auto systemCall = Instructions.get!ushort(&byteCode[job.pc]);
@@ -456,8 +403,8 @@ class Interpreter {
                 auto arity = job.callStack.pop();
                 auto parameters =
                     iota(arity).map!(_ => job.callStack.pop()).array.reverse;
-                auto jid = mspawn(loader, scheduler, moduleName, cast(uint)label,
-                                  parameters);
+                auto jid = mspawn(loader, scheduler, moduleName,
+                                  cast(uint)label, parameters);
                 job.callStack.push(jid);
                 break;
             default:
@@ -478,20 +425,22 @@ class Interpreter {
         return interpreterResult;
     }
 
-    private uint spawn(Scheduler scheduler, uint address, long[] parameters) {
+    static uint spawn(Scheduler scheduler, uint address, long[] parameters) {
+        long arity = parameters.length;
         long returnAddress = -1;
         long fp = -1;
-        long[] initialCallStack = parameters ~ returnAddress ~ fp;
+        long[] initialCallStack = parameters ~ arity ~ returnAddress ~ fp;
         auto jid = Scheduler.nextJid();
         auto job = new Job(jid, address, initialCallStack);
-        // Set FP to first call parameter
-        job.callStack.fp = job.callStack.length - 2 - parameters.length;
+        // Set FP to point to arity
+        job.callStack.fp = job.callStack.length - 3;
         scheduler.spawn(job);
         return jid;
     }
 
     static uint mspawn(Loader loader, Scheduler scheduler, string moduleName,
                        uint label, long[] parameters) {
+        // Ensure that module is loaded
         if (!loader.isModuleLoaded(moduleName)) {
             loader.loadModule(moduleName);
             debug(scheduler) {
@@ -499,29 +448,23 @@ class Interpreter {
             }
         }
         auto address = loader.lookupAddress(moduleName, label);
-        long returnAddress = -1;
-        long fp = -1;
-        long[] initialCallStack = parameters ~ returnAddress ~ fp;
-        auto jid = Scheduler.nextJid();
-        auto job = new Job(jid, address, initialCallStack);
-        // Set FP to first call parameter
-        job.callStack.fp = job.callStack.length - 2 - parameters.length;
-        scheduler.spawn(job);
-        return jid;
+        return spawn(scheduler, address, parameters);
     }
 
-    void call(Job job, uint address, ubyte arity, ubyte stackAddition) {
-        // Add return address to stack
-        job.callStack.push(job.pc + stackAddition);
-        // Save previous FP on the stack
+    void call(Job job, uint address, ubyte arity, ubyte sizeOfOperands) {
+        // Push arity onto stack
+        job.callStack.push(arity);
+        // Push return address onto stack
+        job.callStack.push(job.pc + sizeOfOperands);
+        // Push previous FP onto stack
         job.callStack.push(job.callStack.fp);
-        // Set FP to first CALL parameter (NOTE: We just pushed two values)
-        job.callStack.fp = job.callStack.length - 2 - arity;
-        // Jump to CALL address
-        job.pc = address;
-        // Save previous data FP on the data stack
+        // Set FP to point to arity
+        job.callStack.fp = job.callStack.length - 3;
+        // Save previous data FP on data stack
         Instructions.insert(job.dataStack.fp, job.dataStack.stack);
-        // Set data FP to the previous data FP
+        // Set data FP to previous data FP
         job.dataStack.fp = job.dataStack.length - long.sizeof;
+        // Jump to function address
+        job.pc = address;
     }
 }

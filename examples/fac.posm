@@ -7,7 +7,7 @@
 ;     N * fac(N - 1).
 
 label 0          ; fac(1)
-  push 0
+  push -1
   load           ; N
   push 1
   neq
@@ -16,9 +16,9 @@ label 0          ; fac(1)
   ret
 
 label 1          ; fac(N)
-  push 0
+  push -1
   load           ; N
-  push 0
+  push -1
   load           ; N
   push 1
   sub            ; N - 1

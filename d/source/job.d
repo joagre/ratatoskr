@@ -1,9 +1,9 @@
 module job;
 
-import std.stdio : writeln;
-import std.conv : to;
-import std.typecons : Tuple;
-import std.container : DList;
+import std.stdio;
+import std.conv;
+import std.typecons;
+import std.container;
 
 import instructions;
 

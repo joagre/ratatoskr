@@ -1,12 +1,12 @@
 module scheduler;
 
-import Stdio = std.stdio;
-import Container = std.container;
-import Datetime = std.datetime;
-import Conv = std.conv;
-import Thread = core.thread;
-import Algorithm = std.algorithm;
-import Range = std.range;
+import std.stdio;
+import std.container;
+import std.datetime;
+import std.conv;
+import core.thread;
+import std.algorithm;
+import std.range;
 
 import interpreter;
 import job;
@@ -21,10 +21,10 @@ class SchedulerError : Exception {
 class Scheduler {
     static uint jid = 0;
 
-    private Container.DList!Job readyQueue;
-    private Container.DList!Job waitingQueue;
+    private DList!Job readyQueue;
+    private DList!Job waitingQueue;
 
-    private Datetime.Duration timeSlice;
+    private Duration timeSlice;
     private uint checkAfter;
 
     private Interpreter interpreter;
@@ -36,10 +36,10 @@ class Scheduler {
          uint checkAfter) {
         this.loader = loader;
         this.interpreter = interpreter;
-        this.timeSlice = Datetime.msecs(timeSlice);
+        this.timeSlice = msecs(timeSlice);
         this.checkAfter = checkAfter;
-        this.readyQueue = Container.DList!Job();
-        this.waitingQueue = Container.DList!Job();
+        this.readyQueue = DList!Job();
+        this.waitingQueue = DList!Job();
         this.runningJob = null;
     }
 
@@ -59,10 +59,10 @@ class Scheduler {
                 final switch(result) {
                 case InterpreterResult.halt:
                     debug(user) {
-                        Stdio.writefln(
+                        writefln(
                             "Job %d halted: %s (r0 = %d)",
                             runningJob.jid,
-                            Conv.to!string(runningJob.callStack.stack),
+                            to!string(runningJob.callStack.stack),
                             runningJob.registers[0]);
                     }
                     break;
@@ -78,7 +78,7 @@ class Scheduler {
                     return;
                 }
             }
-            Thread.Thread.sleep(timeSlice); // FIXME: A bit ugly
+            Thread.sleep(timeSlice); // FIXME: A bit ugly
         }
     }
 
@@ -120,8 +120,8 @@ class Scheduler {
 
     private void removeFromWaitingQueue(uint jid) {
         auto allJobs = waitingQueue[];
-        auto foundJobs = Algorithm.find!(job => job.jid == jid)(allJobs);
-        auto toRemove = Range.take(foundJobs, 1);
+        auto foundJobs = find!(job => job.jid == jid)(allJobs);
+        auto toRemove = take(foundJobs, 1);
         if (!toRemove.empty) {
             waitingQueue.linearRemove(toRemove);
         }

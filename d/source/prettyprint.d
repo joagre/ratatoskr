@@ -1,7 +1,7 @@
 module prettyprint;
 
-import std.stdio : File, writeln, writefln;
-import std.conv : to;
+import std.stdio;
+import std.conv;
 
 import loader;
 import instructions;

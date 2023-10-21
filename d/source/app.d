@@ -75,7 +75,8 @@ int main(string[] args) {
     try {
         auto loader = new Loader(loadPath);
         auto interpreter = new Interpreter(loader);
-        auto scheduler = new Scheduler(loader, interpreter, timeSlice, checkAfter);
+        auto scheduler =
+            new Scheduler(loader, interpreter, timeSlice, checkAfter);
         Interpreter.mspawn(loader, scheduler, moduleName, label, parameters);
         scheduler.run();
     } catch (LoaderError e) {
