@@ -62,7 +62,7 @@ class Loader {
                 if (operands.length != 1) {
                     throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
-                module_.insertLabel(Vm.parse!LabelType(operands[0], line),
+                module_.insertLabel(parse!LabelType(operands[0], line),
                                     cast(AddressType)byteCode.length);
                 continue;
             }
@@ -77,8 +77,7 @@ class Loader {
             }
 
             // Insert opcode and its operand(s) into byte code
-            auto operandBytes =
-                Vm.getOperandsAsBytes(opcodeInfo, operands, line);
+            auto operandBytes = getOperandsAsBytes(opcodeInfo, operands, line);
             byteCode ~= operandBytes;
         }
 
@@ -91,17 +90,17 @@ class Loader {
             if (opcode == Opcode.jmprnze) {
                 resolveLabel(byteCode, module_, operandAddress,
                              RegisterType.sizeof);
-                address += Vm.sizeOfOperands(Opcode.jmprnze);
+                address += sizeOfOperands(Opcode.jmprnze);
             } else if (opcode == Opcode.jmpringt) {
                 resolveLabel(byteCode, module_, operandAddress,
                              RegisterType.sizeof + ImmediateValueType.sizeof);
-                address += Vm.sizeOfOperands(Opcode.jmpringt);
+                address += sizeOfOperands(Opcode.jmpringt);
             } else if (opcode == Opcode.rcall) {
                 resolveLabel(byteCode, module_, operandAddress, 0);
-                address += Vm.sizeOfOperands(Opcode.rcall);
+                address += sizeOfOperands(Opcode.rcall);
             } else if (opcode == Opcode.jmp) {
                 resolveLabel(byteCode, module_, operandAddress, 0);
-                address += Vm.sizeOfOperands(Opcode.jmp);
+                address += sizeOfOperands(Opcode.jmp);
             // Stack machine instructions
             } else if (opcode == Opcode.pushs) {
                 auto length =
@@ -109,18 +108,18 @@ class Loader {
                 address += DataLengthType.sizeof + length;
             } else if (opcode == Opcode.jump) {
                 resolveLabel(byteCode, module_, operandAddress, 0);
-                address += Vm.sizeOfOperands(Opcode.jump);
+                address += sizeOfOperands(Opcode.jump);
             } else if (opcode == Opcode.cjump) {
                 resolveLabel(byteCode, module_, operandAddress, 0);
-                address += Vm.sizeOfOperands(Opcode.cjump);
+                address += sizeOfOperands(Opcode.cjump);
             } else if (opcode == Opcode.call) {
                 resolveLabel(byteCode, module_, operandAddress, 0);
-                address += Vm.sizeOfOperands(Opcode.call);
+                address += sizeOfOperands(Opcode.call);
             } else if (opcode == Opcode.spawn) {
                 resolveLabel(byteCode, module_, operandAddress, 0);
-                address += Vm.sizeOfOperands(Opcode.spawn);
+                address += sizeOfOperands(Opcode.spawn);
             } else {
-                address += Vm.sizeOfOperands(cast(Opcode)opcode);
+                address += sizeOfOperands(cast(Opcode)opcode);
             }
             address++;
         }
@@ -174,6 +173,150 @@ class Loader {
             writef("%d: ", address);
             address += 1 + PrettyPrint.printInstruction(&byteCode[address]);
         }
+    }
+
+    private ubyte[] getOperandsAsBytes(ref OpcodeInfo opcodeInfo,
+                                       string[] operands, string line) {
+        if (!(opcodeInfo.opcode == Opcode.pushs ||
+              opcodeInfo.opcode == Opcode.ret ||
+              operands.length == opcodeInfo.operandTypes.length)) {
+            throw new VmError("Wrong number of operands in '" ~ line ~ "'");
+        }
+
+        ubyte[] bytes;
+        for (auto i = 0; i < opcodeInfo.operandTypes.length; i++) {
+            final switch(opcodeInfo.operandTypes[i]) {
+            case OperandType.stackValue:
+                auto stackValue = parse!StackValueType(operands[i], line);
+                insertBytes(stackValue, bytes);
+                break;
+            case OperandType.register:
+                auto match = matchFirst(operands[i], regex(`^r([0-9]+)`));
+                if (match) {
+                    auto register =
+                        parse!RegisterType(match.captures[1], line);
+                    if (register >= 0 && register <= Vm.numberOfRegisters) {
+                        insertBytes(register, bytes);
+                    } else {
+                        throw new VmError("Bad register in '" ~ line ~ "'");
+                    }
+                } else {
+                    throw new VmError("Bad register in '" ~ line ~ "'");
+                }
+                break;
+            case OperandType.label:
+                auto label = parse!LabelType(operands[i], line);
+                insertBytes(label, bytes);
+                break;
+            case OperandType.immediateValue:
+                auto match = matchFirst(operands[i], regex(`^#([0-9]+)`));
+                if (match) {
+                    auto immediateValue =
+                        parse!ImmediateValueType(match.captures[1], line);
+                    insertBytes(immediateValue, bytes);
+                } else {
+                    throw new VmError("Bad immediate value in '" ~ line ~ "'");
+                }
+                break;
+            case OperandType.stackOffset:
+                auto match = matchFirst(operands[i], regex(`^@([0-9]+)`));
+                if (match) {
+                    auto stackOffset =
+                        parse!StackOffsetType(match.captures[1], line);
+                    // FP points at the return address (followed by the
+                    // previous FP)
+                    insertBytes(stackOffset + 2, bytes);
+                } else {
+                    throw new VmError("Bad stack offset in '" ~ line ~ "'");
+                }
+                break;
+            case OperandType.arity:
+                auto arity = parse!ArityType(operands[i], line);
+                insertBytes(arity, bytes);
+                break;
+            case OperandType.returnMode:
+                if (operands.length == 0) {
+                    insertBytes(ReturnMode.value, bytes);
+                } else if (operands[0] == "copy") {
+                    insertBytes(ReturnMode.copy, bytes);
+                } else {
+                    throw new VmError("Invalid return mode in '" ~ line ~ "'");
+                }
+                break;
+            case OperandType.systemCall:
+                if (operands[0] in Vm.stringToSystemCall) {
+                    SystemCall systemCall = Vm.stringToSystemCall[operands[0]];
+                    insertBytes(systemCall, bytes);
+                } else {
+                    throw new VmError("Invalid system call in '" ~ line ~ "'");
+                }
+                break;
+            case OperandType.string:
+                ubyte[] stringBytes =
+                    cast(ubyte[])toUTF8(operands.join(" ").strip(`"`));
+                insertBytes(cast(DataLengthType)stringBytes.length, bytes);
+                bytes ~= stringBytes;
+                break;
+            }
+        }
+
+        return bytes;
+    }
+
+    private uint sizeOfOperands(Opcode opcode) {
+        auto opcodeInfo = Vm.stringToOpcodeInfo[to!string(opcode)];
+        uint size = 0;
+        foreach(operandType; opcodeInfo.operandTypes) {
+            final switch(operandType) {
+            case OperandType.stackValue:
+                size += StackValueType.sizeof;
+                break;
+            case OperandType.register:
+                size += RegisterType.sizeof;
+                break;
+            case OperandType.label:
+                size += LabelType.sizeof;
+                break;
+            case OperandType.immediateValue:
+                size += ImmediateValueType.sizeof;
+                break;
+            case OperandType.stackOffset:
+                size += StackOffsetType.sizeof;
+                break;
+            case OperandType.arity:
+                size += ArityType.sizeof;
+                break;
+            case OperandType.returnMode:
+                size += ReturnModeType.sizeof;
+                break;
+            case OperandType.systemCall:
+                size += SystemCallType.sizeof;
+                break;
+            case OperandType.string:
+                // String length calculation is taken care of elsewhere
+            }
+        }
+        return size;
+    }
+
+    private T parse(T)(string value, string line)
+         if(is(T == StackValueType) ||
+            is(T == RegisterType) ||
+            is(T == ImmediateValueType) ||
+            is(T == StackOffsetType) ||
+            is(T == DataLengthType) ||
+            is(T == ArityType) ||
+            is(T == ReturnModeType) ||
+            is(T == SystemCallType)) {
+             try {
+                 return to!T(value);
+             } catch (ConvException) {
+                 throw new VmError("Invalid operands in '" ~ line ~ "'");
+             }
+         }
+
+    private void insertBytes(T)(T value, ref ubyte[] bytes) {
+        bytes ~= (cast(ubyte*)&value)[0 .. T.sizeof];
     }
 }
 
