@@ -1,0 +1,36 @@
+; ackermann(0, N) ->
+;     N + 1;
+; ackermann(M, 0) when M > 0 ->
+;     ackermann(M - 1, 1);
+; ackermann(M, N) when M > 0, N > 0 ->
+;     ackermann(M - 1, ackermann(M, N - 1)).
+
+label 10
+  loadri r1 #3
+  loadri r2 #7
+  rcall 0
+  pushr r0
+  sys display
+  pop
+  rret
+
+label 0          ; ackermann(0, N)
+  jmprnze r1 1
+  addrri r0 r2 #1
+  rret
+
+label 1          ; ackermann(M, 0) when M > 0
+  jmprnze r2 2
+;  jmpringt r1 #0 2
+  subrri r1 r1 #1
+  loadri r2 #1
+  jmp 0          ; ackermann(M - 1, 1);
+
+label 2          ; ackermann(M, N) when M > 0, N > 0
+  pushr r1
+  subrri r2 r2 #1
+  rcall 0        ; ackermann(M, N - 1)
+  subrsi r1 @0 #1
+  loadrr r2 r0
+  pop
+  jmp 0          ; ackermann(M - 1, ackermann(M, N - 1)).

@@ -5,7 +5,7 @@ import std.conv;
 import std.typecons;
 import std.container;
 
-import instructions;
+import vm;
 
 enum JobMode : ubyte {
     init,
@@ -15,15 +15,13 @@ enum JobMode : ubyte {
 }
 
 class Job {
-    static const ubyte REGISTERS = 64;
-
     public uint jid;
     public JobMode mode;
     public uint pc;
     public DataStack dataStack;
     public CallStack callStack;
     public MessageBox messageBox;
-    public long[REGISTERS] registers;
+    public long[Vm.numberOfRegisters] registers;
 
     this(uint jid, uint pc, long[] initialCallStack) {
         this.jid = jid;
@@ -55,6 +53,7 @@ class CallStack  {
         stack ~= value;
     }
 
+    pragma(inline, true)
     public string popString() {
         auto dataAddress = pop();
         auto bytes = dataStack.peek(dataAddress);
@@ -68,29 +67,34 @@ class CallStack  {
         return topValue;
     }
 
+    pragma(inline, true)
     public void dup() {
         auto topValue = stack[$ - 1];
         stack ~= topValue;
     }
 
+    pragma(inline, true)
     public void swap() {
         auto topValue = stack[$ - 1];
         stack[$ - 1] = stack[$ - 2];
         stack[$ - 2] = topValue;
     }
 
+    pragma(inline, true)
     public void load() {
         auto offset = pop();
         push(stack[fp + offset]);
     }
 
+    pragma(inline, true)
     public void store() {
         auto offset = pop();
         auto newValue = pop();
         stack[fp + offset] = newValue;
     }
 
-    public void op(long delegate(long, long) fun) {
+    pragma(inline, true)
+    public void binaryOperation(long delegate(long, long) fun) {
         auto operand2 = pop();
         auto operand1 = pop();
         push(fun(operand1, operand2));
@@ -109,16 +113,18 @@ class DataStack  {
         return stack.length;
     }
 
+    pragma(inline, true)
     public Tuple!(long, ushort) push(ubyte[] bytes) {
-        auto length = Instructions.get!ushort(&bytes[0]);
+        auto length = Vm.getValue!DataLengthType(&bytes[0]);
         long dataAddress = stack.length;
-        stack ~= bytes[0 .. ushort.sizeof + length];
-        return Tuple!(long, ushort)(dataAddress, length);
+        stack ~= bytes[0 .. DataLengthType.sizeof + length];
+        return Tuple!(long, DataLengthType)(dataAddress, length);
     }
 
+    pragma(inline, true)
     public ubyte[] peek(long dataAddress) {
         ubyte[] bytes = stack[dataAddress .. $];
-        auto length = Instructions.get!ushort(&bytes[0]);
+        auto length = Vm.getValue!ushort(&bytes[0]);
         return bytes[0 .. ushort.sizeof + length];
     }
 }

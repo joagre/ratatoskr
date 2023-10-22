@@ -3,133 +3,152 @@ module prettyprint;
 import std.stdio;
 import std.conv;
 
-import loader;
-import instructions;
+import vm;
 
 class PrettyPrint {
     static public uint printInstruction(ubyte* bytes) {
-        switch (bytes[0]) {
+        ubyte* operands = bytes + Opcode.sizeof;
+
+        switch (*bytes) {
         // Register machine instructions
-        case Opcodes.jmprnze:
-            auto register = Instructions.get!ubyte(&bytes[1]);
-            auto address = Instructions.get!uint(&bytes[1 + ubyte.sizeof]);
+        case Opcode.jmprnze:
+            uint size = 0;
+            auto register = mixin(Operand!(RegisterType, "operands", "size"));
+            auto address = mixin(Operand!(AddressType, "operands", "size"));
             writefln("jmprnze r%d %d", register, address);
-            return ubyte.sizeof + uint.sizeof;
-        case Opcodes.jmpringt:
-            /*
-            '(register, immediateValue, address, size) =
-               ril(job.pc, byte_code);
-            writefln("jmpringt r%d #%d %d", register, value, address);
             return size;
-            */
-
-
-            auto register = Instructions.get!ubyte(&bytes[1]);
-            auto value = Instructions.get!long(&bytes[1 + ubyte.sizeof]);
-            auto address =
-                Instructions.get!uint(&bytes[1 + ubyte.sizeof + long.sizeof]);
-            writefln("jmpringt r%d #%d %d", register, value, address);
-            return ubyte.sizeof + long.sizeof + uint.sizeof;
-        case Opcodes.subrri:
-            auto firstRegister = Instructions.get!ubyte(&bytes[1]);
+        case Opcode.jmpringt:
+            uint size = 0;
+            auto register = mixin(Operand!(RegisterType, "operands", "size"));
+            auto immediateValue =
+                mixin(Operand!(ImmediateValueType, "operands", "size"));
+            auto address = mixin(Operand!(AddressType, "operands", "size"));
+            writefln("jmpringt r%d #%d %d", register, immediateValue, address);
+            return size;
+        case Opcode.subrri:
+            uint size = 0;
+            auto firstRegister =
+                mixin(Operand!(RegisterType, "operands", "size"));
             auto secondRegister =
-                Instructions.get!ubyte(&bytes[1 + ubyte.sizeof]);
-            auto value =
-                Instructions.get!long(&bytes[1 + ubyte.sizeof + ubyte.sizeof]);
+                mixin(Operand!(RegisterType, "operands", "size"));
+            auto immediateValue =
+                mixin(Operand!(ImmediateValueType, "operands", "size"));
             writefln("subrri r%d r%d #%d", firstRegister, secondRegister,
-                     value);
-            return ubyte.sizeof + ubyte.sizeof + long.sizeof;
-        case Opcodes.subrsi:
-            auto register = Instructions.get!ubyte(&bytes[1]);
-            auto stackOffset = Instructions.get!uint(&bytes[1 + ubyte.sizeof]);
-            auto value = Instructions.get!long(&bytes[1 + ubyte.sizeof + uint.sizeof]);
-            writefln("subrsi r%d @%d #%d", register, stackOffset, value);
-            return ubyte.sizeof + uint.sizeof + long.sizeof;
-        case Opcodes.addrri:
-            auto firstRegister = Instructions.get!ubyte(&bytes[1]);
+                     immediateValue);
+            return size;
+        case Opcode.subrsi:
+            uint size = 0;
+            auto register = mixin(Operand!(RegisterType, "operands", "size"));
+            auto stackOffset =
+                mixin(Operand!(StackOffsetType, "operands", "size"));
+            auto immediateValue =
+                mixin(Operand!(ImmediateValueType, "operands", "size"));
+            writefln("subrsi r%d @%d #%d", register, stackOffset,
+                     immediateValue);
+            return size;
+        case Opcode.addrri:
+            uint size = 0;
+            auto firstRegister =
+                mixin(Operand!(RegisterType, "operands", "size"));
             auto secondRegister =
-                Instructions.get!ubyte(&bytes[1 + ubyte.sizeof]);
-            auto value =
-                Instructions.get!long(&bytes[1 + ubyte.sizeof + ubyte.sizeof]);
+                mixin(Operand!(RegisterType, "operands", "size"));
+            auto immediateValue =
+                mixin(Operand!(ImmediateValueType, "operands", "size"));
             writefln("addrri r%d r%d #%d", firstRegister, secondRegister,
-                     value);
-            return ubyte.sizeof + ubyte.sizeof + long.sizeof;
-        case Opcodes.loadri:
-            auto register = Instructions.get!ubyte(&bytes[1]);
-            auto value = Instructions.get!long(&bytes[1 + ubyte.sizeof]);
-            writefln("loadri r%d #%d", register, value);
-            return ubyte.sizeof + long.sizeof;
-        case Opcodes.pushr:
-            auto register = Instructions.get!ubyte(&bytes[1]);
+                     immediateValue);
+            return size;
+        case Opcode.loadri:
+            uint size = 0;
+            auto register = mixin(Operand!(RegisterType, "operands", "size"));
+            auto immediateValue =
+                mixin(Operand!(ImmediateValueType, "operands", "size"));
+            writefln("loadri r%d #%d", register, immediateValue);
+            return size;
+        case Opcode.pushr:
+            uint size = 0;
+            auto register =
+                mixin(Operand!(RegisterType, "operands", "size"));
             writefln("pushr r%d", register);
-            return ubyte.sizeof;
-        case Opcodes.loadrs:
-            auto register = Instructions.get!ubyte(&bytes[1]);
-            auto stackOffset = Instructions.get!uint(&bytes[1 + ubyte.sizeof]);
+            return size;
+        case Opcode.loadrs:
+            uint size = 0;
+            auto register = mixin(Operand!(RegisterType, "operands", "size"));
+            auto stackOffset =
+                mixin(Operand!(StackOffsetType, "operands", "size"));
             writefln("loadrs r%d @%d", register, stackOffset);
-            return ubyte.sizeof + uint.sizeof;
-        case Opcodes.loadrr:
-            auto firstRegister = Instructions.get!ubyte(&bytes[1]);
+            return size;
+        case Opcode.loadrr:
+            uint size = 0;
+            auto firstRegister =
+                mixin(Operand!(RegisterType, "operands", "size"));
             auto secondRegister =
-                Instructions.get!ubyte(&bytes[1 + ubyte.sizeof]);
+                mixin(Operand!(RegisterType, "operands", "size"));
             writefln("loadrr r%d r%d", firstRegister, secondRegister);
-            return ubyte.sizeof + ubyte.sizeof;
-
-
-
-
-
-        case Opcodes.rcall:
-            auto address = Instructions.get!uint(&bytes[1]);
+            return size;
+        case Opcode.rcall:
+            uint size = 0;
+            auto address = mixin(Operand!(AddressType, "operands", "size"));
             writefln("rcall %d", address);
-            return uint.sizeof;
-        case Opcodes.jmp:
-            auto address = Instructions.get!uint(&bytes[1]);
+            return size;
+        case Opcode.jmp:
+            uint size = 0;
+            auto address = mixin(Operand!(AddressType, "operands", "size"));
             writefln("jmp %d", address);
-            return uint.sizeof;
+            return size;
         // Stack machine instructions
-        case Opcodes.push:
-            auto value = Instructions.get!long(&bytes[1]);
-            writefln("push %d", value);
-            return long.sizeof;
-        case Opcodes.pushs:
-            auto length = Instructions.get!ushort(&bytes[1]);
-            auto index = 1 + ushort.sizeof;
+        case Opcode.push:
+            uint size = 0;
+            auto stackValue =
+                mixin(Operand!(StackValueType, "operands", "size"));
+            writefln("push %d", stackValue);
+            return size;
+        case Opcode.pushs:
+            uint size = 0;
+            auto length = mixin(Operand!(DataLengthType, "operands", "size"));
+            auto index = ubyte.sizeof + size;
             auto byteString = bytes[index .. index + length];
             writefln("pushs \"%s\"", cast(string)byteString);
-            return ushort.sizeof + length;
-        case Opcodes.jump:
-            auto address = Instructions.get!uint(&bytes[1]);
+            return size + length;
+        case Opcode.jump:
+            uint size = 0;
+            auto address = mixin(Operand!(AddressType, "operands", "size"));
             writefln("jump %d", address);
-            return uint.sizeof;
-        case Opcodes.cjump:
-            auto address = Instructions.get!uint(&bytes[1]);
+            return size;
+        case Opcode.cjump:
+            uint size = 0;
+            auto address = mixin(Operand!(AddressType, "operands", "size"));
             writefln("cjump %d", address);
-            return uint.sizeof;
-        case Opcodes.call:
-            auto address = Instructions.get!uint(&bytes[1]);
-            auto arity = Instructions.get!ubyte(&bytes[1 + uint.sizeof]);
+            return size;
+        case Opcode.call:
+            uint size = 0;
+            auto address = mixin(Operand!(AddressType, "operands", "size"));
+            auto arity = mixin(Operand!(ArityType, "operands", "size"));
             writefln("call %d %d", address, arity);
-            return uint.sizeof + ubyte.sizeof;
-        case Opcodes.ret:
-            auto returnMode = Instructions.get!ubyte(&bytes[1]);
-            if (returnMode == ReturnModes.copy) {
+            return size;
+        case Opcode.ret:
+            uint size = 0;
+            auto returnMode =
+                mixin(Operand!(ReturnModeType, "operands", "size"));
+            if (returnMode == ReturnMode.copy) {
                 writeln("ret copy");
             } else {
                 writeln("ret");
             }
-            return ubyte.sizeof;
-        case Opcodes.sys:
-            auto name = Instructions.get!ushort(&bytes[1]);
-            writefln("sys %d",  name);
-            return ushort.sizeof;
-        case Opcodes.spawn:
-            auto address = Instructions.get!uint(&bytes[1]);
-            auto arity = Instructions.get!ubyte(&bytes[1 + uint.sizeof]);
+            return size;
+        case Opcode.sys:
+            uint size = 0;
+            auto systemCall =
+                mixin(Operand!(SystemCallType, "operands", "size"));
+            writefln("sys %d",  systemCall);
+            return size;
+        case Opcode.spawn:
+            uint size = 0;
+            auto address = mixin(Operand!(AddressType, "operands", "size"));
+            auto arity = mixin(Operand!(ArityType, "operands", "size"));
             writefln("spawn %d %d", address, arity);
-            return uint.sizeof + ubyte.sizeof;
+            return size;
         default:
-            writeln(Instructions.opcodeToString[to!Opcodes(bytes[0])]);
+            writeln(Vm.opcodeToString[to!Opcode(bytes[0])]);
         }
 
         return 0;

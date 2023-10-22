@@ -11,7 +11,7 @@ import std.path;
 import std.range;
 import std.file;
 
-import instructions;
+import vm;
 import prettyprint;
 import job;
 
@@ -50,288 +50,89 @@ class Loader {
             // Extract opcode and operands
             auto firstBlank = line.indexOf(" ");
             string opcodeString;
-            string operandsAsString = null;
             string[] operands = null;
             if (firstBlank == -1) {
                 opcodeString = line.strip;
             } else {
                 opcodeString = line[0 .. firstBlank];
-                operandsAsString = line[firstBlank + 1 .. $];
-                operands = operandsAsString.split;
+                operands = line[firstBlank + 1 .. $].split;
             }
 
             if (opcodeString == "label") {
-                assertOperands(operands.length, 1, line);
-                module_.insertLabel(parse!uint(operands[0], line),
-                                    cast(uint)byteCode.length);
+                if (operands.length != 1) {
+                    throw new LoaderError("Invalid instruction '" ~ line ~
+                                          "'");
+                }
+                module_.insertLabel(Vm.parse!AddressType(operands[0], line),
+                                    cast(AddressType)byteCode.length);
                 continue;
             }
 
-            Opcodes opcode;
-            if (opcodeString in Instructions.stringToOpcode) {
-                opcode = Instructions.stringToOpcode[opcodeString];
-                byteCode ~= opcode;
+            OpcodeInfo opcodeInfo;
+            if (opcodeString in Vm.stringToOpcodeInfo) {
+                opcodeInfo =
+                    cast(OpcodeInfo)Vm.stringToOpcodeInfo[opcodeString];
+                byteCode ~= opcodeInfo.opcode;
             } else {
                 throw new LoaderError("Invalid instruction '" ~ line ~ "'");
             }
 
-            switch (opcode) {
-            // Register machine instructions
-            case Opcodes.jmprnze:
-                assertOperands(operands.length, 2, line);
-                auto register = parseRegister(operands[0], line);
-                auto label = parse!uint(operands[1], line);
-                Instructions.insert(register, byteCode);
-                Instructions.insert(label, byteCode);
-            break;
-            case Opcodes.jmpringt:
-                //rilParse(operands,
-
-
-
-
-                assertOperands(operands.length, 3, line);
-                auto register = parseRegister(operands[0], line);
-                auto value = parseImmediateValue(operands[1], line);
-                auto label = parse!uint(operands[2], line);
-                Instructions.insert(register, byteCode);
-                Instructions.insert(value, byteCode);
-                Instructions.insert(label, byteCode);
-                break;
-            case Opcodes.subrri:
-                assertOperands(operands.length, 3, line);
-                auto firstRegister = parseRegister(operands[0], line);
-                auto secondRegister = parseRegister(operands[1], line);
-                auto value = parseImmediateValue(operands[2], line);
-                Instructions.insert(firstRegister, byteCode);
-                Instructions.insert(secondRegister, byteCode);
-                Instructions.insert(value, byteCode);
-                break;
-
-            case Opcodes.subrsi:
-                assertOperands(operands.length, 3, line);
-                auto register = parseRegister(operands[0], line);
-                auto stackOffset = parseStackOffset(operands[1], line);
-                auto value = parseImmediateValue(operands[2], line);
-                Instructions.insert(register, byteCode);
-                Instructions.insert(stackOffset, byteCode);
-                Instructions.insert(value, byteCode);
-                break;
-
-
-            case Opcodes.addrri:
-                assertOperands(operands.length, 3, line);
-                auto firstRegister = parseRegister(operands[0], line);
-                auto secondRegister = parseRegister(operands[1], line);
-                auto value = parseImmediateValue(operands[2], line);
-                Instructions.insert(firstRegister, byteCode);
-                Instructions.insert(secondRegister, byteCode);
-                Instructions.insert(value, byteCode);
-                break;
-            case Opcodes.loadri:
-                assertOperands(operands.length, 2, line);
-                auto register = parseRegister(operands[0], line);
-                auto value = parseImmediateValue(operands[1], line);
-                Instructions.insert(register, byteCode);
-                Instructions.insert(value, byteCode);
-                break;
-            case Opcodes.pushr:
-                assertOperands(operands.length, 1, line);
-                auto register = parseRegister(operands[0], line);
-                Instructions.insert(register, byteCode);
-                break;
-            case Opcodes.loadrs:
-                assertOperands(operands.length, 2, line);
-                auto register = parseRegister(operands[0], line);
-                auto stackOffset = parseStackOffset(operands[1], line);
-                Instructions.insert(register, byteCode);
-                // NOTE: The stack offset is relative to the current
-                // FP. The current FP points to the return address and
-                // after the return address comes the previous
-                // FP. Compensate for these two stack positions.
-                Instructions.insert(stackOffset, byteCode);
-                break;
-            case Opcodes.loadrr:
-                assertOperands(operands.length, 2, line);
-                auto firstRegister = parseRegister(operands[0], line);
-                auto secondRegister = parseRegister(operands[1], line);
-                Instructions.insert(firstRegister, byteCode);
-                Instructions.insert(secondRegister, byteCode);
-                break;
-
-
-
-
-
-
-
-
-
-            case Opcodes.rcall:
-                assertOperands(operands.length, 1, line);
-                auto label = parse!uint(operands[0], line);
-                Instructions.insert(label, byteCode);
-                break;
-            case Opcodes.jmp:
-                assertOperands(operands.length, 1, line);
-                auto label = parse!uint(operands[0], line);
-                Instructions.insert(label, byteCode);
-                break;
-
-
-
-
-
-
-
-
-            // Stack machine instructions
-            case Opcodes.push:
-                assertOperands(operands.length, 1, line);
-                Instructions.insert(parse!long(operands[0], line), byteCode);
-                break;
-            case Opcodes.pushs:
-                if (operandsAsString.length == 0) {
-                    throw new LoaderError("Invalid operand in '" ~ line ~ "'");
-                }
-                ubyte[] bytes =
-                    cast(ubyte[])toUTF8(operandsAsString.strip(`"`));
-                Instructions.insert(cast(ushort)bytes.length, byteCode);
-                byteCode ~= bytes;
-                break;
-            case Opcodes.call:
-                assertOperands(operands.length, 2, line);
-                Instructions.insert(parse!uint(operands[0], line), byteCode);
-                Instructions.insert(parse!ubyte(operands[1], line), byteCode);
-                break;
-            case Opcodes.cjump:
-                assertOperands(operands.length, 1, line);
-                Instructions.insert(parse!uint(operands[0], line), byteCode);
-                break;
-            case Opcodes.ret:
-                assertOperands(operands.length, [0, 1], line);
-                if (operands.length == 0) {
-                    Instructions.insert(ReturnModes.value, byteCode);
-                } else if (operands[0] == "copy") {
-                    Instructions.insert(ReturnModes.copy, byteCode);
-                } else {
-                    throw new LoaderError("Invalid operand '" ~ line ~ "'");
-                }
-                break;
-            case Opcodes.sys:
-                assertOperands(operands.length, 1, line);
-                SystemCalls systemCall;
-                if (operands[0] in Instructions.stringToSystemCall) {
-                    systemCall = Instructions.stringToSystemCall[operands[0]];
-                } else {
-                    throw new LoaderError("Invalid system call in '" ~ line ~
-                                          "'");
-                }
-                Instructions.insert(systemCall, byteCode);
-                break;
-            case Opcodes.spawn:
-                assertOperands(operands.length, 2, line);
-                Instructions.insert(parse!uint(operands[0], line), byteCode);
-                Instructions.insert(parse!ubyte(operands[1], line), byteCode);
-                break;
-            case Opcodes.jump:
-                assertOperands(operands.length, 1, line);
-                Instructions.insert(parse!uint(operands[0], line), byteCode);
-                break;
-            default:
-                // All is done above!
-            }
+            // Insert opcode and its operand(s) into byte code
+            auto operandBytes = Vm.getOperandsAsBytes(opcodeInfo, operands,
+                                                      line);
+            byteCode ~= operandBytes;
         }
 
         // Resolve labels to addresses
         uint address = module_.startAddress;
         while (address < byteCode.length) {
             auto opcode = byteCode[address];
+            uint operandAddress = address + cast(uint)Opcode.sizeof;
             // Register machine instructions
-            if (opcode == Opcodes.jmprnze) {
-                auto label = Instructions.get!uint(&byteCode[address + 1 + ubyte.sizeof]);
-                auto labelAddress = module_.lookupAddress(label);
-                Instructions.set!uint(labelAddress, &byteCode[address + 1 + ubyte.sizeof]);
-                address += ubyte.sizeof + uint.sizeof;
-            } else if (opcode == Opcodes.jmpringt) {
-                auto label = Instructions.get!uint(&byteCode[address + 1 + ubyte.sizeof + long.sizeof]);
-                auto labelAddress = module_.lookupAddress(label);
-                Instructions.set!uint(labelAddress, &byteCode[address + 1 + ubyte.sizeof + long.sizeof]);
-                address += ubyte.sizeof + long.sizeof + uint.sizeof;
-            } else if (opcode == Opcodes.subrri) {
-                // address += Instructions.registerRegisterValueSize
-                address += ubyte.sizeof + ubyte.sizeof + long.sizeof;
-            } else if (opcode == Opcodes.subrsi) {
-                address += ubyte.sizeof + uint.sizeof + long.sizeof;
-            } else if (opcode == Opcodes.addrri) {
-                address += ubyte.sizeof + ubyte.sizeof + long.sizeof;
-            } else if (opcode == Opcodes.loadri) {
-                address += ubyte.sizeof + long.sizeof;
-            } else if (opcode == Opcodes.pushr) {
-                address += ubyte.sizeof;
-            } else if (opcode == Opcodes.loadrs) {
-                address += ubyte.sizeof + uint.sizeof;
-            } else if (opcode == Opcodes.loadrr) {
-                address += ubyte.sizeof + ubyte.sizeof;
-            } else if (opcode == Opcodes.rcall) {
-                auto label = Instructions.get!uint(&byteCode[address + 1]);
-                auto labelAddress = module_.lookupAddress(label);
-                Instructions.set!uint(labelAddress, &byteCode[address + 1]);
-                address += uint.sizeof;
-            } else if (opcode == Opcodes.jmp) {
-                auto label = Instructions.get!uint(&byteCode[address + 1]);
-                auto labelAddress = module_.lookupAddress(label);
-                Instructions.set!uint(labelAddress, &byteCode[address + 1]);
-                address += uint.sizeof;
-            } else
-
-
-
+            if (opcode == Opcode.jmprnze) {
+                resolveLabel(byteCode, module_, operandAddress,
+                             RegisterType.sizeof);
+                address += Vm.sizeOfOperands(Opcode.jmprnze);
+            } else if (opcode == Opcode.jmpringt) {
+                resolveLabel(byteCode, module_, operandAddress,
+                             RegisterType.sizeof + ImmediateValueType.sizeof);
+                address += Vm.sizeOfOperands(Opcode.jmpringt);
+            } else if (opcode == Opcode.rcall) {
+                resolveLabel(byteCode, module_, operandAddress, 0);
+                address += Vm.sizeOfOperands(Opcode.rcall);
+            } else if (opcode == Opcode.jmp) {
+                resolveLabel(byteCode, module_, operandAddress, 0);
+                address += Vm.sizeOfOperands(Opcode.jmp);
             // Stack machine instructions
-            if (opcode == Opcodes.push) {
-                address += long.sizeof;
-            } else if (opcode == Opcodes.pushs) {
-                auto length = Instructions.get!ushort(&byteCode[address + 1]);
-                address += ushort.sizeof + length;
-            } else if (opcode == Opcodes.jump || opcode == Opcodes.cjump) {
-                auto label = Instructions.get!uint(&byteCode[address + 1]);
-                auto labelAddress = module_.lookupAddress(label);
-                Instructions.set!uint(labelAddress, &byteCode[address + 1]);
-                address += uint.sizeof;
-            } else if (opcode == Opcodes.call) {
-                auto label = Instructions.get!uint(&byteCode[address + 1]);
-                auto labelAddress = module_.lookupAddress(label);
-                Instructions.set!uint(labelAddress, &byteCode[address + 1]);
-                address += uint.sizeof + ubyte.sizeof;
-            } else if (opcode == Opcodes.ret) {
-                address += ubyte.sizeof;
-            } else if (opcode == Opcodes.spawn) {
-                auto label = Instructions.get!uint(&byteCode[address + 1]);
-                auto labelAddress = module_.lookupAddress(label);
-                Instructions.set!uint(labelAddress, &byteCode[address + 1]);
-                address += uint.sizeof + ubyte.sizeof;
-            } else if (opcode == Opcodes.sys) {
-                address += ushort.sizeof;
+            } else if (opcode == Opcode.pushs) {
+                auto length =
+                    Vm.getValue!DataLengthType(&byteCode[operandAddress]);
+                address += DataLengthType.sizeof + length;
+            } else if (opcode == Opcode.jump) {
+                resolveLabel(byteCode, module_, operandAddress, 0);
+                address += Vm.sizeOfOperands(Opcode.jump);
+            } else if (opcode == Opcode.cjump) {
+                resolveLabel(byteCode, module_, operandAddress, 0);
+                address += Vm.sizeOfOperands(Opcode.cjump);
+            } else if (opcode == Opcode.call) {
+                resolveLabel(byteCode, module_, operandAddress, 0);
+                address += Vm.sizeOfOperands(Opcode.call);
+            } else if (opcode == Opcode.spawn) {
+                resolveLabel(byteCode, module_, operandAddress, 0);
+                address += Vm.sizeOfOperands(Opcode.spawn);
+            } else {
+                address += Vm.sizeOfOperands(cast(Opcode)opcode);
             }
             address++;
         }
     }
 
-    private void assertOperands(ulong arity, ubyte expectedArity,
-                                string line) {
-        if (arity != expectedArity) {
-            throw new LoaderError("Invalid operands in '" ~ line ~ "'");
-        }
-    }
-
-    private void assertOperands(ulong arity, ubyte[] expectedArities,
-                                string line) {
-        foreach (expectedArity; expectedArities) {
-            if (arity == expectedArity) {
-                return;
-            }
-        }
-        throw new LoaderError("Invalid operands in '" ~ line ~ "'");
+    private void resolveLabel(ubyte[] byteCode, Module module_,
+                              uint firstOperand, uint operandOffset) {
+        auto labelAddress = firstOperand + operandOffset;
+        auto label = Vm.getValue!AddressType(&byteCode[labelAddress]);
+        auto address = module_.lookupAddress(label);
+        Vm.setValue!AddressType(address, &byteCode[labelAddress]);
     }
 
     private T parse(T)(string value, string line)
@@ -344,35 +145,6 @@ class Loader {
                  throw new LoaderError("Invalid operands in '" ~ line ~ "'");
              }
          }
-
-    private ubyte parseRegister(string registerString, string line) {
-        auto match = matchFirst(registerString, regex(`^r([0-9]+)`));
-        if (match) {
-            auto register = parse!ubyte(match.captures[1], line);
-            if (register >= 0 && register <= Job.REGISTERS) {
-                return register;
-            }
-        }
-        throw new LoaderError("Invalid register in '" ~ line ~ "'");
-    }
-
-    private long parseImmediateValue(string valueString, string line) {
-        auto match = matchFirst(valueString, regex(`^#([0-9]+)`));
-        if (match) {
-            auto value = parse!long(match.captures[1], line);
-            return value;
-        }
-        throw new LoaderError("Invalid immediate value in '" ~ line ~ "'");
-    }
-
-    private uint parseStackOffset(string stackOffsetString, string line) {
-        auto match = matchFirst(stackOffsetString, regex(`^@([0-9]+)`));
-        if (match) {
-            auto stackOffset = parse!uint(match.captures[1], line);
-            return stackOffset + 2;
-        }
-        throw new LoaderError("Invalid stack offset in '" ~ line ~ "'");
-    }
 
     public bool isModuleLoaded(string moduleName) {
         return (moduleName in modules) != null;
