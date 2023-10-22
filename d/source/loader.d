@@ -77,8 +77,8 @@ class Loader {
             }
 
             // Insert opcode and its operand(s) into byte code
-            auto operandBytes = getOperandsAsBytes(opcodeInfo, operands, line);
-            byteCode ~= operandBytes;
+            auto operandsBytes = getOperandsAsBytes(opcodeInfo, operands, line);
+            byteCode ~= operandsBytes;
         }
 
         // Resolve labels to addresses
