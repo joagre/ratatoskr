@@ -33,6 +33,9 @@ ackermann1: examplesbuild dbuild
 message_passing: examplesbuild dbuild
 	./d/bin/r -l ./examples message_passing 0 7
 
+ackermannr: examplesbuild dbuild
+	./d/bin/r -i register -l ./examples ackermannr 10
+
 clean:
 	(cd examples; make clean)
 	(cd d; make clean)
