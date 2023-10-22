@@ -199,7 +199,7 @@ class Interpreter {
                 // Restore FP to previous FP
                 job.callStack.fp = previousFp;
                 // Jump to return address
-                job.pc = cast(uint)returnAddress;
+                job.pc = cast(AddressType)returnAddress;
                 break;
             case Opcode.jmp:
                 uint size = 0;
@@ -263,7 +263,7 @@ class Interpreter {
                 if (conditional != 0) {
                     job.pc = mixin(Operand!(AddressType, "operands", "size"));
                 } else {
-                    job.pc += uint.sizeof;
+                    job.pc += AddressType.sizeof;
                 }
                 break;
             case Opcode.call:
@@ -284,7 +284,7 @@ class Interpreter {
                     }
                 }
                 auto address =
-                    loader.lookupAddress(moduleName, cast(uint)label);
+                    loader.lookupAddress(moduleName, cast(LabelType)label);
                 call(job, cast(AddressType)address, cast(ubyte)arity, 0);
                 break;
             case Opcode.ret:
@@ -327,7 +327,7 @@ class Interpreter {
                 job.callStack.fp = previousFp;
                 job.dataStack.fp = previousDataFp;
                 // Jump to return address
-                job.pc = cast(uint)returnAddress;
+                job.pc = cast(AddressType)returnAddress;
                 break;
             case Opcode.sys:
                 uint size = 0;
@@ -416,7 +416,7 @@ class Interpreter {
                 auto parameters =
                     iota(arity).map!(_ => job.callStack.pop()).array.reverse;
                 auto jid = mspawn(loader, scheduler, moduleName,
-                                  cast(uint)label, parameters);
+                                  cast(LabelType)label, parameters);
                 job.callStack.push(jid);
                 break;
             default:
@@ -437,7 +437,8 @@ class Interpreter {
         return interpreterResult;
     }
 
-    private uint spawn(Scheduler scheduler, uint address, long[] parameters) {
+    private uint spawn(Scheduler scheduler, AddressType address,
+                       long[] parameters) {
         long arity = parameters.length;
         long returnAddress = -1;
         long fp = -1;
@@ -461,7 +462,7 @@ class Interpreter {
     }
 
     public uint mspawn(Loader loader, Scheduler scheduler, string moduleName,
-                       uint label, long[] parameters) {
+                       LabelType label, long[] parameters) {
         // Ensure that module is loaded
         if (!loader.isModuleLoaded(moduleName)) {
             loader.loadModule(moduleName);

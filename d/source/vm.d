@@ -53,7 +53,7 @@ enum Opcode : ubyte {
 enum OperandType : ubyte {
     stackValue,
     register,
-    address,
+    label,
     immediateValue,
     stackOffset,
     arity,
@@ -64,6 +64,7 @@ enum OperandType : ubyte {
 
 alias StackValueType = long;
 alias RegisterType = ubyte;
+alias LabelType = uint;
 alias AddressType = uint;
 alias ImmediateValueType = long;
 alias StackOffsetType = uint;
@@ -122,11 +123,11 @@ class Vm {
             // Register machine opcodes
             "jmprnze" : OpcodeInfo(Opcode.jmprnze,
                                    [OperandType.register,
-                                    OperandType.address]),
+                                    OperandType.label]),
             "jmpringt" : OpcodeInfo(Opcode.jmpringt,
                                     [OperandType.register,
                                      OperandType.immediateValue,
-                                     OperandType.address]),
+                                     OperandType.label]),
             "subrri" : OpcodeInfo(Opcode.subrri,
                                   [OperandType.register,
                                    OperandType.register,
@@ -151,11 +152,11 @@ class Vm {
                                   [OperandType.register,
                                    OperandType.register]),
             "rcall" : OpcodeInfo(Opcode.rcall,
-                                 [OperandType.address]),
+                                 [OperandType.label]),
             "rret" : OpcodeInfo(Opcode.rret,
                                 []),
             "jmp" : OpcodeInfo(Opcode.jmp,
-                               [OperandType.address]),
+                               [OperandType.label]),
             // Stack machine opcodes
             "push" : OpcodeInfo(Opcode.push, [OperandType.stackValue]),
             "pushs" : OpcodeInfo(Opcode.pushs, [OperandType.string]),
@@ -168,10 +169,10 @@ class Vm {
             "sub" : OpcodeInfo(Opcode.sub, []),
             "mul" : OpcodeInfo(Opcode.mul, []),
             "div" : OpcodeInfo(Opcode.div, []),
-            "jump" : OpcodeInfo(Opcode.jump, [OperandType.address]),
-            "cjump" : OpcodeInfo(Opcode.cjump, [OperandType.address]),
+            "jump" : OpcodeInfo(Opcode.jump, [OperandType.label]),
+            "cjump" : OpcodeInfo(Opcode.cjump, [OperandType.label]),
             "call" : OpcodeInfo(Opcode.call,
-                                [OperandType.address, OperandType.arity]),
+                                [OperandType.label, OperandType.arity]),
             "ret" : OpcodeInfo(Opcode.ret, [OperandType.returnMode]),
             "sys" : OpcodeInfo(Opcode.sys, [OperandType.systemCall]),
             "and" : OpcodeInfo(Opcode.and, []),
@@ -185,7 +186,7 @@ class Vm {
             "halt" : OpcodeInfo(Opcode.halt, []),
             "mcall" : OpcodeInfo(Opcode.mcall, []),
             "spawn" : OpcodeInfo(Opcode.spawn,
-                                 [OperandType.address, OperandType.arity]),
+                                 [OperandType.label, OperandType.arity]),
             "mspawn" : OpcodeInfo(Opcode.mspawn, []),
                               ];
 
@@ -245,9 +246,9 @@ class Vm {
                     throw new VmError("Bad register in '" ~ line ~ "'");
                 }
                 break;
-            case OperandType.address:
-                auto address = parse!AddressType(operands[i], line);
-                insertBytes(address, bytes);
+            case OperandType.label:
+                auto label = parse!LabelType(operands[i], line);
+                insertBytes(label, bytes);
                 break;
             case OperandType.immediateValue:
                 auto match = matchFirst(operands[i], regex(`^#([0-9]+)`));
@@ -315,8 +316,8 @@ class Vm {
             case OperandType.register:
                 size += RegisterType.sizeof;
                 break;
-            case OperandType.address:
-                size += AddressType.sizeof;
+            case OperandType.label:
+                size += LabelType.sizeof;
                 break;
             case OperandType.immediateValue:
                 size += ImmediateValueType.sizeof;

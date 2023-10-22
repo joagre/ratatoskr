@@ -17,13 +17,13 @@ enum JobMode : ubyte {
 class Job {
     public uint jid;
     public JobMode mode;
-    public uint pc;
+    public AddressType pc;
     public DataStack dataStack;
     public CallStack callStack;
     public MessageBox messageBox;
     public long[Vm.numberOfRegisters] registers;
 
-    this(uint jid, uint pc, long[] initialCallStack) {
+    this(uint jid, AddressType pc, long[] initialCallStack) {
         this.jid = jid;
         this.mode = JobMode.init;
         this.pc = pc;

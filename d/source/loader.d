@@ -60,10 +60,9 @@ class Loader {
 
             if (opcodeString == "label") {
                 if (operands.length != 1) {
-                    throw new LoaderError("Invalid instruction '" ~ line ~
-                                          "'");
+                    throw new LoaderError("Invalid instruction '" ~ line ~ "'");
                 }
-                module_.insertLabel(Vm.parse!AddressType(operands[0], line),
+                module_.insertLabel(Vm.parse!LabelType(operands[0], line),
                                     cast(AddressType)byteCode.length);
                 continue;
             }
@@ -78,16 +77,16 @@ class Loader {
             }
 
             // Insert opcode and its operand(s) into byte code
-            auto operandBytes = Vm.getOperandsAsBytes(opcodeInfo, operands,
-                                                      line);
+            auto operandBytes =
+                Vm.getOperandsAsBytes(opcodeInfo, operands, line);
             byteCode ~= operandBytes;
         }
 
         // Resolve labels to addresses
-        uint address = module_.startAddress;
+        auto address = module_.startAddress;
         while (address < byteCode.length) {
             auto opcode = byteCode[address];
-            uint operandAddress = address + cast(uint)Opcode.sizeof;
+            auto operandAddress = address + cast(AddressType)Opcode.sizeof;
             // Register machine instructions
             if (opcode == Opcode.jmprnze) {
                 resolveLabel(byteCode, module_, operandAddress,
@@ -128,29 +127,18 @@ class Loader {
     }
 
     private void resolveLabel(ubyte[] byteCode, Module module_,
-                              uint firstOperand, uint operandOffset) {
+                              AddressType firstOperand, uint operandOffset) {
         auto labelAddress = firstOperand + operandOffset;
-        auto label = Vm.getValue!AddressType(&byteCode[labelAddress]);
+        auto label = Vm.getValue!LabelType(&byteCode[labelAddress]);
         auto address = module_.lookupAddress(label);
         Vm.setValue!AddressType(address, &byteCode[labelAddress]);
     }
-
-    private T parse(T)(string value, string line)
-         if (is(T == byte) || is(T == ubyte) || is(T == short) ||
-             is(T == ushort) || is(T == int) || is(T == uint) ||
-             is(T == long) || is(T == ulong)) {
-             try {
-                 return to!T(value);
-             } catch (ConvException) {
-                 throw new LoaderError("Invalid operands in '" ~ line ~ "'");
-             }
-         }
 
     public bool isModuleLoaded(string moduleName) {
         return (moduleName in modules) != null;
     }
 
-    public uint lookupAddress(string moduleName, uint label) {
+    public AddressType lookupAddress(string moduleName, LabelType label) {
         auto module_ = moduleName in modules;
         return module_.lookupAddress(label);
     }
@@ -161,18 +149,18 @@ class Loader {
             throw new LoaderError(filename ~  " can not be found");
         }
         file = File(filename, "r");
-        Module module_ = new Module(cast(uint)byteCode.length);
+        Module module_ = new Module(cast(AddressType)byteCode.length);
         try {
             generateByteCode(module_);
         } finally {
             file.close;
         }
-        module_.stopAddress = cast(uint)byteCode.length - 1;
+        module_.stopAddress = cast(AddressType)byteCode.length - 1;
         modules[moduleName] = module_;
     }
 
     public void prettyPrint() {
-        uint address = 0;
+        AddressType address = 0;
         while (address < byteCode.length) {
             writef("%d: ", address);
             address += 1 + PrettyPrint.printInstruction(&byteCode[address]);
@@ -190,23 +178,23 @@ class Loader {
 }
 
 class Module {
-    public uint startAddress;
-    public uint stopAddress;
-    private uint[uint] jumpTable;
+    public AddressType startAddress;
+    public AddressType stopAddress;
+    private AddressType[LabelType] jumpTable;
 
-    this(uint startAddress) {
+    this(AddressType startAddress) {
         this.startAddress = startAddress;
     }
 
-    public void insertLabel(uint label, uint address) {
+    public void insertLabel(LabelType label, AddressType address) {
         jumpTable[label] = address;
     }
 
-    public uint lookupAddress(uint label) {
+    public AddressType lookupAddress(LabelType label) {
         return jumpTable[label];
     }
 
-    public uint lookupLabel(uint address) {
+    public LabelType lookupLabel(AddressType address) {
         foreach (label, possibleAddress; jumpTable) {
             if (address == possibleAddress) {
                 return label;
