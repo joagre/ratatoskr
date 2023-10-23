@@ -364,5 +364,5 @@ Name conflicts are checkd when something is referred to in  imported
 modules.
 
 The `std.jobs` module contains the functionality needed to work with
-concurrent jobs and message in between them, i.e. `spawn()`, `send()`
-and `recv()` functions.
+concurrent jobs and message passing in between them, i.e. `spawn()`,
+`send()` and `recv()` functions.
