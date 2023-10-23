@@ -1,37 +1,39 @@
 # The R programming language
 
-Everything is an expression.
+Everything is an expression and Unicode is everywhere.
 
 Nothing can be declared in the global context except for the mandatory
-main function (which must be declared in the global context in one module).
+main function which **must** be declared in the global context (by one
+of the modules constituting an application).
 
 ```
 fn main(args) {
-  b
+  0
 }
 ```
 
 > [!NOTE]
-> No pointers but everything is refered to by reference. It's true. :-)
+> R contains no pointers and everything except `int`, `float` and
+> `bool` values are referred to by reference.
 
 > [!NOTE]
-> Dynamically typed to start with but the goal is to add type
-> inference and a gradual type system.
-
-> [!NOTE]
-> Everythng is UTF8
+> R is dynamically typed to start with but the goal is to add type
+> inference and gradual typing.
 
 ## Comments
 
 `//` and `/* ... */`
 
+
+## Literals
+
+`_?a-zA-Z[0-9|a-zA-Z]*`
+
 ## Variables
 
-Valid variable characters: `_?a-zA-Z[0-9|a-zA-Z]*`
-
 ```
-a = 1
-a3 = "foo"
+aVariable = 1
+B52 = "foo"
 ```
 
 ## Enums
@@ -44,7 +46,7 @@ enums Bonk {
 }
 ```
 
-Used as
+Refer to them using:
 
 ```
 Bonk:c
@@ -58,17 +60,17 @@ Bonk:a
 
 `3.0 + 3` is not allowed
 
-`int!3.0 + 3` is allowed (casting)
+`int!3.0 + 3` is allowed (! is the casting operand)
 
 and
 
 `3.0 + float!3`
 
-or when using variables
+with variables:
 
 ```
 a = 3.0
-b = 3
+b = 3,
 c = int!a + b
 d = a + (float!b - 1.0)
 ```
@@ -76,8 +78,8 @@ d = a + (float!b - 1.0)
 ## Booleans
 
 ```
-a = true
-b = false
+true
+false
 ```
 
 ## Strings
@@ -103,7 +105,7 @@ c = a ~ b               // c = "foobar" (COPY)
 
 ## Dynamic arrays
 
-All elements in an array must have the same type
+All elements in an array must have the same type:
 
 ```
 a = [1, 2, 3, 4, 5];
@@ -120,12 +122,13 @@ f = b <~ 4711;          // e = [2, 23, 4711]
 g = f.dup();            // Explicit copy
 ```
 
-> [!NOTE] Implemented internally with a double-ended queue (dynamic
+> [!NOTE] INternally implemented with a double-ended queue (dynamic
 > array of continous memory).
 
 ## Hash maps
 
-All keys and values may have any type
+All keys and values may have any type:
+
 ```
 a = [ "a" : 1.0, "b" : "foo" ]
 a["a"] = "bar"
@@ -138,9 +141,75 @@ d = b.dup()             // Explicit copy
 ```
 
 > [!NOTE]
-> Note: If the key is non-primitive, e.g. a tuple or an object, the
-> key is first serialized. Costly but i think it's for the best. May
-> change my mind.
+> Note: Structural equality is used for key values.
+
+## Classes
+
+```
+class Foo {
+  public a
+  private b
+  readonly c
+  const e
+
+  this(a, g) {  // Constructor
+    this.a = a;
+    b = g;
+  }
+
+  public fn foo() {
+    0
+  }
+
+  private fn bar(b) {
+    b
+  }
+}
+```
+
+> [!NOTE]
+> No support for inheritence (see interface below)
+
+A class Foo can be instantiated like this:
+
+`foo = new Foo(1, 2)`
+
+Access to member variables and functions look like this:
+
+```
+foo.a
+foo.a = 1
+foo.bar(1)
+```
+
+A class may opt to implement a certain interface. The interface
+defines which member variables and functions that are mandatory in a
+class. An interface look like this:
+
+```
+interface Bar {
+  a
+  public fn foo()
+}
+```
+
+And a record wich decides to implement this interface looks like this:
+
+```
+class Foo : Bar {
+   // See Foo class above
+}
+```
+
+A class can also be defined to be a singleton:
+
+```
+singleton class Foo : Bar {
+   // See Foo record above
+}
+```
+
+It means what you think.
 
 ## Control statements
 
@@ -191,7 +260,7 @@ This is an example of a map function:
 fn main() {
     l = [1, 2, 3]
     f = (l, n) => { l[n] + 1 }
-    true <- map(l, f)
+    true <= map(l, f)
 }
 
 fn map(l, f, n = 0) {
@@ -204,7 +273,7 @@ fn map(l, f, n = 0) {
 }
 ```
 
-The `<-` is used for matching. More on that below.
+The `<~` is used for matching. More on that below.
 
 Calling convention:
 
@@ -213,74 +282,33 @@ Calling convention:
 > [!NOTE]
 > No support for currying and variadic parameters
 
-## Records
-
-```
-record Foo {
-  public a
-  private b
-  readonly c
-  const e
-
-  this(a, g) {  // Constructor
-    this.a = a;
-    b = g;
-  }
-
-  public fn foo() {
-    0
-  }
-
-  private fn bar(b) {
-    b
-  }
-}
-```
-
-> [!NOTE]
-> No support for inheritence (see interface below)
-
-A record Foo is instantiated like this:
-
-`foo = new Foo(1, 2)`
-
-Access to member variables and functions:
-
-```
-foo.a
-foo.a = 1
-foo.bar(1)
-```
-
-Records can implement  pre-defined interafaces as well and an
-interface is defined like this:
-
-```
-interface Bar {
-  a
-  public fn foo()
-}
-
-And can used like this:
-
-record Foo : Bar {
-   // See Foo record below
-}
-```
-
 ## Matching
+
+Matching can be done with the `<~` operator:
+
+```
+a = 1
+'(a, ?a, 1) <~ '(1, 2, 1)     // a = 2
+'(?a, b, ?h) <~ foo(42)
+```
+
+`?` introduces unbound variables.
+
+Matching can also be done this way:
 
 ```
 match expr {
-  match-expr =>
+  match-expr {
     a
     b
-  match-expr =>
+  }
+  match-expr {
     c
+  }
 }
 ```
 
-such as
+An example:
 
 ```
 a = 1
@@ -298,10 +326,11 @@ match expr {
 }
 ```
 
-> [!NOTE]
-> `?` introduces a fresh variable and `_` is a wildcard
+`_` is a wildcard.
 
+## Macros
 
+No macros
 
 ## Hierachical modules
 
@@ -320,73 +349,7 @@ import std.stdio : *
 writeln("foo")
 ```
 
+Name conflicts are checkd whenever something is used in the imported
+modules. To start with the modules `std.stdio' will be `std.jobs`.
 
-
-
-
-Name conflicts are checked during usage of module
-
-inga macron
-
-Singleton
-
-
-a(l, 10)
-
-
-
-
-
-fn a(l, m, n = 0) {
-    if (n > m) {
-        l
-    } else {
-        ln[n] = l[n] + 1
-        a(l, m, n + 1)
-    }
-}
-
-
-fn a(l, m, fun, n = 0) {
-    if (n > m) {
-        l
-    } else {
-         ln[n] = fun(l, n)
-         a(l, m, n + 1)
-    }
-}
-
-l.dup().map(l, fun)
-
-
-
-fn main() {
-    l = [1, 2, 3]
-    f = (l, n) => { l[n] + 1 }
-    true <- map(l, f)
-}
-
-fn map(l, f, n = 0) {
-    if (n > l.length()) {
-        true
-    } else {
-         l[n] = f(l, n)
-         a(l, f, n + 1)
-    }
-}
-
-
-
-
-
-
-
-    a(l[n] , n) ->
-
-
-
-  a(l[1 .. $]) <~ l[0] + 1
-
-
-
-  a(b[1 .. $ - 1] <~ a[0])
+`std.jobs` contains the `spawn`, `send` and `recv` functions.
