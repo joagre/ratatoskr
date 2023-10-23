@@ -142,7 +142,7 @@ d = b.dup()             // Explicit copy
 ```
 
 > [!NOTE]
-> Note: Structural equality is used for key values
+> Structural equality is used for key values
 
 ## Classes
 
