@@ -24,7 +24,7 @@ Reserved words: `if`, `then`, `else`, `match`, `=`, `enum`, `:`,
 `true`, `false`, `#`, `+`, `-`, `*`, `/`, `fn`, `[`, `]`, `{`, `}`,
 `"`, `(`, `)`, `$`, `~`, `'`, `<@`, `@>`, `<~`, `class`, `public`,
 `private`, `readonly`, `const`, `this`, `new`, `interface`,
-`singleton`, `.`, `import`, `=>`, `?` and all other binary and unary
+`singleton`, `.`, `import`, `?` and all other binary and unary
 operators you can think of.
 
 ## Comments
