@@ -39,14 +39,14 @@ B52 = "foo"
 ## Enums
 
 ```
-enums Bonk {
+enum Bonk {
   a
   b
   c
 }
 ```
 
-Refer to them using:
+Refer to them like this:
 
 ```
 Bonk:c
@@ -66,7 +66,7 @@ and
 
 `3.0 + float!3`
 
-with variables:
+and with variables:
 
 ```
 a = 3.0
@@ -122,7 +122,7 @@ f = b <~ 4711;          // e = [2, 23, 4711]
 g = f.dup();            // Explicit copy
 ```
 
-> [!NOTE] INternally implemented with a double-ended queue (dynamic
+> [!NOTE] Internally implemented with a double-ended queue (dynamic
 > array of continous memory).
 
 ## Hash maps
@@ -141,7 +141,7 @@ d = b.dup()             // Explicit copy
 ```
 
 > [!NOTE]
-> Note: Structural equality is used for key values.
+> Note: Structural equality is used for key values
 
 ## Classes
 
@@ -183,8 +183,8 @@ foo.bar(1)
 ```
 
 A class may opt to implement a certain interface. The interface
-defines which member variables and functions that are mandatory in a
-class. An interface look like this:
+defines which member variables and functions that should be mandatory
+in a class. An interface can look like this:
 
 ```
 interface Bar {
@@ -193,7 +193,7 @@ interface Bar {
 }
 ```
 
-And a record wich decides to implement this interface looks like this:
+A class wich decides to implement this interface can look like this:
 
 ```
 class Foo : Bar {
@@ -201,7 +201,7 @@ class Foo : Bar {
 }
 ```
 
-A class can also be defined to be a singleton:
+A class can also be defined as a singleton:
 
 ```
 singleton class Foo : Bar {
@@ -260,7 +260,7 @@ This is an example of a map function:
 fn main() {
     l = [1, 2, 3]
     f = (l, n) => { l[n] + 1 }
-    true <= map(l, f)
+    true <~ map(l, f)
 }
 
 fn map(l, f, n = 0) {
@@ -273,7 +273,7 @@ fn map(l, f, n = 0) {
 }
 ```
 
-The `<~` is used for matching. More on that below.
+`<~` is used for matching. More on that below.
 
 Calling convention:
 
@@ -340,7 +340,7 @@ stdio.writeln("foo")
 ```
 
 ```
-import std.stdio : writeln writefln
+import std.stdio : writeln, writefln
 writeln("foo")
 ```
 
@@ -349,7 +349,9 @@ import std.stdio : *
 writeln("foo")
 ```
 
-Name conflicts are checkd whenever something is used in the imported
-modules. To start with the modules `std.stdio' will be `std.jobs`.
+Name conflicts are checkd when something is referred to in  imported
+modules.
 
-`std.jobs` contains the `spawn`, `send` and `recv` functions.
+The `std.jobs` module contains the functionality needed to work with
+concurrent jobs and message in between them, i.e. `spawn()`, `send()`
+and `recv()` functions.
