@@ -3,7 +3,7 @@
 Everything is an expression.
 
 Nothing can be declared in the global context except for the mandatory
-main function (which must be declared in the global context).
+main function (which must be declared in the global context in one module).
 
 ```
 fn main(args) {
