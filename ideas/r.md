@@ -136,7 +136,7 @@ e <@ 4711;              // e = [2, 23, 4711]
 > Internally implemented with a double-ended queue (dynamic
 > array of continous memory).
 
-## Hash maps
+## Hashtables
 
 All keys and values may have any type:
 
@@ -153,7 +153,8 @@ e = b.dup()             // Explicit copy
 ```
 
 > [!NOTE]
-> Structural equality is used for key values
+> Structural equality is used for all key values (even for class
+> instances)
 
 ## Classes
 
@@ -162,7 +163,7 @@ class Foo {
   public a
   private b
   readonly c
-  const e
+  const d
 
   this(a, g) {  // Constructor
     this.a = a;
@@ -195,8 +196,8 @@ foo.bar(1)
 ```
 
 A class may opt to implement a certain interface. The interface
-defines which member variables and functions that should be mandatory
-in a class. An interface can look like this:
+defines which member variables and functions that musr be provided by
+the class. An interface definition looks like this:
 
 ```
 interface Bar {
@@ -205,7 +206,7 @@ interface Bar {
 }
 ```
 
-A class which decides to implement this interface can look like this:
+A class which decides to implement this interface look like this:
 
 ```
 class Foo : Bar {
@@ -243,7 +244,14 @@ fn foo(a, b, c = 0) {
   c
   d
 }
+
+fn foo(a = 1) {
+  a
+}
 ```
+
+> [!NOTE]
+> Function overloading ftw
 
 Trailing parameters may have default values.
 
@@ -261,7 +269,7 @@ fn foo(a, b, c = 0) {
 Define an anonymous function like this:
 
 ```
-(a, b) => {
+(a, b) {
     b
 }
 ```
@@ -271,7 +279,7 @@ This is an example of a map function:
 ```
 fn main() {
     l = [1, 2, 3]
-    f = (l, n) => { l[n] + 1 }
+    f = (l, n) { l[n] + 1 }
     true <~ map(l, f)
 }
 
@@ -286,6 +294,19 @@ fn map(l, f, n = 0) {
 ```
 
 `<~` is used for matching. More on that below.
+
+If a function parameter is prepended with a `ref` keyword it is a
+reference instead of a value. This only has meaning for `int`, `float`
+and `bool` values. All other types are already references.
+
+```
+a = 1
+fn foo(ref b) {
+    b += 1;
+}
+foo(a)
+writeln(a)        // 2
+```
 
 Calling convention:
 
@@ -304,9 +325,9 @@ a = 1
 '(?a, b, ?h) <~ foo(42)
 ```
 
-`?` introduces unbound variables.
+`?` introduces an unbound variable.
 
-Matching can also be done this way:
+Matching can also be done like this:
 
 ```
 match expr {
@@ -320,7 +341,7 @@ match expr {
 }
 ```
 
-An example:
+As seen here:
 
 ```
 a = 1
@@ -329,7 +350,7 @@ match expr {
   '(1, ?a) {
     a
   }
-  a | b {
+  a || b {
     a + 1
   }
   _ {
@@ -338,7 +359,7 @@ match expr {
 }
 ```
 
-`_` is a wildcard.
+`_` is a wildcard and `||` introduces an `or` pattern.
 
 ## Macros
 
@@ -361,8 +382,8 @@ import std.stdio : *
 writeln("foo")
 ```
 
-Name conflicts are checked when something is referred to in imported
-modules.
+Name conflicts between constructs in each module are detected whenever
+they are used in the module.
 
 The `std.jobs` module contains the functionality needed to work with
 concurrent jobs and message passing in between them, i.e. `spawn()`,
