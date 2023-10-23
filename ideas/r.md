@@ -93,6 +93,8 @@ Immutable
 
 `"foo $a is not ${a + 1.0}"` becomes `"foo 3.0 is not 4.0"`
 
+`r"foo\nbar"` is a raw string without escape processing
+
 ```
 a = "foo"
 b = "bar"
@@ -295,9 +297,10 @@ fn map(l, f, n = 0) {
 
 `<~` is used for matching. More on that below.
 
-If a function parameter is prepended with a `ref` keyword it is used
-as a reference instead of a value. This only has meaning for `int`,
-`float` and `bool` values. All other types are references already.
+If a function parameter is pre-pended with a `ref` keyword it is
+referred to by reference instead of by value. This only has meaning
+for `int`, `float` and `bool` values. All other types are already
+referred to by reference.
 
 ```
 a = 1
