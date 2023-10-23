@@ -261,7 +261,7 @@ fn foo(a = 1) {
 }
 ```
 
-Note howe trailing parameters may have default values.
+Note how trailing parameters may have default values.
 
 > [!NOTE]
 > No support for currying and variadic parameters
