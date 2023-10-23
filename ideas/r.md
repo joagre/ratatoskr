@@ -274,7 +274,7 @@ fn foo(a, b, c = 0) {
 Define an anonymous function like this:
 
 ```
-(a, b) {
+(a, b) => {
     b
 }
 ```
@@ -284,7 +284,7 @@ This is an example of a map function:
 ```
 fn main() {
     l = [1, 2, 3]
-    f = (l, n) { l[n] + 1 }
+    f = (l, n) => { l[n] + 1 }
     true <~ map(l, f)
 }
 
@@ -337,11 +337,11 @@ Matching can also be done like this:
 
 ```
 match expr {
-  match-expr => {
+  match-expr {
     a
     b
   }
-  match-expr => {
+  match-expr {
     c
   }
 }
@@ -353,13 +353,13 @@ As seen here:
 a = 1
 b = 3
 match expr {
-  '(1, ?a) => {
+  '(1, ?a) {
     a
   }
-  a || b => {
+  a || b {
     a + 1
   }
-  _ => {
+  _ {
     0
   }
 }
