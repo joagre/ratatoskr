@@ -31,10 +31,13 @@ Reserved words: `if`, `then`, `else`, `match`, `=`, `enum`, `:`,
 
 `//` and `/* ... */`
 
-
 ## Literals
 
 `_?a-zA-Z[0-9|a-zA-Z]*`
+
+## Characters
+
+`'B' and '\n'` etc
 
 ## Variables
 
