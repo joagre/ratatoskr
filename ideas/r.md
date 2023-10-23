@@ -70,7 +70,7 @@ Bonk:a
 
 `3.0 + 3` is not allowed
 
-`int#3.0 + 3` is allowed (# is the casting operand)
+`int#3.0 + 3` is allowed (# is the casting operator)
 
 and
 
