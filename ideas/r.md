@@ -145,37 +145,6 @@ d = b.dup()             // Explicit copy
 ## Control statements
 
 ```
-match expr {
-  match-expr =>
-    a
-    b
-  match-expr =>
-    c
-}
-```
-
-such as
-
-```
-a = 1
-b = 3
-match expr {
-  '(1, ?a) {
-    a
-  }
-  a | b {
-    a + 1
-  }
-  _ {
-    0
-  }
-}
-```
-
-> [!NOTE]
-> `?` introduces a fresh variable and `_` is a wildcard
-
-```
 if expr {
   a
 } else {
@@ -186,7 +155,7 @@ if expr {
 
 ## Functions
 
-Define a function like this:
+Define a named function like this:
 
 ```
 fn foo(a, b, c = 0) {
@@ -195,7 +164,7 @@ fn foo(a, b, c = 0) {
 }
 ```
 
-The trailing parameters may have default values.
+Trailing parameters may have default values.
 
 Functions may be nested:
 
@@ -208,7 +177,7 @@ fn foo(a, b, c = 0) {
 }
 ```
 
-Anonymous functions are defined like this:
+Define an anonymous function like this:
 
 ```
 (a, b) => {
@@ -216,7 +185,7 @@ Anonymous functions are defined like this:
 }
 ```
 
-This is an example of a map:
+This is an example of a map function:
 
 ```
 fn main() {
@@ -234,6 +203,8 @@ fn map(l, f, n = 0) {
     }
 }
 ```
+
+The `<-` is used for matching. More on that below.
 
 Calling convention:
 
@@ -296,6 +267,41 @@ record Foo : Bar {
    // See Foo record below
 }
 ```
+
+## Matching
+
+```
+match expr {
+  match-expr =>
+    a
+    b
+  match-expr =>
+    c
+}
+```
+
+such as
+
+```
+a = 1
+b = 3
+match expr {
+  '(1, ?a) {
+    a
+  }
+  a | b {
+    a + 1
+  }
+  _ {
+    0
+  }
+}
+```
+
+> [!NOTE]
+> `?` introduces a fresh variable and `_` is a wildcard
+
+
 
 ## Hierachical modules
 
