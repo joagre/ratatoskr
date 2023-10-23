@@ -199,7 +199,7 @@ in a class. An interface can look like this:
 
 ```
 interface Bar {
-  a
+  public a
   public fn foo()
 }
 ```
