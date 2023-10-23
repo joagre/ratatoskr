@@ -184,21 +184,63 @@ if expr {
 }
 ```
 
-## Function definition
+## Functions
+
+Define a function like this:
 
 ```
-fn foo(a, b) {
+fn foo(a, b, c = 0) {
   c
   d
 }
 ```
 
-Calling convention
+The trailing parameters may have default values.
+
+Functions may be nested:
+
+```
+fn foo(a, b, c = 0) {
+  fn bar(d) {
+    d
+  }
+  bar(a)
+}
+```
+
+Anonymous functions are defined like this:
+
+```
+(a, b) => {
+    b
+}
+```
+
+This is an example of a map:
+
+```
+fn main() {
+    l = [1, 2, 3]
+    f = (l, n) => { l[n] + 1 }
+    true <- map(l, f)
+}
+
+fn map(l, f, n = 0) {
+    if (n > l.length()) {
+        true
+    } else {
+         l[n] = f(l, n)
+         a(l, f, n + 1)
+    }
+}
+```
+
+Calling convention:
 
 `foo(a, b)`
 
 > [!NOTE]
-> No support for currying, variadic parameters and default values.
+> No support for currying and variadic parameters
 
 ## Records
 
@@ -224,14 +266,14 @@ record Foo {
 }
 ```
 
-Instantiated like this
-
-`foo = Foo(1, 2)`
-
 > [!NOTE]
-> No inheritence (see interface below though)
+> No support for inheritence (see interface below)
 
-Access
+A record Foo is instantiated like this:
+
+`foo = new Foo(1, 2)`
+
+Access to member variables and functions:
 
 ```
 foo.a
@@ -239,7 +281,8 @@ foo.a = 1
 foo.bar(1)
 ```
 
-Records can implement mandatory interfaces:
+Records can implement  pre-defined interafaces as well and an
+interface is defined like this:
 
 ```
 interface Bar {
@@ -247,13 +290,12 @@ interface Bar {
   public fn foo()
 }
 
+And can used like this:
+
 record Foo : Bar {
- ...
+   // See Foo record below
 }
 ```
-
-Foo is as defined above (by accident :-) and the `a` member variable
-and the `foo` function in `Bar` must be implemented.
 
 ## Hierachical modules
 
@@ -271,3 +313,74 @@ writeln("foo")
 import std.stdio : *
 writeln("foo")
 ```
+
+
+
+
+
+Name conflicts are checked during usage of module
+
+inga macron
+
+Singleton
+
+
+a(l, 10)
+
+
+
+
+
+fn a(l, m, n = 0) {
+    if (n > m) {
+        l
+    } else {
+        ln[n] = l[n] + 1
+        a(l, m, n + 1)
+    }
+}
+
+
+fn a(l, m, fun, n = 0) {
+    if (n > m) {
+        l
+    } else {
+         ln[n] = fun(l, n)
+         a(l, m, n + 1)
+    }
+}
+
+l.dup().map(l, fun)
+
+
+
+fn main() {
+    l = [1, 2, 3]
+    f = (l, n) => { l[n] + 1 }
+    true <- map(l, f)
+}
+
+fn map(l, f, n = 0) {
+    if (n > l.length()) {
+        true
+    } else {
+         l[n] = f(l, n)
+         a(l, f, n + 1)
+    }
+}
+
+
+
+
+
+
+
+    a(l[n] , n) ->
+
+
+
+  a(l[1 .. $]) <~ l[0] + 1
+
+
+
+  a(b[1 .. $ - 1] <~ a[0])
