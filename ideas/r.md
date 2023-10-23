@@ -196,7 +196,7 @@ foo.bar(1)
 ```
 
 A class may opt to implement a certain interface. The interface
-defines which member variables and functions that musr be provided by
+defines which member variables and functions that must be provided by
 the class. An interface definition looks like this:
 
 ```
@@ -206,7 +206,7 @@ interface Bar {
 }
 ```
 
-A class which decides to implement this interface look like this:
+A class which decides to implement this interface looks like this:
 
 ```
 class Foo : Bar {
@@ -295,9 +295,9 @@ fn map(l, f, n = 0) {
 
 `<~` is used for matching. More on that below.
 
-If a function parameter is prepended with a `ref` keyword it is a
-reference instead of a value. This only has meaning for `int`, `float`
-and `bool` values. All other types are already references.
+If a function parameter is prepended with a `ref` keyword it is used
+as a reference instead of a value. This only has meaning for `int`,
+`float` and `bool` values. All other types are references already.
 
 ```
 a = 1
@@ -331,11 +331,11 @@ Matching can also be done like this:
 
 ```
 match expr {
-  match-expr {
+  match-expr => {
     a
     b
   }
-  match-expr {
+  match-expr => {
     c
   }
 }
@@ -347,13 +347,13 @@ As seen here:
 a = 1
 b = 3
 match expr {
-  '(1, ?a) {
+  '(1, ?a) => {
     a
   }
-  a || b {
+  a || b => {
     a + 1
   }
-  _ {
+  _ => {
     0
   }
 }
