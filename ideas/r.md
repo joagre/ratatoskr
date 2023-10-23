@@ -148,7 +148,8 @@ b = a                   // b = ["a" : "bar", "b" : 0, 42 : "baz"]
 b["a"] = 0              // a = ["a" : 0, "b" : 0, 42 : "baz"]
                         // b = ["a" : 0, "b" : 0, 42 : "baz"]
 c = a["a"]              // c = 0
-d = b.dup()             // Explicit copy
+d = a ~ [42 : 4711]     // d = [42 : 4711, "a" : 0, "b" : 0]
+e = b.dup()             // Explicit copy
 ```
 
 > [!NOTE]
