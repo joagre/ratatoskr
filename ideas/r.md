@@ -360,7 +360,7 @@ import std.stdio : *
 writeln("foo")
 ```
 
-Name conflicts are checkd when something is referred to in  imported
+Name conflicts are checked when something is referred to in imported
 modules.
 
 The `std.jobs` module contains the functionality needed to work with
