@@ -59,10 +59,15 @@ Bonk:a
 ## Integral and floating-point literals
 
 `3.0` is a float
+
 `1.23e6` is a float
+
 `3` is an int
+
 `0xffff` is an int in hexadecimal format
+
 `0b101010100` is an int in binary format
+
 `017` is an int in octal format
 
 These are valid operations:
