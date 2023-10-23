@@ -261,10 +261,15 @@ fn foo(a = 1) {
 }
 ```
 
-> [!NOTE]
-> Function overloading ftw
+Note howe trailing parameters may have default values.
 
-Trailing parameters may have default values.
+> [!NOTE]
+> No support for currying and variadic parameters
+
+Calling convention:
+
+`foo(2, 6)`
+
 
 Functions may be nested:
 
@@ -319,13 +324,6 @@ fn foo(ref b) {
 foo(a)
 writeln(a)        // 2
 ```
-
-Calling convention:
-
-`foo(a, b)`
-
-> [!NOTE]
-> No support for currying and variadic parameters
 
 ## Matching
 
