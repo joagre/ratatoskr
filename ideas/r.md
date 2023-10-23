@@ -31,22 +31,15 @@ Reserved words: `if`, `then`, `else`, `match`, `=`, `enum`, `:`,
 
 `//` and `/* ... */`
 
-## Literals
+## Valid characters in symbols
 
-`_?a-zA-Z[0-9|a-zA-Z]*`
+`^[[:alpha:]_][[:alnum:]_]*$`
 
-## Characters
+## Character literals
 
 `'B' and '\n'` etc
 
-## Variables
-
-```
-aVariable = 1
-B52 = "foo"
-```
-
-## Enums
+## Enum literals
 
 ```
 enum Bonk {
@@ -63,20 +56,16 @@ Bonk:c
 Bonk:a
 ```
 
-## Numbers
+## Integral and floating-point literals
 
 `3.0` is a float
+`1.23e6` is a float
 `3` is an int
+`0xffff` is an int in hexadecimal format
+`0b101010100` is an int in binary format
+`017` is an int in octal format
 
-`3.0 + 3` is not allowed
-
-`int#3.0 + 3` is allowed (# is the casting operator)
-
-and
-
-`3.0 + float#3`
-
-and with variables:
+These are valid operations:
 
 ```
 a = 3.0
@@ -85,14 +74,18 @@ c = int#a + b
 d = a + (float#b - 1.0)
 ```
 
-## Booleans
+No auto-casting is done between integers and floats and must be done
+explicitly as seen above. `#` is the type cast operator and if a
+value/variable already is of the required type the cast is a noop.
+
+## Boolean literals
 
 ```
 true
 false
 ```
 
-## Strings
+## String literals
 
 Immutable
 
@@ -104,6 +97,13 @@ Immutable
 a = "foo"
 b = "bar"
 c = a ~ b               // c = "foobar" (COPY)
+```
+
+## Variables
+
+```
+aVariable = 1
+B52 = "foo"
 ```
 
 ## Tuples
