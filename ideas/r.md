@@ -122,7 +122,8 @@ f = b <~ 4711;          // e = [2, 23, 4711]
 g = f.dup();            // Explicit copy
 ```
 
-> [!NOTE] Internally implemented with a double-ended queue (dynamic
+> [!NOTE]
+> Internally implemented with a double-ended queue (dynamic
 > array of continous memory).
 
 ## Hash maps
