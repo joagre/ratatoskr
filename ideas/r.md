@@ -11,6 +11,7 @@ fn main(args) {
 }
 ```
 
+> [!NOTE]
 > No pointers but everything is refered to by reference. It's true. :-)
 
 > [!NOTE]
