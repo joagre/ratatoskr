@@ -192,7 +192,7 @@ class Foo {
 ```
 
 > [!NOTE]
-> No support for inheritence (see interface below)
+> No support for inheritance (see interface below)
 
 A class Foo can be instantiated like this:
 
