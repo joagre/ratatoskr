@@ -204,7 +204,7 @@ interface Bar {
 }
 ```
 
-A class wich decides to implement this interface can look like this:
+A class which decides to implement this interface can look like this:
 
 ```
 class Foo : Bar {
@@ -343,7 +343,7 @@ match expr {
 
 No macros
 
-## Hierachical modules
+## Hierarchical modules
 
 ```
 import std.stdio
