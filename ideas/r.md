@@ -78,6 +78,7 @@ b = false
 Immutable
 
 `"foo"`
+
 `"foo $a is not ${a + 1.0}"` becomes `"foo 3.0 is not 4.0"`
 
 ```
