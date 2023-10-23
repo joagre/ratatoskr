@@ -22,7 +22,7 @@ fn main(args) {
 
 Reserved words: `if`, `then`, `else`, `match`, `=`, `enum`, `:`,
 `true`, `false`, `#`, `+`, `-`, `*`, `/`, `fn`, `[`, `]`, `{`, `}`,
-`"`, `(`, `)`, `$`, `~`, `'`, `<@`, `@>`, `<~`, `class`, `public`,
+`"`, `(`, `)`, `$`, `~`, `'`,  `<~`, `class`, `public`,
 `private`, `readonly`, `const`, `this`, `new`, `interface`,
 `singleton`, `.`, `import`, `?` and all other binary and unary
 operators you can think of.
@@ -132,8 +132,14 @@ a[2] = 23               // a = [1, 2, 23, 4, 5]
                         // c = [23, 4]
                         // d = [2, 42, 3, 4]
 e = b.dup()             // Explicit copy
-4711 @> b;              // b = [4711, 2, 23]
-e <@ 4711;              // e = [2, 23, 4711]
+e ~= 4711;              // e = [2, 23, 4711]
+f = a[$ / 2 .. $]       // What do we get?
+g = a
+h = a.dup()
+g is a                  // true
+h is a                  // false
+g == a                  // true
+h == a                  // true
 ```
 
 > [!NOTE]
@@ -370,6 +376,10 @@ match expr {
 ## Macros
 
 No macros
+
+## Exceptions
+
+No exceptions
 
 ## Hierarchical modules
 
