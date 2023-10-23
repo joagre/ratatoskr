@@ -18,6 +18,13 @@ fn main(args) {
 > Dynamically typed to start with but the goal is to add type
 > inference and a gradual type system.
 
+> [!NOTE]
+> Everythng is UTF8
+
+## Comments
+
+`//` and `/* ... */`
+
 ## Variables
 
 Valid variable characters: `_?a-zA-Z[0-9|a-zA-Z]*`
