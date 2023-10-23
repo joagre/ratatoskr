@@ -120,12 +120,14 @@ B52 = "foo"
 All elements in an array must have the same type:
 
 ```
-a = [1, 2, 3, 4, 5];
-b = a[1 .. 3];          // b = [2, 3]
-c = a[2 .. $ - 1];      // c = [3, 4]
-d = b ~ c;              // d = [2, 3, 3, 4] (COPY)
-d[1] = 42;              // d = [2, 42, 3, 4]
-a[2] = 23;              // a = [1, 2, 23, 4, 5]
+[4711.0, 42]            // An invalid array literal
+[4711, 42]              // A valid array literal
+a = [1, 2, 3, 4, 5]
+b = a[1 .. 3]           // b = [2, 3]
+c = a[2 .. $ - 1]       // c = [3, 4]
+d = b ~ c               // d = [2, 3, 3, 4] (COPY)
+d[1] = 42               // d = [2, 42, 3, 4]
+a[2] = 23               // a = [1, 2, 23, 4, 5]
                         // b = [2, 23]
                         // c = [23, 4]
                         // d = [2, 42, 3, 4]
@@ -143,6 +145,7 @@ e <@ 4711;              // e = [2, 23, 4711]
 All keys and values may have any type:
 
 ```
+[ "no" : 1.0 ]          // A hashtable literal
 a = [ "a" : 1.0, "b" : "foo" ]
 a["a"] = "bar"
 a[42] = "baz"           // a = ["a" : "bar", "b" : "foo", 42 : "baz"]
