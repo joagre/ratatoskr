@@ -20,6 +20,13 @@ fn main(args) {
 > R is dynamically typed to start with but the goal is to add type
 > inference and gradual typing.
 
+Reserved words: `if`, `then`, `else`, `match`, `=`, `enum`, `:`,
+`true`, `false`, `#`, `+`, `-`, `*`, `/`, `fn`, `[`, `]`, `{`, `}`,
+`"`, `(`, `)`, `$`, `~`, `'`, `<@`, `@>`, `<~`, `class`, `public`,
+`private`, `readonly`, `const`, `this`, `new`, `interface`,
+`singleton`, `.`, `import`
+`=>`, `?`.
+
 ## Comments
 
 `//` and `/* ... */`
@@ -60,19 +67,19 @@ Bonk:a
 
 `3.0 + 3` is not allowed
 
-`int!3.0 + 3` is allowed (! is the casting operand)
+`int#3.0 + 3` is allowed (# is the casting operand)
 
 and
 
-`3.0 + float!3`
+`3.0 + float#3`
 
 and with variables:
 
 ```
 a = 3.0
 b = 3,
-c = int!a + b
-d = a + (float!b - 1.0)
+c = int#a + b
+d = a + (float#b - 1.0)
 ```
 
 ## Booleans
@@ -117,8 +124,8 @@ a[2] = 23;              // a = [1, 2, 23, 4, 5]
                         // b = [2, 23]
                         // c = [23, 4]
                         // d = [2, 42, 3, 4]
-e = 4711 ~> b;          // e = [4711, 2, 23] (COPY)
-f = b <~ 4711;          // e = [2, 23, 4711]
+e = 4711 @> b;          // e = [4711, 2, 23] (COPY)
+f = b <@ 4711;          // e = [2, 23, 4711]
 g = f.dup();            // Explicit copy
 ```
 
