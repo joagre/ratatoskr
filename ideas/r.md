@@ -20,7 +20,7 @@ fn main(args) {
 
 ## Variables
 
-Valid variable characters: _?a-zA-Z[0-9|a-zA-Z]*
+Valid variable characters: `_?a-zA-Z[0-9|a-zA-Z]*`
 
 ```
 a = 1
