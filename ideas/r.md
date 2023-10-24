@@ -198,7 +198,8 @@ class Foo {
 ```
 
 > [!NOTE]
-> No support for inheritance (see interface below)
+> No support for inheritance (see interface below) and classes only
+> can be defined as top level constructs. By design.
 
 A class Foo can be instantiated like this:
 
