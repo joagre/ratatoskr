@@ -1,6 +1,6 @@
 # The R programming language
 
-Everything is an expression and Unicode is everywhere.
+Everything is an expression.
 
 Nothing can be declared in the global context except for the mandatory
 main function which **must** be declared in the global context (by one
@@ -182,7 +182,7 @@ class Foo {
   readonly c
   const d
 
-  this(a, g) {  // Constructor
+  this(a, g) {          // Constructor
     this.a = a
     b = g
   }
@@ -241,7 +241,7 @@ singleton class Foo : Bar {
 
 It means what you think.
 
-## Control statements
+## Control flow
 
 ```
 if expr {
@@ -291,7 +291,7 @@ fn foo(a, b, c = 0) {
 Define an anonymous function like this:
 
 ```
-(a, b) {
+fn (a, b) {
     b
 }
 ```
@@ -301,7 +301,7 @@ This is an example of a map function:
 ```
 fn main() {
     l = [1, 2, 3]
-    f = (l, n) { l[n] + 1 }
+    f = fn (l, n) { l[n] + 1 }
     true <~ map(l, f)
 }
 
@@ -328,7 +328,7 @@ fn foo(ref b) {
     b += 1
 }
 foo(a)
-writeln(a)        // 2
+writeln(a)                  // 2
 ```
 
 ## Matching
@@ -337,7 +337,7 @@ Matching can be done with the `<~` operator:
 
 ```
 a = 1
-'(a, ?a, 1) <~ '(1, 2, 1)     // a = 2
+'(a, ?a, 1) <~ '(1, 2, 1)   // a = 2
 '(?a, b, ?h) <~ foo(42)
 ```
 
@@ -347,11 +347,11 @@ Matching can also be done like this:
 
 ```
 match expr {
-  match-expr : {
+  match-expr -> {
     a
     b
   }
-  match-expr : {
+  match-expr -> {
     c
   }
 }
@@ -363,13 +363,13 @@ As seen here:
 a = 1
 b = 3
 match expr {
-  '(1, ?a) : {
+  '(1, ?a) -> {
     a
   }
-  a || b : {
+  a || b -> {
     a + 1
   }
-  _ : {
+  _ -> {
     0
   }
 }
