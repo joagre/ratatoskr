@@ -17,11 +17,11 @@ fn main(args) {
 > `bool` values are referred to by reference.
 
 > [!NOTE]
-> R is dynamically typed to start with but the goal is to add type
-> inference and gradual typing.
+> R is dynamically typed but the goal is to add type inference and
+> gradual typing.
 
 Reserved words: `if`, `then`, `else`, `match`, `=`, `enum`, `:`,
-`true`, `false`, `#`, `+`, `-`, `*`, `/`, `fn`, `[`, `]`, `{`, `}`,
+`true`, `false`, `+`, `-`, `*`, `/`, `fn`, `[`, `]`, `{`, `}`,
 `"`, `(`, `)`, `$`, `~`, `'`,  `<~`, `class`, `public`,
 `private`, `readonly`, `const`, `this`, `new`, `interface`,
 `singleton`, `.`, `import`, `?` and all other binary and unary
@@ -75,12 +75,12 @@ These are valid operations:
 ```
 a = 3.0
 b = 3,
-c = int#a + b
-d = a + (float#b - 1.0)
+c = int!a + b
+d = a + (float!b - 1.0)
 ```
 
 No auto-casting is done between integers and floats and must be done
-explicitly as seen above. `#` is the type cast operator and if a
+explicitly as seen above. `!` is the type cast operator and if a
 value/variable already is of the required type the cast is a noop.
 
 ## Boolean literals
@@ -103,7 +103,7 @@ Immutable
 ```
 a = "foo"
 b = "bar"
-c = a ~ b               // c = "foobar" (COPY)
+c = a ~ b               // c = "foobar" (COPY!)
 ```
 
 ## Variables
@@ -130,13 +130,14 @@ All elements in an array must have the same type:
 a = [1, 2, 3, 4, 5]
 b = a[1 .. 3]           // b = [2, 3]
 c = a[2 .. $ - 1]       // c = [3, 4]
-d = b ~ c               // d = [2, 3, 3, 4] (COPY)
+d = b ~ c               // d = [2, 3, 3, 4] (COPY!)
 d[1] = 42               // d = [2, 42, 3, 4]
 a[2] = 23               // a = [1, 2, 23, 4, 5]
                         // b = [2, 23]
                         // c = [23, 4]
                         // d = [2, 42, 3, 4]
 e = b.dup()             // Explicit copy
+b = [4711] ~ b          // b = [4711, 2, 23] (COPY!)
 e ~= 4711;              // e = [2, 23, 4711]
 f = a[$ / 2 .. $]       // What do we get?
 g = a
@@ -164,7 +165,7 @@ b = a                   // b = ["a" : "bar", "b" : 0, 42 : "baz"]
 b["a"] = 0              // a = ["a" : 0, "b" : 0, 42 : "baz"]
                         // b = ["a" : 0, "b" : 0, 42 : "baz"]
 c = a["a"]              // c = 0
-d = a ~ [42 : 4711]     // d = [42 : 4711, "a" : 0, "b" : 0] (COPY)
+d = a ~ [42 : 4711]     // d = [42 : 4711, "a" : 0, "b" : 0] (COPY!)
 e = b.dup()             // Explicit copy
 ```
 
