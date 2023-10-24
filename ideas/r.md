@@ -138,7 +138,7 @@ a[2] = 23               // a = [1, 2, 23, 4, 5]
                         // d = [2, 42, 3, 4]
 e = b.dup()             // Explicit copy
 b = [4711] ~ b          // b = [4711, 2, 23] (COPY!)
-e ~= 4711;              // e = [2, 23, 4711]
+e ~= 4711               // e = [2, 23, 4711]
 f = a[$ / 2 .. $]       // What do we get?
 g = a
 h = a.dup()
@@ -183,8 +183,8 @@ class Foo {
   const d
 
   this(a, g) {  // Constructor
-    this.a = a;
-    b = g;
+    this.a = a
+    b = g
   }
 
   public fn foo() {
@@ -325,7 +325,7 @@ referred to by reference.
 ```
 a = 1
 fn foo(ref b) {
-    b += 1;
+    b += 1
 }
 foo(a)
 writeln(a)        // 2
