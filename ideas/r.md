@@ -2,9 +2,9 @@
 
 Everything is an expression.
 
-Nothing can be declared in the global context except for the mandatory
-main function which **must** be declared in the global context (by one
-of the modules constituting an application).
+Nothing can be declared in the global context except for a mandatory
+main function which **must** be declared there (by one of the modules
+constituting an application).
 
 ```
 fn main(args) {
@@ -17,8 +17,8 @@ fn main(args) {
 > `bool` values are referred to by reference.
 
 > [!NOTE]
-> R is dynamically typed but the goal is to add type inference and
-> gradual typing.
+> R is dynamically typed but the compiler performs Hindley–Milner type
+> inference.
 
 Reserved words: `if`, `then`, `else`, `match`, `=`, `enum`, `:`,
 `true`, `false`, `+`, `-`, `*`, `/`, `fn`, `[`, `]`, `{`, `}`,
@@ -52,8 +52,8 @@ enum Bonk {
 Refer to them like this:
 
 ```
-Bonk:c
-Bonk:a
+Bonk.c
+Bonk.a
 ```
 
 ## Integral and floating-point literals
@@ -79,9 +79,10 @@ c = int!a + b
 d = a + (float!b - 1.0)
 ```
 
-No auto-casting is done between integers and floats and must be done
-explicitly as seen above. `!` is the type cast operator and if a
-value/variable already is of the required type the cast is a noop.
+No auto-casting is done between numbers and must be done explicitly as
+seen above. `!` is the type cast operator and `int` and `float` are
+the only types it knows about. If a number/variable already is of the
+required type the cast is a noop.
 
 ## Boolean literals
 
@@ -148,6 +149,9 @@ g == a                  // true
 h == a                  // true
 ```
 
+Above we only examplify with integers but all available types in R can
+be stored in dynamic arrays.
+
 > [!NOTE]
 > Internally implemented with a double-ended queue (dynamic
 > array of continous memory).
@@ -198,8 +202,8 @@ class Foo {
 ```
 
 > [!NOTE]
-> No support for inheritance (see interface below) and classes only
-> can be defined as top level constructs. By design.
+> No support for inheritance (see interface below) and classes can
+> only be defined as top level constructs. By design.
 
 A class Foo can be instantiated like this:
 
@@ -213,7 +217,7 @@ foo.a = 1
 foo.bar(1)
 ```
 
-A class may opt to implement a certain interface. The interface
+A class may choose to implement a mandatory interface. The interface
 defines which member variables and functions that must be provided by
 the class. An interface definition looks like this:
 
@@ -227,10 +231,12 @@ interface Bar {
 A class which decides to implement this interface looks like this:
 
 ```
-class Foo : Bar {
+class Foo : Bar, Bonk {
    // See Foo class above
 }
 ```
+
+Above `Foo` implements two interfaces.
 
 A class can also be defined as a singleton:
 
@@ -319,9 +325,9 @@ fn map(l, f, n = 0) {
 `<~` is used for matching. More on that below.
 
 If a function parameter is pre-pended with a `ref` keyword it is
-referred to by reference instead of by value. This only has meaning
-for `int`, `float` and `bool` values. All other types are already
-referred to by reference.
+referred to by reference instead value. This only has meaning for
+`int`, `float` and `bool` values. All other types are already referred
+to by reference.
 
 ```
 a = 1
@@ -403,8 +409,8 @@ import std.stdio : *
 writeln("foo")
 ```
 
-Name conflicts between constructs in each module are detected whenever
-they are used in the module.
+Name conflicts between constructs between modules are detected whenever
+they are used.
 
 The `std.jobs` module contains the functionality needed to work with
 concurrent jobs and message passing in between them, i.e. `spawn()`,
