@@ -29,7 +29,7 @@ operators you can think of.
 
 ## Comments
 
-`//` and `/* ... */`
+`;` and `;* ... *;`
 
 ## Valid characters in symbols
 
@@ -52,8 +52,8 @@ enum Bonk {
 Refer to them like this:
 
 ```
-Bonk.c
-Bonk.a
+Bonk#c
+Bonk#a
 ```
 
 ## Integral and floating-point literals
@@ -79,10 +79,7 @@ c = int!a + b
 d = a + (float!b - 1.0)
 ```
 
-No auto-casting is done between numbers and must be done explicitly as
-seen above. `!` is the type cast operator and `int` and `float` are
-the only types it knows about. If a number/variable already is of the
-required type the cast is a noop.
+No auto-cast is done between integral and floating-point numbers and a cast must be done explicitly as seen above. `!` is the type cast operator; `int` and `float` are the only types it knows about. If a number/variable already is of the required type the cast is a noop.
 
 ## Boolean literals
 
@@ -126,7 +123,7 @@ B52 = "foo"
 All elements in an array must have the same type:
 
 ```
-[4711.0, 42]            // An invalid array literal
+[int!4711.0, 42]        // A valid array literal
 [4711, 42]              // A valid array literal
 a = [1, 2, 3, 4, 5]
 b = a[1 .. 3]           // b = [2, 3]
@@ -209,7 +206,11 @@ A class Foo can be instantiated like this:
 
 `foo = new Foo(1, 2)`
 
-Access to member variables and functions look like this:
+or
+
+`foo = new bar:Foo(1, 2)`
+
+if Foo is availble in module `bar` (read more aboy hierarchical modules below). Access to member variables and functions look like this:
 
 ```
 foo.a
@@ -231,17 +232,17 @@ interface Bar {
 A class which decides to implement this interface looks like this:
 
 ```
-class Foo : Bar, Bonk {
+class Foo <@ Bar Bonk {
    // See Foo class above
 }
 ```
 
-Above `Foo` implements two interfaces.
+Above `Foo` implements two interfaces `Bar` and `Bonk`.
 
 A class can also be defined as a singleton:
 
 ```
-singleton class Foo : Bar {
+singleton class Foo <@ Bar {
    // See Foo record above
 }
 ```
@@ -283,6 +284,11 @@ Calling convention:
 
 `foo(2, 6)`
 
+or
+
+`bar:foo(2, 6)`
+
+if `foo` is implemented in module `bar`.
 
 Functions may be nested:
 
@@ -344,8 +350,10 @@ Matching can be done with the `<~` operator:
 
 ```
 a = 1
-'(a, ?a, 1) <~ '(1, 2, 1)   // a = 2
+'(a, ?a, 1) <~ '(1, 2, 1)   ; a = 2
 '(?a, b, ?h) <~ foo(42)
+[1, ?a] <~ [1, 2]           ; a = 2
+[42 : 1, "foo" : ?a] <~ [42 : 1, "foo" : 2]    ; a = 2
 ```
 
 `?` introduces an unbound variable.
@@ -395,19 +403,18 @@ No exceptions
 ## Hierarchical modules
 
 ```
-import std.stdio
-stdio.writeln("foo")
+import std@stdio : writeln
+writeln("foo")
+std@stdio$wrute
 ```
 
-```
-import std.stdio : writeln, writefln
-writeln("foo")
-```
 
-```
-import std.stdio : *
-writeln("foo")
-```
+hmmmmmm
+
+
+or explicitly:
+
+`std@stdio@writeln("foo")`
 
 Name conflicts between constructs between modules are detected whenever
 they are used.
