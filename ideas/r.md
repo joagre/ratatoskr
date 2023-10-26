@@ -148,12 +148,12 @@ c = a ~ b               // c = "foobar" (Copy)
 c = a ~ '\u03c9'        // c = "fooω" (Copy)
 ```
 
-## Array literals
+## Dynamic arrays
 
-All elements in a a dynamic array must have the same type:
+All elements in a dynamic array must have the same type:
 
 ```
-[(int)4711.0, 42]        // A valid array literal
+[(int)4711.0, 42]       // A valid array literal
 [4711, 42]              // A valid array literal
 a = [1, 2, 3, 4, 5]
 b = a[1 .. 3]           // b = [2, 3]
@@ -179,7 +179,7 @@ h == a                  // true
 Above we only examplify with arrays of integers but all available
 types in R can be stored in dynamic arrays.
 
-## Associative array literals
+## Associative arrays
 
 All keys and values may have any type:
 
@@ -314,6 +314,7 @@ if (typeof(a) == Type.int) {
 }
 ```
 
+```
 Arithmetic Operators:
     +: Addition
     -: Subtraction
@@ -360,6 +361,7 @@ Other Special Operators:
     is: Type comparison
     !is: Negative type comparison
     (TYPE): Type casting
+```
 
 # The main function
 
@@ -376,7 +378,7 @@ main(_args) {
 `//` and `/* ... */`
 
 
-## Enum literals
+## Enums
 
 ```
 enum Bonk {
