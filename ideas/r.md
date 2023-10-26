@@ -95,7 +95,7 @@ Symbols in R are restricted to `^[[:alpha:]_][[:alnum:]_]*$`.
 
 ## Boolean
 
-A `bool` are `true` and `false`.
+A `bool` are `true` or `false`.
 
 ## Integral and floating-point
 
