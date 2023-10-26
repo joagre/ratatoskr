@@ -58,139 +58,115 @@ where everything is a an expressive loads of
 
 with because the functional everything is an expression
 
-# The main function
+## Reserved words
 
-Nothing can be declared in the global context except for the `main`
-function which **must** be declared there.
+import
+true
+false
+null
+enum
+if
+then
+else
+switch
+case
+default
+match
+timeout
+class
+new
+public
+private
+readonly
+const
+interface
+singleton
+this
+spawn
+send
+receive
+self
 
-```
-fn main(_args) {
-  "Hello World!"
-}
-```
+## Symbols
 
-The following words are reserved: `if`, `then`, `else`, `match`, `=`, `enum`, `:`,
-`true`, `false`, `+`, `-`, `*`, `/`, `fn`, `[`, `]`, `{`, `}`,
-`"`, `(`, `)`, `$`, `~`, `'`,  `<~`, `class`, `public`,
-`private`, `readonly`, `const`, `this`, `new`, `interface`,
-`singleton`, `.`, `import`, `?` and all other binary and unary
-operators you can think of.  FIXME. Be cpo,eplete
-
-## Comments
-
-`//` and `/* ... */`
+Symbols in R are restricted to `^[[:alpha:]_][[:alnum:]_]*$`.
 
 ## Valid characters in symbols
 
 `^[[:alpha:]_][[:alnum:]_]*$`
 
-## Character literals
+## Boolean
 
-`'B' and '\n'` etc.
+A `bool` are `true` and `false`.
 
-## Enum literals
+## Integral and floating-point
 
-```
-enum Bonk {
-  a
-  b
-  c
-}
-```
+`int`       Signed 32/64 bits integer (depending on the target architecture)
+`bignum`    Arbitrary-precision integer
+`float`     32 or 64-bit floating point (depending on the target architecture)
 
-Used like this:
+Examples:
 
-```
-Bonk.a
-Bonk.c
-```
+`3` is an `int`
 
-## Integral and floating-point literals
-
-`3` is an int
-
-`0xffff` is an int in hexadecimal format
+`0xffff` is an `int` in hexadecimal format
 
 `0b101010100` is an int in binary format
 
-`017` is an int in octal format
+`017` is an `int` in octal format
 
-`3.0B` is a bignum
+`298347928347987B` is a `bignum`
 
-`3.0` is a float
+`3.0` is a `float`
 
-`1.23e6` is a scientific float
+`1.23e-6` is a `float` in scientific format
 
-No automatic casting is performed between integral, bignum and
-floating-point type and casting must be done explicitly. `#`is the
-cast operator and it only knows about the `int`, `float` and `big`
-types. If a value already is of the required type the casting becomes
-a noop.
+## Character
 
-```
-a = 3,
-b = 042
-c = 39879879284379287
-d = 3.0
-e = a + int#d * b                // 105
-f = c / big#(d + float#a)
-```
+`utf8char`  A UTF-8 character/code point
 
-## Boolean literals
+Examples:
 
-```
-true
-false
-```
+'A' is what you think
+'\u03c9' is the code point for `ω`
 
-## String literals
+## String
 
-Immutable
+`string`     An immutable UTF-8 string
+
+Examples:
 
 `"foo"`
 
-`"foo $a is not ${a + 1.0}"` becomes `"foo 3.0 is not 4.0"`
-
 `r"foo\nbar"` is a raw string without escape processing
+
+`"foo $a is not ${a + 1.0}"` becomes `"foo 3.0 is not 4.0"`
 
 ```
 a = "foo"
 b = "bar"
-c = a ~ b               // c = "foobar" (COPY!)
+c = a ~ b               // c = "foobar" (Copy)
+c = a ~ '\u03c9'        // c = "fooω" (Copy)
 ```
 
-## Variables
+## Array literals
+
+All elements in a a dynamic array must have the same type:
 
 ```
-aVariable = 1
-B52 = "foo"
-```
-
-## Tuples
-
-```
-'(1, 2)
-'(a, '(b, 4))
-```
-
-## Dynamic arrays
-
-All elements in an array must have the same type:
-
-```
-[int!4711.0, 42]        // A valid array literal
+[(int)4711.0, 42]        // A valid array literal
 [4711, 42]              // A valid array literal
 a = [1, 2, 3, 4, 5]
 b = a[1 .. 3]           // b = [2, 3]
 c = a[2 .. $ - 1]       // c = [3, 4]
-d = b ~ c               // d = [2, 3, 3, 4] (COPY!)
+d = b ~ c               // d = [2, 3, 3, 4] (Copy)
 d[1] = 42               // d = [2, 42, 3, 4]
 a[2] = 23               // a = [1, 2, 23, 4, 5]
                         // b = [2, 23]
                         // c = [23, 4]
                         // d = [2, 42, 3, 4]
 e = b.dup()             // Explicit copy
-b = [4711] ~ b          // b = [4711, 2, 23] (COPY!)
+b = [4711] ~ b          // b = [4711, 2, 23] (Copy)
 e ~= 4711               // e = [2, 23, 4711]
 f = a[$ / 2 .. $]       // What do we get?
 g = a
@@ -201,19 +177,15 @@ g == a                  // true
 h == a                  // true
 ```
 
-Above we only examplify with integers but all available types in R can
-be stored in dynamic arrays.
+Above we only examplify with arrays of integers but all available
+types in R can be stored in dynamic arrays.
 
-> [!NOTE]
-> Internally implemented with a double-ended queue (dynamic
-> array of continous memory).
-
-## Hashtables
+## Associative array literals
 
 All keys and values may have any type:
 
 ```
-[ "no" : 1.0 ]          // A hashtable literal
+[ "no" : 1.0 ]
 a = [ "a" : 1.0, "b" : "foo" ]
 a["a"] = "bar"
 a[42] = "baz"           // a = ["a" : "bar", "b" : "foo", 42 : "baz"]
@@ -221,119 +193,18 @@ b = a                   // b = ["a" : "bar", "b" : 0, 42 : "baz"]
 b["a"] = 0              // a = ["a" : 0, "b" : 0, 42 : "baz"]
                         // b = ["a" : 0, "b" : 0, 42 : "baz"]
 c = a["a"]              // c = 0
-d = a ~ [42 : 4711]     // d = [42 : 4711, "a" : 0, "b" : 0] (COPY!)
+d = a ~ [42 : 4711]     // d = [42 : 4711, "a" : 0, "b" : 0] (Copy)
 e = b.dup()             // Explicit copy
+f = b
+f is b                  // true
+e is b                  // false
+f == b                  // true
+e == b                  // true
 ```
 
 > [!NOTE]
-> Structural equality is used for all key values (even for class
-> instances)
-
-## Classes
-
-```
-class Foo {
-  public a
-  private b
-  readonly c
-  const d
-
-  this(a, g) {          // Constructor
-    this.a = a
-    b = g
-  }
-
-  ~this(a, g) {         // Destructor
-    this.a = a
-    b = g
-  }
-
-  public fn foo() {
-    0
-  }
-
-  private fn bar(b) {
-    b
-  }
-}
-```
-
-> [!NOTE]
-> No support for inheritance (see interface below) and classes can
-> only be defined as top level constructs. By design.
-
-A class Foo can be instantiated like this:
-
-`foo = new Foo(1, 2)`
-
-or
-
-`foo = new bar:Foo(1, 2)`
-
-if Foo is availble in module `bar` (read more aboy hierarchical modules below). Access to member variables and functions look like this:
-
-```
-foo.a
-foo.a = 1
-foo.bar(1)
-```
-
-A class may choose to implement a mandatory interface. The interface
-defines which member variables and functions that must be provided by
-the class. An interface definition looks like this:
-
-```
-interface Bar {
-  public a
-  public fn foo()
-}
-```
-
-A class which decides to implement this interface looks like this:
-
-```
-class Foo <@ Bar Bonk {
-   // See Foo class above
-}
-```
-
-Above `Foo` implements two interfaces `Bar` and `Bonk`.
-
-A class can also be defined as a singleton:
-
-```
-singleton class Foo <@ Bar {
-   // See Foo record above
-}
-```
-
-It means what you think.
-
-If you need to define a bunch of constants you typically do this in a
-singleton class like this:
-
-singleton class Math {
-    const PI = 3.1
-    const SQUARE2 = math:sqrt(2)
-}
-
-## Control flow
-
-```
-if expr {
-  a
-} else {
-  b
-  c
-}
-```
-
-switch expr {
-case "foo:
-  1
-default:
-  ss
-}
+> Structural equality is used for all key value lookups (even for
+> class instances)
 
 ## Functions
 
@@ -419,6 +290,236 @@ foo(a)
 writeln(a)                  // 2
 ```
 
+## Operators
+
+No automatic casting is performed between `int`, `bignum` and `float`
+when performing arithmetics and casting must be done explicitly.
+
+Examples:
+
+```
+a = 3,
+b = 042
+c = 93326215443944152681B
+d = 3.0
+e = a + (int)d * b                // 105
+f = c / (bignum)d + (b ignum)a    // 31108738481314713603B
+```
+
+The `typeof` operator can be used to check the type of a numerical:
+
+
+```
+if (typeof(a) == Type.int) {
+    31108738481314713603B + (bignum)a
+}
+```
+
+Arithmetic Operators:
+    +: Addition
+    -: Subtraction
+    *: Multiplication
+    /: Division
+    %: Modulus (remainder after division)
+    ^^: Power (right associative)
+
+Relational Operators:
+    ==: Equal to
+    !=: Not equal to
+    <: Less than
+    <=: Less than or equal to
+    >: Greater than
+    >=: Greater than or equal to
+
+Logical Operators:
+    &&: Logical AND (short-circuiting)
+    ||: Logical OR (short-circuiting)
+    !: Logical NOT
+
+Bitwise Operators:
+    &: Bitwise AND
+    |: Bitwise OR
+    ^: Bitwise XOR
+    ~: Bitwise NOT (complement)
+    <<: Left shift
+    >>: Right shift (sign-preserving)
+    >>>: Right shift (zero-fill)
+
+Assignment Operators:
+    =: Assign
+    +=, -=, *=, /=, %=, ^^=, &=, |=, ^=, <<=, >>=, >>>=: Compound assignment operators
+
+Increment and Decrement:
+    ++: Increment
+    --: Decrement
+
+Array and Slice Operators:
+    []: Indexing / slicing
+
+Other Special Operators:
+    in: Membership testing (for associative arrays)
+    is: Type comparison
+    !is: Negative type comparison
+    (TYPE): Type casting
+
+# The main function
+
+Nothing can be declared in the global context except for the `main`
+function which **must** be declared there.
+
+```
+main(_args) {
+  "Hello World!"
+}
+```
+## Comments
+
+`//` and `/* ... */`
+
+
+## Enum literals
+
+```
+enum Bonk {
+  a
+  b
+  c
+}
+```
+
+Used like this:
+
+```
+Bonk.a
+Bonk.c
+```
+
+## Variables
+
+```
+aVariable = 1
+B52 = "foo"
+```
+
+## Tuples
+
+```
+'(1, 2)
+'(a, '(b, 4))
+```
+
+## Classes
+
+```
+class Foo {
+  public a
+  private b
+  readonly c
+  const d
+
+  this(a, g) {          // Constructor
+    this.a = a
+    b = g
+  }
+
+  ~this(a, g) {         // Destructor
+    this.a = a
+    b = g
+  }
+
+  public fn foo() {
+    0
+  }
+
+  private fn bar(b) {
+    b
+  }
+}
+```
+
+> [!NOTE]
+> No support for inheritance (see interface below) and classes can
+> only be defined as top level constructs. By design.
+
+A class Foo can be instantiated like this:
+
+`foo = new Foo(1, 2)`
+
+or
+
+`foo = new bar:Foo(1, 2)`
+
+if Foo is availble in module `bar` (read more aboy hierarchical
+modules below). Access to member variables and functions look like
+this:
+
+```
+foo.a
+foo.a = 1
+foo.bar(1)
+```
+
+A class may choose to implement a mandatory interface. The interface
+defines which member variables and functions that must be provided by
+the class. An interface definition looks like this:
+
+```
+interface Bar {
+  public a
+  public fn foo()
+}
+```
+
+A class which decides to implement this interface looks like this:
+
+```
+class Foo <@ Bar Bonk {
+   // See Foo class above
+}
+```
+
+Above `Foo` implements two interfaces `Bar` and `Bonk`.
+
+A class can also be defined as a singleton:
+
+```
+singleton class Foo <@ Bar {
+   // See Foo record above
+}
+```
+
+It means what you think.
+
+If you need to define a bunch of constants you typically do this in a
+singleton class like this:
+
+singleton class Math {
+    const PI = 3.1
+    const SQUARE2 = math:sqrt(2)
+}
+
+## Control flow
+
+```
+if expr {
+  a
+} else {
+  b
+  c
+}
+```
+
+and
+
+```
+switch expr {
+case "foo:
+  1
+default:
+  ss
+}
+```
+
 ## Matching
 
 Matching can be done with the `<~` operator:
@@ -501,6 +602,9 @@ they are used.
 The `std.jobs` module contains the functionality needed to work with
 concurrent jobs and message passing in between them, i.e. `spawn()`,
 `send()` and `recv()` functions.
+
+
+
 
 
 
