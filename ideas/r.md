@@ -519,7 +519,7 @@ a = [1, 2, 3]
 jid = spawn sum(a)    // a.dup() is performed automatically
 ```
 
-> [NOTE!]
+> [!NOTE]
 > All jobs get their own copy of all singelton classes. Nothing must
 > be shared.
 
