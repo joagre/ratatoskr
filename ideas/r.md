@@ -58,7 +58,7 @@ where everything is a an expressive loads of
 
 with because the functional everything is an expression
 
-# The main thing
+# The main function
 
 Nothing can be declared in the global context except for the `main`
 function which **must** be declared there.
@@ -551,7 +551,7 @@ The mailbox is unbounded in size but can be restricted using the
 
 Here the mailbox is restricted to at most 64 messages and if a
 sending job hits this threshold it automatically blocks in `send`
-until the mailbox has less messages in its mailbox.
+until the mailbox contains less messages.
 
 As an alternative to `OnCrowding.block` `OnCrowding.ignore` can be
 used to specify that overflowing messages should be ignored. The
@@ -560,7 +560,7 @@ returns `false` if overflowing messages should be ignored or `true` if
 `send` should continue to block.
 
 The last concurrency keyword is `self`. It is a sibling to `this` in
-classes, but it return tge `jid` for the currently running job.
+classes, but it return the job id for the currently running job.
 
 The `std.concurrency` module also contains these functions:
 
@@ -573,7 +573,7 @@ job dies. Do the same to the linked job if I die.
 
 `kill(jid)`: Does what you think.
 
-singleton Ackermann
+### A Concurrency Example
 
 A small example may clear things up. Below is a main function which
 spawns jobs to compute Ackermann function values for the parameters m
