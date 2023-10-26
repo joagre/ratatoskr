@@ -60,6 +60,7 @@ with because the functional everything is an expression
 
 ## Reserved words
 
+```
 import
 true
 false
@@ -86,14 +87,11 @@ spawn
 send
 receive
 self
+```
 
 ## Symbols
 
 Symbols in R are restricted to `^[[:alpha:]_][[:alnum:]_]*$`.
-
-## Valid characters in symbols
-
-`^[[:alpha:]_][[:alnum:]_]*$`
 
 ## Boolean
 
