@@ -136,25 +136,6 @@ e = a + int#d * b                // 105
 f = c / big#(d + float#a)
 ```
 
-
-
-
-
-!b + big!d
-
-
-
-c = big!a + b + int!;
-
-
-c = + b + int!;
-
-
-
-d = a + (float!b - 1.0)
-```
-
-
 ## Boolean literals
 
 ```
