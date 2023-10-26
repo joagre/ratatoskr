@@ -1,35 +1,84 @@
 # The R programming language
 
-Everything is an expression.
+R is a dynamically typed language with type inference and
 
-Nothing can be declared in the global context except for a mandatory
-main function which **must** be declared there (by one of the modules
-constituting an application).
+Dynamically typed
+Hindley-Milner type inference
+Concurrently oriented
+Time sliced light weight green threads scheduler(1024 bytes)
+Pattern matching
+Selective message passing using pattwern matching
+Fixed and dynmaic arrays
+Hashtables
+Light-weight (microprocessor -> desktop)
+Small memory foot print but built to scale
+Pluggable Scceduler (build you own Interpreter and plug it in)
+int, bignum, float, bool, tuple, fixed and dynamic array, hashtable, string,
+class, interface
+Everything is
+No data can be shared be between job + spawn, send , recieve, monitor,
+link, telleub external format
+ etc (no data can be shared)
+Not immutable
+Lean
+and fast
+Register machine
+Functional, everythiung is an expression
+Tail recusrve optimixation
+Everything is refewred to be reference expecpt for int, float and long
+which can be reference based
+utf8 in strings
+
+shamelessly taken the syntax whwre it fits and removed everything that
+wqs necessaryu in this. just the fatct taht everyins aexpresion no
+loop constructs.. no semicolon. no much
+
+astdlib for string, lists, and network built
+
+Structural and reference equality
+Immutable
+A script langue or not
+
+No pointers
+No type specifications
+No exceptions
+No preprocessor and no macros
+No variadic functions
+No mutexes
+Not immutable
+No inheritance (if that means not being object oriented it may be so)
+
+Everything is an expression. no loopiing iteratiuons.
+
+Syntactically a { language and ows D { based langiugae, ows heavy to the d language but because of its being a dynamic ally tyoped and garbage collected, functional (everything is an expression). No semicolons. Meager syntax but recognizable.
+
+
+where everything is a an expressive loads of
+
+
+with because the functional everything is an expression
+
+# The main thing
+
+Nothing can be declared in the global context except for the `main`
+function which **must** be declared there.
 
 ```
-fn main(args) {
-  0
+fn main(_args) {
+  "Hello World!"
 }
 ```
 
-> [!NOTE]
-> R contains no pointers and everything except `int`, `float` and
-> `bool` values are referred to by reference.
-
-> [!NOTE]
-> R is dynamically typed but the compiler performs Hindley–Milner type
-> inference.
-
-Reserved words: `if`, `then`, `else`, `match`, `=`, `enum`, `:`,
+The following words are reserved: `if`, `then`, `else`, `match`, `=`, `enum`, `:`,
 `true`, `false`, `+`, `-`, `*`, `/`, `fn`, `[`, `]`, `{`, `}`,
 `"`, `(`, `)`, `$`, `~`, `'`,  `<~`, `class`, `public`,
 `private`, `readonly`, `const`, `this`, `new`, `interface`,
 `singleton`, `.`, `import`, `?` and all other binary and unary
-operators you can think of.
+operators you can think of.  FIXME. Be cpo,eplete
 
 ## Comments
 
-`;` and `;* ... *;`
+`//` and `/* ... */`
 
 ## Valid characters in symbols
 
@@ -37,7 +86,7 @@ operators you can think of.
 
 ## Character literals
 
-`'B' and '\n'` etc
+`'B' and '\n'` etc.
 
 ## Enum literals
 
@@ -49,18 +98,14 @@ enum Bonk {
 }
 ```
 
-Refer to them like this:
+Used like this:
 
 ```
-Bonk#c
-Bonk#a
+Bonk.a
+Bonk.c
 ```
 
 ## Integral and floating-point literals
-
-`3.0` is a float
-
-`1.23e6` is a float
 
 `3` is an int
 
@@ -70,16 +115,45 @@ Bonk#a
 
 `017` is an int in octal format
 
-These are valid operations:
+`3.0B` is a bignum
+
+`3.0` is a float
+
+`1.23e6` is a scientific float
+
+No automatic casting is performed between integral, bignum and
+floating-point type and casting must be done explicitly. `#`is the
+cast operator and it only knows about the `int`, `float` and `big`
+types. If a value already is of the required type the casting becomes
+a noop.
 
 ```
-a = 3.0
-b = 3,
-c = int!a + b
+a = 3,
+b = 042
+c = 39879879284379287
+d = 3.0
+e = a + int#d * b                // 105
+f = c / big#(d + float#a)
+```
+
+
+
+
+
+!b + big!d
+
+
+
+c = big!a + b + int!;
+
+
+c = + b + int!;
+
+
+
 d = a + (float!b - 1.0)
 ```
 
-No auto-cast is done between integral and floating-point numbers and a cast must be done explicitly as seen above. `!` is the type cast operator; `int` and `float` are the only types it knows about. If a number/variable already is of the required type the cast is a noop.
 
 ## Boolean literals
 
@@ -188,6 +262,11 @@ class Foo {
     b = g
   }
 
+  ~this(a, g) {         // Destructor
+    this.a = a
+    b = g
+  }
+
   public fn foo() {
     0
   }
@@ -249,6 +328,14 @@ singleton class Foo <@ Bar {
 
 It means what you think.
 
+If you need to define a bunch of constants you typically do this in a
+singleton class like this:
+
+singleton class Math {
+    const PI = 3.1
+    const SQUARE2 = math:sqrt(2)
+}
+
 ## Control flow
 
 ```
@@ -259,6 +346,13 @@ if expr {
   c
 }
 ```
+
+switch expr {
+case "foo:
+  1
+default:
+  ss
+}
 
 ## Functions
 
@@ -362,11 +456,11 @@ Matching can also be done like this:
 
 ```
 match expr {
-  match-expr -> {
+  case match-expr {
     a
     b
   }
-  match-expr -> {
+  case match-expr {
     c
   }
 }
@@ -378,13 +472,13 @@ As seen here:
 a = 1
 b = 3
 match expr {
-  '(1, ?a) -> {
+  case '(1, ?a) {
     a
   }
-  a || b -> {
+  case a || b {
     a + 1
   }
-  _ -> {
+  case _ {
     0
   }
 }
@@ -401,6 +495,10 @@ No macros
 No exceptions
 
 ## Hierarchical modules
+
+
+
+
 
 ```
 import std@stdio : writeln
@@ -422,3 +520,124 @@ they are used.
 The `std.jobs` module contains the functionality needed to work with
 concurrent jobs and message passing in between them, i.e. `spawn()`,
 `send()` and `recv()` functions.
+
+
+
+## Concurrency
+
+Any function can be spawned to run as a concurrent job with the
+`spawn` keyword:
+
+`jid = spawn ackermann(3, 1)`
+
+Jobs share **nothing** with other jobs and the input parameters are
+automatically deep copied before job start:
+
+```
+a = [1, 2, 3]
+jid = spawn sum(a)    // a.dup() is performed automatically
+```
+
+> [NOTE!]
+> All jobs get their own copy of all singelton classes. Nothing must
+> be shared.
+
+`spawn` returns a job id (jid) which can be used to send messages to
+the job with the `send` keyword:
+
+`send jid '(timeout, 1000)`
+
+A message sent to a job ends up in its mailbox and can be retrieved
+with the `receive` keyword:
+
+```
+receive {
+    case '(?jid, ?result) {
+        writeln("Job $jid sent result $result")
+    }
+    timeout 1000 {
+        42
+    }
+}
+```
+
+(the `timeout` keyword is optional)
+
+The mailbox is unbounded in size but can be restricted using the
+`setMaxMailboxSize` function provided by the `std.concurrency` module:
+
+`setMaxMailboxSize(jid, 64, OnCrowding.block)`
+
+Here the mailbox is restricted to at most 64 messages and if a
+sending job hits this threshold it automatically blocks in `send`
+until the mailbox has less messages in its mailbox.
+
+As an alternative to `OnCrowding.block` `OnCrowding.ignore` can be
+used to specify that overflowing messages should be ignored. The
+`OnCrowding` enum can alternatively be replaced with a function that
+returns `false` if overflowing messages should be ignored or `true` if
+`send` should continue to block.
+
+The last concurrency keyword is `self`. It is a sibling to `this` in
+classes, but it return tge `jid` for the currently running job.
+
+The `std.concurrency` module also contains these functions:
+
+`monitor(jid)`: Send a message `'(JobMonitor.died, jid)` to me if this
+job dies.
+
+`link(jid)`: Send a message `'(JobMonitor.died, jid)` to me if this
+job dies. Do the same to the linked job if I die.
+
+
+`kill(jid)`: Does what you think.
+
+singleton Ackermann
+
+A small example may clear things up. Below is a main function which
+spawns jobs to compute Ackermann function values for the parameters m
+= 3, n = 1 .. 10. The `main` function uses the Ackermann singleton
+class to start 10 jobs and then waits for all jobs to return a result.
+
+```
+main() {
+  jids = Ackermann.startJobs(3, 10)
+  waitForJobs(jids)
+}
+
+singleton class Ackermann {
+    public startJobs(m, n, jids = []) {
+        if jids.length <= n {
+            computeAckermann(fromJid, m, n) {
+                result = ackermann(m, n)
+                send fromJid '(self, result)
+            }
+            jid = spawn computeAckermann(self, m, n)
+            setMaxMailboxSize(jid, 4, OnCrowding.block)
+            startJobs(m, n + 1, jids ~ jid)
+        }
+        jids
+    }
+
+    public waitForJobs(jids) {
+        if jids.length > 0 {
+            receive {
+                case '{?jid, ?result} {
+                    writeln("Compute job $jid sent us the result $result)
+                }
+            }
+            waitForJobs(jids[0 .. $ - 1])
+        }
+    }
+
+    private ackermann(m, n) {
+        if (m == 0) {
+            n + 1
+        } else if (n == 0) {
+            ackermann(m - 1, 1)
+        } else {
+            ackermann(m - 1, ackermann(m, n - 1))
+        }
+    }
+}
+```
