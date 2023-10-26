@@ -125,8 +125,9 @@ Examples:
 
 Examples:
 
-'A' is what you think
-'\u03c9' is the code point for `ω`
+`'A'` is what you think
+
+`'\u03c9'` is the code point for `ω`
 
 ## String
 
