@@ -71,16 +71,17 @@ with because the functional everything is an expression
 
 ## Basic types
 
-`bool`
-Boolean value `true` or `false`
-`char`
-: Unicode code point
-`int`
-: Signed 32/64 bits integer (depending on the target architecture)
-`big`
-: Arbitrary-precision integer
-`float`
-: 32 or 64-bit floating point (depending on the target architecture)
+`bool` : Boolean value `true` or `false`
+
+`char` : Unicode code point
+
+`int` : Signed 32/64 bits integer (depending on the target
+architecture)
+
+`big` : Arbitrary-precision integer
+
+`float` : 32 or 64-bit floating point (depending on the target
+architecture)
 
 ## Composite types
 
