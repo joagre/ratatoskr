@@ -85,14 +85,16 @@ Boolean value `true` or `false`
 ## Composite types
 
 `string`
-: An immutabe sequence of characters in UTF-8 form
+:    An immutabe sequence of characters in UTF-8 form
+
 `array`
-: Contigous region of memory containing values of any type.
+:    Contigous region of memory containing values of any type.
+
 `table`
-: Table mapping between a key of any type and a value of any type
+:    Table mapping between a key of any type and a value of any type
+
 `object`
-: Unit of encapsulation for constants, member variables and member
-  functions
+:    Unit of encapsulation for constants, member variables and member functions
 
 # Literals
 
