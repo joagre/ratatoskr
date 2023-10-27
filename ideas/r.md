@@ -67,6 +67,43 @@ where everything is a an expressive loads of
 with because the functional everything is an expression
 
 
+# Types
+
+## Basic types
+
+`bool`
+Boolean value `true` or `false`
+`char`
+: Unicode code point
+`int`
+: Signed 32/64 bits integer (depending on the target architecture)
+`big`
+: Arbitrary-precision integer
+`float`
+: 32 or 64-bit floating point (depending on the target architecture)
+
+## Composite types
+
+`string`
+: An immutabe sequence of characters in UTF-8 form
+`array`
+: Contigous region of memory containing values of any type.
+`table`
+: Table mapping between a key of any type and a value of any type
+`object`
+: Unit of encapsulation for constants, member variables and member
+  functions
+
+# Literals
+
+## Boolean literals
+
+The `bool` literals are `true` or `false`.
+
+HERE
+
+
+
 # The main function
 
 Nothing can be declared in the global context except for the `main`
@@ -81,7 +118,7 @@ class, main, enum
 
 ```
 main(_args) {
-  "Hello World!";
+  "Hello World!"
 }
 ```
 ## Comments
@@ -95,9 +132,6 @@ main(_args) {
 
 Symbols in R are restricted to `^[[:alpha:]_][[:alnum:]_]*$`.
 
-## Boolean
-
-A `bool` are `true` or `false`.
 
 ## Integral and floating-point
 
@@ -146,10 +180,10 @@ Examples:
 Examples:
 
 ```
-a = "foo";
-b = "bar";
-c = a ~ b;               // c = "foobar" (Copy)
-c = a ~ '\u03c9';        // c = "fooω" (Copy)
+a = "foo"
+b = "bar"
+c = a ~ b               // c = "foobar" (Copy)
+c = a ~ '\u03c9'        // c = "fooω" (Copy)
 ```
 
 ## Dynamic arrays
@@ -162,25 +196,25 @@ All elements in a dynamic array must have the same type:
 
 Examples:
 
-a = [1, 2, 3, 4, 5];
-b = a[1 .. 3];          // b = [2, 3]
-c = a[2 .. $ - 1];      // c = [3, 4]
-d = b ~ c;              // d = [2, 3, 3, 4] (Copy)
-d[1] = 42;              // d = [2, 42, 3, 4]
-a[2] = 23;              // a = [1, 2, 23, 4, 5]
+a = [1, 2, 3, 4, 5]
+b = a[1 .. 3]          // b = [2, 3]
+c = a[2 .. $ - 1]      // c = [3, 4]
+d = b ~ c              // d = [2, 3, 3, 4] (Copy)
+d[1] = 42              // d = [2, 42, 3, 4]
+a[2] = 23              // a = [1, 2, 23, 4, 5]
                         // b = [2, 23]
                         // c = [23, 4]
                         // d = [2, 42, 3, 4]
-e = b.dup();            // Explicit copy
-b = [4711] ~ b;         // b = [4711, 2, 23] (Copy)
-e ~= 4711;              // e = [2, 23, 4711]
-f = a[$ / 2 .. $];      // What do we get?
-g = a;
-h = a.dup();
-g is a;                 // true
-h is a;                 // false
-g == a;                 // true
-h == a;                 // true
+e = b.dup()            // Explicit copy
+b = [4711] ~ b         // b = [4711, 2, 23] (Copy)
+e ~= 4711              // e = [2, 23, 4711]
+f = a[$ / 2 .. $]      // What do we get?
+g = a
+h = a.dup()
+g is a                 // true
+h is a                 // false
+g == a                 // true
+h == a                 // true
 ```
 
 Above we only examplify with arrays of integers but all available
@@ -197,20 +231,20 @@ All keys and values may have any type:
 Examples:
 
 ```
-a = [ "a" : 1.0, "b" : "foo" ];
-a["a"] = "bar";
-a[42] = "baz";          // a = ["a" : "bar", "b" : "foo", 42 : "baz"]
-b = a;                  // b = ["a" : "bar", "b" : 0, 42 : "baz"]
-b["a"] = 0;             // a = ["a" : 0, "b" : 0, 42 : "baz"]
+a = [ "a" : 1.0, "b" : "foo" ]
+a["a"] = "bar"
+a[42] = "baz"          // a = ["a" : "bar", "b" : "foo", 42 : "baz"]
+b = a                  // b = ["a" : "bar", "b" : 0, 42 : "baz"]
+b["a"] = 0             // a = ["a" : 0, "b" : 0, 42 : "baz"]
                         // b = ["a" : 0, "b" : 0, 42 : "baz"]
 c = a["a"]'             // c = 0
-d = a ~ [42 : 4711];    // d = [42 : 4711, "a" : 0, "b" : 0] (Copy)
-e = b.dup();            // Explicit copy
-f = b;
-f is b;                 // true
-e is b;                 // false
-f == b;                 // true
-e == b;                 // true
+d = a ~ [42 : 4711]    // d = [42 : 4711, "a" : 0, "b" : 0] (Copy)
+e = b.dup()            // Explicit copy
+f = b
+f is b                 // true
+e is b                 // false
+f == b                 // true
+e == b                 // true
 ```
 
 > [!NOTE]
@@ -223,12 +257,12 @@ Define a named function like this:
 
 ```
 foo(a, b, c = 0) {
-  c;
-  d;
+  c
+  d
 }
 
 foo(a = 1) {
-  a;
+  a
 }
 ```
 
@@ -270,17 +304,17 @@ This is an example of a map function:
 
 ```
 main() {
-    l = [1, 2, 3];
-    f = (l, n) { l[n] + 1 };
-    true <~ map(l, f);
+    l = [1, 2, 3]
+    f = (l, n) { l[n] + 1 }
+    true <~ map(l, f)
 }
 
 map(l, f, n = 0) {
     if (n > l.length()) {
-        true;
+        true
     } else {
-         l[n] = f(l, n);
-         a(l, f, n + 1);
+         l[n] = f(l, n)
+         a(l, f, n + 1)
     }
 }
 ```
@@ -295,12 +329,12 @@ to by reference.
 Example:
 
 ```
-a = 1;
+a = 1
 foo(ref b) {
-    b += 1;
+    b += 1
 }
-foo(a);
-writeln(a);                  // 2
+foo(a)
+writeln(a)                  // 2
 ```
 
 ## Operators
@@ -311,12 +345,12 @@ when performing arithmetics and casting must be done explicitly.
 Examples:
 
 ```
-a = 3;
-b = 042;
-c = 93326215443944152681B;
-d = 3.0;
-e = a + (int)d * b;                // 105
-f = c / (big)d + (b ignum)a;    // 31108738481314713603B
+a = 3
+b = 042
+c = 93326215443944152681B
+d = 3.0
+e = a + (int)d * b                // 105
+f = c / (big)d + (b ignum)a    // 31108738481314713603B
 ```
 
 The `typeof` operator can be used to check the type of a numerical:
@@ -324,7 +358,7 @@ The `typeof` operator can be used to check the type of a numerical:
 
 ```
 if (typeof(a) == Type.int) {
-    31108738481314713603B + (big)a;
+    31108738481314713603B + (big)a
 }
 ```
 
@@ -399,42 +433,42 @@ Bonk.c
 ## Variables
 
 ```
-aVariable = 1;
-B52 = "foo";
+aVariable = 1
+B52 = "foo"
 ```
 
 ## Tuples
 
 ```
-'(1, 2)
-'(a, '(b, 4))
+#(1, 2)
+#(a, #(b, 4))
 ```
 
 ## Classes
 
 ```
 class Foo {
-  public a;
-  private b;
-  readonly c;
-  const d;
+  public a
+  private b
+  readonly c
+  const d
 
   this(a, g) {          // Constructor
-    this.a = a;
-    b = g;
+    this.a = a
+    b = g
   }
 
   ~this(a, g) {         // Destructor
-    this.a = a;
-    b = g;
+    this.a = a
+    b = g
   }
 
   public foo() {
-    0;
+    0
   }
 
   private bar(b) {
-    b;
+    b
   }
 }
 ```
@@ -445,20 +479,20 @@ class Foo {
 
 A class Foo can be instantiated like this:
 
-`foo = new Foo(1, 2);`
+`foo = new Foo(1, 2)`
 
 or
 
-`foo = new bar:Foo(1, 2);`
+`foo = new bar:Foo(1, 2)`
 
 if Foo is availble in module `bar` (read more aboy hierarchical
 modules below). Access to member variables and functions look like
 this:
 
 ```
-foo.a;
-foo.a = 1;
-foo.bar(1);
+foo.a
+foo.a = 1
+foo.bar(1)
 ```
 
 A class may choose to implement a mandatory interface. The interface
@@ -467,8 +501,8 @@ the class. An interface definition looks like this:
 
 ```
 interface Bar {
-  public a;
-  public fn foo();
+  public a
+  public fn foo()
 }
 ```
 
@@ -496,18 +530,18 @@ If you need to define a bunch of constants you typically do this in a
 singleton class like this:
 
 singleton class Math {
-    const PI = 3.1;
-    const SQUARE2 = math.sqrt(2);
+    const PI = 3.1
+    const SQUARE2 = math.sqrt(2)
 }
 
 ## Control flow
 
 ```
 if (expr) {
-  a;
+  a
 } else {
-  b;
-  c;
+  b
+  c
 }
 ```
 
@@ -516,10 +550,10 @@ and
 ```
 switch (expr) {
     case "foo": {
-        1;
+        1
     }
     default: {
-        ss;
+        ss
     }
 }
 ```
@@ -531,11 +565,11 @@ Matching can be done with the `<~` operator.
 Examples:
 
 ```
-a = 1;
-'(a, ?a, 1) <~ '(1, 2, 1);                    // a = 2
-'(?a, b, ?h) <~ foo(42);
-[1, ?a] <~ [1, 2];                            // a = 2
-[42 : 1, "foo" : ?a] <~ [42 : 1, "foo" : 2];  // a = 2
+a = 1
+#(a, ?a, 1) <~ #(1, 2, 1)                    // a = 2
+#(?a, b, ?h) <~ foo(42)
+[1, ?a] <~ [1, 2]                            // a = 2
+[42 : 1, "foo" : ?a] <~ [42 : 1, "foo" : 2]  // a = 2
 ```
 
 `?` introduces an unbound variable.
@@ -549,7 +583,7 @@ match (expr) {
     b
   }
   case match-expr: {
-    c;
+    c
   }
 }
 ```
@@ -557,17 +591,17 @@ match (expr) {
 Example:
 
 ```
-a = 1;
-b = 3;
+a = 1
+b = 3
 match (expr) {
-  case '(1, ?a): {
-    a;
+  case #(1, ?a): {
+    a
   }
   case a || b: {
-    a + 1;
+    a + 1
   }
   case _: {
-    0;
+    0
   }
 }
 ```
@@ -619,14 +653,14 @@ concurrent jobs and message passing in between them, i.e. `spawn()`,
 Any function can be spawned to run as a concurrent job with the
 `spawn` keyword:
 
-`jid = spawn ackermann(3, 1);`
+`jid = spawn ackermann(3, 1)`
 
 Jobs share **nothing** with other jobs and the input parameters are
 automatically deep copied before job start:
 
 ```
-a = [1, 2, 3];
-jid = spawn sum(a);    // a.dup() is performed automatically
+a = [1, 2, 3]
+jid = spawn sum(a)    // a.dup() is performed automatically
 ```
 
 > [!NOTE]
@@ -636,18 +670,18 @@ jid = spawn sum(a);    // a.dup() is performed automatically
 `spawn` returns a job id (jid) which can be used to send messages to
 the job with the `send` keyword:
 
-`send jid '(timeout, 1000);`
+`send jid #(timeout, 1000)`
 
 A message sent to a job ends up in its mailbox and can be retrieved
 with the `receive` keyword:
 
 ```
 receive {
-    case '(?jid, ?result): {
-        writeln("Job $jid sent result $result");
+    case #(?jid, ?result): {
+        writeln("Job $jid sent result $result")
     }
     timeout 1000 {
-        42;
+        42
     }
 }
 ```
@@ -674,14 +708,17 @@ classes, but it return the job id for the currently running job.
 
 The `std.concurrency` module also contains these functions:
 
-`monitor(jid)`: Send a message `'(JobMonitor.died, jid)` to me if this
-job dies.
+`monitor(jid)` : Send a message `#(JobMonitor.died, jid, reason)` to
+me if the job dies.
 
-`link(jid)`: Send a message `'(JobMonitor.died, jid)` to me if this
-job dies. Do the same to the linked job if I die.
+`link(jid)` : Send a message `#(JobMonitor.died, jid, reason)` to me
+if the job dies. Do the same to the linked job if I die.
 
+The `spawn` keyword have the siblings `mspawn` and `lspawn` which spawn
+jobs at the same time as they create a monitor, or a link, to the new
+job. That didn't come as a surprise.
 
-`kill(jid)`: Does what you think.
+`kill(jid)`: Go figure
 
 ### A concurrency example
 
@@ -692,49 +729,58 @@ class to start 10 jobs and then waits for all jobs to send a result
 back as a message.
 
 ```
+import std.concurrency
+import std.stdio
+
 main() {
-  jids = Ackermann.startJobs(3, 10);
-  Ackermann.waitForJobs(jids);
+  jids = Ackermann.startJobs(3, 10)
+  Ackermann.waitForJobs(jids)
 }
 
 singleton class Ackermann {
     public startJobs(m, n, i = 0, jids = []) {
-        if (jids.length <= n) {
+        if (i < n) {
             computeAckermann(fromJid, m, n) {
-                result = ackermann(m, n);
-                send fromJid '(self, result);
+                result = ackermann(m, n)
+                send fromJid #(self, result)
             }
-            jid = spawn computeAckermann(self, m, ++i);
-            setMaxMailboxSize(jid, 4, OnCrowding.block);
-            startJobs(m, n, i, jids ~ jid);
+            jid = mspawn computeAckermann(self, m, ++i)
+            setMaxMailboxSize(jid, 4, OnCrowding.block)
+            startJobs(m, n, i, jids ~ jid)
         }
-        jids;
+        jids
     }
 
     public waitForJobs(jids) {
         if (jids.length > 0) {
             receive {
-                case '{?jid, ?result}: {
-                    writeln("Compute job $jid sent us the result $result");
+                case #(?jid, ?result): {
+                    writeln("Compute job $jid sent us the result $result")
+                }
+                case #(JobMonitor.died, ?jid, ?reason): {
+                    if (jids.member(jid)) {
+                        writeln("Oh no! Compute job $jid died: $reason")
+                    } else {
+                        writeln("Oh no! Anyway...")
                 }
             }
-            waitForJobs(jids[0 .. $ - 1]);
+            waitForJobs(jids[0 .. $ - 1])
         }
     }
 
     private ackermann(m, n) {
         if (m == 0) {
-            n + 1;
+            n + 1
         } else if (n == 0) {
-            ackermann(m - 1, 1);
+            ackermann(m - 1, 1)
         } else {
-            ackermann(m - 1, ackermann(m, n - 1));
+            ackermann(m - 1, ackermann(m, n - 1))
         }
     }
 }
 ```
 
-## Appendix A: Reserved words
+## Appendix B: Reserved words
 
 ```
 import
@@ -760,7 +806,15 @@ interface
 singleton
 this
 spawn
+mspawn
+lspawn
 send
 receive
 self
 ```
+
+## Appendix C: Operators
+
+
+
+## Appendix D: Precedences
