@@ -73,8 +73,6 @@ with because the functional everything is an expression
 
 `bool` : Boolean value `true` or `false`
 
-`char` : Unicode code point
-
 `int` : Signed 32/64 bits integer (depending on the target
 architecture)
 
@@ -83,9 +81,11 @@ architecture)
 `float` : 32 or 64-bit floating point (depending on the target
 architecture)
 
+`char` : Unicode code point
+
 ## Composite types
 
-`string` : An immutabe sequence of characters in UTF-8 form
+`string` : An immutabe sequence of UTF-8 encoded characters
 
 `array`: Contigous region of memory containing values of any type
 
@@ -95,13 +95,243 @@ type
 `object` : Unit of encapsulation for constants, member variables and
 member functions
 
+# Symbols
+
+A symbol is a case sensitive string of characters starting with a
+ASCII letter or an underscore, followed by any number of ASCII
+letters, underscores or digits.
+
+`^[[:alpha:]_][[:alnum:]_]*$`.
+
+## Special symbols
+
+The following symbols are language-reserverd keywords and they cannot
+be defined in user code:
+
+```
+import
+true
+false
+null
+enum
+if
+then
+else
+switch
+case
+default
+match
+timeout
+class
+new
+public
+private
+readonly
+const
+interface
+singleton
+this
+spawn
+mspawn
+lspawn
+send
+receive
+self
+```
+
+A few symbols are recognized as primitive expressions: The special
+symbol `this` denotes the current object inside a method's
+definition. `self` denotes the job id which user code currently
+executes in.
+
 # Literals
 
 ## Boolean literals
 
 The `bool` literals are `true` or `false`.
 
-HERE
+## Integral literals
+
+R supports decimal, octal, hexadecimal, binary and bignum literals. A
+bignum literal is suffixed with the letter `b`.
+
+Examples:
+
+```
+a = 4                 // int in decimal format
+b = 017               // int in octal format
+c = 0xffff            // int in hexadecimal format
+d = 0b101010100       // int in binary format
+e = 298347928347987b  // bignum
+```
+
+## Floating-point literals
+
+Examples:
+
+```
+a = 1.0
+b = .666e2
+```
+
+## Character literals
+
+A character literal is a unicode code point enclosed within single
+quotation marks. A unicode character takes up four bytes.
+
+Examples:
+
+```
+a = 'A'
+b = 'ω'
+c = '\u03c9' // ω
+```
+
+## String literals
+
+Quoted strings are sequences of UTF-8 encoded characters enclosed in
+double quotation. Escape sequences are meaningfull in quoted strings.
+
+Raw strings are enclosed in double quotation as well but are prefixed
+with the small letter `r`. No escape sequeces are meanigfull in raw
+strings and are parsed verbatim.
+
+Examples:
+
+```
+a = "foo"
+b = r"foo\nbar"  // b.length != 5
+```
+
+## Array literals
+
+Array literals are represented as a comma-seprated sequence of values
+enclosed in square brackets.
+
+Examples:
+
+`a = [ 3.14, "foo", 1816381276163287b ]`
+
+## Table literals
+
+Table literals are represented as a comma-seprated sequence of
+key-values (separated by :) enclosed in square brackets.
+
+Examples:
+
+`a = [ "foo" : 12, 981237198192378b = 3.14 ]`
+
+## Function literals
+
+Function literal definition follow the same syntax as regular
+function definition except thatthe function name is missing.
+
+Example:
+
+```
+sum = (x, y) { x + y }
+a = sum(1, 2)                  // 3
+```
+
+# Operators
+
+## No implicit numeric conversion
+
+A a binary operator who operates on numerical values require the
+operands to be of the same type. No implicit numeric conversion is
+done.
+
+Examples:
+
+```
+a = 3
+b = 042
+c = 93326215443944152681B
+d = 3.0
+e = a + cast(int)d * b             // 105
+f = c / cast(big)d + cast(big)a    // 31108738481314713603B
+g = d + c                          // Not possible!
+```
+
+The `typeof` operator can be used to check the type of a numerical:
+
+```
+a = 42
+if (typeof(a) == Type.int) {
+    a = 31108738481314713603B + cast(big)a
+}
+```
+
+## Postfix expressions
+
+The member access operator `a.b` accesses the member named `b` within
+the object `a`.
+
+## Increment and decrement
+
+`++` and `--` work as in C and C++.
+
+## Function call
+
+`fun()` invokes the function `fun` with a comma separated argument
+list of expressions. Arguments are evalulated left to right before the
+function is is invoked. 'fub' can refer to the name of a defined
+function or to a function literal.
+
+## Indexing
+
+The expression `arr[i]` access the i:th element of an array or
+table. For an array `i` must be of an integral type and for a table it
+can be of any type. If the indexing expression is an lvalue of an
+assignment operator (`a[i] = 0`) the expression inserts an array in
+the array or table.
+
+## Array slices
+
+If `arr[i]` is an array the expression `a[i .. j]` returns a slice
+startinat index i and ending att index j - 1. No data is copied from
+the origin array so if the slice is updated the origin array will be
+updated too.
+
+Examples:
+
+```
+a = [1, 2, 3, 4, 5]
+b = a[1 .. 3]          // b = [2, 3]
+c = a[2 .. $ - 1]      // c = [3, 4]
+d = b ~ c              // d = [2, 3, 3, 4] (Copy)
+d[1] = 42              // d = [2, 42, 3, 4]
+a[2] = 23              // a = [1, 2, 23, 4, 5]
+                       // b = [2, 23]
+                       // c = [23, 4]
+                       // d = [2, 42, 3, 4]
+e = b.dup()            // Explicit copy
+b = [4711] ~ b         // b = [4711, 2, 23] (Copy)
+e ~= 4711              // e = [2, 23, 4711]
+f = a[$ / 2 .. $]      // What do we get?
+g = a
+h = a.dup()
+g is a                 // true
+h is a                 // false
+g == a                 // true
+h == a                 // true
+```
+
+## A complete list of operators
+
+The complete list of available operators can be found in the
+expression precedence list in Appendix A.
+
+
+
+Take a look in the precedence list in appendinx
+
+
+
+
+
+
+
 
 
 
@@ -131,42 +361,36 @@ main(_args) {
 
 ## Symbols
 
-Symbols in R are restricted to `^[[:alpha:]_][[:alnum:]_]*$`.
 
 
-## Integral and floating-point
 
-`int`       Signed 32/64 bits integer (depending on the target architecture)
-`big`       Arbitrary-precision integer
-`float`     32 or 64-bit floating point (depending on the target architecture)
 
-Examples:
-
-`3` is an `int`
-
-`0xffff` is an `int` in hexadecimal format
-
-`0b101010100` is an int in binary format
-
-`017` is an `int` in octal format
-
-`298347928347987B` is a `big`
-
-`3.0` is a `float`
-
-`1.23e-6` is a `float` in scientific format
-
-## Character
-
-`utf8char`  A UTF-8 character/code point
-
-Examples:
-
-`'A'` is what you think
-
-`'\u03c9'` is the code point for `ω`
 
 ## String
+
+
+String interpolation is supported.
+
+Examples are interpolated maybe interpoao
+
+```
+a = 3.0
+b = "foo $a is not ${a + 1.0}"   // foo 3.0 is not 4.0"`
+```
+
+
+
+
+
+Examples:
+
+```
+a = "foo"
+b = "bar"
+c = a ~ b               // c = "foobar" (Copy)
+c = a ~ '\u03c9'        // c = "fooω" (Copy)
+```
+
 
 `string`     An immutable UTF-8 string
 
@@ -187,36 +411,14 @@ c = a ~ b               // c = "foobar" (Copy)
 c = a ~ '\u03c9'        // c = "fooω" (Copy)
 ```
 
+
+
+
+
+
+
 ## Dynamic arrays
 
-All elements in a dynamic array must have the same type:
-
-```
-[(int)4711.0, 42]       // A valid array literal
-[4711, 42]              // A valid array literal
-
-Examples:
-
-a = [1, 2, 3, 4, 5]
-b = a[1 .. 3]          // b = [2, 3]
-c = a[2 .. $ - 1]      // c = [3, 4]
-d = b ~ c              // d = [2, 3, 3, 4] (Copy)
-d[1] = 42              // d = [2, 42, 3, 4]
-a[2] = 23              // a = [1, 2, 23, 4, 5]
-                        // b = [2, 23]
-                        // c = [23, 4]
-                        // d = [2, 42, 3, 4]
-e = b.dup()            // Explicit copy
-b = [4711] ~ b         // b = [4711, 2, 23] (Copy)
-e ~= 4711              // e = [2, 23, 4711]
-f = a[$ / 2 .. $]      // What do we get?
-g = a
-h = a.dup()
-g is a                 // true
-h is a                 // false
-g == a                 // true
-h == a                 // true
-```
 
 Above we only examplify with arrays of integers but all available
 types in R can be stored in dynamic arrays.
@@ -337,82 +539,6 @@ foo(ref b) {
 foo(a)
 writeln(a)                  // 2
 ```
-
-## Operators
-
-No automatic casting is performed between `int`, `big` and `float`
-when performing arithmetics and casting must be done explicitly.
-
-Examples:
-
-```
-a = 3
-b = 042
-c = 93326215443944152681B
-d = 3.0
-e = a + (int)d * b                // 105
-f = c / (big)d + (b ignum)a    // 31108738481314713603B
-```
-
-The `typeof` operator can be used to check the type of a numerical:
-
-
-```
-if (typeof(a) == Type.int) {
-    31108738481314713603B + (big)a
-}
-```
-
-```
-Arithmetic Operators:
-    +: Addition
-    -: Subtraction
-    *: Multiplication
-    /: Division
-    %: Modulus (remainder after division)
-    ^^: Power (right associative)
-
-Relational Operators:
-    ==: Equal to
-    !=: Not equal to
-    <: Less than
-    <=: Less than or equal to
-    >: Greater than
-    >=: Greater than or equal to
-
-Logical Operators:
-    &&: Logical AND (short-circuiting)
-    ||: Logical OR (short-circuiting)
-    !: Logical NOT
-
-Bitwise Operators:
-    &: Bitwise AND
-    |: Bitwise OR
-    ^: Bitwise XOR
-    ~: Bitwise NOT (complement)
-    <<: Left shift
-    >>: Right shift (sign-preserving)
-    >>>: Right shift (zero-fill)
-
-Assignment Operators:
-    =: Assign
-    +=, -=, *=, /=, %=, ^^=, &=, |=, ^=, <<=, >>=, >>>=: Compound assignment operators
-
-Increment and Decrement:
-    ++: Increment
-    --: Decrement
-
-Array and Slice Operators:
-    []: Indexing / slicing
-
-Other Special Operators:
-    in: Membership testing (for associative arrays)
-    is: Type comparison
-    !is: Negative type comparison
-    (TYPE): Type casting
-```
-
-
 
 ## Enums
 
@@ -781,41 +907,57 @@ singleton class Ackermann {
 }
 ```
 
-## Appendix B: Reserved words
+# Appendix A: Expressions in decreasing order of precedence
 
-```
-import
-true
+
+``<symbol>
+
+| Expression | Description                                                    |
+|------------|----------------------------------------------------------------|
+| <symbol>   |                                                                |
+| this       | The current object inside a method                             |
+| $          | Current array size (valid inside an index or slice expression) |
+| null       | The null reference                                                               |
+Get the TypeInfo object associated with T152.1.1 on page 31)
+
+Boolean true (52.2.1 on page 32) Boolean false ($2.2.1 on page 32)
+
 false
-null
-enum
-if
-then
-else
-switch
-case
-default
-match
-timeout
-class
-new
-public
-private
-readonly
-const
-interface
-singleton
-this
-spawn
-mspawn
-lspawn
-send
-receive
-self
-```
 
-## Appendix C: Operators
+Numeric literal ($2.2.2 on page 32. $2.2.3 on page 333
 
+Character literal ($2.2.4 on page 34)
 
+string
 
-## Appendix D: Precedences
+String literal ($2.2.5 on page 35)
+
+Array literal ($2.26 on page 39)
+
+function
+
+Function literal ($2.2.7 on page 40)
+
+assert(a)
+
+In debug mode, if a is not nonzero, halt program: in release mode.
+
+do nothing (52.3.4.1 on page 46)
+
+assert (a, b)
+
+Same as above; make b part of the error information (§ 2.3.4.1 on
+
+true
+
+char
+
+page 46)
+
+mixin(a)
+
+IsExpr
+
+Mixin expression (52.3.4.2 on page 47)
+
+is expression ($2.3.43 on page 48)
