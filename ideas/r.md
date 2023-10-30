@@ -454,15 +454,15 @@ singleton class Ackermann {
 | null          | The null reference                                             |
 | true          |                                                                |
 | false         |                                                                |
-| <bool>        |                                                                |
-| <int>         |                                                                |
-| <big>         |                                                                |
-| <float>       |                                                                |
-| <char>        |                                                                |
-| <string>      |                                                                |
-| <array>       |                                                                |
-| <table>       |                                                                |
-| <function>    | (a, b) { c }                                                   |
+| &lt;bool>     |                                                                |
+| &lt;int>      |                                                                |
+| &lt;big>      |                                                                |
+| &lt;float>    |                                                                |
+| &lt;char>     |                                                                |
+| &lt;string>   |                                                                |
+| &lt;array>    |                                                                |
+| &lt;table>    |                                                                |
+| &lt;function> | (a, b) { c }                                                   |
 | ( a )         | Paranthesized expression                                       |
 | a.b           |                                                                |
 | a++           |                                                                |
@@ -484,15 +484,15 @@ singleton class Ackermann {
 | a + b         |                                                                |
 | a - b         |                                                                |
 | a ~ b         | Concatenation                                                  |
-| a << b        |                                                                |
+| a &lt;&lt; b  |                                                                |
 | a >> b        |                                                                |
 | a in b        | Table membership                                               |
 | a == b        | Equality test (a == b == c is not legal)                       |
 | a != b        |                                                                |
 | a is b        | Identity test                                                  |
 | a !is b       | !(a is b)                                                      |
-| a < b         |                                                                |
-| a <= b        |                                                                |
+| a &lt; b      |                                                                |
+| a &lt;= b     |                                                                |
 | a > b         |                                                                |
 | a >= b        |                                                                |
 | a \| b        |                                                                |
@@ -501,7 +501,7 @@ singleton class Ackermann {
 | a && b        | Logical and                                                    |
 | a \|\| b      |                                                                |
 | a = b         |                                                                |
-| a <~ b        | Matching                                                       |
+| a &lt;~ b     | Matching                                                       |
 | a += b        | In-place add                                                   |
 | a -= b        |                                                                |
 | a *= b        |                                                                |
@@ -511,7 +511,7 @@ singleton class Ackermann {
 | a \|= b       |                                                                |
 | a ^= b        |                                                                |
 | a ~= b        | In-place concatenation                                         |
-| a <<= b       |                                                                |
+| a &lt;&lt;= b |                                                                |
 | a >>= b       |                                                                |
 | const         |                                                                |
 | public        |                                                                |
