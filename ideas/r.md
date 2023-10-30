@@ -466,7 +466,7 @@ Everything is an expression.
 | &lt;table>    |                                                                |
 | &lt;function> | (a, b) { c }                                                   |
 | ( a )         | Paranthesized expression                                       |
-| a.b           |                                                                |
+| a.b           | Member access                                                  |
 | a++           |                                                                |
 | a--           |                                                                |
 | a(b, c = d)   | Function call                                                  |
@@ -503,7 +503,6 @@ Everything is an expression.
 | a && b        | Logical and                                                    |
 | a \|\| b      |                                                                |
 | a = b         |                                                                |
-| a &lt;~ b     | Matching                                                       |
 | a += b        | In-place add                                                   |
 | a -= b        |                                                                |
 | a *= b        |                                                                |
@@ -513,6 +512,7 @@ Everything is an expression.
 | a \|= b       |                                                                |
 | a ^= b        |                                                                |
 | a ~= b        | In-place concatenation                                         |
+| a &lt;~ b     | Matching                                                       |
 | a &lt;&lt;= b |                                                                |
 | a >>= b       |                                                                |
 | const         |                                                                |
