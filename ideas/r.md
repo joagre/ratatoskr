@@ -1,5 +1,13 @@
 # The R programming language
 
+```
+import std.stdio
+
+main() {
+  stdio.writeln("Hello World!")
+}
+```
+
 R is a tiny but powerful programming language
 
 
@@ -25,7 +33,7 @@ Light-weight (microprocessor -> desktop)
 Small memory foot print but built to scale
 Pluggable Scceduler (build you own Interpreter and plug it in)
 int, big, float, bool, tuple, fixed and dynamic array, hashtable, string,
-class, interface
+struct, interface
 Everything is
 No data can be shared be between job + spawn, send , recieve, monitor,
 link, telleub external format
@@ -127,12 +135,10 @@ if
 then
 else
 switch
-case
 default
 match
 timeout
-class
-new
+struct
 public
 private
 readonly
@@ -149,7 +155,7 @@ self
 ```
 
 A few symbols are recognized as primitive expressions: The special
-symbol `this` denotes the current object inside a class method
+symbol `this` denotes the current object inside a struct method
 definition, and `self` denotes the job which user code currently is
 runs in.
 
@@ -265,10 +271,10 @@ g = d + c                          // Produces a compiler error
 The `typeof` operator can be used to check the type of a numerical:
 
 ```
-import std.type
+import . std.type
 
 a = 42
-if (typeof(a) == Type.int) {
+if typeof(a) == Type.int {
     a = 31108738481314713603B + cast(big)a
 }
 ```
@@ -277,10 +283,6 @@ if (typeof(a) == Type.int) {
 
 The member access operator `a.b` accesses the member named `b` within
 the object `a`.
-
-## Increments and decrements
-
-`++` and `--` work as in C and C++.
 
 ## Function calls
 
@@ -303,10 +305,263 @@ The array expression `a[i .. j]` returns a slice which starts at index
 i and ends with index j - 1. No data is copied from the origin array,
 i.e. if the slice is updated the origin array will also be be updated.
 
-## A complete list of operators
+# Comments
 
-A complete list of available operators can be found in the expression
-precedence list in Appendix A.
+Everything after `//` and with `/* ... */` are considered to be
+comments.
+
+# Lexical scope
+
+A compound statement is a sequence of expressions enclosed in curly
+braces. Expressions there within are evaluated in sequence and the
+braces introduces a lexical scope. A symbol defined in a scope is not
+visible outside of the scope and it shadows a symbol with the same
+name outside of the scope.
+
+Example:
+
+```
+main() {
+    a = 42
+    {
+        b  = a + 1
+        a = b
+    }
+    // b not defined
+    // a = 43
+}
+```
+
+# The `if` expression
+
+```
+if a {
+  b
+} else {
+  c
+  d
+}
+```
+
+An `if` expression returns the last expression in the evaluated
+compound statement.
+
+# The `switch` expression
+
+```
+switch a {
+    b {
+        42
+    }
+    c {
+        a + 1
+    }
+    default {
+        a
+    }
+}
+```
+
+A `switch` expression returns the last expression in the evaluated
+compound statement. There is no fall through mechanism and `default`
+case is optional.
+
+# Tuples
+
+Tuples are a finite ordered sequence of elements. It is a data
+structure that can hold a fixed number of elements of any type. The
+elements of a tuple are usually accessed using the match operator
+`<~`. Tuples comma separated values within paranthesis prefixed with
+`#`.
+
+Example:
+
+```
+a = 42
+b = #(4711, #(a, [1, 2]))
+#(_, #(_, [_, c])) = b    // c = 2
+```
+
+# Arrays
+
+Arrays are contiguous regions of memory containg elements of any
+type. Arrays support in-memory slicing that allows yout to select and
+work with only a portion of an array.
+
+Examples:
+
+```
+a = [1, 2, 3, 4, 5]
+b = a[1 .. 3]          // b = [2, 3]
+c = a[2 .. $ - 1]      // c = [3, 4]
+d = b ~ c              // d = [2, 3, 3, 4] (A copy!)
+d[1] = 42              // d = [2, 42, 3, 4]
+a[2] = 23              // a = [1, 2, 23, 4, 5]
+                       // b = [2, 23]
+                       // c = [23, 4]
+                       // d = [2, 42, 3, 4]
+e = b.dup()            // An explicit copy
+b = [4711] ~ b         // b = [4711, 2, 23] (A copy!)
+e ~= 4711              // e = [2, 23, 4711]
+f = a[$ / 2 .. $]      // What do we get?
+g = a
+h = a.dup()
+h.length == 5          // true
+g is a                 // true
+h is a                 // false
+h !is a                // true
+g == a                 // true
+h == a                 // true
+h != a                 // false
+h.length = 4           // h = [1, 2, 23, 4]
+```
+
+# Tables
+
+
+
+
+```
+a = [ "a" : 1.0, "b" : "foo" ]
+a["a"] = "bar"
+a[42] = "baz"          // a = ["a" : "bar", "b" : "foo", 42 : "baz"]
+b = a                  // b = ["a" : "bar", "b" : 0, 42 : "baz"]
+b["a"] = 0             // a = ["a" : 0, "b" : 0, 42 : "baz"]
+                        // b = ["a" : 0, "b" : 0, 42 : "baz"]
+c = a["a"]'             // c = 0
+d = a ~ [42 : 4711]    // d = [42 : 4711, "a" : 0, "b" : 0] (Copy)
+e = b.dup()            // Explicit copy
+f = b
+f is b                 // true
+e is b                 // false
+f == b                 // true
+e == b                 // true
+```
+
+> [!NOTE]
+> Structural equality is used for all key value lookups (even for
+> class instances)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# The `match` expression
+
+
+
+
+
+
+
+
+
+
+
+## Matching
+
+Deconstructing of all types of data can be done using the match
+operator `<~`.
+
+Examples:
+
+```
+a = 1
+#(a, ?a, 1) <~ #(1, 2, 1)                    // a = 2
+#(?a, b, ?h) <~ foo(42)
+[1, ?a] <~ [1, 2]                            // a = 2
+[42 : 1, "foo" : ?a] <~ [42 : 1, "foo" : 2]  // a = 2
+```
+
+`?` introduces an unbound variable.
+
+
+
+
+
+
+Matching can also be done like this:
+
+```
+match (expr) {
+  case match-expr: {
+    a
+    b
+  }
+  case match-expr: {
+    c
+  }
+}
+```
+
+Example:
+
+```
+a = 1
+b = 3
+match (expr) {
+  case #(1, ?a): {
+    a
+  }
+  case a || b: {
+    a + 1
+  }
+  case _: {
+    0
+  }
+}
+```
+
+`_` is a wildcard and `||` introduces an `or` pattern.
+
+
+
+
+
+
+
+
+#(c, [_, <~ #(a, #(b, [1, 2]))
+
+```
+
+
+
+Example:
+
+```
+
+
+
+
+#(a, #(b, 4))  // A nested tuple
+
+
+
+
+unpacking or indexing. Tuples are immutable in some languages, meaning
+that once a tuple is created, its size and the elements it contains
+cannot be changed.
+
+Tuples are fixed sized
+
+```
+
+
+
+
+
+
+
 
 # Concurrency
 
@@ -324,7 +579,7 @@ jid = spawn sum(a)    // a.dup() is performed automatically
 ```
 
 > [!NOTE]
-> If any singleton classes (see below) have been defined each job gets
+> If any singleton structes (see below) have been defined each job gets
 > its own own copy of it. Nothing is shared between jobs.
 
 `spawn` returns a job id (jid) which can be used to send messages to
@@ -337,8 +592,8 @@ with the `receive` keyword:
 
 ```
 receive {
-    case #(?jid, ?result): {
-        writeln("Job $jid sent result $result")
+    #(?jid, ?result) {
+        stdio.writeln("Job $jid sent result $result")
         result
     }
     timeout 1000 {
@@ -381,16 +636,16 @@ a link. That didn't come as a surprise.
 
 `kill(jid)`: Just like that
 
-### A concurrency example
+## A concurrency example
 
 A small concurrent example may clear things up. Below is a main
 function which spawns jobs to compute Ackermann function values for
 the parameters `m = 3, n = 1 .. 10`. The `main` function uses an
-Ackermann singleton class to start 10 jobs and then waits for all jobs
+Ackermann singleton struct to start 10 jobs and then waits for all jobs
 to send a result back as a message.
 
 ```
-import std.concurrency
+import conc = std.concurrency
 import std.stdio
 
 main() {
@@ -398,31 +653,31 @@ main() {
   Ackermann.waitForJobs(jids)
 }
 
-singleton class Ackermann {
+singleton struct Ackermann {
     public startJobs(m, n, i = 0, jids = []) {
-        if (i < n) {
+        if i < n {
             computeAckermann(fromJid, m, n) {
                 result = ackermann(m, n)
                 send fromJid #(self, result)
             }
             jid = mspawn computeAckermann(self, m, ++i)
-            setMaxMailboxSize(jid, 4, OnCrowding.block)
+            conc.setMaxMailboxSize(jid, 4, OnCrowding.block)
             startJobs(m, n, i, jids ~ jid)
         }
         jids
     }
 
     public waitForJobs(jids) {
-        if (jids.length > 0) {
+        if jids.length > 0 {
             receive {
-                case #(?jid, ?result): {
-                    writeln("Compute job $jid sent us the result $result")
+                #(?jid, ?result) {
+                    stdio.writeln("Compute job $jid sent us the result $result")
                 }
-                case #(JobMonitor.died, ?jid, ?reason): {
-                    if (jids.member(jid)) {
-                        writeln("Oh no! Compute job $jid died: $reason")
+                #(JobMonitor.died, ?jid, ?reason) {
+                    if jids.member(jid) {
+                        stdio.writeln("Oh no! Compute job $jid died: $reason")
                     } else {
-                        writeln("Oh no! Anyway...")
+                        stdio.writeln("Oh no! Anyway...")
                 }
             }
             waitForJobs(jids[0 .. $ - 1])
@@ -430,9 +685,9 @@ singleton class Ackermann {
     }
 
     private ackermann(m, n) {
-        if (m == 0) {
+        if m == 0 {
             n + 1
-        } else if (n == 0) {
+        } else if n == 0 {
             ackermann(m - 1, 1)
         } else {
             ackermann(m - 1, ackermann(m, n - 1))
@@ -441,19 +696,17 @@ singleton class Ackermann {
 }
 ```
 
-#HERE
-
 # Appendix A: Expressions in decreasing order of precedence
 
 Everything is an expression.
 
 > [!NOTE]
-> `import`, `enum`, `class` and `singleton` can only be used in a top level top context
+> `import`, `enum`, and `struct` can only be used as top level constructs in a module.
 
 | Expression    | Description                                                    |
 |---------------|----------------------------------------------------------------|
 | <symbol>      |                                                                |
-| this          | The current object inside a class method                       |
+| this          | The current object inside a struct method                      |
 | self          | The job which user code currently runs in                      |
 | $             | Current array size (valid inside an index or slice expression) |
 | null          | The null reference                                             |
@@ -525,7 +778,6 @@ Everything is an expression.
 | if            |                                                                |
 | else          |                                                                |
 | switch        |                                                                |
-| case          |                                                                |
 | default       |                                                                |
 | spawn         |                                                                |
 | mspawn        |                                                                |
@@ -533,12 +785,10 @@ Everything is an expression.
 | self          |                                                                |
 | send          |                                                                |
 | receive       |                                                                |
-| class         |                                                                |
+| struct        |                                                                |
 | interface     |                                                                |
-| new           |                                                                |
 | singleton     |                                                                |
 | match         |                                                                |
-| timeout       |                                                                |
 | timeout       |                                                                |
 | enum          |                                                                |
 | a(b, c) { d } | Named function definition                                      |
