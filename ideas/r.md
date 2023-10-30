@@ -6,6 +6,9 @@ R is a tiny but powerful programming language
 functional, dynamically typed and concurrency oriented
 programming language.
 
+lokala context är bra
+
+
 
 
 condynamically typed language with type inference and
