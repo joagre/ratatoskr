@@ -442,6 +442,8 @@ singleton class Ackermann {
 
 # Appendix A: Expressions in decreasing order of precedence
 
+Everything is an expression.
+
 > [!NOTE]
 > `import`, `enum`, `class` and `singleton` can only be used in a top level top context
 
