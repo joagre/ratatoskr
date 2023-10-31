@@ -98,13 +98,13 @@ architecture)
 
 `char` : Unicode code point
 
-`function` : A reference toa  function
+`function` : A reference to a function
 
 ## Composite types
 
-`string` : Immutabe sequence of UTF-8 encoded characters
+`string` : Immutable sequence of UTF-8 encoded characters
 
-`array`: Contigous region of memory containing values of any type
+`array`: Contiguous region of memory containing values of any type
 
 `table`: Table mapping between a key of any type and a value of any
 type
@@ -122,7 +122,7 @@ letters, underscores or digits.
 
 ## Special symbols
 
-The following special symbols (keywords) are language-reserverd
+The following special symbols (keywords) are language-reserved
 keywords and they cannot be defined in user code:
 
 ```
@@ -131,6 +131,7 @@ true
 false
 null
 enum
+ref
 if
 then
 else
@@ -154,10 +155,9 @@ receive
 self
 ```
 
-A few symbols are recognized as primitive expressions: The special
-symbol `this` denotes the current object inside a struct method
-definition, and `self` denotes the job which user code currently is
-runs in.
+> [!NOTE]
+> imports, struct definitions, interfaces and enum types can only be
+> used as top-level constructs
 
 # Literals
 
@@ -191,8 +191,8 @@ b = .666e2
 
 ## Character literals
 
-A character literal is a unicode code point enclosed within single
-quotation marks. A unicode character takes up four bytes.
+A character literal is a Unicode code point enclosed within single
+quotation marks. A Unicode character takes up four bytes.
 
 Examples:
 
@@ -205,10 +205,10 @@ c = '\u03c9' // ω
 ## String literals
 
 Quoted strings are sequences of UTF-8 encoded characters enclosed in
-double quotation. Escape sequences are meaningfull in quoted strings.
+double quotation. Escape sequences are meaningful in quoted strings.
 
 Raw strings are enclosed in double quotation but are prefixed with the
-letter `r`. No escape sequeces have meaniging in raw strings and are
+letter `r`. No escape sequences have meaning in raw strings and are
 parsed verbatim.
 
 Examples:
@@ -220,7 +220,7 @@ b = r"foo\nbar"  // b.length != 5
 
 ## Array literals
 
-Array literals are represented as a comma-seprated sequence of values
+Array literals are represented as a comma-separated sequence of values
 enclosed in square brackets.
 
 Examples:
@@ -229,7 +229,7 @@ Examples:
 
 ## Table literals
 
-Table literals are represented as a comma-seprated sequence of
+Table literals are represented as a comma-separated sequence of
 key-values (separated by :) enclosed in square brackets.
 
 Examples:
@@ -279,11 +279,6 @@ if typeof(a) == Type.int {
 }
 ```
 
-## Postfix expressions
-
-The member access operator `a.b` accesses the member named `b` within
-the object `a`.
-
 ## Function calls
 
 `fun(a,b)` invokes the function `fun` with a comma separated argument
@@ -291,13 +286,13 @@ list of expressions. Arguments are evaluated left to right before the
 function is invoked. 'fun' can refer to the name of a defined function
 or a function literal.
 
-## Indexing
+## Indexing in arrays and tables
 
 The expression `arr[i]` access the i:th element of an array or
 table. For an array `i` must be an integral type and for a table it
-can be any type. If the indexing expression is an lvalue in an
-assignment operator (`a[i] = 0`) the expression inserts a value in the
-array or table.
+can be a key of any type. If the indexing expression is an lvalue in
+an assignment operator (`a[i] = 0`) the expression inserts a value in
+the array or table.
 
 ## Array slices
 
@@ -307,7 +302,7 @@ i.e. if the slice is updated the origin array will also be be updated.
 
 # Comments
 
-Everything after `//` and with `/* ... */` are considered to be
+Everything after `//` and within `/* ... */` are considered to be
 comments.
 
 # Lexical scope
@@ -371,7 +366,7 @@ case is optional.
 Tuples are a finite ordered sequence of elements. It is a data
 structure that can hold a fixed number of elements of any type. The
 elements of a tuple are usually accessed using the match operator
-`<~`. Tuples comma separated values within paranthesis prefixed with
+`<~`. Tuples comma separated values within parenthesized prefixed with
 `#`.
 
 Example:
@@ -384,13 +379,14 @@ b = #(4711, #(a, [1, 2]))
 
 # Arrays
 
-Arrays are contiguous regions of memory containg elements of any
-type. Arrays support in-memory slicing that allows yout to select and
+Arrays are contiguous regions of memory containing elements of any
+type. Arrays support in-memory slicing that allows you to select and
 work with only a portion of an array.
 
 Examples:
 
 ```
+a = []                 // An empty array
 a = [1, 2, 3, 4, 5]
 b = a[1 .. 3]          // b = [2, 3]
 c = a[2 .. $ - 1]      // c = [3, 4]
@@ -400,12 +396,12 @@ a[2] = 23              // a = [1, 2, 23, 4, 5]
                        // b = [2, 23]
                        // c = [23, 4]
                        // d = [2, 42, 3, 4]
-e = b.dup()            // An explicit copy
+e = b.dup()            // e = [2, 23] (A copy!)
 b = [4711] ~ b         // b = [4711, 2, 23] (A copy!)
 e ~= 4711              // e = [2, 23, 4711]
-f = a[$ / 2 .. $]      // What do we get?
-g = a
-h = a.dup()
+f = a[$ / 2 .. $]      // f = [23, 4, 5]
+g = a                  // g = [1, 2, 23, 4, 5]
+h = a.dup()            // h = [1, 2, 23, 4, 5] (A copy!)
 h.length == 5          // true
 g is a                 // true
 h is a                 // false
@@ -418,90 +414,189 @@ h.length = 4           // h = [1, 2, 23, 4]
 
 # Tables
 
+An array could be seen as a function mapping integer values of any
+type using an underlying contiguous memory region. At table is a
+generalized array where a key value of any type is a mapping to a
+value of any type.
 
-
+Examples:
 
 ```
+a = null               // En empty table
 a = [ "a" : 1.0, "b" : "foo" ]
 a["a"] = "bar"
 a[42] = "baz"          // a = ["a" : "bar", "b" : "foo", 42 : "baz"]
 b = a                  // b = ["a" : "bar", "b" : 0, 42 : "baz"]
 b["a"] = 0             // a = ["a" : 0, "b" : 0, 42 : "baz"]
-                        // b = ["a" : 0, "b" : 0, 42 : "baz"]
-c = a["a"]'             // c = 0
-d = a ~ [42 : 4711]    // d = [42 : 4711, "a" : 0, "b" : 0] (Copy)
-e = b.dup()            // Explicit copy
-f = b
+                       // b = ["a" : 0, "b" : 0, 42 : "baz"]
+c = a["a"]             // c = 0
+d = a ~ [42 : 4711]    // d = [42 : 4711, "a" : 0, "b" : 0] (A copy!)
+e = b.dup()            // e = ["a" : 0, "b" : 0, 42 : "baz"] (A copy!)
+e.length == 3          // true
+f = b                  // f = ["a" : 0, "b" : 0, 42 : "baz"]
 f is b                 // true
 e is b                 // false
+e !is b                // true
 f == b                 // true
 e == b                 // true
+e != b                 // false
+e.remove("b")          // e = ["a" : 0, 42 : "baz"]
+e.keys ==
+    ["a", 42] ||
+    [42, 42]           // true
+e.values ==
+    [0, "baz"] ||
+    ["baz", 0]         // true
 ```
 
 > [!NOTE]
-> Structural equality is used for all key value lookups (even for
-> class instances)
+> Structural equality is used for all key lookups
 
+# Strings
 
-
-
-
-
-
-
-
-
-
-
-
-
-# The `match` expression
-
-
-
-
-
-
-
-
-
-
-
-## Matching
-
-Deconstructing of all types of data can be done using the match
-operator `<~`.
+Strings are immutable sequences of UTF-8 encoded characters. String
+interpolation is supported as well as random access. A character in a
+string can be compared with a `char` value even though the
+representation of characters in a string is UTF-8 encoded.
 
 Examples:
 
 ```
-a = 1
-#(a, ?a, 1) <~ #(1, 2, 1)                    // a = 2
-#(?a, b, ?h) <~ foo(42)
-[1, ?a] <~ [1, 2]                            // a = 2
-[42 : 1, "foo" : ?a] <~ [42 : 1, "foo" : 2]  // a = 2
+a = 3.0
+b = "foo $a is not ${a + 1.0}"  // String interpolation: b = "foo 3.0 is not 4.0"
+a = "foo"
+b = "bar"
+c = a ~ b                       // String concatenation: c = "foobar" (A copy!)
+c = a ~ '\u03c9'                // Character appending: c = "fooω" (A copy!)
+c[3] == 'ω'                     // true
+r"foo\nbar"                     // Raw string without escape processing
+r.length == 9                   // true
 ```
 
-`?` introduces an unbound variable.
+# Functions
+
+## The main function
+
+No function can be declared in the global context except for the `main`
+function and it **must** be declared there. At most one main function
+can be defined for each application.
+
+```
+import std.stdio
+
+main() {
+  stdio.writeln("Hello World!")
+}
+```
+
+Functions can be overloaded and are defined like this:
+
+```
+foo(a, b, c = 0) {
+  c
+  d
+}
 
 
+foo(a = 1) {
+  a
+}
+```
 
+Trailing parameters may have default values and these parameters can
+be omitted in function calls. A function call can either be called
+with positional parameters only **or** with named parameters
+only. The following function calls are equivalent:
 
+```
+foo(2, 6)
+foo(2, 6, 0)
+foo(a = 2, b = 6)
+foo(a = 2, b = 6, 0)
+foo(b = 6, a = 2)
+foo(b = 6, a = 2, 0)
+```
 
+Function nesting is allowed:
 
-Matching can also be done like this:
+```
+foo(a, b, c = 0) {
+  bar(d) {
+    d
+  }
+  bar(a)
+}
+```
+
+Anonymous functions are defined as described above under "Function
+literals", i.e.
+
+```
+c = (a, b) {
+        b
+    }
+```
+
+Example:
+
+```
+main() {
+    l = [1, 2, 3]
+    f = (l, n) { l[n] + 1 }
+    true
+}
+
+map(l, f, n = 0) {
+    if (n > l.length()) {
+        true
+    } else {
+         l[n] = f(l, n)
+         a(l, f, n + 1)
+    }
+}
+```
+
+If a function parameter is pre-pended with the `ref` keyword it is
+referred to by reference instead of by value. This only has meaning
+for the basic types, i.e. `bool`, `int`, `uint`, `big`, `float`,
+`char` and `function`.
+
+Example:
+
+```
+a = 1
+c = 2
+foo(ref b, ref c) {
+    b += 1
+    c = (n) { n + 1}
+}
+foo(a)
+writeln(a)                  // 2
+c(2)                        // 3
+```
+
+## Matching
+
+## The `match` expression
+
+The `match` keyword is a sibling to `switch`.
 
 ```
 match (expr) {
-  case match-expr: {
+  match-expr {
     a
     b
   }
-  case match-expr: {
+  match-expr {
     c
   }
 }
 ```
+
+The `match` keyword applies matching and optional deconstructing for
+each `match-expr` though. A `match-expr` can be any valid literal
+except it may contain both bound and unbound variables (prefixed with
+`?`) and wildcards `_`.
 
 Example:
 
@@ -509,7 +604,7 @@ Example:
 a = 1
 b = 3
 match (expr) {
-  case #(1, ?a): {
+  case #(_, ?a): {
     a
   }
   case a || b: {
@@ -521,47 +616,139 @@ match (expr) {
 }
 ```
 
-`_` is a wildcard and `||` introduces an `or` pattern.
+## The `<~` operator
 
+Matching/deconstructing can also be performed with the `<~` operator.
 
-
-
-
-
-
-
-#(c, [_, <~ #(a, #(b, [1, 2]))
+Examples:
 
 ```
+a = 1
+#(a, ?a, 1) <~ #(1, 2, 1)                    // a = 2
+#(?a, b, ?h) <~ foo(42)
+[1, ?a] <~ [1, 2]                            // a = 2
+[42 : 1, "foo" : ?a] <~ [42 : 1, "foo" : 2]  // a = 2
+```
 
+# Hierarchical packages
 
+A satie file can be a member of a package. A package is typically a
+directory in a hierarchy of nested package directories, and each
+package directory can contain zero or many satie files.
 
 Example:
 
 ```
-
-
-
-
-#(a, #(b, 4))  // A nested tuple
-
-
-
-
-unpacking or indexing. Tuples are immutable in some languages, meaning
-that once a tuple is created, its size and the elements it contains
-cannot be changed.
-
-Tuples are fixed sized
-
+${SPATH}/foo/
+         f.s
+         bonk/zap/
+              a.s
+              b.s
+         baz/honk/
+             d.s
 ```
 
+If a satie file intend to use an enumeration type named `Color`
+defined by satie file `a.s` in the `foo/bonk/zap/` package it imports
+the package and refers to the `Color` using the package as a prefix.
+
+Examples:
+
+```
+import "foo/bar/zap"
+
+main() {
+  zap.Color foo = zap.Color.red;
+}
+```
+
+Packages can also be aliased using the following contruct. The special
+alias name `.` import each and every struct, enum and interface
+available without packe prefix.
+
+```
+import . "foo/bar/zap"
 
 
+main() {
+  Color foo = Color.red;
+}
+```
 
+# The `struct` keyword
 
+Structs encapsulate member values and member functions and they can
+only be defined on the top-level of each satie file.
 
+Examples:
 
+```
+struct Foo {
+  public a
+  private b
+  readonly c
+  const d
+
+  this(a, g) {          // Optional constructor
+    this.a = a
+    b = g
+  }
+
+  ~this(a, g) {         // Optional destructor
+    this.a = a
+    b = g
+  }
+
+  public foo() {
+    0
+  }
+
+  private bar(b) {
+    b
+  }
+}
+```
+
+A struct Foo can be instantiated like this:
+
+```
+a = struct Foo
+b = struct Foo(2, 1)
+```
+
+A struct may choose to implement a mandatory interface. The interface
+defines which member variables and functions that must be provided by
+the struct. An interface definition looks like this:
+
+```
+interface Bar {
+  public bonk()
+}
+```
+
+A struct which decides to implement this interface looks like this:
+
+```
+struct Foo : Bar {
+    public bonk() {
+        0
+    }
+    ...
+}
+```
+
+A struct can implement several interfaces using a comma separated
+sequence of interfaces.
+
+A struct can also be defined as a singleton. It means what you think.
+
+If you need to define a bunch of constants you typically do this with
+a singleton struct:
+
+singleton struct Math {
+    const PI = 3.1
+    const SQUARE2 = math.sqrt(2)
+}
 
 # Concurrency
 
@@ -579,7 +766,7 @@ jid = spawn sum(a)    // a.dup() is performed automatically
 ```
 
 > [!NOTE]
-> If any singleton structes (see below) have been defined each job gets
+> If any singleton struts (see below) have been defined each job gets
 > its own own copy of it. Nothing is shared between jobs.
 
 `spawn` returns a job id (jid) which can be used to send messages to
@@ -701,7 +888,7 @@ singleton struct Ackermann {
 Everything is an expression.
 
 > [!NOTE]
-> `import`, `enum`, and `struct` can only be used as top level constructs in a module.
+> `import`, `enum`, and `struct` can only be used as top level constructs.
 
 | Expression    | Description                                                    |
 |---------------|----------------------------------------------------------------|
@@ -771,6 +958,8 @@ Everything is an expression.
 | a &lt;~ b     | Matching                                                       |
 | a &lt;&lt;= b |                                                                |
 | a >>= b       |                                                                |
+| _             | Wildcard in match expression                                   |
+| ?             | Varibles prefix in match expressons are marked as unbound      |            | ref           |                                                                |
 | const         |                                                                |
 | public        |                                                                |
 | private       |                                                                |
