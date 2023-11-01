@@ -98,7 +98,7 @@ architecture)
 
 `char` : Unicode code point
 
-`function` : A reference to a function
+`function` : Function reference
 
 ## Composite types
 
@@ -109,8 +109,7 @@ architecture)
 `table`: Table mapping between a key of any type and a value of any
 type
 
-`object` : Unit of encapsulation for constants, member variables and
-member functions
+`object` : Unit of encapsulation for member variables and functions
 
 # Symbols
 
@@ -120,10 +119,12 @@ letters, underscores or digits.
 
 `^[[:alpha:]_][[:alnum:]_]*$`.
 
-## Special symbols
+Keywords, variables, functions, structs, enums are all symbols.
 
-The following special symbols (keywords) are language-reserved
-keywords and they cannot be defined in user code:
+## Keywords
+
+The following special symbols are language-reserved keywords and they
+cannot be defined in user code:
 
 ```
 import
@@ -155,10 +156,6 @@ receive
 self
 ```
 
-> [!NOTE]
-> imports, struct definitions, interfaces and enum types can only be
-> used as top-level constructs
-
 # Literals
 
 ## Boolean literals
@@ -167,17 +164,17 @@ The `bool` literals are `true` or `false`.
 
 ## Integral literals
 
-R supports decimal, octal, hexadecimal, binary and bignum literals. A
-bignum literal is suffixed with the letter `b`.
+Integrals can be formatted as decimal, octal, hexadecimal, binary and
+bignum literals. A bignum literal is suffixed with the letter `b`.
 
 Examples:
 
 ```
-a = 4                 // int in decimal format
-b = 017               // int in octal format
-c = 0xffff            // int in hexadecimal format
-d = 0b101010100       // int in binary format
-e = 298347928347987b  // bignum
+a = 4                 // int (decimal format)
+b = 017               // int (octal format)
+c = 0xffff            // int (hexadecimal format)
+d = 0b101010100       // int (binary format)
+e = 298347928347987b  // big
 ```
 
 ## Floating-point literals
@@ -192,7 +189,7 @@ b = .666e2
 ## Character literals
 
 A character literal is a Unicode code point enclosed within single
-quotation marks. A Unicode character takes up four bytes.
+quotation marks. A Unicode character consists of four bytes.
 
 Examples:
 
@@ -205,23 +202,24 @@ c = '\u03c9' // ω
 ## String literals
 
 Quoted strings are sequences of UTF-8 encoded characters enclosed in
-double quotation. Escape sequences are meaningful in quoted strings.
+double quotation marks. Escape sequences are meaningful in quoted
+strings.
 
-Raw strings are enclosed in double quotation but are prefixed with the
-letter `r`. No escape sequences have meaning in raw strings and are
-parsed verbatim.
+Raw strings are enclosed in double quotation marks but are prefixed
+with the letter `r`. No escape sequences have meaning in raw strings
+and are parsed verbatim.
 
 Examples:
 
 ```
 a = "foo"
-b = r"foo\nbar"  // b.length != 5
+b = r"foo\nbar"  // b.length != 7
 ```
 
 ## Array literals
 
 Array literals are represented as a comma-separated sequence of values
-enclosed in square brackets.
+of any type enclosed in square brackets.
 
 Examples:
 
@@ -230,7 +228,8 @@ Examples:
 ## Table literals
 
 Table literals are represented as a comma-separated sequence of
-key-values (separated by :) enclosed in square brackets.
+key-values (separated by a `:`) enclosed in square brackets. Keys and
+values may be of any type.
 
 Examples:
 
@@ -239,7 +238,7 @@ Examples:
 ## Function literals
 
 Function literals follow the same syntax as regular function
-definitions except that the function name is missing.
+definitions (see below) except that the function name is missing.
 
 Example:
 
@@ -252,7 +251,7 @@ a = sum(1, 2)                  // 3
 
 ## No implicit numeric conversion
 
-A binary operator which operates on numerical values requires the
+An binary operator which operates on numerical values requires the
 operands to be of the same type. No implicit numeric conversion is
 performed.
 
@@ -265,53 +264,57 @@ c = 93326215443944152681B
 d = 3.0
 e = a + cast(int)d * b             // 105
 f = c / cast(big)d + cast(big)a    // 31108738481314713603B
-g = d + c                          // Produces a compiler error
+g = d + c                          // A compiler error!
 ```
 
-The `typeof` operator can be used to check the type of a numerical:
+The `cast` operator only knows about the following types: `int`,
+`uint`, `big`, `float` and `char`.
+
+The `typeof` operator can be used to perform a type check:
 
 ```
-import . std.type
+import . "std/type"
 
 a = 42
 if typeof(a) == Type.int {
-    a = 31108738481314713603B + cast(big)a
+    31108738481314713603B + cast(big)a
 }
 ```
 
 ## Function calls
 
-`fun(a,b)` invokes the function `fun` with a comma separated argument
+`fun(a, b)` invokes the function `fun` with a comma separated argument
 list of expressions. Arguments are evaluated left to right before the
-function is invoked. 'fun' can refer to the name of a defined function
+function is invoked. `fun` can refer to the name of a defined function
 or a function literal.
 
 ## Indexing in arrays and tables
 
-The expression `arr[i]` access the i:th element of an array or
-table. For an array `i` must be an integral type and for a table it
-can be a key of any type. If the indexing expression is an lvalue in
-an assignment operator (`a[i] = 0`) the expression inserts a value in
-the array or table.
+`arr[i]` access the i:th element of an array or table. For an array
+`i` must be an integral type and for a table it can be a key of any
+type. If the indexing expression is an `lvalue` in an assignment
+(`a[i] = 0`) the expression inserts a value in the array or table.
 
 ## Array slices
 
-The array expression `a[i .. j]` returns a slice which starts at index
-i and ends with index j - 1. No data is copied from the origin array,
-i.e. if the slice is updated the origin array will also be be updated.
+`a[i .. j]` returns an array slice which starts at index i and ends
+with index j - 1. No data is copied from the origin array, i.e. if the
+slice is updated the origin array will also be be updated.
 
-# Comments
+# Constructs
 
-Everything after `//` and within `/* ... */` are considered to be
-comments.
+## Comments
 
-# Lexical scope
+Everything after `//` and within `/* ... */` are considered comments.
 
-A compound statement is a sequence of expressions enclosed in curly
-braces. Expressions there within are evaluated in sequence and the
-braces introduces a lexical scope. A symbol defined in a scope is not
-visible outside of the scope and it shadows a symbol with the same
-name outside of the scope.
+## Lexical scope
+
+A compound sequence is a sequence of base expressions and
+match/assignment expressions enclosed in curly braces. Expressions
+there within are evaluated in sequence and the braces introduce a
+lexical scope. A symbol defined in a scope is not visible outside of
+the scope and it shadows a symbol with the same name being introduced
+outside of the scope.
 
 Example:
 
@@ -327,7 +330,10 @@ main() {
 }
 ```
 
-# The `if` expression
+> [!NOTE] A base expression is not allowed to contain a match (`<~`)
+> or an assignment (`=`) operator.
+
+## The `if` keyword
 
 ```
 if a {
@@ -339,9 +345,9 @@ if a {
 ```
 
 An `if` expression returns the last expression in the evaluated
-compound statement.
+compound sequence.
 
-# The `switch` expression
+## The `switch` keyword
 
 ```
 switch a {
@@ -358,30 +364,32 @@ switch a {
 ```
 
 A `switch` expression returns the last expression in the evaluated
-compound statement. There is no fall through mechanism and `default`
-case is optional.
+compound sequence. There is no fall through mechanism and the
+`default` keyword is optional.
 
-# Tuples
+## Tuples
 
 Tuples are a finite ordered sequence of elements. It is a data
 structure that can hold a fixed number of elements of any type. The
-elements of a tuple are usually accessed using the match operator
-`<~`. Tuples comma separated values within parenthesized prefixed with
-`#`.
+elements of a tuple are usually deconstructed with the `<~` match
+operator. Tuples are comma separated values within parenthesis
+prefixed with `#`.
 
 Example:
 
 ```
 a = 42
 b = #(4711, #(a, [1, 2]))
-#(_, #(_, [_, c])) = b    // c = 2
+#(_, #(_, [_, c])) <~ b    // c = 2
 ```
 
-# Arrays
+The `<~` match operator is described below.
+
+## Arrays
 
 Arrays are contiguous regions of memory containing elements of any
-type. Arrays support in-memory slicing that allows you to select and
-work with only a portion of an array.
+type. Arrays support in-memory slicing which makes it possible to
+select and work with portions of an array without copying.
 
 Examples:
 
@@ -412,12 +420,12 @@ h != a                 // false
 h.length = 4           // h = [1, 2, 23, 4]
 ```
 
-# Tables
+## Tables
 
-An array could be seen as a function mapping integer values of any
-type using an underlying contiguous memory region. At table is a
-generalized array where a key value of any type is a mapping to a
-value of any type.
+An array could be seen as a function mapping integers to values of any
+type using an underlying contiguous memory region. A table is a
+generalized array where a key values of any type map to a values of
+any type.
 
 Examples:
 
@@ -452,7 +460,7 @@ e.values ==
 > [!NOTE]
 > Structural equality is used for all key lookups
 
-# Strings
+## Strings
 
 Strings are immutable sequences of UTF-8 encoded characters. String
 interpolation is supported as well as random access. A character in a
@@ -473,9 +481,7 @@ r"foo\nbar"                     // Raw string without escape processing
 r.length == 9                   // true
 ```
 
-# Functions
-
-## The main function
+## Functions
 
 No function can be declared in the global context except for the `main`
 function and it **must** be declared there. At most one main function
@@ -497,11 +503,12 @@ foo(a, b, c = 0) {
   d
 }
 
-
 foo(a = 1) {
   a
 }
 ```
+
+HERE
 
 Trailing parameters may have default values and these parameters can
 be omitted in function calls. A function call can either be called
@@ -575,14 +582,16 @@ writeln(a)                  // 2
 c(2)                        // 3
 ```
 
-## Matching
+## Matching and deconstruction
 
-## The `match` expression
+### The `match` keyword
 
 The `match` keyword is a sibling to `switch`.
 
+HERE
+
 ```
-match (expr) {
+match expr {
   match-expr {
     a
     b
@@ -645,35 +654,58 @@ ${SPATH}/foo/
               a.s
               b.s
          baz/honk/
-             d.s
+             a.s
+             c.s
 ```
 
-If a satie file intend to use an enumeration type named `Color`
-defined by satie file `a.s` in the `foo/bonk/zap/` package it imports
-the package and refers to the `Color` using the package as a prefix.
+If a satie file, for example, needs an enumeration defined by another
+satie file it imports it and use it's base name to refer to the
+enumeration.
 
-Examples:
+Example:
 
 ```
-import "foo/bar/zap"
+import foo.bonk.zap.a
 
 main() {
-  zap.Color foo = zap.Color.red;
+  a.Color foo = a.Color.red;
 }
 ```
 
-Packages can also be aliased using the following contruct. The special
-alias name `.` import each and every struct, enum and interface
-available without packe prefix.
+Satie files can also be imported using wildcard notation:
+
+`import foo.bonk.zap.*`
+
+If two satie files share the same base name in two different packages
+one of them must be aliased.
+
+Example:
 
 ```
-import . "foo/bar/zap"
-
+import foo.bonk.zap.a
+import honkA = foo.boz.honk.a
 
 main() {
-  Color foo = Color.red;
+  a.Color foo = a.Color.red
+  honkA.Color bar = honkA.Color.blue
 }
 ```
+
+The alias `.` means that the need to prefix with base name goes away
+altogether:
+
+Example:
+
+```
+import . = foo.bonk.zap.a
+
+main() {
+  Color foo = Color.red
+}
+```
+
+> [!NOTE] Name clashes only occur if a satie file refers to
+> something that can't be uniquely resolved
 
 # The `struct` keyword
 
@@ -743,9 +775,9 @@ sequence of interfaces.
 A struct can also be defined as a singleton. It means what you think.
 
 If you need to define a bunch of constants you typically do this with
-a singleton struct:
+a singleton:
 
-singleton struct Math {
+singleton Math {
     const PI = 3.1
     const SQUARE2 = math.sqrt(2)
 }
@@ -766,7 +798,7 @@ jid = spawn sum(a)    // a.dup() is performed automatically
 ```
 
 > [!NOTE]
-> If any singleton struts (see below) have been defined each job gets
+> If any singletons (see below) have been defined each job gets
 > its own own copy of it. Nothing is shared between jobs.
 
 `spawn` returns a job id (jid) which can be used to send messages to
@@ -828,27 +860,27 @@ a link. That didn't come as a surprise.
 A small concurrent example may clear things up. Below is a main
 function which spawns jobs to compute Ackermann function values for
 the parameters `m = 3, n = 1 .. 10`. The `main` function uses an
-Ackermann singleton struct to start 10 jobs and then waits for all jobs
-to send a result back as a message.
+Ackermann singleton to start 10 jobs and then waits for all jobs to
+send a result back as a message.
 
 ```
-import conc = std.concurrency
-import std.stdio
+import std/concurrency/*"
+import "std/stdio/*"
 
 main() {
   jids = Ackermann.startJobs(3, 10)
   Ackermann.waitForJobs(jids)
 }
 
-singleton struct Ackermann {
+singleton Ackermann {
     public startJobs(m, n, i = 0, jids = []) {
         if i < n {
             computeAckermann(fromJid, m, n) {
                 result = ackermann(m, n)
-                send fromJid #(self, result)
+                send fromJid #(self, m, n, result)
             }
             jid = mspawn computeAckermann(self, m, ++i)
-            conc.setMaxMailboxSize(jid, 4, OnCrowding.block)
+            concurrency.setMaxMailboxSize(jid, 4, concurrency.OnCrowding.block)
             startJobs(m, n, i, jids ~ jid)
         }
         jids
@@ -857,14 +889,11 @@ singleton struct Ackermann {
     public waitForJobs(jids) {
         if jids.length > 0 {
             receive {
-                #(?jid, ?result) {
-                    stdio.writeln("Compute job $jid sent us the result $result")
+                #(?jid, ?m, ?n, ?result) {
+                    stdio.writeln("ackermann($m, $n) = $result")
                 }
                 #(JobMonitor.died, ?jid, ?reason) {
-                    if jids.member(jid) {
-                        stdio.writeln("Oh no! Compute job $jid died: $reason")
-                    } else {
-                        stdio.writeln("Oh no! Anyway...")
+                    stdio.writeln("Oh no! Compute job $jid died: $reason")
                 }
             }
             waitForJobs(jids[0 .. $ - 1])
@@ -888,7 +917,8 @@ singleton struct Ackermann {
 Everything is an expression.
 
 > [!NOTE]
-> `import`, `enum`, and `struct` can only be used as top level constructs.
+> The keywords `import`, `enum`, `struct` and `singleton` can only be
+> used as top-level constructs.
 
 | Expression    | Description                                                    |
 |---------------|----------------------------------------------------------------|
