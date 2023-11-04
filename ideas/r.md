@@ -91,7 +91,7 @@ architecture)
 
 `uint` : Unsigned 32/64 bits integer (depending on the target architecture)
 
-`big` : Arbitrary-precision integer
+`big` : Arbitrary-precision bignum integer
 
 `float` : 32 or 64-bit floating point (depending on the target
 architecture)
@@ -123,37 +123,39 @@ Keywords, variables, functions, structs, enums are all symbols.
 
 ## Keywords
 
-The following special symbols are language-reserved keywords and they
-cannot be defined in user code:
+The following 29 special symbols are language-reserved keywords and
+they cannot be defined in user code:
 
 ```
 import
 true
 false
-null
 enum
 ref
+in
+is
+fn
 if
 then
 else
 switch
 default
 match
-timeout
 struct
+singleton
+interface
 public
 private
 readonly
 const
-interface
-singleton
 this
 spawn
 mspawn
 lspawn
-send
 receive
+timeout
 self
+call
 ```
 
 # Literals
@@ -165,7 +167,7 @@ The `bool` literals are `true` or `false`.
 ## Integral literals
 
 Integrals can be formatted as decimal, octal, hexadecimal, binary and
-bignum literals. A bignum literal is suffixed with the letter `b`.
+big literals. A big literal is suffixed with the letter `b`.
 
 Examples:
 
@@ -243,7 +245,7 @@ definitions (see below) except that the function name is missing.
 Example:
 
 ```
-sum = (x, y) { x + y }
+sum = fn (x, y) { x + y }
 a = sum(1, 2)                  // 3
 ```
 
@@ -309,7 +311,7 @@ Everything after `//` and within `/* ... */` are considered comments.
 
 ## Lexical scope
 
-A compound sequence is a sequence of base expressions and
+A block sequence is a sequence of base expressions and
 match/assignment expressions enclosed in curly braces. Expressions
 there within are evaluated in sequence and the braces introduce a
 lexical scope. A symbol defined in a scope is not visible outside of
@@ -330,8 +332,8 @@ main() {
 }
 ```
 
-> [!NOTE] A base expression is not allowed to contain a match (`<~`)
-> or an assignment (`=`) operator.
+> [!NOTE] A base expression is not allowed to contain a match
+> expression, i.e. use the `<~` `=` operator.
 
 ## The `if` keyword
 
@@ -345,7 +347,7 @@ if a {
 ```
 
 An `if` expression returns the last expression in the evaluated
-compound sequence.
+block sequence.
 
 ## The `switch` keyword
 
@@ -364,7 +366,7 @@ switch a {
 ```
 
 A `switch` expression returns the last expression in the evaluated
-compound sequence. There is no fall through mechanism and the
+block sequence. There is no fall through mechanism and the
 `default` keyword is optional.
 
 ## Tuples
@@ -430,7 +432,7 @@ any type.
 Examples:
 
 ```
-a = null               // En empty table
+a = [:]                // En empty table
 a = [ "a" : 1.0, "b" : "foo" ]
 a["a"] = "bar"
 a[42] = "baz"          // a = ["a" : "bar", "b" : "foo", 42 : "baz"]
@@ -490,7 +492,7 @@ can be defined for each application.
 ```
 import std.stdio
 
-main() {
+fn main() {
   stdio.writeln("Hello World!")
 }
 ```
@@ -498,12 +500,12 @@ main() {
 Functions can be overloaded and are defined like this:
 
 ```
-foo(a, b, c = 0) {
+fn foo(a, b, c = 0) {
   c
   d
 }
 
-foo(a = 1) {
+fn foo(a = 1) {
   a
 }
 ```
@@ -516,19 +518,19 @@ with positional parameters only **or** with named parameters
 only. The following function calls are equivalent:
 
 ```
-foo(2, 6)
-foo(2, 6, 0)
-foo(a = 2, b = 6)
-foo(a = 2, b = 6, 0)
-foo(b = 6, a = 2)
-foo(b = 6, a = 2, 0)
+fn foo(2, 6)
+fn foo(2, 6, 0)
+fn foo(a = 2, b = 6)
+fn foo(a = 2, b = 6, 0)
+fn foo(b = 6, a = 2)
+fn foo(b = 6, a = 2, 0)
 ```
 
 Function nesting is allowed:
 
 ```
-foo(a, b, c = 0) {
-  bar(d) {
+fn foo(a, b, c = 0) {
+  fn bar(d) {
     d
   }
   bar(a)
@@ -539,7 +541,7 @@ Anonymous functions are defined as described above under "Function
 literals", i.e.
 
 ```
-c = (a, b) {
+c = fn (a, b) {
         b
     }
 ```
@@ -547,13 +549,13 @@ c = (a, b) {
 Example:
 
 ```
-main() {
+fn main() {
     l = [1, 2, 3]
     f = (l, n) { l[n] + 1 }
     true
 }
 
-map(l, f, n = 0) {
+fn map(l, f, n = 0) {
     if (n > l.length()) {
         true
     } else {
@@ -573,7 +575,7 @@ Example:
 ```
 a = 1
 c = 2
-foo(ref b, ref c) {
+fn foo(ref b, ref c) {
     b += 1
     c = (n) { n + 1}
 }
@@ -720,6 +722,7 @@ struct Foo {
   private b
   readonly c
   const d
+  private const e
 
   this(a, g) {          // Optional constructor
     this.a = a
@@ -731,11 +734,11 @@ struct Foo {
     b = g
   }
 
-  public foo() {
+  public fn foo() {
     0
   }
 
-  private bar(b) {
+  private fn bar(b) {
     b
   }
 }
@@ -754,7 +757,7 @@ the struct. An interface definition looks like this:
 
 ```
 interface Bar {
-  public bonk()
+  public fn bonk()
 }
 ```
 
@@ -762,7 +765,7 @@ A struct which decides to implement this interface looks like this:
 
 ```
 struct Foo : Bar {
-    public bonk() {
+    public fn bonk() {
         0
     }
     ...
@@ -802,9 +805,9 @@ jid = spawn sum(a)    // a.dup() is performed automatically
 > its own own copy of it. Nothing is shared between jobs.
 
 `spawn` returns a job id (jid) which can be used to send messages to
-job with the `send` keyword:
+job with `=>` operator:
 
-`send jid #(timeout, 1000)`
+`#(timeout, 1000) => jid`
 
 A message sent to a job ends up in its mailbox and can be retrieved
 with the `receive` keyword:
@@ -830,13 +833,13 @@ The mailbox is unbounded in size but can be restricted using the
 
 Above a job's mailbox is restricted to contain at most 64 messages,
 and if a sending job hits this threshold it is automatically blocked
-in `send` waiting for the mailbox contain less messages.
+in `=>` waiting for the mailbox contain less messages.
 
 `OnCrowding.ignore` can be used instead `OnCrowding.block` to specify
 that overflowing messages should be ignored. The `OnCrowding` enum can
 alternatively be replaced with a function that returns `false` if
 overflowing messages should be ignored or `true` if the sending job
-should be blocked in `send`.
+should be blocked in `=>`.
 
 The last concurrency keyword is `self` and it refers to the job which
 user code currently runs in.
@@ -855,6 +858,14 @@ a link. That didn't come as a surprise.
 
 `kill(jid)`: Just like that
 
+MAYBE MAYBE
+a = #(Action.computeAckermann, 3, 10) =>< jid
+
+receive {
+  call #(?jid, ?ref, #(Action.computeAckermann, ?m, ?n) {
+    #(ref, ackermann(m, n)) => jid
+}
+
 ## A concurrency example
 
 A small concurrent example may clear things up. Below is a main
@@ -864,20 +875,20 @@ Ackermann singleton to start 10 jobs and then waits for all jobs to
 send a result back as a message.
 
 ```
-import std/concurrency/*"
-import "std/stdio/*"
+import std.concurrency
+import std.stdio
 
-main() {
+fn main() {
   jids = Ackermann.startJobs(3, 10)
   Ackermann.waitForJobs(jids)
 }
 
 singleton Ackermann {
-    public startJobs(m, n, i = 0, jids = []) {
+    public fn startJobs(m, n, i = 0, jids = []) {
         if i < n {
-            computeAckermann(fromJid, m, n) {
+            fn computeAckermann(parentJid, m, n) {
                 result = ackermann(m, n)
-                send fromJid #(self, m, n, result)
+                #(self, m, n, result) => parentJid
             }
             jid = mspawn computeAckermann(self, m, ++i)
             concurrency.setMaxMailboxSize(jid, 4, concurrency.OnCrowding.block)
@@ -886,13 +897,13 @@ singleton Ackermann {
         jids
     }
 
-    public waitForJobs(jids) {
+    public fn waitForJobs(jids) {
         if jids.length > 0 {
             receive {
-                #(?jid, ?m, ?n, ?result) {
+                case #(?jid, ?m, ?n, ?result) {
                     stdio.writeln("ackermann($m, $n) = $result")
                 }
-                #(JobMonitor.died, ?jid, ?reason) {
+                case #(JobMonitor.died, ?jid, ?reason) {
                     stdio.writeln("Oh no! Compute job $jid died: $reason")
                 }
             }
@@ -900,7 +911,7 @@ singleton Ackermann {
         }
     }
 
-    private ackermann(m, n) {
+    private fn ackermann(m, n) {
         if m == 0 {
             n + 1
         } else if n == 0 {
@@ -912,6 +923,12 @@ singleton Ackermann {
 }
 ```
 
+spawn
+
+
+
+
+
 # Appendix A: Expressions in decreasing order of precedence
 
 Everything is an expression.
@@ -920,94 +937,69 @@ Everything is an expression.
 > The keywords `import`, `enum`, `struct` and `singleton` can only be
 > used as top-level constructs.
 
-| Expression    | Description                                                    |
-|---------------|----------------------------------------------------------------|
-| <symbol>      |                                                                |
-| this          | The current object inside a struct method                      |
-| self          | The job which user code currently runs in                      |
-| $             | Current array size (valid inside an index or slice expression) |
-| null          | The null reference                                             |
-| true          |                                                                |
-| false         |                                                                |
-| &lt;bool>     |                                                                |
-| &lt;int>      |                                                                |
-| &lt;big>      |                                                                |
-| &lt;float>    |                                                                |
-| &lt;char>     |                                                                |
-| &lt;string>   |                                                                |
-| &lt;array>    |                                                                |
-| &lt;table>    |                                                                |
-| &lt;function> | (a, b) { c }                                                   |
-| ( a )         | Paranthesized expression                                       |
-| a.b           | Member access                                                  |
-| a++           |                                                                |
-| a--           |                                                                |
-| a(b, c = d)   | Function call                                                  |
-| a[i]          |                                                                |
-| a[b .. c]     |                                                                |
-| ++a           |                                                                |
-| --a           |                                                                |
-| -a            |                                                                |
-| +a            |                                                                |
-| !a            |                                                                |
-| ~             | Bitwise complement                                             |
-| cast(t)a      | Cast expression                                                |
-| a ^^ b        | Exponentiation                                                 |
-| a * b         |                                                                |
-| a / b         |                                                                |
-| a % b         | Modulus                                                        |
-| a + b         |                                                                |
-| a - b         |                                                                |
-| a ~ b         | Concatenation                                                  |
-| a &lt;&lt; b  |                                                                |
-| a >> b        |                                                                |
-| a in b        | Table membership                                               |
-| a == b        | Equality test (a == b == c is not legal)                       |
-| a != b        |                                                                |
-| a is b        | Identity test                                                  |
-| a !is b       | !(a is b)                                                      |
-| a &lt; b      |                                                                |
-| a &lt;= b     |                                                                |
-| a > b         |                                                                |
-| a >= b        |                                                                |
-| a \| b        |                                                                |
-| a ^ b         | Bitwise xor                                                    |
-| a & b         |                                                                |
-| a && b        | Logical and                                                    |
-| a \|\| b      |                                                                |
-| a = b         |                                                                |
-| a += b        | In-place add                                                   |
-| a -= b        |                                                                |
-| a *= b        |                                                                |
-| a /= b        |                                                                |
-| a %= b        |                                                                |
-| a &= b        |                                                                |
-| a \|= b       |                                                                |
-| a ^= b        |                                                                |
-| a ~= b        | In-place concatenation                                         |
-| a &lt;~ b     | Matching                                                       |
-| a &lt;&lt;= b |                                                                |
-| a >>= b       |                                                                |
-| _             | Wildcard in match expression                                   |
-| ?             | Varibles prefix in match expressons are marked as unbound      |            | ref           |                                                                |
-| const         |                                                                |
-| public        |                                                                |
-| private       |                                                                |
-| readonly      |                                                                |
-| if            |                                                                |
-| else          |                                                                |
-| switch        |                                                                |
-| default       |                                                                |
-| spawn         |                                                                |
-| mspawn        |                                                                |
-| lspawn        |                                                                |
-| self          |                                                                |
-| send          |                                                                |
-| receive       |                                                                |
-| struct        |                                                                |
-| interface     |                                                                |
-| singleton     |                                                                |
-| match         |                                                                |
-| timeout       |                                                                |
-| enum          |                                                                |
-| a(b, c) { d } | Named function definition                                      |
+
+How should I write nice PEG rules for my programming language that follows the
+table of decreasing precedences in the table below. Packcc has no
+support for left recutsion AFAIK.
+
+
+
+| Expression      | Description                              |
+|-----------------|------------------------------------------|
+| (a)             | Paranthesized expression                 |
+| {a, b}          | Sequence of expression                   |
+| a.b             | Member access                            |
+| a++             |                                          |
+| a--             |                                          |
+| a(b, c)         | Function call operator                   |
+| a[i]            | Indexing operator                        |
+| a[b .. c]       | Array slicing operator                   |
+| ++a             |                                          |
+| --a             |                                          |
+| -a              |                                          |
+| +a              |                                          |
+| !a          B   |                                          |
+| ~a              | Bitwise complement                       |
+| cast(t)a        | Cast expression                          |
+| a ^^ b          | Exponentiation                           |
+| a * b           |                                          |
+| a / b           |                                          |
+| a % b           | Modulus                                  |
+| a + b           |                                          |
+| a - b           |                                          |
+| a ~ b           | Concatenation                            |
+| a &lt;&lt; b    |                                          |
+| a >> b          |                                          |
+| a >>> b         | Unsigned right shift                     |
+| a in b          | Table membership                         |
+| a == b          | Equality test (a == b == c is not legal) |
+| a != b          |                                          |
+| a is b          | Identity test                            |
+| a !is b         | !(a is b)                                |
+| a &lt; b        |                                          |
+| a &lt;= b       |                                          |
+| a > b           |                                          |
+| a >= b          |                                          |
+| a \| b          |                                          |
+| a ^ b           | Bitwise xor                              |
+| a & b           |                                          |
+| a && b        B | Logical and                              |
+| a \|\| b      B |                                          |
+| a = b           |                                          |
+| a &lt;~ b       | Matching                                 |
+| a += b          | In-place add                             |
+| a -= b          |                                          |
+| a *= b          |                                          |
+| a /= b          |                                          |
+| a %= b          |                                          |
+| a &= b          |                                          |
+| a \|= b         |                                          |
+| a ^= b          | In-place xor                             |
+| a ~= b          | In-place concatenation                   |
+| a &lt;&lt;= b   |                                          |
+| a >>= b         |                                          |
+| a >>>= b        | In-place unsigned right shift            |
+| if            B |                                          |
+| switch          |                                          |
+| match           |                                          |
+| receive         |                                          |
