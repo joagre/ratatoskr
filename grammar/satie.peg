@@ -38,15 +38,10 @@ DefaultParam       <- Variable _ "=" _ Expr
 
 AnonFunctionDef    <- "fn" _ "(" _ Params _ ")" _ Block
 
-
-
 Expr               <- LogicalExpr /
                       ArithmeticExpr /
                       CharacterExpr /
                       StringExpr
-
-
-
 
 LogicalExpr       <- Or
 Or                <- And (_ "||" _ And)*
