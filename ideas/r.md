@@ -84,6 +84,8 @@ with because the functional everything is an expression
 
 ## Basic types
 
+MAYBE: jid(), not ref()
+
 `bool` : Boolean value `true` or `false`
 
 `int` : Signed 32/64 bits integer (depending on the target
@@ -333,7 +335,7 @@ main() {
 ```
 
 > [!NOTE] A base expression is not allowed to contain a match
-> expression, i.e. use the `<~` `=` operator.
+> expression, i.e. use the `<*` `=` operator.
 
 ## The `if` keyword
 
@@ -373,7 +375,7 @@ block sequence. There is no fall through mechanism and the
 
 Tuples are a finite ordered sequence of elements. It is a data
 structure that can hold a fixed number of elements of any type. The
-elements of a tuple are usually deconstructed with the `<~` match
+elements of a tuple are usually deconstructed with the `<*` match
 operator. Tuples are comma separated values within parenthesis
 prefixed with `#`.
 
@@ -382,10 +384,10 @@ Example:
 ```
 a = 42
 b = #(4711, #(a, [1, 2]))
-#(_, #(_, [_, c])) <~ b    // c = 2
+#(_, #(_, [_, c])) <* b    // c = 2
 ```
 
-The `<~` match operator is described below.
+The `<*` match operator is described below.
 
 ## Arrays
 
@@ -627,18 +629,18 @@ match (expr) {
 }
 ```
 
-## The `<~` operator
+## The `<*` operator
 
-Matching/deconstructing can also be performed with the `<~` operator.
+Matching/deconstructing can also be performed with the `<*` operator.
 
 Examples:
 
 ```
 a = 1
-#(a, ?a, 1) <~ #(1, 2, 1)                    // a = 2
-#(?a, b, ?h) <~ foo(42)
-[1, ?a] <~ [1, 2]                            // a = 2
-[42 : 1, "foo" : ?a] <~ [42 : 1, "foo" : 2]  // a = 2
+#(a, ?a, 1) <* #(1, 2, 1)                    // a = 2
+#(?a, b, ?h) <* foo(42)
+[1, ?a] <* [1, 2]                            // a = 2
+[42 : 1, "foo" : ?a] <* [42 : 1, "foo" : 2]  // a = 2
 ```
 
 # Hierarchical packages
@@ -807,7 +809,7 @@ jid = spawn sum(a)    // a.dup() is performed automatically
 `spawn` returns a job id (jid) which can be used to send messages to
 job with `=>` operator:
 
-`#(timeout, 1000) => jid`
+jid <: `#(timeout, 1000)
 
 A message sent to a job ends up in its mailbox and can be retrieved
 with the `receive` keyword:
@@ -833,13 +835,13 @@ The mailbox is unbounded in size but can be restricted using the
 
 Above a job's mailbox is restricted to contain at most 64 messages,
 and if a sending job hits this threshold it is automatically blocked
-in `=>` waiting for the mailbox contain less messages.
+in `<:` waiting for the mailbox contain less messages.
 
 `OnCrowding.ignore` can be used instead `OnCrowding.block` to specify
 that overflowing messages should be ignored. The `OnCrowding` enum can
 alternatively be replaced with a function that returns `false` if
 overflowing messages should be ignored or `true` if the sending job
-should be blocked in `=>`.
+should be blocked in `<:`.
 
 The last concurrency keyword is `self` and it refers to the job which
 user code currently runs in.
@@ -858,14 +860,15 @@ a link. That didn't come as a surprise.
 
 `kill(jid)`: Just like that
 
-MAYBE a BUS?
+MAYBE a BUS? LIB!
 
-MAYBE MAYBE NO MAKE IT a LIB + ref() as well
-a = #(Action.computeAckermann, 3, 10) =>< jid
+MAYBE MAYBE: NO! MAKE IT a LIB + ref() as well
+a = jid <:> #(Action.computeAckermann, 3, 10)
 
 receive {
   call #(?jid, ?ref, #(Action.computeAckermann, ?m, ?n) {
-    #(ref, ackermann(m, n)) => jid
+    jid <: #(ref, ackermann(m, n))
+  }
 }
 
 ## A concurrency example
@@ -924,12 +927,6 @@ singleton Ackermann {
     }
 }
 ```
-
-spawn
-
-
-
-
 
 # Appendix A: Expressions in decreasing order of precedence
 

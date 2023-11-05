@@ -18,8 +18,8 @@ singleton struct Foo {
 }
 
 fn main() {
-  a <~ b;
-  #(?foo, bar) <~ b;
+  a <* b;
+  #(?foo, bar) <* b;
   #(a+1);
   a = 1 + 2 + a * 2 + if a { 2; };
   true;

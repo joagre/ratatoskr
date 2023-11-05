@@ -27,7 +27,7 @@ Block              <- "{" _ StatementSequence _ "}"
 StatementSequence  <- Statement _ ";"  (_ StatementSequence)*
 Statement          <- Assignment / MatchOperation / FunctionDef / Expr
 Assignment         <- Variable _ "=" _ Expr
-MatchOperation     <- Expr _ "<~" _ Expr
+MatchOperation     <- Expr _ "<*" _ Expr
 FunctionDef        <- "fn" _ FunctionName _ "(" _ Params? _ ")" _ Block
 FunctionName       <- Identifier
 Params             <- NonDefaultParams _ "," _ DefaultParams /
