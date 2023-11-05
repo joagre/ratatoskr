@@ -86,10 +86,10 @@ with because the functional everything is an expression
 
 `bool` : Boolean value `true` or `false`
 
-`int` : Signed 32 bits integer (if larger arbitrary-precision bignum
+`int` : Signed 64 bits integer (if larger arbitrary-precision bignum
 integer is used)
 
-`float` : 64-bit floating point (depending on the target architecture)
+`float` : 64-bit floating point
 
 `char` : Unicode code point
 
