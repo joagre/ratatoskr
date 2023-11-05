@@ -84,8 +84,6 @@ with because the functional everything is an expression
 
 ## Basic types
 
-MAYBE: jid(), not ref()
-
 `bool` : Boolean value `true` or `false`
 
 `int` : Signed 32/64 bits integer (depending on the target
@@ -101,6 +99,8 @@ architecture)
 `char` : Unicode code point
 
 `function` : Function reference
+
+`job` : Job reference
 
 ## Composite types
 
@@ -792,32 +792,32 @@ singleton Math {
 Any function can be spawned to run as a concurrent job with the
 `spawn` keyword:
 
-`jid = spawn ackermann(3, 1)`
+`job = spawn ackermann(3, 1)`
 
 Jobs share **nothing** with other jobs and input parameters are
 automatically deep copied before job starts:
 
 ```
 a = [1, 2, 3]
-jid = spawn sum(a)    // a.dup() is performed automatically
+job = spawn sum(a)    // a.dup() is performed automatically
 ```
 
 > [!NOTE]
 > If any singletons (see below) have been defined each job gets
 > its own own copy of it. Nothing is shared between jobs.
 
-`spawn` returns a job id (jid) which can be used to send messages to
+`spawn` returns a job which can be used to send messages to
 job with `=>` operator:
 
-jid <: `#(timeout, 1000)
+job <: `#(timeout, 1000)
 
 A message sent to a job ends up in its mailbox and can be retrieved
 with the `receive` keyword:
 
 ```
 receive {
-    #(?jid, ?result) {
-        stdio.writeln("Job $jid sent result $result")
+    #(?job, ?result) {
+        stdio.writeln("Job $job sent result $result")
         result
     }
     timeout 1000 {
@@ -831,7 +831,7 @@ receive {
 The mailbox is unbounded in size but can be restricted using the
 `setMaxMailboxSize` function provided by the `std.concurrency` module:
 
-`setMaxMailboxSize(jid, 64, OnCrowding.block)`
+`setMaxMailboxSize(job, 64, OnCrowding.block)`
 
 Above a job's mailbox is restricted to contain at most 64 messages,
 and if a sending job hits this threshold it is automatically blocked
@@ -848,26 +848,26 @@ user code currently runs in.
 
 The `std.concurrency` module also provides these functions:
 
-`monitor(jid)` : Send a message `#(JobMonitor.died, jid, reason)` to
+`monitor(job)` : Send a message `#(JobMonitor.died, job, reason)` to
 me if a job dies
 
-`link(jid)` : Send a message `#(JobMonitor.died, jid, reason)` to me
+`link(job)` : Send a message `#(JobMonitor.died, job, reason)` to me
 if a job dies. Do the same to the linked job if I die.
 
 The `spawn` keyword have the siblings `mspawn` and `lspawn`. They,
 respectively, spawn jobs at the same time as they create a monitor, or
 a link. That didn't come as a surprise.
 
-`kill(jid)`: Just like that
+`kill(job)`: Just like that
 
 MAYBE a BUS? LIB!
 
 MAYBE MAYBE: NO! MAKE IT a LIB + ref() as well
-a = jid <:> #(Action.computeAckermann, 3, 10)
+a = job <:> #(Action.computeAckermann, 3, 10)
 
 receive {
-  call #(?jid, ?ref, #(Action.computeAckermann, ?m, ?n) {
-    jid <: #(ref, ackermann(m, n))
+  call #(?job, ?ref, #(Action.computeAckermann, ?m, ?n) {
+    job <: #(ref, ackermann(m, n))
   }
 }
 
@@ -884,35 +884,35 @@ import std.concurrency
 import std.stdio
 
 fn main() {
-  jids = Ackermann.startJobs(3, 10);
-  Ackermann.waitForJobs(jids);
+  jobs = Ackermann.startJobs(3, 10);
+  Ackermann.waitForJobs(jobs);
 }
 
 singleton Ackermann {
-    public fn startJobs(m, n, i = 0, jids = []) {
+    public fn startJobs(m, n, i = 0, jobs = []) {
         if i < n {
-            fn computeAckermann(parentJid, m, n) {
+            fn computeAckermann(parentJob, m, n) {
                 result = ackermann(m, n);
-                 parentJid <: #(self, m, n, result);
+                 parentJob <: #(self, m, n, result);
             }
-            jid = mspawn computeAckermann(self, m, ++i);
-            concurrency.setMaxMailboxSize(jid, 4, concurrency.OnCrowding.block);
-            startJobs(m, n, i, jids ~ jid);
+            job = mspawn computeAckermann(self, m, ++i);
+            concurrency.setMaxMailboxSize(job, 4, concurrency.OnCrowding.block);
+            startJobs(m, n, i, jobs ~ job);
         }
-        jids;
+        jobs;
     }
 
-    public fn waitForJobs(jids) {
-        if jids.length > 0 {
+    public fn waitForJobs(jobs) {
+        if jobs.length > 0 {
             receive {
-                case #(?jid, ?m, ?n, ?result) {
+                case #(?job, ?m, ?n, ?result) {
                     stdio.writeln("ackermann($m, $n) = $result");
                 }
-                case #(JobMonitor.died, ?jid, ?reason) {
-                    stdio.writeln("Oh no! Compute job $jid died: $reason");
+                case #(JobMonitor.died, ?job, ?reason) {
+                    stdio.writeln("Oh no! Compute job $job died: $reason");
                 }
             }
-            waitForJobs(jids[0 .. $ - 1]);
+            waitForJobs(jobs[0 .. $ - 1]);
         }
     }
 
