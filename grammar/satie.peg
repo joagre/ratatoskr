@@ -59,11 +59,10 @@ Boolean            <- "true" / "false"
 
 Number             <- Integral / FloatingPoint
 Integral           <- OctalIntegral / HexIntegral / BinaryIntegral /
-                      BigIntegral / DecimalIntegral
+                      DecimalIntegral
 OctalIntegral      <- "0"[0-7]+
 HexIntegral        <- "0x"[0-9a-fA-F]+
 BinaryIntegral     <- "0b"[01]+
-BigIntegral        <- [0-9]+"b"
 DecimalIntegral    <- [0-9]+ !("." / [eE])
 FloatingPoint      <- [0-9]* "." [0-9]+ ExponentPart? / [0-9]+ ExponentPart
 ExponentPart       <- [eE] [+-]? [0-9]+

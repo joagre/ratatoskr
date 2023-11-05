@@ -32,7 +32,7 @@ Hashtables
 Light-weight (microprocessor -> desktop)
 Small memory foot print but built to scale
 Pluggable Scceduler (build you own Interpreter and plug it in)
-int, big, float, bool, tuple, fixed and dynamic array, hashtable, string,
+int,  float, bool, tuple, fixed and dynamic array, hashtable, string,
 struct, interface
 Everything is
 No data can be shared be between job + spawn, send , recieve, monitor,
@@ -86,15 +86,10 @@ with because the functional everything is an expression
 
 `bool` : Boolean value `true` or `false`
 
-`int` : Signed 32/64 bits integer (depending on the target
-architecture)
+`int` : Signed 32 bits integer (if larger arbitrary-precision bignum
+integer is used)
 
-`uint` : Unsigned 32/64 bits integer (depending on the target architecture)
-
-`big` : Arbitrary-precision bignum integer
-
-`float` : 32 or 64-bit floating point (depending on the target
-architecture)
+`float` : 64-bit floating point (depending on the target architecture)
 
 `char` : Unicode code point
 
@@ -168,8 +163,8 @@ The `bool` literals are `true` or `false`.
 
 ## Integral literals
 
-Integrals can be formatted as decimal, octal, hexadecimal, binary and
-big literals. A big literal is suffixed with the letter `b`.
+Integrals can be formatted as decimal, octal, hexadecimal, binary big
+literals.
 
 Examples:
 
@@ -178,7 +173,6 @@ a = 4                 // int (decimal format)
 b = 017               // int (octal format)
 c = 0xffff            // int (hexadecimal format)
 d = 0b101010100       // int (binary format)
-e = 298347928347987b  // big
 ```
 
 ## Floating-point literals
@@ -264,24 +258,23 @@ Examples:
 ```
 a = 3
 b = 042
-c = 93326215443944152681B
+c = 93326215443944152681
 d = 3.0
 e = a + cast(int)d * b             // 105
-f = c / cast(big)d + cast(big)a    // 31108738481314713603B
+f = c / cast(int)d + a             // 31108738481314713603B
 g = d + c                          // A compiler error!
 ```
 
-The `cast` operator only knows about the following types: `int`,
-`uint`, `big`, `float` and `char`.
+The `cast` operator can only cast between `int` and `float` values.
 
 The `typeof` operator can be used to perform a type check:
 
 ```
 import . "std/type"
 
-a = 42
+a = 42.5
 if typeof(a) == Type.int {
-    31108738481314713603B + cast(big)a
+    31108738481314713603 + cast(int)a
 }
 ```
 
@@ -569,8 +562,8 @@ fn map(l, f, n = 0) {
 
 If a function parameter is pre-pended with the `ref` keyword it is
 referred to by reference instead of by value. This only has meaning
-for the basic types, i.e. `bool`, `int`, `uint`, `big`, `float`,
-`char` and `function`.
+for the basic types, i.e. `bool`, `int`, `float`, `char` and
+`function`.
 
 Example:
 
