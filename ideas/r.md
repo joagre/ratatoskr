@@ -858,7 +858,9 @@ a link. That didn't come as a surprise.
 
 `kill(jid)`: Just like that
 
-MAYBE MAYBE
+MAYBE a BUS?
+
+MAYBE MAYBE NO MAKE IT a LIB + ref() as well
 a = #(Action.computeAckermann, 3, 10) =>< jid
 
 receive {
@@ -879,45 +881,45 @@ import std.concurrency
 import std.stdio
 
 fn main() {
-  jids = Ackermann.startJobs(3, 10)
-  Ackermann.waitForJobs(jids)
+  jids = Ackermann.startJobs(3, 10);
+  Ackermann.waitForJobs(jids);
 }
 
 singleton Ackermann {
     public fn startJobs(m, n, i = 0, jids = []) {
         if i < n {
             fn computeAckermann(parentJid, m, n) {
-                result = ackermann(m, n)
-                #(self, m, n, result) => parentJid
+                result = ackermann(m, n);
+                 parentJid <: #(self, m, n, result);
             }
-            jid = mspawn computeAckermann(self, m, ++i)
-            concurrency.setMaxMailboxSize(jid, 4, concurrency.OnCrowding.block)
-            startJobs(m, n, i, jids ~ jid)
+            jid = mspawn computeAckermann(self, m, ++i);
+            concurrency.setMaxMailboxSize(jid, 4, concurrency.OnCrowding.block);
+            startJobs(m, n, i, jids ~ jid);
         }
-        jids
+        jids;
     }
 
     public fn waitForJobs(jids) {
         if jids.length > 0 {
             receive {
                 case #(?jid, ?m, ?n, ?result) {
-                    stdio.writeln("ackermann($m, $n) = $result")
+                    stdio.writeln("ackermann($m, $n) = $result");
                 }
                 case #(JobMonitor.died, ?jid, ?reason) {
-                    stdio.writeln("Oh no! Compute job $jid died: $reason")
+                    stdio.writeln("Oh no! Compute job $jid died: $reason");
                 }
             }
-            waitForJobs(jids[0 .. $ - 1])
+            waitForJobs(jids[0 .. $ - 1]);
         }
     }
 
     private fn ackermann(m, n) {
         if m == 0 {
-            n + 1
+            n + 1;
         } else if n == 0 {
-            ackermann(m - 1, 1)
+            ackermann(m - 1, 1);
         } else {
-            ackermann(m - 1, ackermann(m, n - 1))
+            ackermann(m - 1, ackermann(m, n - 1));
         }
     }
 }

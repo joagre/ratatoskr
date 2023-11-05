@@ -21,7 +21,8 @@ ModulePath         <- Identifier ("." Identifier)* ("." "*")?
 
 StructAndEnums     <- Struct / Enum
 
-MainFunctionDef    <- "fn" _ "main" _ "(" _ Variable? _ ")" _ Block
+MainFunctionDef    <- "fn" _ "main" _ "(" _ Param? _ ")" _ Block
+Param              <- Identifier
 Block              <- "{" _ StatementSequence _ "}"
 StatementSequence  <- Statement _ ";"  (_ StatementSequence)*
 Statement          <- Assignment / MatchOperation / FunctionDef / Expr
@@ -33,9 +34,9 @@ Params             <- NonDefaultParams _ "," _ DefaultParams /
                       NonDefaultParams /
                       DefaultParams
 NonDefaultParams   <- NonDefaultParam (_ "," _ NonDefaultParam)*
-NonDefaultParam    <- Variable !(_ "=")
+NonDefaultParam    <- Param !(_ "=")
 DefaultParams      <- DefaultParam (_ "," _ DefaultParam)*
-DefaultParam       <- Variable _ "=" _ Expr
+DefaultParam       <- Param _ "=" _ Expr
 
 #
 # Expressions
@@ -130,7 +131,7 @@ StructMember       <- Constructor / Deconstructor / MemberVariableDef / MemberFu
 
 Constructor        <- "this" _ "(" _ Params? _ ")" _ Block
 Deconstructor      <- "~this" _ "(" _ Params? _ ")" _ Block
-MemberVariableDef  <- MemberVisibility _ (MemberAccess _)? _ !"fn" Identifier
+MemberVariableDef  <- MemberVisibility _ (MemberAccess _)? _ !"fn" Variable
                       (_ "=" _ Expr)?
 MemberFunctionDef  <- MemberVisibility _ (MemberAccess _)? FunctionDef
 MemberVisibility   <- "public" / "private"
