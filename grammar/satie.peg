@@ -6,24 +6,27 @@
         fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
 }
 
-Program            <- _ Import* _ StructEnum* _ MainFunctionDef _ StructEnum* EOF
+#
+# Top level structure
+#
 
-StructEnum         <- (Struct / Enum)
-Import             <- "FIXME"
-Struct             <- "FIXME"
-Enum               <- "FIXME"
+Program            <- _ Import* _
+                      (StructAndEnums _)* _
+                      MainFunctionDef? _
+                      (StructAndEnums _)*
+                      EOF
+
+Import             <- "import" __ (Identifier _ "=" _)? _ ModulePath
+ModulePath         <- Identifier ("." Identifier)* ("." "*")?
+
+StructAndEnums     <- Struct / Enum
 
 MainFunctionDef    <- "fn" _ "main" _ "(" _ Variable? _ ")" _ Block
-Block              <- "{" _ BlockSequence _ "}"
-BlockSequence      <- (Assignment /
-                       MatchOperation /
-                       FunctionDef /
-                       Expr) (_ "," _ BlockSequence)*
-
+Block              <- "{" _ StatementSequence _ "}"
+StatementSequence  <- Statement _ ";"  (_ StatementSequence)*
+Statement          <- Assignment / MatchOperation / FunctionDef / Expr
 Assignment         <- Variable _ "=" _ Expr
-
-MatchOperation     <- "FIXME"
-
+MatchOperation     <- Expr _ "<~" _ Expr
 FunctionDef        <- "fn" _ FunctionName _ "(" _ Params? _ ")" _ Block
 FunctionName       <- Identifier
 Params             <- NonDefaultParams _ "," _ DefaultParams /
@@ -33,6 +36,10 @@ NonDefaultParams   <- NonDefaultParam (_ "," _ NonDefaultParam)*
 NonDefaultParam    <- Variable !(_ "=")
 DefaultParams      <- DefaultParam (_ "," _ DefaultParam)*
 DefaultParam       <- Variable _ "=" _ Expr
+
+#
+# Expressions
+#
 
 Expr               <- Or
 
@@ -44,21 +51,21 @@ Not                <- "!" _ Unary / Unary
 Unary              <- ("+" / "-")? Primary
 Primary            <- Boolean / Number / String / Character / If / Switch /
                       Match / Receive / Block / Tuple / Array / Table /
-                      AnonFunctionDef / FunctionCall / UnboundVariable / Variable /
-                      ParanthesizedExpr
+                      Variable / UnboundVariable / AnonFunctionDef /
+                      FunctionCall / ParanthesizedExpr
 
 Boolean            <- "true" / "false"
 
-Number             <- FloatingPoint / Integral
-FloatingPoint      <- [0-9]* "." [0-9]+ ExponentPart? / [0-9]+ ExponentPart
-ExponentPart       <- [eE] [+-]? [0-9]+
-Integral           <- OctalIntegral / HexIntegral / BinaryIntegral / BigIntegral /
-                      DecimalIntegral
+Number             <- Integral / FloatingPoint
+Integral           <- OctalIntegral / HexIntegral / BinaryIntegral /
+                      BigIntegral / DecimalIntegral
 OctalIntegral      <- "0"[0-7]+
 HexIntegral        <- "0x"[0-9a-fA-F]+
 BinaryIntegral     <- "0b"[01]+
 BigIntegral        <- [0-9]+"b"
-DecimalIntegral    <- [0-9]+
+DecimalIntegral    <- [0-9]+ !("." / [eE])
+FloatingPoint      <- [0-9]* "." [0-9]+ ExponentPart? / [0-9]+ ExponentPart
+ExponentPart       <- [eE] [+-]? [0-9]+
 
 String             <- RegularString / RawString
 RegularString      <- '"' ( EscapeSequence / [^"] )* '"'
@@ -91,10 +98,12 @@ Match              <- "match" __ Expr _ "{"
                       (_ "case" __ Expr _ Block)+
                       _ "}"
 
-Receive            <- "FIXME"
+Receive            <- "receive" __ Expr _ "{"
+                      (_ "case" _ Expr _ Block)+
+                      (_ "timeout" _ DecimalIntegral _ Block)?
+                      _ "}"
 
 Tuple              <- "#(" _ ExprList? _ ")"
-ExprList           <- Expr (_ "," _ Expr)*
 
 Array              <- "[" _ ExprList? _ "]" / "[" Expr _ ".." _ Expr "]"
 
@@ -106,17 +115,48 @@ Value              <- Expr
 
 AnonFunctionDef    <- "fn" _ "(" _ Params _ ")" _ Block
 
-FunctionCall       <- FunctionName _ "(" _ Arguments? _ ")"
-Arguments          <- Expr _ ("," _ Expr)*
+FunctionCall       <- FunctionName _ "(" _ ExprList? _ ")"
 
 ParanthesizedExpr  <- "(" _ Expr _ ")"
 
-Variable           <- Identifier
+#
+# Struct
+#
+
+Struct             <- ("singleton" _)? "struct" _ Identifier _ "{" _
+                      StructMembers _ "}"
+StructMembers      <- StructMember (_ "," _ StructMember)*
+StructMember       <- Constructor / Deconstructor / MemberVariableDef / MemberFunctionDef
+
+Constructor        <- "this" _ "(" _ Params? _ ")" _ Block
+Deconstructor      <- "~this" _ "(" _ Params? _ ")" _ Block
+MemberVariableDef  <- MemberVisibility _ (MemberAccess _)? _ !"fn" Identifier
+                      (_ "=" _ Expr)?
+MemberFunctionDef  <- MemberVisibility _ (MemberAccess _)? FunctionDef
+MemberVisibility   <- "public" / "private"
+MemberAccess       <- "const" / "readonly"
+
+#
+# Enum
+#
+
+Enum               <- "enum" _ Identifier _ "{" _ EnumValues _ "}"
+EnumValues         <- EnumValue (_ "," _ EnumValue)*
+EnumValue          <- Identifier (_ "=" _ Expr)?
+
+#
+# Common stuff
+#
+
+ExprList           <- Expr (_ "," _ Expr)*
+Variable           <- Identifier !(_ "(")
 Identifier         <- [a-zA-Z_][a-zA-Z_0-9_]*
 UnboundVariable    <- "?" Variable
-_                  <- (WS / Comments)*
-__                 <- WS / Comments
-WS                 <- [ \t\r\n]+
+#_                  <- WS*
+#__                 <- WS+
+_                   <- (WS / Comments)*
+__                  <- (WS / Comments)+
+WS                  <- [ \t\r\n]
 Comments           <- SingleLineComment / BlockComment
 SingleLineComment  <- "//" (!EOL .)* EOL?
 EOL                <- "\r\n" / "\n" / "\r"

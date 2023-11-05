@@ -709,7 +709,7 @@ main() {
 > [!NOTE] Name clashes only occur if a satie file refers to
 > something that can't be uniquely resolved
 
-# The `struct` keyword
+# The `struct` and `singleton` keywords
 
 Structs encapsulate member values and member functions and they can
 only be defined on the top-level of each satie file.

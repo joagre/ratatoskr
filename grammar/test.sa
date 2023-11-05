@@ -1,94 +1,115 @@
+import a.b.c.*
+
+enum Bar {
+  a = #(2 + 1, a),
+  b,
+  c
+}
+
+singleton struct Foo {
+    this(a) {
+      a;
+    },
+    public a = 3,
+    private readonly b = (a + 1) * c,
+    public fn foo(a) {
+      a;
+    }
+}
+
 fn main() {
-  #(a+1),
-  a = 1 + 2 + a * 2 + if a { 2 },
-  true,
-  a = 1 + 1,
-  true && false,
-  a = (42 + 1) + 1,
-  a = true && false,
-  !true,
-  !a,
-  !foo(),
-  a = true,
-  a = false,
-  a = 017,
-  a = 0xFFFF,
-  a = 3.14,
-  a = 0b0101010,
-  a = 'A',
-  b = 'ω',
-  c = '\u03c9',
-  a = "foo\nbarω",
-  a = r"foo\tbar",
+  a <~ b;
+  #(?foo, bar) <~ b;
+  #(a+1);
+  a = 1 + 2 + a * 2 + if a { 2; };
+  true;
+  a = 1 + 1;
+  true && false;
+  a = (42 + 1) + 1;
+  a = true && false;
+  !true;
+  !a;
+  !foo();
+  a = true;
+  a = false;
+  a = 017;
+  a = 0xFFFF;
+  a = 3.14;
+  a = 0b0101010;
+  a = 'A';
+  b = 'ω';
+  c = '\u03c9';
+  a = "foo\nbarω";
+  a = r"foo\tbar";
   fn foo() {
     fn foo() {
-      a
-    },
-    b,
-    foo(1,2)
-  },
-  a = #(),
-  a = [1, 2],
-  a = #(1, 2),
-  a = #(1, #(2, (4 + a))),
-  a = [1, 2],
-  a = [],
-  a = [1:2],
-  a = [b:b, #(a+1):2+1],
-  a = [:],
-  [a] + [b],
-  [a:a] + [b:a],
-  [a],
-  if a { 2 } + if a { 2 },
-  foo(),
-  a = 1,
-  foo(1,2) && true,
+      a;
+    };
+    b;
+    foo(1, 2);
+  };
+  a = #();
+  a = [1, 2];
+  a = #(1, 2);
+  a = #(1, #(2, (4 + a)));
+  a = [1, 2];
+  a = [];
+  a = [1:2];
+  a = [b:b, #(a+1):2+1];
+  a = [:];
+  [a] + [b];
+  [a:a] + [b:a];
+  [a];
+  if a { 2; } + if a { 2; };
+  foo();
+  a = 1;
+  foo(1,2) && true;
   if a {
-    a,
-    b
-  },
+    a;
+    b;
+  };
   if A {
-    B,
-    C
+    B;
+    C;
   } else {
-    E
-  },
+    E;
+  };
   if A {
-    B,
-    C
+    B;
+    C;
   } elseif B {
-    G
+    G;
   } else {
-    E
-  },
-  if A{B,C}elseif B{G}else{E},
+    E;
+  };
+  if A{B;C;}elseif B{G;}else{E;};
   switch A {
     case B {
-      C
+      C;
     }
     default {
-      F
+      F;
     }
-  },
-  switch A{case B{C}default{BAJS}},
+  };
+  switch A{case B{C;}default{BAJS;}};
   switch A {
     case B {
-      C
+      C;
     }
-  },
+  };
   match A {
     case B {
-      C
+      C;
     }
-  },
+  };
   fn foo(a, b, c = 0) {
-    a
-  },
+    a;
+  };
   fn foo() {
-    a
-  },
+    a;
+  };
   f = fn (a = 7) {
-    b
-  },
-  f(1)
+    b;
+  };
+  f(1);
 }
