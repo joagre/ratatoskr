@@ -5,6 +5,28 @@ LDLIBS = -lm
 
 all: sac
 
+
+
+
+
+
+
+
+
+
+foo: test.o
+	$(CC) $(LDLIBS) -o $@ $^
+
+test.c: test.peg
+	$(PCC) $^
+
+test.o: test.c
+	$(CC) -c $(CFLAGS) -Wno-unused-parameter $< -o $@ -MMD -MF $(@:.o=.d)
+
+
+
+
+
 test: sac
 	./sac < test.sa
 

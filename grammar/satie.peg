@@ -1,9 +1,9 @@
 %prefix "satie"
 
-%source {
-static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
-#define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
-    fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
+%earlysource {
+    static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
+    #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
+        fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
 }
 
 Program            <- _ Import* _ StructEnum* _ MainFunctionDef _ StructEnum* EOF
@@ -14,13 +14,11 @@ Struct             <- "FIXME"
 Enum               <- "FIXME"
 
 MainFunctionDef    <- "fn" _ "main" _ "(" _ Variable? _ ")" _ Block
-Block              <- "{" _ ExprSequence _ "}"
-
-ExprSequence       <- (Assignment /
+Block              <- "{" _ BlockSequence _ "}"
+BlockSequence      <- (Assignment /
                        MatchOperation /
                        FunctionDef /
-                       AnonFunctionDef /
-                       Expr) (_ "," _ ExprSequence)*
+                       Expr) (_ "," _ BlockSequence)*
 
 Assignment         <- Variable _ "=" _ Expr
 
@@ -36,35 +34,49 @@ NonDefaultParam    <- Variable !(_ "=")
 DefaultParams      <- DefaultParam (_ "," _ DefaultParam)*
 DefaultParam       <- Variable _ "=" _ Expr
 
-AnonFunctionDef    <- "fn" _ "(" _ Params _ ")" _ Block
+Expr               <- Or
 
-Expr               <- LogicalExpr /
-                      ArithmeticExpr /
-                      CharacterExpr /
-                      StringExpr
+Or                 <- And (_ "||" _ And)*
+And                <- Add (_ "&&" _ Add)*
+Add                <- Multiplicate (_ ("+" / "-") _ Multiplicate)*
+Multiplicate       <- Not (_ ("*" / "/") _  Not)*
+Not                <- "!" _ Unary / Unary
+Unary              <- ("+" / "-")? Primary
+Primary            <- Boolean / Number / String / Character / If / Switch /
+                      Match / Receive / Block / Tuple / Array / Table /
+                      AnonFunctionDef / FunctionCall / UnboundVariable / Variable /
+                      ParanthesizedExpr
 
-LogicalExpr       <- Or
-Or                <- And (_ "||" _ And)*
-And               <- Not (_ "&&" _ Not)*
-Not               <- "!" _ LogicalPrimary / LogicalPrimary
-LogicalPrimary    <- Boolean / NonArithmetic / BasePrimary
-Boolean           <- "true" / "false"
-NonArithmetic      <- BasePrimary !Number
-BasePrimary       <- FunctionCall /
-                     If /
-                     Switch /
-                     Match /
-                     Receive /
-                     Block /
-                     Tuple /
-                     Array /
-                     Table /
-                     Variable /
-                     UnboundVariable /
-                     ParenthesizedExpr
+Boolean            <- "true" / "false"
 
-FunctionCall       <- FunctionName _ "(" _ Arguments? _ ")"
-Arguments          <- Expr _ (',' _ Expr)*
+Number             <- FloatingPoint / Integral
+FloatingPoint      <- [0-9]* "." [0-9]+ ExponentPart? / [0-9]+ ExponentPart
+ExponentPart       <- [eE] [+-]? [0-9]+
+Integral           <- OctalIntegral / HexIntegral / BinaryIntegral / BigIntegral /
+                      DecimalIntegral
+OctalIntegral      <- "0"[0-7]+
+HexIntegral        <- "0x"[0-9a-fA-F]+
+BinaryIntegral     <- "0b"[01]+
+BigIntegral        <- [0-9]+"b"
+DecimalIntegral    <- [0-9]+
+
+String             <- RegularString / RawString
+RegularString      <- '"' ( EscapeSequence / [^"] )* '"'
+EscapeSequence     <- "\\" [btnvfr"\\]
+RawString          <- 'r"' [^"]* '"'
+
+Character          <- "'" ( Escape / NonQuoteChar ) "'"
+Escape             <- "\\" ( [abfnrtv'"\\] /
+                      "x" HexDigit HexDigit /
+                      "u" HexDigit HexDigit HexDigit HexDigit /
+                      "U" HexDigit HexDigit HexDigit HexDigit
+                          HexDigit HexDigit HexDigit HexDigit /
+                      OctalDigit /
+                      OctalDigit OctalDigit /
+                      OctalDigit OctalDigit OctalDigit )
+HexDigit           <- [0-9a-fA-F]
+OctalDigit         <- [0-7]
+NonQuoteChar       <- [^']
 
 If                 <- "if" __ Expr _ Block
                       (_ "elseif" __ Expr _ Block)*
@@ -81,9 +93,10 @@ Match              <- "match" __ Expr _ "{"
 
 Receive            <- "FIXME"
 
-Tuple              <- "#(" _ ExprSequence? _ ")"
+Tuple              <- "#(" _ ExprList? _ ")"
+ExprList           <- Expr (_ "," _ Expr)*
 
-Array              <- "[" _ ExprSequence? _ "]" / "[" Expr _ ".." _ Expr "]"
+Array              <- "[" _ ExprList? _ "]" / "[" Expr _ ".." _ Expr "]"
 
 Table              <- "[" _ (KeyValues / ":") _ "]"
 KeyValues          <- KeyValue (_ "," _ KeyValues)*
@@ -91,58 +104,24 @@ KeyValue           <- Key _ ":" _ Value
 Key                <- Expr
 Value              <- Expr
 
-ParenthesizedExpr  <- "(" _ Expr _ ")"
+AnonFunctionDef    <- "fn" _ "(" _ Params _ ")" _ Block
 
-ArithmeticExpr    <- Add
-Add               <- Multiplicate (_ ("+" / "-") _ Multiplicate)*
-Multiplicate      <- Unary (_ ("*" / "/") _  Unary)*
-Unary             <- ("+" / "-")? ArithmeticPrimary
-ArithmeticPrimary <- Number / NonLogical / BasePrimary
-Number             <- FloatingPoint / Integral
-FloatingPoint      <- [0-9]* "." [0-9]+ ExponentPart? / [0-9]+ ExponentPart
-ExponentPart       <- [eE] [+-]? [0-9]+
-Integral           <- OctalIntegral / HexIntegral / BinaryIntegral / BigIntegral /
-                      DecimalIntegral
-OctalIntegral      <- "0"[0-7]+
-HexIntegral        <- "0x"[0-9a-fA-F]+
-BinaryIntegral     <- "0b"[01]+
-BigIntegral        <- [0-9]+"b"
-DecimalIntegral    <- [0-9]+
-NonLogical         <- BasePrimary !Boolean
+FunctionCall       <- FunctionName _ "(" _ Arguments? _ ")"
+Arguments          <- Expr _ ("," _ Expr)*
 
-# FIXME
-CharacterExpr     <- Character
-Character          <- "'" ( Escape / NonQuoteChar ) "'"
-Escape             <- "\\" ( [abfnrtv'"\\] /
-                      "x" HexDigit HexDigit /
-                      "u" HexDigit HexDigit HexDigit HexDigit /
-                      "U" HexDigit HexDigit HexDigit HexDigit
-                          HexDigit HexDigit HexDigit HexDigit /
-                      OctalDigit /
-                      OctalDigit OctalDigit /
-                      OctalDigit OctalDigit OctalDigit )
-HexDigit           <- [0-9a-fA-F]
-OctalDigit         <- [0-7]
-NonQuoteChar       <- [^']
+ParanthesizedExpr  <- "(" _ Expr _ ")"
 
-# FIXME
-StringExpr        <- String
-String             <- RegularString / RawString
-RegularString      <- '"' ( EscapeSequence / [^"] )* '"'
-EscapeSequence     <- "\\" [btnvfr"\\]
-RawString          <- 'r"' [^"]* '"'
-
-Variable          <- Identifier
-Identifier        <- [a-zA-Z_][a-zA-Z_0-9_]*
-UnboundVariable   <- "?" Variable
-_                 <- (WS / Comments)*
-__                <- WS / Comments
-WS                <- [ \t\r\n]+
-Comments          <- SingleLineComment / BlockComment
-SingleLineComment <- '//' (!EOL .)* EOL?
-EOL               <- '\r\n' / '\n' / '\r'
-BlockComment      <- '/*' (!'*/' .)* '*/'
-EOF               <- _ !.
+Variable           <- Identifier
+Identifier         <- [a-zA-Z_][a-zA-Z_0-9_]*
+UnboundVariable    <- "?" Variable
+_                  <- (WS / Comments)*
+__                 <- WS / Comments
+WS                 <- [ \t\r\n]+
+Comments           <- SingleLineComment / BlockComment
+SingleLineComment  <- "//" (!EOL .)* EOL?
+EOL                <- "\r\n" / "\n" / "\r"
+BlockComment       <- "/*" (!"*/" .)* "*/"
+EOF                <- _ !.
 
 %%
 int main() {

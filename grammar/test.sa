@@ -1,13 +1,14 @@
 fn main() {
+  #(a+1),
   a = 1 + 2 + a * 2 + if a { 2 },
   true,
   a = 1 + 1,
-  true && false
-
-  //a = (42 + 1) + 1,
-  //a = true + false,
-  //!2,
-/*
+  true && false,
+  a = (42 + 1) + 1,
+  a = true && false,
+  !true,
+  !a,
+  !foo(),
   a = true,
   a = false,
   a = 017,
@@ -18,7 +19,7 @@ fn main() {
   b = 'ω',
   c = '\u03c9',
   a = "foo\nbarω",
-  a = r"foob\tar",
+  a = r"foo\tbar",
   fn foo() {
     fn foo() {
       a
@@ -27,6 +28,7 @@ fn main() {
     foo(1,2)
   },
   a = #(),
+  a = [1, 2],
   a = #(1, 2),
   a = #(1, #(2, (4 + a))),
   a = [1, 2],
@@ -37,19 +39,14 @@ fn main() {
   [a] + [b],
   [a:a] + [b:a],
   [a],
-  //if a { 2 } + if a { 2 }
+  if a { 2 } + if a { 2 },
   foo(),
-        a = 1
-        */
-  /*
-
-foo(1,2)
-
+  a = 1,
+  foo(1,2) && true,
   if a {
     a,
     b
-  }
-  /*
+  },
   if A {
     B,
     C
@@ -94,5 +91,4 @@ foo(1,2)
     b
   },
   f(1)
-  */
 }
