@@ -1,4 +1,4 @@
-import a.b.c.*
+import a.b.c.*;
 
 enum Bar {
   a = #(2 + 1, a),
