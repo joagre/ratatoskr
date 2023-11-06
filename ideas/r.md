@@ -82,6 +82,60 @@ with because the functional everything is an expression
 # Overall structure
 
 
+import std.concurrency
+import std.stdio
+
+enum
+
+struct
+
+
+
+fn main() {
+  jobs = Ackermann.startJobs(3, 10);
+  Ackermann.waitForJobs(jobs);
+}
+
+singleton Ackermann {
+    public fn startJobs(m, n, i = 0, jobs = []) {
+        if i < n {
+            fn computeAckermann(parentJob, m, n) {
+                result = ackermann(m, n);
+                 parentJob <: #(self, m, n, result);
+            }
+            job = mspawn computeAckermann(self, m, ++i);
+            concurrency.setMaxMailboxSize(job, 4, concurrency.OnCrowding.block);
+            startJobs(m, n, i, jobs ~ job);
+        }
+        jobs;
+    }
+
+    public fn waitForJobs(jobs) {
+        if jobs.length > 0 {
+            receive {
+                case #(?job, ?m, ?n, ?result) {
+                    stdio.writeln("ackermann($m, $n) = $result");
+                }
+                case #(JobMonitor.died, ?job, ?reason) {
+                    stdio.writeln("Oh no! Compute job $job died: $reason");
+                }
+            }
+            waitForJobs(jobs[0 .. $ - 1]);
+        }
+    }
+
+    private fn ackermann(m, n) {
+        if m == 0 {
+            n + 1;
+        } else if n == 0 {
+            ackermann(m - 1, 1);
+        } else {
+            ackermann(m - 1, ackermann(m, n - 1));
+        }
+    }
+}
+
+
 
 
 

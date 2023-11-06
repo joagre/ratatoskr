@@ -9,12 +9,12 @@ enum Bar {
 singleton struct Foo {
     this(a) {
       a;
-    },
-    public a = 3,
-    private readonly b = (a + 1) * c,
+    };
+    public a = 3;
+    private readonly b = (a + 1) * c;
     public fn foo(a) {
       a;
-    }
+    };
 }
 
 fn main() {
@@ -77,12 +77,12 @@ fn main() {
   if A {
     B;
     C;
-  } elseif B {
+  } elif B {
     G;
   } else {
     E;
   };
-  if A{B;C;}elseif B{G;}else{E;};
+  if A{B;C;}elif B{G;}else{E;};
   switch A {
     case B {
       C;

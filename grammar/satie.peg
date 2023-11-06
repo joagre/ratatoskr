@@ -19,7 +19,7 @@ Program            <- _ Import* _
 Import             <- "import" __ (Identifier _ "=" _)? _ ModulePath
 ModulePath         <- Identifier ("." Identifier)* ("." "*")?
 
-TopLevelConstructs <- StructDef / InterfaceDef / EnumDef
+TopLevelConstructs <- StructDef / InterfaceDef / EnumDef / FunctionDef
 
 #
 # Expressions
@@ -69,7 +69,7 @@ OctalDigit         <- [0-7]
 NonQuoteChar       <- [^']
 
 If                 <- "if" __ Expr _ Block
-                      (_ "elseif" __ Expr _ Block)*
+                      (_ "elif" __ Expr _ Block)*
                       (_ "else" _ Block)?
 
 Switch             <- "switch" __ Expr _ "{"
@@ -112,7 +112,7 @@ StructDef          <- ("singleton" _)? "struct" _ Identifier _
                       ( ":" _ Interfaces _)? "{" _
                       StructMembers _ "}"
 Interfaces         <- Identifier (_ "," _ Identifier)*
-StructMembers      <- StructMember (_ "," _ StructMember)*
+StructMembers      <- StructMember _ ";" (_ StructMembers)*
 StructMember       <- Constructor / Deconstructor / MemberVariableDef /
                       MemberFunctionDef
 Constructor        <- "this" _ "(" _ Params? _ ")" _ Block
@@ -128,7 +128,7 @@ MemberAccess       <- "const" / "readonly"
 #
 
 InterfaceDef        <- "interface" _ Identifier _ "{" _ InterfaceMembers _ "}"
-InterfaceMembers    <- InterfaceMember (_ "," _ InterfaceMember)*
+InterfaceMembers    <- InterfaceMember _ ";" (_ InterfaceMembers)*
 InterfaceMember     <- InterfaceMemberVariableDef / InterfaceMemberFunctionDef
 InterfaceMemberVariableDef <-
                        MemberVisibility _ (MemberAccess _)? _ !"fn" Variable
