@@ -1161,14 +1161,15 @@ MemberAccess       <- "const" / "readonly"
 # Interface
 #
 
-InterfaceDef        <- "interface" _ Identifier _ "{" _ InterfaceMembers _ "}"
-InterfaceMembers    <- InterfaceMember (_ "," _ InterfaceMember)*
-InterfaceMember     <- InterfaceMemberVariableDef / InterfaceMemberFunctionDef
-InterfaceMemberVariableDef <- MemberVisibility _ (MemberAccess _)? _
-                              !"fn" Variable
-InterfaceMemberFunctionDef <- MemberVisibility _ (MemberAccess _)?
-                              InterfaceFunctionDef
-InterfaceFunctionDef       <- "fn" _ FunctionName _ "(" _ Params? _ ")"
+InterfaceDef         <- "interface" _ Identifier _ "{" _ InterfaceMembers _ "}"
+InterfaceMembers     <- InterfaceMember (_ "," _ InterfaceMember)*
+InterfaceMember      <- InterfaceMemberVariableDef / InterfaceMemberFunctionDef
+InterfaceMemberVariableDef
+                     <- MemberVisibility _ (MemberAccess _)? _ !"fn" Variable
+InterfaceMemberFunctionDef
+                     <- MemberVisibility _ (MemberAccess _)?
+                        InterfaceFunctionDef
+InterfaceFunctionDef <- "fn" _ FunctionName _ "(" _ Params? _ ")"
 
 #
 # Enum
