@@ -11,32 +11,15 @@
 #
 
 Program            <- _ Import* _
-                      (StructAndEnums _)* _
+                      (TopLevelConstructs _)* _
                       MainFunctionDef? _
-                      (StructAndEnums _)*
+                      (TopLevelConstructs _)*
                       EOF
 
 Import             <- "import" __ (Identifier _ "=" _)? _ ModulePath
 ModulePath         <- Identifier ("." Identifier)* ("." "*")?
 
-StructAndEnums     <- Struct / Enum
-
-MainFunctionDef    <- "fn" _ "main" _ "(" _ Param? _ ")" _ Block
-Param              <- Identifier
-Block              <- "{" _ StatementSequence _ "}"
-StatementSequence  <- Statement _ ";"  (_ StatementSequence)*
-Statement          <- Assignment / MatchOperation / FunctionDef / Expr
-Assignment         <- Variable _ "=" _ Expr
-MatchOperation     <- Expr _ "<*" _ Expr
-FunctionDef        <- "fn" _ FunctionName _ "(" _ Params? _ ")" _ Block
-FunctionName       <- Identifier
-Params             <- NonDefaultParams _ "," _ DefaultParams /
-                      NonDefaultParams /
-                      DefaultParams
-NonDefaultParams   <- NonDefaultParam (_ "," _ NonDefaultParam)*
-NonDefaultParam    <- Param !(_ "=")
-DefaultParams      <- DefaultParam (_ "," _ DefaultParam)*
-DefaultParam       <- Param _ "=" _ Expr
+TopLevelConstructs <- StructDef / InterfaceDef / EnumDef
 
 #
 # Expressions
@@ -51,7 +34,7 @@ Multiplicate       <- Not (_ ("*" / "/") _  Not)*
 Not                <- "!" _ Unary / Unary
 Unary              <- ("+" / "-")? Primary
 Primary            <- Boolean / Number / String / Character / If / Switch /
-                      Match / Receive / Block / Tuple / Array / Table /
+                      Match / Receive / Block / Tuple / Array / Table / Struct /
                       Variable / UnboundVariable / AnonFunctionDef /
                       FunctionCall / ParanthesizedExpr
 
@@ -113,6 +96,8 @@ KeyValue           <- Key _ ":" _ Value
 Key                <- Expr
 Value              <- Expr
 
+Struct             <- "struct" _ Identifier
+
 AnonFunctionDef    <- "fn" _ "(" _ Params _ ")" _ Block
 
 FunctionCall       <- FunctionName _ "(" _ ExprList? _ ")"
@@ -123,11 +108,13 @@ ParanthesizedExpr  <- "(" _ Expr _ ")"
 # Struct
 #
 
-Struct             <- ("singleton" _)? "struct" _ Identifier _ "{" _
+StructDef          <- ("singleton" _)? "struct" _ Identifier _
+                      ( ":" _ Interfaces _)? "{" _
                       StructMembers _ "}"
+Interfaces         <- Identifier (_ "," _ Identifier)*
 StructMembers      <- StructMember (_ "," _ StructMember)*
-StructMember       <- Constructor / Deconstructor / MemberVariableDef / MemberFunctionDef
-
+StructMember       <- Constructor / Deconstructor / MemberVariableDef /
+                      MemberFunctionDef
 Constructor        <- "this" _ "(" _ Params? _ ")" _ Block
 Deconstructor      <- "~this" _ "(" _ Params? _ ")" _ Block
 MemberVariableDef  <- MemberVisibility _ (MemberAccess _)? _ !"fn" Variable
@@ -137,12 +124,42 @@ MemberVisibility   <- "public" / "private"
 MemberAccess       <- "const" / "readonly"
 
 #
+# Interface
+#
+
+InterfaceDef        <- "interface" _ Identifier _ "{" _ InterfaceMembers _ "}"
+InterfaceMembers    <- InterfaceMember (_ "," _ InterfaceMember)*
+InterfaceMember     <- InterfaceMemberVariableDef / InterfaceMemberFunctionDef
+InterfaceMemberVariableDef <- MemberVisibility _ (MemberAccess _)? _
+                              !"fn" Variable
+InterfaceMemberFunctionDef <- MemberVisibility _ (MemberAccess _)?
+                              InterfaceFunctionDef
+InterfaceFunctionDef       <- "fn" _ FunctionName _ "(" _ Params? _ ")"
+
+#
 # Enum
 #
 
-Enum               <- "enum" _ Identifier _ "{" _ EnumValues _ "}"
+EnumDef            <- "enum" _ Identifier _ "{" _ EnumValues _ "}"
 EnumValues         <- EnumValue (_ "," _ EnumValue)*
 EnumValue          <- Identifier (_ "=" _ Expr)?
+
+MainFunctionDef    <- "fn" _ "main" _ "(" _ Param? _ ")" _ Block
+Param              <- Identifier
+Block              <- "{" _ StatementSequence _ "}"
+StatementSequence  <- Statement _ ";"  (_ StatementSequence)*
+Statement          <- Assignment / MatchOperation / FunctionDef / Expr
+Assignment         <- Variable _ "=" _ Expr
+MatchOperation     <- Expr _ "<*" _ Expr
+FunctionDef        <- "fn" _ FunctionName _ "(" _ Params? _ ")" _ Block
+FunctionName       <- Identifier
+Params             <- NonDefaultParams _ "," _ DefaultParams /
+                      NonDefaultParams /
+                      DefaultParams
+NonDefaultParams   <- NonDefaultParam (_ "," _ NonDefaultParam)*
+NonDefaultParam    <- Param !(_ "=")
+DefaultParams      <- DefaultParam (_ "," _ DefaultParam)*
+DefaultParam       <- Param _ "=" _ Expr
 
 #
 # Common stuff
