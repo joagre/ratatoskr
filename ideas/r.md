@@ -1033,14 +1033,25 @@ Everything is an expression.
 
 | Expression      | Description                              |
 |-----------------|------------------------------------------|
+| <symbol>        |                                          |
+| this            |                                          |
+| self            |                                          |
+| \$              | Current array size                       |
+| [:]             | Empty map                                |
+| true            |                                          |
+| false           |                                          |
+| <number>        |                                          |
+| <character>     |                                          |
+| <string>        |                                          |
+| <array>         |                                          |
+| <function>      |                                          |
 | (a)             | Paranthesized expression                 |
-| {a, b}          | Sequence of expression                   |
 | a.b             | Member access                            |
 | a++             |                                          |
 | a--             |                                          |
-| a(b, c)         | Function call operator                   |
-| a[i]            | Indexing operator                        |
-| a[b .. c]       | Array slicing operator                   |
+| a(b, c)         | Function call                            |
+| a[i]            | Indexing                                 |
+| a[b .. c]       | Array slicing                            |
 | ++a             |                                          |
 | --a             |                                          |
 | -a              |                                          |
@@ -1048,6 +1059,7 @@ Everything is an expression.
 | !a          B   |                                          |
 | ~a              | Bitwise complement                       |
 | cast(t)a        | Cast expression                          |
+| struct a        |                                          |
 | a ^^ b          | Exponentiation                           |
 | a * b           |                                          |
 | a / b           |                                          |
@@ -1072,8 +1084,7 @@ Everything is an expression.
 | a & b           |                                          |
 | a && b        B | Logical and                              |
 | a \|\| b      B |                                          |
-| a = b           |                                          |
-| a &lt;~ b       | Matching                                 |
+| a &lt;* b       | Matching                                 |
 | a += b          | In-place add                             |
 | a -= b          |                                          |
 | a *= b          |                                          |
@@ -1086,6 +1097,12 @@ Everything is an expression.
 | a &lt;&lt;= b   |                                          |
 | a >>= b         |                                          |
 | a >>>= b        | In-place unsigned right shift            |
+
+
+
+
+
+
 | if            B |                                          |
 | switch          |                                          |
 | match           |                                          |

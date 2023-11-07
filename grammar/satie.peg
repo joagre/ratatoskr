@@ -10,14 +10,14 @@
 # Top level structure
 #
 
-Program            <- _ Import* _
+Program            <- _ (Import _)* _
                       (TopLevelConstructs _)* _
                       MainFunctionDef? _
                       (TopLevelConstructs _)*
                       EOF
 
-Import             <- "import" __ (Identifier _ "=" _)? _ ModulePath _ ";"
-ModulePath         <- Identifier ("." Identifier)* ("." "*")?
+Import             <- "import" __ (Symbol _ "=" _)? _ ModulePath _ ";"
+ModulePath         <- Symbol ("." Symbol)* ("." "*")?
 
 TopLevelConstructs <- StructDef / InterfaceDef / EnumDef / FunctionDef
 
@@ -27,46 +27,22 @@ TopLevelConstructs <- StructDef / InterfaceDef / EnumDef / FunctionDef
 
 Expr               <- Or
 
+#This               <- "this" (_ "." _ Or)*
+
 Or                 <- And (_ "||" _ And)*
 And                <- Add (_ "&&" _ Add)*
 Add                <- Multiplicate (_ ("+" / "-") _ Multiplicate)*
 Multiplicate       <- Not (_ ("*" / "/") _  Not)*
 Not                <- "!" _ Unary / Unary
 Unary              <- ("+" / "-")? Primary
-Primary            <- Boolean / Number / String / Character / If / Switch /
-                      Match / Receive / Block / Tuple / Array / Table / Struct /
-                      Variable / UnboundVariable / AnonFunctionDef /
-                      FunctionCall / ParanthesizedExpr
 
-Boolean            <- "true" / "false"
+Primary            <- Struct / If / Switch / Match / Receive / Block / Tuple /
+                      FunctionCall / MemberAccessOp / ParanthesizedExpr /
+                      Function / Map / Array / String / Character / Number /
+                      Boolean / EmptyMap / Slice / This / Self / Variable /
+                      UnboundVariable / Symbol
 
-Number             <- Integral / FloatingPoint
-Integral           <- OctalIntegral / HexIntegral / BinaryIntegral /
-                      DecimalIntegral
-OctalIntegral      <- "0"[0-7]+
-HexIntegral        <- "0x"[0-9a-fA-F]+
-BinaryIntegral     <- "0b"[01]+
-DecimalIntegral    <- [0-9]+ !("." / [eE])
-FloatingPoint      <- [0-9]* "." [0-9]+ ExponentPart? / [0-9]+ ExponentPart
-ExponentPart       <- [eE] [+-]? [0-9]+
-
-String             <- RegularString / RawString
-RegularString      <- '"' ( EscapeSequence / [^"] )* '"'
-EscapeSequence     <- "\\" [btnvfr"\\]
-RawString          <- 'r"' [^"]* '"'
-
-Character          <- "'" ( Escape / NonQuoteChar ) "'"
-Escape             <- "\\" ( [abfnrtv'"\\] /
-                      "x" HexDigit HexDigit /
-                      "u" HexDigit HexDigit HexDigit HexDigit /
-                      "U" HexDigit HexDigit HexDigit HexDigit
-                          HexDigit HexDigit HexDigit HexDigit /
-                      OctalDigit /
-                      OctalDigit OctalDigit /
-                      OctalDigit OctalDigit OctalDigit )
-HexDigit           <- [0-9a-fA-F]
-OctalDigit         <- [0-7]
-NonQuoteChar       <- [^']
+Struct             <- "struct" _ Symbol
 
 If                 <- "if" __ Expr _ Block
                       (_ "elif" __ Expr _ Block)*
@@ -86,32 +62,77 @@ Receive            <- "receive" __ Expr _ "{"
                       (_ "timeout" _ DecimalIntegral _ Block)?
                       _ "}"
 
-Tuple              <- "#(" _ ExprList? _ ")"
+Tuple              <- "#(" _ ExprSequence? _ ")"
 
-Array              <- "[" _ ExprList? _ "]" / "[" Expr _ ".." _ Expr "]"
+FunctionCall       <- !(FunctionName _ ".") FunctionName _ "(" _ ExprSequence? _ ")"
 
-Table              <- "[" _ (KeyValues / ":") _ "]"
+MemberAccessOp     <- Expr _ "." _ Expr
+
+ParanthesizedExpr  <- "(" _ Expr _ ")"
+
+Function           <- "fn" _ "(" _ Params _ ")" _ Block
+
+Map                <- "[" _ KeyValues _ "]"
 KeyValues          <- KeyValue (_ "," _ KeyValues)*
 KeyValue           <- Key _ ":" _ Value
 Key                <- Expr
 Value              <- Expr
 
-Struct             <- "struct" _ Identifier
+Array              <- "[" _ ExprSequence? _ "]" / "[" Expr _ ".." _ Expr "]"
 
-AnonFunctionDef    <- "fn" _ "(" _ Params _ ")" _ Block
 
-FunctionCall       <- FunctionName _ "(" _ ExprList? _ ")"
+String             <- RegularString / RawString
+RegularString      <- '"' ( EscapeSequence / [^"] )* '"'
+EscapeSequence     <- "\\" [btnvfr"\\]
+RawString          <- 'r"' [^"]* '"'
 
-ParanthesizedExpr  <- "(" _ Expr _ ")"
+Character          <- "'" ( Escape / NonQuoteChar ) "'"
+Escape             <- "\\" ( [abfnrtv'"\\] /
+                      "x" HexDigit HexDigit /
+                      "u" HexDigit HexDigit HexDigit HexDigit /
+                      "U" HexDigit HexDigit HexDigit HexDigit
+                          HexDigit HexDigit HexDigit HexDigit /
+                      OctalDigit /
+                      OctalDigit OctalDigit /
+                      OctalDigit OctalDigit OctalDigit )
+HexDigit           <- [0-9a-fA-F]
+OctalDigit         <- [0-7]
+NonQuoteChar       <- [^']
+
+Number             <- Integral / FloatingPoint
+Integral           <- OctalIntegral / HexIntegral / BinaryIntegral /
+                      DecimalIntegral
+OctalIntegral      <- "0"[0-7]+
+HexIntegral        <- "0x"[0-9a-fA-F]+
+BinaryIntegral     <- "0b"[01]+
+DecimalIntegral    <- [0-9]+ !("." / [eE])
+FloatingPoint      <- [0-9]* "." [0-9]+ ExponentPart? / [0-9]+ ExponentPart
+ExponentPart       <- [eE] [+-]? [0-9]+
+
+Boolean            <- "true" / "false"
+
+EmptyMap           <- "[" _ ":" _ "]"
+
+Slice              <- "$"
+
+This               <- "this"
+
+Self               <- "self"
+
+Variable           <- Symbol
+
+UnboundVariable    <- "?" Variable
+
+Symbol             <- [a-zA-Z_][a-zA-Z_0-9_]*
 
 #
 # Struct
 #
 
-StructDef          <- ("singleton" _)? "struct" _ Identifier _
+StructDef          <- ("singleton" _)? "struct" _ Symbol _
                       ( ":" _ Interfaces _)? "{" _
                       StructMembers _ "}"
-Interfaces         <- Identifier (_ "," _ Identifier)*
+Interfaces         <- Symbol (_ "," _ Symbol)*
 StructMembers      <- StructMember _ ";" (_ StructMembers)*
 StructMember       <- Constructor / Deconstructor / MemberVariableDef /
                       MemberFunctionDef
@@ -127,7 +148,7 @@ MemberAccess       <- "const" / "readonly"
 # Interface
 #
 
-InterfaceDef        <- "interface" _ Identifier _ "{" _ InterfaceMembers _ "}"
+InterfaceDef        <- "interface" _ Symbol _ "{" _ InterfaceMembers _ "}"
 InterfaceMembers    <- InterfaceMember _ ";" (_ InterfaceMembers)*
 InterfaceMember     <- InterfaceMemberVariableDef / InterfaceMemberFunctionDef
 InterfaceMemberVariableDef <-
@@ -141,19 +162,19 @@ InterfaceFunctionDef <-
 # Enum
 #
 
-EnumDef            <- "enum" _ Identifier _ "{" _ EnumValues _ "}"
+EnumDef            <- "enum" _ Symbol _ "{" _ EnumValues _ "}"
 EnumValues         <- EnumValue (_ "," _ EnumValue)*
-EnumValue          <- Identifier (_ "=" _ Expr)?
+EnumValue          <- Symbol (_ "=" _ Expr)?
 
 MainFunctionDef    <- "fn" _ "main" _ "(" _ Param? _ ")" _ Block
-Param              <- Identifier
+Param              <- Symbol
 Block              <- "{" _ StatementSequence _ "}"
 StatementSequence  <- Statement _ ";"  (_ StatementSequence)*
-Statement          <- Assignment / MatchOperation / FunctionDef / Expr
+Statement          <- Assignment / FunctionDef / MatchOp /Expr
+
 Assignment         <- Variable _ "=" _ Expr
-MatchOperation     <- Expr _ "<*" _ Expr
-FunctionDef        <- "fn" _ FunctionName _ "(" _ Params? _ ")" _ Block
-FunctionName       <- Identifier
+FunctionDef        <- "fn" _ !"main" FunctionName _ "(" _ Params? _ ")" _ Block
+FunctionName       <- Symbol
 Params             <- NonDefaultParams _ "," _ DefaultParams /
                       NonDefaultParams /
                       DefaultParams
@@ -162,14 +183,13 @@ NonDefaultParam    <- Param !(_ "=")
 DefaultParams      <- DefaultParam (_ "," _ DefaultParam)*
 DefaultParam       <- Param _ "=" _ Expr
 
+MatchOp            <- Expr _ "<*" _ Expr
+
 #
-# Common stuff
+# Misc
 #
 
-ExprList           <- Expr (_ "," _ Expr)*
-Variable           <- Identifier !(_ "(")
-Identifier         <- [a-zA-Z_][a-zA-Z_0-9_]*
-UnboundVariable    <- "?" Variable
+ExprSequence      <- Expr (_ "," _ Expr)*
 _                 <- WS*
 __                <- WS+
 #_                  <- (WS / Comments)*
