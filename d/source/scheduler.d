@@ -47,6 +47,20 @@ class Scheduler {
         return jid++;
     }
 
+
+    public void foo() {
+        while (true) {
+        }
+    }
+
+    public void foo() {
+        while (true) {
+        };
+    }
+
+
+
+
     public void run() {
         while (!waitingQueue.empty || !readyQueue.empty) {
             while (!readyQueue.empty) {

@@ -1,113 +1,106 @@
-import a.b.c.*;
+import a.b.c.*
+import a.b.c.d
 
 enum Bar {
-  a = #(2 + 1, a),
-  b,
-  c
+    a = #(2 + 1, a)
+    b
+    c
 }
 
 singleton struct Foo {
     this(val a) {
-      a;
-    };
-    public var a = 3;
-    private readonly b = (a + 1) * c;
+        a
+    }
+    public var a = 3
+    readonly b = (a + 1) * c
     public fn foo(val a) {
-      a;
-    };
+        a
+    }
 }
 
 fn main() {
-  #(a+1);
-  var a = 1 + 2 + a * 2 + if a { 2; };
-  true;
-  var a = 1 + 1;
-  true && false;
-  var a = (42 + 1) + 1;
-  var a = true && false;
-  !true;
-  !a;
-  !foo();
-  const a = true;
-  const a = false;
-  var a = 017;
-  var a = 0xFFFF;
-  var a = 3.14;
-  var a = 0b0101010;
-  var a = 'A';
-  var b = 'ω';
-  var c = '\u03c9';
-  var a = "foo\nbarω";
-  var a = r"foo\tbar";
-  fn foo() {
+    #(a+1),
+    var a = 1 + 2 + a * 2 + if a { 2 },
+    true,
+    var a = 1 + 1,
+    true && false,
+    var a = (42 + 1) + 1,
+    var a = true && false,
+    !true,
+    !a,
+    var b = 'ω',
+    var c = '\u03c9',
+    var a = "foo\nbarω",
+    var a = r"foo\tbar",
     fn foo() {
-      a;
-    };
-    b;
-    foo(1, 2);
-  };
-  var a = #();
-  var a = [1, 2];
-  var a = #(1, 2);
-  var a = #(1, #(2, (4 + a)));
-  var a = [1, 2];
-  var a = [];
-  var a = [1:2];
-  var a = [b:b, #(a+1):2+1];
-  var a = [:];
-  [a] + [b];
-  [a:a] + [b:a];
-  [a];
-  if a { 2; } + if a { 2; };
-  foo();
-  var a = 1;
-  foo(1,2) && true;
-  if a {
-    a;
-    b;
-  };
-  if A {
-    B;
-    C;
-  } else {
-    E;
-  };
-  if A {
-    B;
-    C;
-  } elif B {
-    G;
-  } else {
-    E;
-  };
-  if A{B;C;}elif B{G;}else{E;};
-  switch A {
-    case B {
-      C;
-    }
-    default {
-      F;
-    }
-  };
-  switch A{case B{C;}default{BAJS;}};
-  switch A {
-    case B {
-      C;
-    }
-  };
-  match A {
-    case B {
-      C;
-    }
-  };
-  fn foo(val a, val b, val c = 0) {
-    a;
-  };
-  fn foo() {
-    a;
-  };
-  f = fn (ref a = 7) {
-    b;
-  };
-  f(1);
+        fn foo() {
+            a
+        },
+        b,
+        foo(1, 2)
+    },
+    var a = #(),
+    var a = [1, 2],
+    var a = #(1, 2),
+    var a = #(1, #(2, (4 + a))),
+    var a = [1, 2],
+    var a = [],
+    var a = [1:2],
+    var a = [b:b, #(a+1):2+1],
+    var a = [:],
+    [a] + [b],
+    [a:a] + [b:a],
+    [a],
+    if a { 2 } + if a { 2 },
+    foo(),
+    var a = 1,
+    foo(1,2) && true,
+    if a {
+        a,
+        b
+    },
+    if A {
+        B,
+        C
+    } else {
+        E
+    },
+    if A {
+        B,
+        C
+    } elif B {
+        G
+    } else {
+       E
+    },
+    if A{B,C}elif B{G}else{E},
+    switch A {
+        case B {
+            C
+        }
+        default {
+            F
+        }
+    },
+    switch A{case B{C}default{BAJS}},
+    switch A {
+        case B {
+            C
+        }
+    },
+    match A {
+        case B {
+            C
+        }
+    },
+    fn foo(val a, val b, val c = 0) {
+        a
+    },
+    fn foo() {
+        a
+    },
+    f = fn (ref a = 7) {
+        b
+    },
+    f(1)
 }
