@@ -105,7 +105,7 @@ singleton Ackermann {
             }
             job = mspawn computeAckermann(self, m, ++i);
             concurrency.setMaxMailboxSize(job, 4, concurrency.OnCrowding.block);
-            startJobs(m, n, i, jobs ~ job);
+            startJobs(m, n, i, job ~ jobs);
         }
         jobs;
     }
@@ -176,8 +176,7 @@ FIXME: Add a chapter about Enums
 
 All expressions can be type checked in run-time using the functions
 `isBool`, `isInt`, `isFloat`, `isChar`, `isFunction`, `isJob`,
-`isEnum`, `isString`, `isArray`, `isTinyArray`, `isSmallArray`,
-`isMedium`, `isMap`, `isStruct` and `typeof()`.
+`isEnum`, `isString`, `isList`, `isMap`, `isStruct` and `typeof`.
 
 Example:
 
@@ -333,9 +332,9 @@ a = "foo"
 b = r"foo\nbar"  // b.length != 7
 ```
 
-## Array literals
+## List literals
 
-Array literals are represented as a comma-separated sequence of values
+List literals are represented as a comma-separated sequence of values
 of any type enclosed in square brackets.
 
 Examples:
@@ -351,6 +350,10 @@ brackets. Keys and values may be of any type.
 Examples:
 
 `a = [ "foo" : 12, 981237198192378b = 3.14 ];`
+
+## Struct literals
+
+FIXME
 
 ## Function literals
 
@@ -384,9 +387,12 @@ Example:
 
 `a[i] = 0;`
 
-## Array slices
+## List slices
 
-`a[i .. j]` returns an array slice which starts at index `i` and ends
+HERE first rest
+
+
+`a[i .. j]` returns a list slice which starts at index `i` and ends
 with index `j - 1`. No data is copied from the origin array, i.e. if the
 slice is updated the origin array will also be be updated. `i` and `j`
 can any valid expressions and the keyword `$` is the length of the
@@ -479,15 +485,16 @@ b = #(4711, #(a, [1, 2]));
 
 ## Arrays
 
-Arrays are contiguous regions of memory containing elements of any
-type. Arrays support in-memory slicing which makes it possible to
-select and work with portions of an array without copying.
+Lists containin elements of any type. Arrays support slicing which
+makes it easy to work with portions of list.
 
 Examples:
 
 ```
 a = []                 // An empty array
 a = [1, 2, 3, 4, 5]
+a.first()              // 1
+a.rest()               // [2, 3, 4, 5]
 b = a[1 .. 3]          // b = [2, 3]
 c = a[2 .. $ - 1]      // c = [3, 4]
 d = b ~ c              // d = [2, 3, 3, 4] (A copy!)
@@ -1051,7 +1058,7 @@ Everything is an expression.
 | a--             |                                          |
 | a(b, c)         | Function call                            |
 | a[i]            | Indexing                                 |
-| a[b .. c]       | Array slicing                            |
+| a[b .. c]       | List slicing                             |
 | ++a             |                                          |
 | --a             |                                          |
 | -a              |                                          |
@@ -1139,7 +1146,7 @@ Multiplicate       <- Not (_ ("*" / "/") _  Not)*
 Not                <- "!" _ Unary / Unary
 Unary              <- ("+" / "-")? Primary
 Primary            <- Boolean / Number / String / Character / If / Switch /
-                      Match / Receive / Block / Tuple / Array / Table / Struct /
+                      Match / Receive / Block / Tuple / List / Table / Struct /
                       Variable / UnboundVariable / AnonFunctionDef /
                       FunctionCall / ParanthesizedExpr
 
