@@ -27,71 +27,78 @@ InterfaceDef       <- "interface" __ Interface _ "{" _ InterfaceMembers _ "}"
 
 EnumDef            <- "enum" __ Symbol _ "{" _ EnumValues _ "}"
 
-FunctionDef        <- "fn" __ FunctionName _ "(" _ Params? _ ")" _ Block
+FunctionDef        <- "fn" __ FunctionName _ "(" _ Params? _ ")" _ BlockExpr
 
 #
 # Expressions
 #
 
+# FIXME: Add full set of operators below
+
 Expr               <- Or
 Or                 <- And (_ "||" _ And)*
-And                <- Add (_ "&&" _ Add)*
-Add                <- Equality (_ ("+" / "-") _ Equality)*
-Equality           <- Multiplicate (_ "==" _ Multiplicate)*
+And                <- Equality (_ "&&" _ Equality)*
+Equality           <- Concatenate (_ "==" _ Concatenate)*
+Concatenate        <- Add (_ "~" _ Add)*
+Add                <- Multiplicate (_ "+" _  Multiplicate)*
 Multiplicate       <- Not (_ ("*" / "/") _  Not)*
 Not                <- "!" _ Unary / Unary
-Unary              <- ("+" / "-")? FunctionCall / FunctionCall
-FunctionCall       <- FunctionName _ "(" _ ExprSequence? _ ")" / MemberAccessOp
-MemberAccessOp     <- Primary (_ "." _ Primary)*
+Unary              <- ("+" / "-")? _ Indexing / Indexing
+Indexing           <- &(Symbol _ "[")
+                      Symbol _ "[" _ Expr _ "]"  / FunctionCall
+FunctionCall       <- &(Symbol _ "(")
+                      Symbol _ "(" _ ExprSequence? _ ")" / FieldAccess
+FieldAccess        <- &(HasField _ ".")
+                      HasField (_ "." _ HasField)* / ParenthesizedExpr
+ParenthesizedExpr  <- "(" _ Expr _ ")" / Primary
 
-Primary            <- Struct / If / Switch / Match / Receive / Block /
-                      ParanthesizedExpr / Function /
-                      Tuple / Map /
-                      List / String / Character / Number / Boolean / EmptyMap /
-                      Slice / This / Self / UnboundVariable / Symbol
+HasField           <- Symbol !(_ ("(" / "[")) / Indexing / FunctionCall / Literal
 
-Struct             <- "struct" _ Symbol
 
-If                 <- "if" __ Expr _ Block
-                      (_ "elif" __ Expr _ Block)*
-                      (_ "else" _ Block)?
+Primary            <- Literal / PrimaryExpr / UnboundVariable / Symbol
 
-Switch             <- "switch" __ Expr _ "{"
-                      (_ "case" _ Expr _ Block)+
-                      (_ "default" _ Block)?
+Literal            <- FunctionLiteral / ListLiteral / StringLiteral /
+                      CharacterLiteral / NumberLiteral / BooleanLiteral /
+                      EmptyMapLiteral / SliceLiteral / TupleLiteral /
+                      MapLiteral / StructLiteral
+
+PrimaryExpr        <- NewStructExpr / IfExpr / SwitchExpr / MatchExpr /
+                      ReceiveExpr / BlockExpr / ThisExpr / SelfExpr
+
+NewStructExpr      <- "new" _ Symbol (_ "(" _ Params+ _ ")")?
+
+IfExpr             <- "if" __ Expr _ BlockExpr
+                      (_ "elif" __ Expr _ BlockExpr)*
+                      (_ "else" _ BlockExpr)?
+
+SwitchExpr         <- "switch" __ Expr _ "{"
+                      (_ "case" _ Expr _ BlockExpr)+
+                      (_ "default" _ BlockExpr)?
                       _ "}"
 
-Match              <- "match" __ Expr _ "{"
-                      (_ "case" __ Expr _ Block)+
+MatchExpr          <- "match" __ Expr _ "{"
+                      (_ "case" __ Expr _ BlockExpr)+
                       _ "}"
 
-Receive            <- "receive" __ Expr _ "{"
-                      (_ "case" _ Expr _ Block)+
-                      (_ "timeout" _ DecimalIntegral _ Block)?
+ReceiveExpr        <- "receive" __ Expr _ "{"
+                      (_ "case" _ Expr _ BlockExpr)+
+                      (_ "timeout" _ DecimalIntegral _ BlockExpr)?
                       _ "}"
 
-ParanthesizedExpr  <- "(" _ Expr _ ")"
+ThisExpr           <- "this"
 
-Function           <- "fn" _ "(" _ Params _ ")" _ Block
+SelfExpr           <- "self"
 
-Tuple              <- "#(" _ ExprSequence? _ ")"
-ExprSequence      <- Expr (_ "," _ Expr)*
+FunctionLiteral    <- "fn" _ "(" _ Params _ ")" _ BlockExpr
 
-Map                <- "[" _ KeyValues _ "]"
-KeyValues          <- KeyValue (_ "," _ KeyValues)*
-KeyValue           <- Key _ ":" _ Value
-Key                <- Expr
-Value              <- Expr
+ListLiteral        <- "[" _ ExprSequence? _ "]" / "[" Expr _ ".." _ Expr "]"
 
-List               <- "[" _ ExprSequence? _ "]" / "[" Expr _ ".." _ Expr "]"
-
-
-String             <- RegularString / RawString
+StringLiteral      <- RegularString / RawString
 RegularString      <- '"' ( EscapeSequence / [^"] )* '"'
 EscapeSequence     <- "\\" [btnvfr"\\]
 RawString          <- 'r"' [^"]* '"'
 
-Character          <- "'" ( Escape / NonQuoteChar ) "'"
+CharacterLiteral   <- "'" ( Escape / NonQuoteChar ) "'"
 Escape             <- "\\" ( [abfnrtv'"\\] /
                       "x" HexDigit HexDigit /
                       "u" HexDigit HexDigit HexDigit HexDigit /
@@ -104,7 +111,7 @@ HexDigit           <- [0-9a-fA-F]
 OctalDigit         <- [0-7]
 NonQuoteChar       <- [^']
 
-Number             <- Integral / FloatingPoint
+NumberLiteral      <- Integral / FloatingPoint
 Integral           <- OctalIntegral / HexIntegral / BinaryIntegral /
                       DecimalIntegral
 OctalIntegral      <- "0"[0-7]+
@@ -114,19 +121,24 @@ DecimalIntegral    <- [0-9]+ !("." / [eE])
 FloatingPoint      <- [0-9]* "." [0-9]+ ExponentPart? / [0-9]+ ExponentPart
 ExponentPart       <- [eE] [+-]? [0-9]+
 
-Boolean            <- "true" / "false"
+BooleanLiteral     <- "true" / "false"
 
-EmptyMap           <- "[" _ ":" _ "]"
+EmptyMapLiteral    <- "[" _ ":" _ "]"
 
-Slice              <- "$"
+SliceLiteral       <- "$"
 
-This               <- "this"
+TupleLiteral       <- "#(" _ ExprSequence? _ ")"
+ExprSequence       <- Expr (_ "," _ Expr)*
 
-Self               <- "self"
+MapLiteral         <- "[" _ KeyValues _ "]"
+KeyValues          <- KeyValue (_ "," _ KeyValue)*
+KeyValue           <- Expr _ ":" _ Expr
 
-UnboundVariable    <- "?" Variable
+StructLiteral      <- "@[" _ MemberValues _ "]"
+MemberValues       <- MemberValue (_ "," _ MemberValue)*
+MemberValue        <- Symbol _ "=" _ Expr
 
-Variable           <- Symbol
+UnboundVariable    <- "?" Symbol
 
 Symbol             <- [a-zA-Z_][a-zA-Z_0-9_]*
 
@@ -139,11 +151,11 @@ Interface          <- Symbol
 StructMembers      <- StructMember (__ StructMember)*
 StructMember       <- Constructor / Deconstructor / MemberFunctionDef /
                       MemberVariableDef
-Constructor        <- "this" _ "(" _ Params? _ ")" _ Block
-Deconstructor      <- "~this" _ "(" _ Params? _ ")" _ Block
+Constructor        <- "this" _ "(" _ Params? _ ")" _ BlockExpr
+Deconstructor      <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
 MemberFunctionDef  <- MemberAccess _ FunctionDef
 MemberAccess       <- "public" / "private"
-MemberVariableDef  <- (MemberAccess / Readonly) _ Variable (_ "=" _ Expr)?
+MemberVariableDef  <- (MemberAccess / Readonly) _ Symbol (_ "=" _ Expr)?
 Readonly           <- "readonly"
 
 #
@@ -151,12 +163,12 @@ Readonly           <- "readonly"
 #
 
 InterfaceMembers   <- InterfaceMember (__ InterfaceMember)*
-InterfaceMember    <- InterfaceMemberVariableDef / InterfaceMemberFunctionDef
-InterfaceMemberVariableDef  <- (MemberAccess / Readonly) _ Variable
+InterfaceMember    <- InterfaceMemberFunctionDef / InterfaceMemberVariableDef
 InterfaceMemberFunctionDef
                    <- MemberAccess _ InterfaceFunctionDef
 InterfaceFunctionDef
                    <- "fn" _ FunctionName _ "(" _ Params? _ ")"
+InterfaceMemberVariableDef  <- (MemberAccess / Readonly) _ Symbol
 
 #
 # Enumeration definition
@@ -169,13 +181,11 @@ EnumValue          <- Symbol (_ "=" _ Expr)?
 # Function definition
 #
 
-Block              <- "{" _ BlockSequence _ "}"
+BlockExpr          <- "{" _ BlockSequence _ "}"
 BlockSequence      <- TopLevelExpr (_ "," _ TopLevelExpr)*
 TopLevelExpr       <- Binding / FunctionDef / Expr
-
-#Binding            <-(TuplePattern / ListPattern / StructPattern / Variable /
-#                      WildcardPattern / UnboundVariable / MemberAccessOp) _ "=" _ Expr
-Binding            <- Expr _ "=" _ Expr
+Binding            <- MatchPattern _ "=" _ Expr
+MatchPattern       <- Literal / FieldAccess / Symbol
 
 FunctionName       <- Symbol
 Params             <- NonDefaultParams _ "," _ DefaultParams /

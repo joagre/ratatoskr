@@ -339,7 +339,7 @@ of any type enclosed in square brackets.
 
 Examples:
 
-`a = [ 3.14, "foo", 1816381276163287b ];`
+`a = [3.14, "foo", 1816381276163287b];`
 
 ## Map literals
 
@@ -349,11 +349,17 @@ brackets. Keys and values may be of any type.
 
 Examples:
 
-`a = [ "foo" : 12, 981237198192378b = 3.14 ];`
+`a = ["foo" : 12, 981237198192378b = 3.14];`
 
 ## Struct literals
 
-FIXME
+Struct literals are represented as a comma-separated sequence of
+member-values (separated by a `=` character) enclosed in square
+brackets with a leading `@` character.
+
+Examples:
+
+`a = @[foo = 12, bar = 981237198192378]`
 
 ## Function literals
 
@@ -1038,82 +1044,59 @@ Everything is an expression.
 > The keywords `import`, `enum`, `interface`, `struct` and `singleton`
 > can only be used as top-level constructs.
 
-| Expression      | Description                              |
-|-----------------|------------------------------------------|
-| <symbol>        |                                          |
-| this            |                                          |
-| self            |                                          |
-| \$              | Current array size                       |
-| [:]             | Empty map                                |
-| true            |                                          |
-| false           |                                          |
-| <number>        |                                          |
-| <character>     |                                          |
-| <string>        |                                          |
-| <array>         |                                          |
-| <function>      |                                          |
-| (a)             | Paranthesized expression                 |
-| a.b             | Member access                            |
-| a++             |                                          |
-| a--             |                                          |
-| a(b, c)         | Function call                            |
-| a[i]            | Indexing                                 |
-| a[b .. c]       | List slicing                             |
-| ++a             |                                          |
-| --a             |                                          |
-| -a              |                                          |
-| +a              |                                          |
-| !a          B   |                                          |
-| ~a              | Bitwise complement                       |
-| cast(t)a        | Cast expression                          |
-| struct a        |                                          |
-| a ^^ b          | Exponentiation                           |
-| a * b           |                                          |
-| a / b           |                                          |
-| a % b           | Modulus                                  |
-| a + b           |                                          |
-| a - b           |                                          |
-| a ~ b           | Concatenation                            |
-| a &lt;&lt; b    |                                          |
-| a >> b          |                                          |
-| a >>> b         | Unsigned right shift                     |
-| a in b          | Map membership                           |
-| a == b          | Equality test (a == b == c is not legal) |
-| a != b          |                                          |
-| a is b          | Identity test                            |
-| a !is b         | !(a is b)                                |
-| a &lt; b        |                                          |
-| a &lt;= b       |                                          |
-| a > b           |                                          |
-| a >= b          |                                          |
-| a \| b          |                                          |
-| a ^ b           | Bitwise xor                              |
-| a & b           |                                          |
-| a && b        B | Logical and                              |
-| a \|\| b      B |                                          |
-| a &lt;* b       | Matching                                 |
-| a += b          | In-place add                             |
-| a -= b          |                                          |
-| a *= b          |                                          |
-| a /= b          |                                          |
-| a %= b          |                                          |
-| a &= b          |                                          |
-| a \|= b         |                                          |
-| a ^= b          | In-place xor                             |
-| a ~= b          | In-place concatenation                   |
-| a &lt;&lt;= b   |                                          |
-| a >>= b         |                                          |
-| a >>>= b        | In-place unsigned right shift            |
-
-
-
-
-
-
-| if            B |                                          |
-| switch          |                                          |
-| match           |                                          |
-| receive         |                                          |
+| Expression   | Description                              |
+|--------------|------------------------------------------|
+| <symbol>     |                                          |
+| this         |                                          |
+| self         |                                          |
+| \$           | Current array size                       |
+| [:]          | Empty map                                |
+| true         |                                          |
+| false        |                                          |
+| <number>     |                                          |
+| <character>  |                                          |
+| <string>     |                                          |
+| <array>      |                                          |
+| <function>   |                                          |
+| (a)          | Paranthesized expression                 |
+| a.b          | Field access                             |
+| a++          |                                          |
+| a--          |                                          |
+| a(b, c)      | Function call                            |
+| a[i]         | Indexing                                 |
+| a[b .. c]    | List slicing                             |
+| ++a          |                                          |
+| --a          |                                          |
+| -a           |                                          |
+| +a           |                                          |
+| !a           |                                          |
+| ~a           | Bitwise complement                       |
+| cast(t)a     | Cast expression                          |
+| new a        |                                          |
+| a ^^ b       | Exponentiation                           |
+| a * b        |                                          |
+| a / b        |                                          |
+| a % b        | Modulus                                  |
+| a + b        |                                          |
+| a - b        |                                          |
+| a ~ b        | Concatenation                            |
+| a &lt;&lt; b |                                          |
+| a >> b       |                                          |
+| a >>> b      | Unsigned right shift                     |
+| a in b       | Map membership                           |
+| a == b       | Equality test (a == b == c is not legal) |
+| a != b       |                                          |
+| a is b       | Identity test                            |
+| a !is b      | !(a is b)                                |
+| a &lt; b     |                                          |
+| a &lt;= b    |                                          |
+| a > b        |                                          |
+| a >= b       |                                          |
+| a \| b       |                                          |
+| a ^ b        | Bitwise xor                              |
+| a & b        |                                          |
+| a && b       | Logical and                              |
+| a \|\| b     |                                          |
 
 # Appendix B: PEG grammar
 

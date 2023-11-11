@@ -6,12 +6,11 @@ singleton struct Foo {
         a
     }
     public a = 3
-    readonly b = (a + 1) * c
+    readonly b = (a+1)*c
     public fn foo(a) {
         a
     }
 }
-
 
 enum Bar {
     a = #(2 + 1, a)
