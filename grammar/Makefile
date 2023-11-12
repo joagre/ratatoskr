@@ -5,31 +5,6 @@ LDLIBS = -lm
 
 all: sac
 
-
-
-
-
-
-
-
-
-
-foo: test.o
-	$(CC) $(LDLIBS) -o $@ $^
-
-test.c: test.peg
-	$(PCC) $^
-
-test.o: test.c
-	$(CC) -c $(CFLAGS) -Wno-unused-parameter $< -o $@ -MMD -MF $(@:.o=.d)
-
-
-
-
-
-test: sac
-	./sac < test.sa
-
 sac: satie.o
 	$(CC) $(LDLIBS) -o $@ $^
 
@@ -38,6 +13,23 @@ satie.c: satie.peg
 
 satie.o: satie.c
 	$(CC) -c $(CFLAGS) -Wno-unused-parameter $< -o $@ -MMD -MF $(@:.o=.d)
+
+test: sac
+	./sac < test.sa
+
+##
+
+simple: simple.o
+	$(CC) $(LDLIBS) -o $@ $^
+
+simple.c: simple.peg
+	$(PCC) $^
+
+simple.o: simple.c
+	$(CC) -c $(CFLAGS) -Wno-unused-parameter $< -o $@ -MMD -MF $(@:.o=.d)
+
+stest: simple
+	./simple < simple.sa
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@ -MMD -MF $(@:.o=.d)

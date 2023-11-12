@@ -52,8 +52,8 @@ FieldAccess        <- &(HasField _ ".")
                       HasField (_ "." _ HasField)* / ParenthesizedExpr
 ParenthesizedExpr  <- "(" _ Expr _ ")" / Primary
 
-HasField           <- Symbol !(_ ("(" / "[")) / Indexing / FunctionCall / Literal
-
+HasField           <- Symbol !(_ ("(" / "[")) / Literal / Indexing /
+                      FunctionCall
 
 Primary            <- Literal / PrimaryExpr / UnboundVariable / Symbol
 
@@ -155,7 +155,7 @@ Constructor        <- "this" _ "(" _ Params? _ ")" _ BlockExpr
 Deconstructor      <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
 MemberFunctionDef  <- MemberAccess _ FunctionDef
 MemberAccess       <- "public" / "private"
-MemberVariableDef  <- (MemberAccess / Readonly) _ Symbol (_ "=" _ Expr)?
+MemberVariableDef  <- (MemberAccess / Readonly) _ Symbol _ "=" _ Expr
 Readonly           <- "readonly"
 
 #
@@ -181,12 +181,6 @@ EnumValue          <- Symbol (_ "=" _ Expr)?
 # Function definition
 #
 
-BlockExpr          <- "{" _ BlockSequence _ "}"
-BlockSequence      <- TopLevelExpr (_ "," _ TopLevelExpr)*
-TopLevelExpr       <- Binding / FunctionDef / Expr
-Binding            <- MatchPattern _ "=" _ Expr
-MatchPattern       <- Literal / FieldAccess / Symbol
-
 FunctionName       <- Symbol
 Params             <- NonDefaultParams _ "," _ DefaultParams /
                       NonDefaultParams /
@@ -195,6 +189,12 @@ NonDefaultParams   <- NonDefaultParam (_ "," _ NonDefaultParam)*
 NonDefaultParam    <- Symbol !(_ "=")
 DefaultParams      <- DefaultParam (_ "," _ DefaultParam)*
 DefaultParam       <- Symbol _ "=" _ Expr
+
+BlockExpr          <- "{" _ BlockSequence _ "}"
+BlockSequence      <- TopLevelExpr (_ "," _ TopLevelExpr)*
+TopLevelExpr       <- Binding / FunctionDef / Expr
+Binding            <- MatchPattern _ "=" _ Expr
+MatchPattern       <- Literal / FieldAccess / Symbol
 
 #
 # Misc
