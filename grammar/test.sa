@@ -21,14 +21,17 @@ singleton struct Foo {
 }
 
 fn main() {
-   match a {
+  a = 1,
+    match a = b,
+
+match a {
      case b {
        c
      }
    },
 
 
-    match a = b,
+
 
 
 
