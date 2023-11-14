@@ -21,9 +21,11 @@ singleton struct Foo {
 }
 
 fn main() {
+    lists.foreach(fn () { stdio.writeln(item.toString())}, items),
+    this.a = foo,
     a = 1,
     #(1, 2) = a,
-    a = 1 + 2 + a + 1,
+    a = 1 + (2 + a) + 1,
     foo(),
     foo[1].baz.bonk,
     ?len = if true {

@@ -119,7 +119,7 @@ RegularString           <- '"' ( EscapeSequence / [^"] )* '"'
 EscapeSequence          <- "\\" [btnvfr"\\]
 RawString               <- 'r"' [^"]* '"'
 
-FunctionLiteral         <- "fn" _ "(" _ Params _ ")" _ BlockExpr
+FunctionLiteral         <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 
 TupleLiteral            <- "#(" _ Exprs? _ ")"
 Exprs                   <- Expr (_ "," _ Expr)*
