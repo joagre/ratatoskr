@@ -24,7 +24,7 @@ ImportedEntities  <- Identifier (_ "," Identifier)*
 # Expression
 #
 
-Expr                   <- AssignExpr
+Expr                    <- AssignExpr
 AssignExpr              <- LogicalOrExpr (_ "=" _ LogicalOrExpr)*
 LogicalOrExpr           <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr          <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
@@ -66,38 +66,6 @@ PositionalArgs          <- !NamedArg Expr (_ "," _ Expr)*
 NamedArgs               <- NamedArg (_ "," _ NamedArg)*
 NamedArg                <- Identifier _ ":" _ Expr
 
-# Expr               <- AssignExpr
-# AssignExpr         <- LogicalOrExpr (_ "=" _ AssignExpr)?
-# LogicalOrExpr      <- LogicalAndExpr (_ "||" _ LogicalOrExpr)?
-# LogicalAndExpr     <- (CompareExpr / OrExpr) (_ "&&" _ LogicalAndExpr)?
-# OrExpr             <- XorExpr (_ "|" _ OrExpr)?
-# XorExpr            <- AndExpr (_ "^" _ XorExpr)?
-# AndExpr            <- ShiftExpr (_ "&" _ AndExpr)?
-# CompareExpr        <- EqualExpr / IdentityExpr / RelativeExpr / InExpr / ShiftExpr
-# EqualExpr          <- ShiftExpr _ ("==" / "!=") _ ShiftExpr
-# IdentityExpr       <- ShiftExpr _ ("!is" / "is") _ ShiftExpr
-# RelativeExpr       <- ShiftExpr _ ("<=" / ">=" / "<" / ">") _ ShiftExpr
-# InExpr             <- ShiftExpr (_ ("!in" / "in") _ ShiftExpr)?
-# ShiftExpr          <- AddExpr (_ (">>>" / ">>" / "<<") _ AddExpr)?
-# AddExpr            <- (MultiplicateExpr /
-#                        ConcatenateExpr) (_ ("+" / "-") _ MultiplicateExpr)?
-# ConcatenateExpr    <- MultiplicateExpr (_ "~" _ AddExpr)?
-# MultiplicateExpr   <- UnaryExpr (_ ("*" / "/" / "%") _ UnaryExpr)?
-# UnaryExpr          <- ("+" / "-" / "!") _ UnaryExpr /
-#                       ComplementExpr /
-#                       NewExpr /
-#                       CastExpr /
-#                       PowerExpr
-# ComplementExpr     <- "~" _ UnaryExpr
-# NewExpr            <- "new" _ Identifier _ "(" _ Args _ ")"?
-# CastExpr           <-  "cast" _ "(" _ ("int" / "float") _ ")" _ UnaryExpr
-# PowerExpr          <- PostfixExpr (_ "^^" _ UnaryExpr)?
-# PostfixExpr        <- PrimaryExpr _ (IndexExpr / SliceExpr)*
-#                       ("." _ Identifier /
-#                        "(" _ Args? _ ")")?
-# IndexExpr          <- "[" _ Args _ "]"
-# SliceExpr          <- "[" _ AssignExpr _ ".." _ AssignExpr _ "]"
-
 PrimaryExpr             <- "this" /
                            "self" /
                            "$" /
@@ -107,6 +75,7 @@ PrimaryExpr             <- "this" /
                            "?" _ Identifier /
                            Identifier /
                            "(" _ Expr _ ")"
+
 Literal                 <- BooleanLiteral /
                            NumberLiteral /
                            CharacterLiteral /
@@ -116,39 +85,8 @@ Literal                 <- BooleanLiteral /
                            ListLiteral /
                            MapLiteral /
                            StructLiteral
+
 BooleanLiteral          <- "true" / "false"
-
-# FIXME: Add full set of operators below
-
-# Expr               <- Or
-# Or                 <- And (_ "||" _ And)*
-# And                <- Equality (_ "&&" _ Equality)*
-# Equality           <- Concatenate (_ "==" _ Concatenate)*
-# Concatenate        <- Add (_ "~" _ Add)*
-# Add                <- Multiplicate (_ "+" _  Multiplicate)*
-# Multiplicate       <- Not (_ ("*" / "/") _  Not)*
-# Not                <- "!" _ Unary / Unary
-# Unary              <- ("+" / "-")? _ Indexing / Indexing
-# Indexing           <- &(Identifier _ "[")
-#                       Identifier _ "[" _ Expr _ "]"  / FunctionCall
-# FunctionCall       <- &(Identifier _ "(")
-#                       Identifier _ "(" _ ExprSequence? _ ")" / FieldAccess
-# FieldAccess        <- &(HasField _ ".")
-#                       HasField (_ "." _ HasField)* / ParenthesizedExpr
-# ParenthesizedExpr  <- "(" _ Expr _ ")" / Primary
-
-# HasField           <- Identifier !(_ ("(" / "[")) / Literal / Indexing /
-#                       FunctionCall
-
-# Primary            <- Literal / PrimaryExpr / UnboundVariable / Identifier
-
-# Literal            <- FunctionLiteral / ListLiteral / StringLiteral /
-#                       CharacterLiteral / NumberLiteral / BooleanLiteral /
-#                       EmptyMapLiteral / SliceLiteral / TupleLiteral /
-#                       MapLiteral / StructLiteral
-
-# PrimaryExpr        <- NewStructExpr / IfExpr / SwitchExpr / MatchExpr /
-#                       ReceiveExpr / BlockExpr / ThisExpr / SelfExpr
 
 NumberLiteral           <- FloatingPoint / Integral
 Integral                <- HexIntegral /
