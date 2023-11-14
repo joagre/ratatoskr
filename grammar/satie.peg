@@ -24,8 +24,7 @@ ImportedEntities  <- Identifier (_ "," Identifier)*
 # Expression
 #
 
-Expr                    <- AssignExpr
-AssignExpr              <- LogicalOrExpr (_ "=" _ LogicalOrExpr)*
+Expr                    <- LogicalOrExpr
 LogicalOrExpr           <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr          <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
 BitwiseAndExpr          <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
@@ -215,8 +214,8 @@ DefaultParam      <- Identifier _ "=" _ Expr
 
 BlockExpr         <- "{" _ BlockLevelExprs _ "}"
 BlockLevelExprs   <- BlockLevelExpr (_ "," _ BlockLevelExpr)*
-#TopLevelExpr     <- Binding / FunctionDef / Expr
-BlockLevelExpr    <- FunctionDef / Expr
+BlockLevelExpr    <- FunctionDef / AssignExpr / Expr
+AssignExpr        <- Expr (_ "=" _ Expr) / Expr
 
 #
 # Misc
