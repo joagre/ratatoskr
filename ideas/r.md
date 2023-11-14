@@ -1081,19 +1081,6 @@ Everything is an expression.
 
 | Expression   | Description                              |
 |--------------|------------------------------------------|
-| <symbol>     |                                          |
-| this         |                                          |
-| self         |                                          |
-| \$           | Current array size                       |
-| [:]          | Empty map                                |
-| true         |                                          |
-| false        |                                          |
-| <number>     |                                          |
-| <character>  |                                          |
-| <string>     |                                          |
-| <array>      |                                          |
-| <function>   |                                          |
-| (a)          | Paranthesized expression                 |
 | a.b          | Field access                             |
 | a(b, c)      | Function call                            |
 | a[i]         | Indexing                                 |
@@ -1103,7 +1090,6 @@ Everything is an expression.
 | !a           |                                          |
 | ~a           | Bitwise complement                       |
 | cast(t)a     | Cast expression                          |
-| new a        |                                          |
 | a ^^ b       | Exponentiation                           |
 | a * b        |                                          |
 | a / b        |                                          |
@@ -1128,6 +1114,7 @@ Everything is an expression.
 | a & b        |                                          |
 | a && b       | Logical and                              |
 | a \|\| b     |                                          |
+| a = b        |                                          |
 
 # Appendix B: PEG grammar
 
