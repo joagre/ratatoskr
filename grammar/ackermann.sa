@@ -3,7 +3,7 @@ import std.stdio
 import std.lists
 
 fn main() {
-  jobs = Ackermann.startJobs(3, 10),
+  ?jobs = Ackermann.startJobs(3, 10),
   Ackermann.waitForJobs(jobs)
 }
 

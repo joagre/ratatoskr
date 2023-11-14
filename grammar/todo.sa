@@ -27,7 +27,7 @@ struct TodoList {
     private items = []
 
     public fn addItem(description) {
-        item = new TodoItem(description),
+        ?item = new TodoItem(description),
         item ~ items
     }
 
@@ -41,9 +41,9 @@ struct TodoList {
 }
 
 fn main() {
-    todoList = new TodoList,
+    ?todoList = new TodoList,
     fn loopUntilQuit() {
-        input = getUserInput(),
+        ?input = getUserInput(),
         if input.command == "add" {
             todoList.addItem(input.description),
             loopUntilQuit()
