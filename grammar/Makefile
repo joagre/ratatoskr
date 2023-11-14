@@ -31,6 +31,24 @@ simple.o: simple.c
 stest: simple
 	./simple < simple.sa
 
+##
+
+
+satieng: satieng.o
+	$(CC) $(LDLIBS) -o $@ $^
+
+satieng.c: satieng.peg
+	$(PCC) $^
+
+satieng.o: satieng.c
+	$(CC) -c $(CFLAGS) -Wno-unused-parameter $< -o $@ -MMD -MF $(@:.o=.d)
+
+testng: satieng
+	./satieng < testng.sa
+
+
+
+
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@ -MMD -MF $(@:.o=.d)
 

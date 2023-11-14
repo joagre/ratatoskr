@@ -332,6 +332,23 @@ a = "foo"
 b = r"foo\nbar"  // b.length != 7
 ```
 
+## Function literals
+
+Function literals follow the same syntax as regular function
+definitions (see below) except but with an ommitted function name.
+
+Example:
+
+```
+sum = fn (x, y) { x + y };
+a = sum(1, 2);
+```
+
+## Tuple literals
+
+FIXME
+
+
 ## List literals
 
 List literals are represented as a comma-separated sequence of values
@@ -361,17 +378,6 @@ Examples:
 
 `a = @[foo = 12, bar = 981237198192378]`
 
-## Function literals
-
-Function literals follow the same syntax as regular function
-definitions (see below) except but with an ommitted function name.
-
-Example:
-
-```
-sum = fn (x, y) { x + y };
-a = sum(1, 2);
-```
 
 # Operators
 
@@ -1060,13 +1066,9 @@ Everything is an expression.
 | <function>   |                                          |
 | (a)          | Paranthesized expression                 |
 | a.b          | Field access                             |
-| a++          |                                          |
-| a--          |                                          |
 | a(b, c)      | Function call                            |
 | a[i]         | Indexing                                 |
 | a[b .. c]    | List slicing                             |
-| ++a          |                                          |
-| --a          |                                          |
 | -a           |                                          |
 | +a           |                                          |
 | !a           |                                          |
