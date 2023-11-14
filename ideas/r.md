@@ -366,7 +366,7 @@ brackets. Keys and values may be of any type.
 
 Examples:
 
-`a = ["foo" : 12, 981237198192378b = 3.14];`
+`a = @["foo" : 12, 981237198192378b = 3.14];`
 
 ## Struct literals
 
@@ -376,8 +376,11 @@ brackets with a leading `@` character.
 
 Examples:
 
-`a = @[foo = 12, bar = 981237198192378]`
-
+```
+a = new Bar(12),
+a = new Bar = &[foo = 12, bar = "sara"],
+&[foo = 12, bar = ?zonk] = a
+```
 
 # Operators
 
@@ -745,6 +748,32 @@ a = 1;
 ```
 
 # Hierarchical packages
+
+
+
+
+
+import a.b.c
+  c.foo()
+  c.Type
+
+import d = a.b.c
+  d.foo()
+  d.Type
+
+import a.b.c : Type;
+  c.foo()
+  Type
+
+
+
+
+
+
+
+
+
+
 
 A satie file is called a module and it can be a member of a package. A
 package is a directory in a hierarchy of nested package directories,
