@@ -28,7 +28,7 @@ fn main() {
    },
 
 
-   match a = b,
+    match a = b,
 
 
 
