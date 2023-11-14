@@ -3,7 +3,7 @@ import std.stdio
 import std.lists
 
 fn main() {
-  ?jobs = Ackermann.startJobs(3, 10),
+  jobs = Ackermann.startJobs(3, 10),
   Ackermann.waitForJobs(jobs)
 }
 
@@ -11,11 +11,11 @@ singleton struct Ackermann {
     public fn startJobs(m, n, i = 0, jobs = []) {
         if i < n {
             fn computeAckermann(parentJob, m, n) {
-                ?result = ackermann(m, n),
+                result = ackermann(m, n),
                 parentJob <- #(self, m, n, result)
             },
-            ?job = spawn monitor computeAckermann(self, m, i),
-            ?i = i + 1,
+            job = spawn monitor computeAckermann(self, m, i),
+            i = i + 1,
             jobs.setMaxMailboxSize(job, 4, OnCrowding.block),
             startJobs(m, n, i, job ~ jobs)
         },
