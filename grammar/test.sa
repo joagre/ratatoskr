@@ -21,6 +21,16 @@ singleton struct Foo {
 }
 
 fn main() {
+   match a {
+     case b {
+       c
+     }
+   },
+
+
+   match a = b,
+
+
 
             receive {
                 case a {
