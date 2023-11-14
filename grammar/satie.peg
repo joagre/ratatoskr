@@ -220,7 +220,7 @@ DefaultParam      <- Identifier _ "=" _ Expr
 BlockExpr         <- "{" _ BlockLevelExprs _ "}"
 BlockLevelExprs   <- BlockLevelExpr (_ "," _ BlockLevelExpr)*
 BlockLevelExpr    <- FunctionDef / AssignExpr / Expr
-AssignExpr        <- ("match" _)? Expr (_ "=" _ Expr) / Expr
+AssignExpr        <- (!("match" _ "{") "match" _)? Expr (_ "=" _ Expr) / Expr
 
 #
 # Misc
