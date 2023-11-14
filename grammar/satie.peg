@@ -56,7 +56,7 @@ CastExpr                <- "cast" _ "(" _ ("int" / "float") _ ")" _
 BitwiseComplementExpr   <- "~" _ NotExpr / NotExpr
 NotExpr                 <- "!" _ UnaryPlusExpr / UnaryPlusExpr
 UnaryPlusExpr           <- "+" _ UnaryMinusExpr / UnaryMinusExpr
-UnaryMinusExpr          <- "-" _ PostfixExpr / PostFixExpr
+UnaryMinusExpr          <- "-" _ PostfixExpr / PostfixExpr
 PostfixExpr             <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                                           "(" _ Args? _ ")" /
                                           "[" _ Expr _ "]")*
