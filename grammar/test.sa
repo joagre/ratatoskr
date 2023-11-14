@@ -21,6 +21,17 @@ singleton struct Foo {
 }
 
 fn main() {
+
+            receive {
+                case a {
+                   stdio.writeln("Oh no! Compute job $job died: $reason"),
+                    b
+                }
+            },
+
+
+
+
     lists.foreach(fn () { stdio.writeln(item.toString())}, items),
     this.a = foo,
     a = 1,

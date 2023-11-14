@@ -20,6 +20,9 @@ test: satie
 todo: satie
 	./satie < todo.sa
 
+ackermann: satie
+	./satie < ackermann.sa
+
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@ -MMD -MF $(@:.o=.d)
 

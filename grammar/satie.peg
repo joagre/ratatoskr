@@ -18,7 +18,7 @@ Imports           <- Import (__ Import)*
 Import            <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
 ModuleAlias       <- Identifier
 ModulePath        <- Identifier ("." Identifier)* (_ ":" _ ImportedEntities)?
-ImportedEntities  <- Identifier (_ "," Identifier)*
+ImportedEntities  <- Identifier (_ "," _ Identifier)*
 
 #
 # Expression
@@ -51,7 +51,9 @@ DivideExpr              <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
 MultiplicateExpr        <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
 ExponentiationExpr      <- CastExpr (_ "^^" _ CastExpr)*
 CastExpr                <- "cast" _ "(" _ ("int" / "float") _ ")" _
-                           BitwiseComplementExpr / BitwiseComplementExpr
+                           SendMessageExpr / SendMessageExpr
+SendMessageExpr         <- BitwiseComplementExpr
+                           (_ "*" _ BitwiseComplementExpr)*
 BitwiseComplementExpr   <- "~" _ NotExpr / NotExpr
 NotExpr                 <- "!" _ UnaryPlusExpr / UnaryPlusExpr
 UnaryPlusExpr           <- "+" _ UnaryMinusExpr / UnaryMinusExpr
@@ -70,6 +72,7 @@ PrimaryExpr             <- "this" /
                            "$" /
                            Literal /
                            ControlFlowExpr /
+                           SpawnExpr /
                            NewStructExpr /
                            "?" _ Identifier /
                            Identifier /
@@ -149,10 +152,12 @@ MatchExpr               <- "match" __ Expr _ "{"
                            (_ "case" __ Expr _ BlockExpr)+
                            _ "}"
 
-ReceiveExpr             <- "receive" __ Expr _ "{"
-                           (_ "case" _ Expr _ BlockExpr)+
+ReceiveExpr             <- "receive" _ "{"
+                           (_ "case" __ Expr _ BlockExpr)+
                            (_ "timeout" _ DecimalIntegral _ BlockExpr)?
                            _ "}"
+
+SpawnExpr               <- "spawn" (__ "monitor" / "link")? __ Expr
 
 NewStructExpr           <- "new" _ Identifier (_ ("(" _ Args _ ")" /
                                                   "=" _ StructLiteral))?

@@ -961,7 +961,7 @@ job = spawn sum(a);    // a.dup() is performed automatically
 `spawn` returns a job reference which, for example, can be used to
 send messages to the job using the `<:` operator:
 
-`job <: `#(timeout, 1000)`
+`job <- `#(timeout, 1000)`
 
 A message sent to a job ends up in its mailbox and can be retrieved
 with the `receive` keyword:
@@ -989,13 +989,13 @@ Example:
 
 Above a job's mailbox is restricted to contain at most 64 messages,
 and if a sending job hits this threshold it is automatically blocked
-in `<:` waiting for the mailbox to shrink.
+in `<-` waiting for the mailbox to shrink.
 
 `OnCrowding.ignore` can be used instead `OnCrowding.block` to specify
 that overflowing messages should be ignored. The `OnCrowding` enum can
 alternatively be replaced with a function that returns `false` if
 overflowing messages should be ignored or `true` if the sending job
-should be blocked in `<:`.
+should be blocked in `<-`.
 
 The last concurrency keyword is `self` and it refers to the job which
 user code currently runs in.
@@ -1036,7 +1036,7 @@ singleton Ackermann {
         if i < n {
             fn computeAckermann(parentJob, m, n) {
                 result = ackermann(m, n);
-                 parentJob <: #(self, m, n, result);
+                 parentJob <- #(self, m, n, result);
             }
             job = mspawn computeAckermann(self, m, ++i);
             concurrency.setMaxMailboxSize(job, 4, concurrency.OnCrowding.block);
@@ -1089,6 +1089,7 @@ Everything is an expression.
 | +a           |                                          |
 | !a           |                                          |
 | ~a           | Bitwise complement                       |
+| <-           | Send message                             |
 | cast(t)a     | Cast expression                          |
 | a ^^ b       | Exponentiation                           |
 | a * b        |                                          |
