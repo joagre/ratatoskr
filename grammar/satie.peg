@@ -12,7 +12,7 @@
 
 Program           <- _ (Imports __)? TopLevelDefs EOF
 TopLevelDefs      <- TopLevelDef (__ TopLevelDef)*
-TopLevelDef       <- StructDef / InterfaceDef / EnumDef / FunctionDef
+TopLevelDef       <- ClassDef / InterfaceDef / EnumDef / FunctionDef
 
 Imports           <- Import (__ Import)*
 Import            <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
@@ -24,7 +24,18 @@ ImportedEntities  <- Identifier (_ "," _ Identifier)*
 # Expression
 #
 
-Expr                    <- LogicalOrExpr
+Expr                    <- AssignExpr
+AssignExpr              <- (Literal / UnboundVariable / Identifier)
+                           (_ "=" _ Expr) / SendExpr
+SendExpr                <- ("self" /
+                            ControlFlowExpr /
+                            SpawnExpr /
+                            UnboundVariable /
+                            Identifier /
+                            "(" _ Expr _ ")")
+                           (_ "<|" _ Expr) / TransformExpr
+TransformExpr           <- ("this" _ "." _)? Identifier _ "=>" _ Expr /
+                           LogicalOrExpr
 LogicalOrExpr           <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr          <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
 BitwiseAndExpr          <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
@@ -58,9 +69,10 @@ BitwiseComplementExpr   <- "~" _ NotExpr / NotExpr
 NotExpr                 <- "!" _ UnaryPlusExpr / UnaryPlusExpr
 UnaryPlusExpr           <- "+" _ UnaryMinusExpr / UnaryMinusExpr
 UnaryMinusExpr          <- "-" _ PostfixExpr / PostfixExpr
-PostfixExpr             <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
-                                          "(" _ Args? _ ")" /
-                                          "[" _ Expr _ "]")*
+PostfixExpr             <- PrimaryExpr _
+                           ("." _ (ControlFlowExpr / Identifier) /
+                            "(" _ Args? _ ")" /
+                            "[" _ Expr _ "]")*
 
 Args                    <- PositionalArgs / NamedArgs
 PositionalArgs          <- !NamedArg Expr (_ "," _ Expr)*
@@ -73,8 +85,8 @@ PrimaryExpr             <- "this" /
                            Literal /
                            ControlFlowExpr /
                            SpawnExpr /
-                           NewStructExpr /
-                           "?" _ Identifier /
+                           NewExpr /
+                           UnboundVariable /
                            Identifier /
                            "(" _ Expr _ ")"
 
@@ -86,7 +98,7 @@ Literal                 <- BooleanLiteral /
                            TupleLiteral /
                            ListLiteral /
                            MapLiteral /
-                           StructLiteral
+                           ClassLiteral
 
 BooleanLiteral          <- "true" / "false"
 
@@ -127,13 +139,20 @@ FunctionLiteral         <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 TupleLiteral            <- "#(" _ Exprs? _ ")"
 Exprs                   <- Expr (_ "," _ Expr)*
 
+#ListLiteral             <- &("[" _ DecimalIntegral _ "=")
+#                               "[" _ IndexValues _ "]" /
+#                           "[" _ Exprs? _ "]" /
+#                           "[" Expr _ ".." _ Expr "]"
 ListLiteral             <- "[" _ Exprs? _ "]" / "[" Expr _ ".." _ Expr "]"
+
+#IndexValues             <- IndexValue (_ "," _ IndexValue)*
+#IndexValue              <- DecimalIntegral _ ":" _ Expr
 
 MapLiteral              <- "@[" _ KeyValues? _ "]"
 KeyValues               <- KeyValue (_ "," _ KeyValue)*
 KeyValue                <- Expr _ ":" _ Expr
 
-StructLiteral           <- "&[" _ MemberValues _ "]"
+ClassLiteral           <- "&[" _ MemberValues _ "]"
 MemberValues            <- MemberValue (_ "," _ MemberValue)*
 MemberValue             <- Identifier _ "=" _ Expr
 
@@ -159,21 +178,21 @@ ReceiveExpr             <- "receive" _ "{"
 
 SpawnExpr               <- "spawn" (__ "monitor" / "link")? __ Expr
 
-NewStructExpr           <- "new" _ Identifier (_ ("(" _ Args _ ")" /
-                                                  "=" _ StructLiteral))?
+NewExpr                 <- "new" _ Identifier _ "(" _ Args? _ ")"
+
+UnboundVariable         <- "?" _ Identifier
 
 Identifier              <- [a-zA-Z_][a-zA-Z_0-9_]*
 
 #
-# Struct definition
+# Class definition
 #
 
-StructDef       <- ("singleton" __)? "struct" __ Identifier _
-                   ( ":" _ Interfaces _)?
-                   "{" _ StructMembers _ "}"
+ClassDef        <- "class" __ Identifier _ ( ":" _ Interfaces _)?
+                   "{" _ ClassMembers _ "}"
 Interfaces      <- Identifier (_ "," _ Identifier)*
-StructMembers   <- StructMember (_ StructMember)*
-StructMember    <- Constructor /
+ClassMembers    <- ClassMember (_ ClassMember)*
+ClassMember     <- Constructor /
                    Deconstructor /
                    MemberFunction /
                    MemberVariable
@@ -219,12 +238,14 @@ DefaultParam      <- Identifier _ "=" _ Expr
 
 BlockExpr         <- "{" _ BlockLevelExprs _ "}"
 BlockLevelExprs   <- BlockLevelExpr (_ "," _ BlockLevelExpr)*
-BlockLevelExpr    <- FunctionDef / PatternMatchExpr / AssignExpr / Expr
-AssignExpr        <- PostfixExpr _ "=" _ Expr
-PatternMatchExpr  <- "match" _ Expr _ "=" _ Expr
+BlockLevelExpr    <- FunctionDef / Expr
+#AssignExpr        <- Expr _ "=" _ Expr
+#AssignExpr        <- (Literal / UnboundVariable / Identifier)
+#                     (_ "=" _ Expr) / TransformExpr
+#TransformExpr     <- ("this" _ "." _)? Identifier _ "=>" Expr
 
 #
-# Misc
+# Miscb
 #
 
 #_                  <- WS*

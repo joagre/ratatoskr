@@ -2,7 +2,7 @@ import a.b.c
 import d = a.b.c
 import a.b.c : Type
 
-singleton struct Foo {
+class Foo {
     this(a) {
         a
     }
@@ -21,40 +21,58 @@ singleton struct Foo {
 }
 
 fn main() {
-  a = 1,
-    match a = b,
+    fn startJobs(m, n, i = 0) {
+            fn computeAckermann(parentJob, m, n) {
+                parentJob <| #(self, m, n, result)
+            }
+    },
 
-match a {
-     case b {
-       c
-     }
+
+
+
+
+
+
+
+
+
+
+
+
+    ?ackermann = new Ackermann(),
+    ackermann = startJobs(3, 10),
+
+
+
+
+
+    a[1],
+    ?a = foo => #(2, 1),
+    1 = 1,
+    match a {
+        case b {
+            c
+        }
+    },
+    #(1,2),
+    //a[2] = a[4],
+    //?a = a[1 = 3],
+    //?a = a[2 : 3],
+   receive {
+       case a {
+           stdio.writeln("Oh no! Compute job $job died: $reason"),
+           b
+       }
    },
-
-
-
-
-
-
-            receive {
-                case a {
-                   stdio.writeln("Oh no! Compute job $job died: $reason"),
-                    b
-                }
-            },
-
-
-
-
-    lists.foreach(fn () { stdio.writeln(item.toString())}, items),
-    this.a = foo,
-    a = 1,
-    #(1, 2) = a,
-    a = 1 + (2 + a) + 1,
-    foo(),
-    foo[1].baz.bonk,
-    ?len = if true {
-               a
+   lists.foreach(fn () { stdio.writeln(item.toString())}, items),
+   a = 1,
+   #(1, 2) = a,
+   a = 1 + (2 + a) + 1,
+   foo(),
+   foo[1].baz.bonk,
+   ?len = if true {
+              a
            } else {
-               b
+              b
            }.length()
 }

@@ -3,36 +3,43 @@ import std.stdio
 import std.lists
 
 fn main() {
-  jobs = Ackermann.startJobs(3, 10),
-  Ackermann.waitForJobs(jobs)
+  ?ackermann = new Ackermann(),
+  ?ackermann = ackermann.startJobs(3, 10),
+  ?ackermann = ackermann.waitForJobs()
 }
 
-singleton struct Ackermann {
-    public fn startJobs(m, n, i = 0, jobs = []) {
+class Ackermann {
+    private jobs = []
+
+    public fn startJobs(m, n, i = 0) {
         if i < n {
             fn computeAckermann(parentJob, m, n) {
-                result = ackermann(m, n),
-                parentJob <- #(self, m, n, result)
+                ?result = ackermann(m, n),
+                parentJob <| #(self, m, n, result)
             },
-            job = spawn monitor computeAckermann(self, m, i),
-            i = i + 1,
-            jobs.setMaxMailboxSize(job, 4, OnCrowding.block),
-            startJobs(m, n, i, job ~ jobs)
-        },
-        jobs
+            ?job = spawn monitor computeAckermann(self, m, i),
+            job.setMaxMailboxSize(job, 4, OnCrowding.block),
+            jobs => job ~ jobs,
+            startJobs(m, n, i + 1)
+        } else {
+            this
+        }
     }
 
-    public fn waitForJobs(jobs) {
+    public fn waitForJobs() {
         if jobs.length > 0 {
             receive {
                 case #(?job, ?m, ?n, ?result) {
                     stdio.writeln("ackermann($m, $n) = $result"),
-                    waitForJobs(jobs.delete(job))
+                    jobs => jobs.delete(job),
+                    waitForJobs()
                 }
                 case #(Job.died, ?job, ?reason) {
                     stdio.writeln("Oh no! Compute job $job died: $reason")
                 }
             }
+        } else {
+            this
         }
     }
 

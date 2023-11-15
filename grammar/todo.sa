@@ -6,12 +6,12 @@ struct TodoItem {
     private completed
 
     this(description) {
-        this.description = description,
-        this.completed = false
+        this.description => description,
+        completed => false
     }
 
     public fn markCompleted() {
-        completed = true
+        completed => true
     }
 
     public fn toString() {
@@ -24,15 +24,16 @@ struct TodoItem {
 }
 
 struct TodoList {
-    private items = []
+    private items = [:]
 
-    public fn addItem(description) {
-        item = new TodoItem(description),
-        item ~ items
+    public fn addItem(tag, description) {
+        ?item = new TodoItem(tag, description),
+        items => [tag : description] ~ items
     }
 
-    public fn markItemCompleted(index) {
-        items[index].markCompleted()
+    public fn markItemCompleted(tag) {
+        ?item = items[tag].markCompleted(),
+        items => item ~ items.delete(tag)
     }
 
     public fn displayItems() {
@@ -41,24 +42,24 @@ struct TodoList {
 }
 
 fn main() {
-    todoList = new TodoList,
-    fn loopUntilQuit() {
-        input = getUserInput(),
+    fn loopUntilQuit(todoList) {
+        ?input = stdio.readLine(stdio),
         if input.command == "add" {
-            todoList.addItem(input.description),
-            loopUntilQuit()
+            ?todoList = todoList.addItem(input.description),
+            loopUntilQuit(todoList)
         } elif input.command == "complete" {
-            todoList.markItemCompleted(input.index),
-            loopUntilQuit()
+            ?todoList = todoList.markItemCompleted(input.index),
+            loopUntilQuit(todoList)
         } elif input.command == "show" {
             todoList.displayItems(),
-            loopUntilQuit()
+            loopUntilQuit(todoList)
         } elif input.command == "quit" {
             0
         } else {
           stdio.writeln("Unknown command: $input.command"),
-          loopUntilQuit()
+          loopUntilQuit(todoList)
         }
     },
-    loopUntilQuit()
+    ?todoList = new TodoList(),
+    loopUntilQuit(todoList)
 }

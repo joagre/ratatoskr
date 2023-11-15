@@ -1115,6 +1115,7 @@ Everything is an expression.
 | a & b        |                                          |
 | a && b       | Logical and                              |
 | a \|\| b     |                                          |
+| a => b       | Transform                                |
 | a = b        |                                          |
 
 # Appendix B: PEG grammar
