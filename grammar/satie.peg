@@ -131,7 +131,11 @@ FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 TupleLiteral <- "#(" _ Exprs? _ ")"
 Exprs <- Expr (_ "," _ Expr)*
 
-ListLiteral <- "[" _ Exprs? _ "]" / "[" Expr _ ".." _ Expr "]"
+ListLiteral <- "[" _ Exprs? _ "]" /
+               "[" Expr _ ".." _ Expr "]" /
+               "[" _ IndexValues _ "]"
+IndexValues <- IndexValue (_ "," _ IndexValue)*
+IndexValue <- DecimalIntegral _ ":" _ Expr
 
 MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues <- KeyValue (_ "," _ KeyValue)*
