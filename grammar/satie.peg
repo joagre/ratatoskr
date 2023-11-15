@@ -29,11 +29,9 @@ AssignExpr <- (Literal / UnboundVariable / Identifier) (_ "=" _ Expr) / SendExpr
 SendExpr <- ("self" /
              ControlFlowExpr /
              SpawnExpr /
-             UnboundVariable /
              Identifier /
              "(" _ Expr _ ")") (_ "<|" _ Expr) / TransformExpr
-TransformExpr <- ("this" _ "." _)? Identifier _ "=>" _ Expr /
-                           LogicalOrExpr
+TransformExpr <- ("this" _ "." _)? Identifier _ "=>" _ Expr / LogicalOrExpr
 LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
 BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
@@ -68,11 +66,6 @@ UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
 PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                               "(" _ Args? _ ")" /
                               "[" _ Expr _ "]")*
-
-Args <- PositionalArgs / NamedArgs
-PositionalArgs <- !NamedArg Expr (_ "," _ Expr)*
-NamedArgs <- NamedArg (_ "," _ NamedArg)*
-NamedArg <- Identifier _ ":" _ Expr
 
 PrimaryExpr <- "this" /
                "self" /
@@ -221,6 +214,11 @@ DefaultParam <- Identifier _ "=" _ Expr
 BlockExpr <- "{" _ BlockLevelExprs _ "}"
 BlockLevelExprs <- BlockLevelExpr (_ "," _ BlockLevelExpr)*
 BlockLevelExpr <- FunctionDef / Expr
+
+Args <- PositionalArgs / NamedArgs
+PositionalArgs <- !NamedArg Expr (_ "," _ Expr)*
+NamedArgs <- NamedArg (_ "," _ NamedArg)*
+NamedArg <- Identifier _ ":" _ Expr
 
 #
 # Misc
