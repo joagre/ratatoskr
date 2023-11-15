@@ -69,6 +69,10 @@ BitwiseComplementExpr   <- "~" _ NotExpr / NotExpr
 NotExpr                 <- "!" _ UnaryPlusExpr / UnaryPlusExpr
 UnaryPlusExpr           <- "+" _ UnaryMinusExpr / UnaryMinusExpr
 UnaryMinusExpr          <- "-" _ PostfixExpr / PostfixExpr
+
+
+
+
 PostfixExpr             <- PrimaryExpr _
                            ("." _ (ControlFlowExpr / Identifier) /
                             "(" _ Args? _ ")" /
@@ -96,8 +100,8 @@ Literal                 <- BooleanLiteral /
                            StringLiteral /
                            FunctionLiteral /
                            TupleLiteral /
-                           ListLiteral /
-                           MapLiteral /
+                           (Identifier _)? ListLiteral /
+                           (Identifier _)? MapLiteral /
                            ClassLiteral
 
 BooleanLiteral          <- "true" / "false"
@@ -148,7 +152,7 @@ ListLiteral             <- "[" _ Exprs? _ "]" / "[" Expr _ ".." _ Expr "]"
 #IndexValues             <- IndexValue (_ "," _ IndexValue)*
 #IndexValue              <- DecimalIntegral _ ":" _ Expr
 
-MapLiteral              <- "[" _ KeyValues? _ "]"
+MapLiteral              <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues               <- KeyValue (_ "," _ KeyValue)*
 KeyValue                <- (Literal / Identifier) _ ":" _ Expr
 

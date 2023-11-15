@@ -21,12 +21,10 @@ class Foo {
 }
 
 fn main() {
-   foo[1].baz.bonk,
-
-
-   a[1,2,3],
+   ?b = b[3 : 4],
+   ?a = a[1,2,3],
    [1 : 2],
-   [foo ; 2],
+   [foo ; 2] = a,
    [1, 2] = a,
 
 

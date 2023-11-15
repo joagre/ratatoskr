@@ -1,7 +1,7 @@
 import std.stdio
 import std.lists
 
-struct TodoItem {
+class TodoItem {
     private description
     private completed
 
@@ -23,7 +23,7 @@ struct TodoItem {
     }
 }
 
-struct TodoList {
+class TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
