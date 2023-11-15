@@ -1,12 +1,77 @@
-# The R programming language
+# The Satie Programming Language
 
 ```
-import std.stdio
+$ cat hello.sa
+import std.stdio : writeln
 
-main() {
-  stdio.writeln("Hello World!")
+fn main(args) {
+  ?n = args[1],
+  fn hello(n, jobs = []) {
+    if n > 0 {
+      ?job = spawn fn () {
+        receive {
+          case ?message {
+            writeln("$n: $message")
+          }
+        }
+      },
+      hello(n - 1, job ~ jobs)
+    },
+    jobs
+  },
+  hello(n),
+  lists.foreach(fn (job) { job <| "Hello World!" }, jobs)
 }
+$ rsatie hello.sa
+0: Hello World!
+1: Hello World!
+2: Hello World!
+3: Hello World!
+4: Hello World!
+...
 ```
+
+
+
+Satie has been designed to be a language suitable to write a better
+Emacs programming editor. The language itself should not only be
+suitable to build the editor but also work as the script language used
+to write editor plugins and customizations.
+
+A number of design choices follow on this (my own preferences
+included):
+
+ * A pure functional programming language with persistent datatypes
+   suited to build a programming editor, light weight threads with
+   shared nothing semantics and message passing.
+ * A balanced blend between a script language and a fully fledged
+   application language with a semantics and syntax
+
+
+   being easy on the
+   mind.
+
+
+syntax that element a syntax
+
+* Dynamically typed with Hindley Millner type inferens and forward
+   compatible to add a gradual type system later on.
+ * Fast and lean on resources being built on a custom made time sliced
+   register machine written in C for this purpose.
+
+*
+
+   with a new aVery lean on resources
+
+
+
+
+ * Very lean on resources
+
+
+ * The languge should be purely functional with persistent
+
+ language shoould be small and easy to learn.
 
 R is a tiny but powerful programming language
 
