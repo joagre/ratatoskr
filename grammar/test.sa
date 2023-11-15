@@ -21,14 +21,22 @@ class Foo {
 }
 
 fn main() {
-    fn startJobs(m, n, i = 0) {
-            fn computeAckermann(parentJob, m, n) {
-                parentJob <| #(self, m, n, result)
-            }
-    },
+   foo[1].baz.bonk,
+
+
+   a[1,2,3],
+   [1 : 2],
+   [foo ; 2],
+   [1, 2] = a,
+
+
+//   [1 : 2] = a,
+//   [1 ; 2] = a,
 
 
 
+   //a["foo" : 2, 3 : 5],
+   //a[1 = 2, 5 = 1],
 
 
 

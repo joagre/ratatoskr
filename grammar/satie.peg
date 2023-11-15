@@ -148,13 +148,13 @@ ListLiteral             <- "[" _ Exprs? _ "]" / "[" Expr _ ".." _ Expr "]"
 #IndexValues             <- IndexValue (_ "," _ IndexValue)*
 #IndexValue              <- DecimalIntegral _ ":" _ Expr
 
-MapLiteral              <- "@[" _ KeyValues? _ "]"
+MapLiteral              <- "[" _ KeyValues? _ "]"
 KeyValues               <- KeyValue (_ "," _ KeyValue)*
-KeyValue                <- Expr _ ":" _ Expr
+KeyValue                <- (Literal / Identifier) _ ":" _ Expr
 
-ClassLiteral           <- "&[" _ MemberValues _ "]"
+ClassLiteral            <- "[" _ MemberValues? _ "]"
 MemberValues            <- MemberValue (_ "," _ MemberValue)*
-MemberValue             <- Identifier _ "=" _ Expr
+MemberValue             <- Identifier _ ";" _ Expr
 
 ControlFlowExpr         <- IfExpr / SwitchExpr / MatchExpr / ReceiveExpr
 
