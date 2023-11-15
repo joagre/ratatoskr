@@ -24,8 +24,8 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 # Expression
 #
 
-Expr <- AssignExpr
-AssignExpr <- (Literal / UnboundVariable / Identifier) (_ "=" _ Expr) / SendExpr
+Expr <- BindExpr
+BindExpr <- (Literal / UnboundVariable / Identifier) (_ "=" _ Expr) / SendExpr
 SendExpr <- ("self" /
              ControlFlowExpr /
              SpawnExpr /

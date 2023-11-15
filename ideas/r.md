@@ -136,8 +136,10 @@ singleton Ackermann {
 }
 
 
+# Comments
 
-
+Everything after `//` and to end of line and within `/* ... */` are
+considered comments.
 
 # Types
 
@@ -145,12 +147,13 @@ singleton Ackermann {
 
 `bool` : Boolean value `true` or `false`
 
-`int` : Signed 64-bits integer (if it's smaller
--1,152,921,504,606,846,976 or larger than 1,152,921,504,606,846,975
-it's automatically represented as an arbitrary-precision integer under
-the hood
+`int` : Signed arbitrary-precision integer. On a 64-bits target
+machine integers are handled natievly if they fit within 61 bits. If
+they don't they are transparently represented as bignums. On a 32-bits
+machine they must fit within 29 bits.
 
-`float` : 64-bits floating point
+`float` : Floating point with a precision decided by the target
+machine minus three bits.
 
 `char` : 32-bits Unicode code point
 
@@ -158,7 +161,7 @@ the hood
 
 `job` : Job reference
 
-`enum`: Enum reference
+`enum`: Enumeration reference
 
 FIXME: Add a chapter about Enums
 
@@ -166,88 +169,101 @@ FIXME: Add a chapter about Enums
 
 `string` : Immutable sequence of UTF-8 encoded characters
 
-`array`: Contiguous region of memory which can contain values of any type
+`tuple` : A fized sized sequence of values of any type
+
+`list`: A list of values of any type
 
 `map`: A mapping between a key of any type and a value of any type
 
-`struct` : Unit of encapsulation for member variables and functions
+`class` : Unit of encapsulation for member variables and functions
 
 ## Type management
 
-All expressions can be type checked in run-time using the functions
+All values can be type checked in run-time using the functions
 `isBool`, `isInt`, `isFloat`, `isChar`, `isFunction`, `isJob`,
-`isEnum`, `isString`, `isList`, `isMap`, `isStruct` and `typeof`.
+`isEnum`, `isString`, `isList`, `isMap`, `isObject` and `typeof`.
 
 Example:
 
 ```
-a = 3.14;
-a.isInt();          // false
-a.isFloat();        // true
-a.typeof();         // "float"
+?a = 3.14,
+a.isInt(),      // false
+a.isFloat(),    // true
+a.typeof()      // "float"
 ```
 
-Binary operators which operates on `int` and `float` values require
-their operands to be of the same type. No implicit numeric conversion
-is performed. The `cast` operator only exists to cast between `int`
-and `float` values.
+Operators which operate on `int` and `float` values require the
+operands to be of the same type. No implicit numeric conversion is
+performed. A `cast` operator exists to cast between `int` and `float`
+values.
 
 Example:
 
 ```
-a = 3;
-b = 93326215443944152681;
-c = 3.0;
-d = b / cast(int)c + a;    // 31108738481314713603
-e = d + c;                 // A compiler error!
+3,
+93326215443944152681,
+3.0,
+b / cast(int)c + a,      // 31108738481314713603
+d + c                    // Compiler error!
 ```
 
-The `inspect()` function provides more information about types.
+The `inspect` function provides even more run-time type information.
 
 Example:
 
 ```
-Enum Foo {       // Defined in bar.sa
-  a = 3.14,
+enum Foo {          //  Defined in bar.sa
+  a = 3.14
   b
 }
 
-c = Foo.a;
-d = [1, "foo"];
-c.inspect();     // [ "type" : "enum",
-                 //   "name": "a",
-                 //   "value": 3.14,
-                 //   "owner" : #("bar", "Foo") ]
-d.inspect();     // [ "type" : "array", "length": 2 ]
+?c = Foo.a,
+?d = [1, "foo"],
+c.inspect(),        // [ "type" : "enum",
+                    //   "name": "a",
+                    //   "value": 3.14,
+                    //   "owner" : #("bar", "Foo") ]
+d.inspect()         // [ "type" : "list", "length": 2 ]
 ```
 
 > [!NOTE]
-> The enumeration value is normally accessed with `c.getValue()` and
-> the array length with `d.length`
+> The enumeration value in the example above would normally be
+> accessed with `c.value` and the list length with `d.length`
 
-# Symbols
+All values can be convrted to string representation using the
+`toString` function.
 
-A symbol is a case sensitive string of characters starting with an
+Example:
+
+```
+?a = 3.14,
+?b = [Foo.a : 42, "bar": #(fn () { x + x}, [1, 2,3])],
+a.toString(),       // "3.14"
+b.toString()        // "[Foo.a : 42, "bar": fn/0]"
+```
+
+# Identifiers
+
+Identifiers are case sensitive strings of characters starting with an
 ASCII letter or an underscore, followed by any number of ASCII
-letters, underscores or digits.
+letters, underscores or digits,
+i.e. `^[[:alpha:]_][[:alnum:]_]*$`. Keywords, variables, function
+names, class names and enum names are all identifiers.
 
-`^[[:alpha:]_][[:alnum:]_]*$`.
-
-Keywords, variables, functions, structs, enums are all symbols.
-
-*Consideration: I may support UTF-8 not only ins strings*
+> [!NOTE]
+> By design only strings can contain Unicode characters. This
+> restriction may be lifted if compelling reasons should appear.
 
 ## Keywords
 
-The following 28 special symbols are language-reserved keywords and
-they cannot be defined in user code:
+The following 26 special identifiers are language-reserved and cannot
+be defined in user code:
 
 ```
 import
 true
 false
 enum
-ref
 in
 is
 fn
@@ -257,8 +273,7 @@ else
 switch
 default
 match
-struct
-singleton
+class
 interface
 public
 private
@@ -266,8 +281,8 @@ readonly
 const
 this
 spawn
-mspawn
-lspawn
+monitor
+link
 receive
 timeout
 self
@@ -277,19 +292,20 @@ self
 
 ## Boolean literals
 
-The `bool` literals are `true` or `false`.
+`true` or `false`
 
 ## Integral literals
 
-Integrals can be formatted as decimal, octal, hexadecimal literals.
+Integral literals can be formatted as decimal, octal and hexadecimal
+values.
 
 Examples:
 
 ```
-a = 4;                 // Integer in decimal format
-b = 017;               // Integer in octal format
-c = 0xffff;            // Integer in hexadecimal format
-d = 0b101010100'       // Integer in binary format
+4,             // Decimal format
+017,           // Octal format
+0xffff,        // Hexadecimal format
+0b101010100    // Binary format
 ```
 
 ## Floating-point literals
@@ -297,112 +313,224 @@ d = 0b101010100'       // Integer in binary format
 Examples:
 
 ```
-a = 1.0;
-b = .666e2;
+1.0,
+.666e2
 ```
 
 ## Character literals
 
 A character literal is a Unicode code point enclosed within single
-quotation marks. A Unicode character consists of four bytes under the
-hood.
-
+quotation marks. It consists of four bytes.
 Examples:
 
 ```
-a = 'A';
-b = 'ω';
-c = '\u03c9'; // ω
-```
-
-## String literals
-
-Quoted strings are sequences of UTF-8 encoded characters enclosed in
-double quotation marks. Escape sequences are meaningful in quoted
-strings.
-
-Raw strings are enclosed in double quotation marks but are prefixed
-with the letter `r`. No escape sequences have meaning in raw strings
-and are parsed verbatim.
-
-Examples:
-
-```
-a = "foo"
-b = r"foo\nbar"  // b.length != 7
+'A',
+'ω',
+'\u03c9'    // ω
 ```
 
 ## Function literals
 
 Function literals follow the same syntax as regular function
-definitions (see below) except but with an ommitted function name.
+definitions (see below) but with a function name.
 
 Example:
 
 ```
-sum = fn (x, y) { x + y };
-a = sum(1, 2);
+?sum = fn (x, y) { x + y },
+?a = sum(1, 2)                // a = 3
+```
+
+## Job literals
+
+Job literas are opaque.
+
+## Enum literals
+
+Example:
+
+```
+enum Color {
+    red,
+    green,
+    blue
+}
+```
+
+The `Color` enumeration above introduces the literals `Foo.red`,
+`Foo.green` and `Foo.blue`.
+
+## String literals
+
+String literals are represented as comma separated sequence UTF-8
+encodedsequences of Unicode characters enclosed within double
+quotation marks. Escape sequences has meaning in double quoted
+strings. Raw strings are also enclosed within double quotation marks
+but are prefixed with the letter `r`. Escape sequences have no meaning
+in raw strings and all characters are parsed verbatim.
+
+Examples:
+
+```
+?a = "fooω",
+a[3],               // 'ω'
+?b = r"foo\nbar"    // b.length == 8
 ```
 
 ## Tuple literals
 
-FIXME
-
-
-## List literals
-
-List literals are represented as a comma-separated sequence of values
-of any type enclosed in square brackets.
-
-Examples:
-
-`a = [3.14, "foo", 1816381276163287b];`
-
-## Map literals
-
-Map literals are represented as a comma-separated sequence of
-key-values (separated by a `:` character) enclosed in square
-brackets. Keys and values may be of any type.
-
-Examples:
-
-`a = @["foo" : 12, 981237198192378b = 3.14];`
-
-## Struct literals
-
-Struct literals are represented as a comma-separated sequence of
-member-values (separated by a `=` character) enclosed in square
-brackets with a leading `@` character.
-
-Examples:
-
-```
-a = new Bar(12),
-a = new Bar = &[foo = 12, bar = "sara"],
-&[foo = 12, bar = ?zonk] = a
-```
-
-# Operators
-
-## Function calls
-
-`fun(a, b)` invokes the function `fun` with a comma separated argument
-list of expressions. Arguments are evaluated left to right before the
-function is invoked. `fun` can refer to the name of a defined function
-or a function literal.
-
-## Indexing in arrays and maps
-
-`arr[i]` access the i:th element of an array or map. For an array
-`i` must be an integral type and for a map it can be a key of any
-type. If the indexing expression is an `lvalue` in an assignment the
-expression inserts a value in the array or map.
+Tuple literals are represented as comma separated fixed size sequences
+of values of any type enclosed between a leading `#(` and a trailing
+`)`.
 
 Example:
 
-`a[i] = 0;`
+`#("foo", 3.14, #("bar", fn (x) { x + 1}))`
 
-## List slices
+## List literals
+
+List literals are represented as comma-separated sequences of values of
+any type enclosed within square brackets.
+
+Example:
+
+```
+?a = [3.14, "foo", 1816381],
+?b = a[1 = 42, 2 = "bar"]      // b = [3.14, 42, "bar"]
+```
+
+> [!NOTE]
+> Only existing list entries can be updated this way
+
+## Map literals
+
+Map literals are represented as comma-separated sequence of key-values
+of any type (separated by a `:` character) enclosed within square
+brackets.
+
+Example:
+
+```
+?a = ["foo" : 12, 3.14 : 981237198192378 ],
+a[3.14: 4711, 2 : 4]                         // ["foo" : 12, 3.14: 4711, 2 : 4],
+```
+
+## Class literals
+
+Class literals are represented as semicolon-separated sequences of
+member-values, where the member is a class member name and value is of
+any type, (separated by a `=` character) enclosed in square brackets.
+
+Example:
+
+```
+class Foo P {
+    public foo = 4711
+    public bar = "foo"
+    public zonk = #(1, 3.14)
+}
+
+
+?a = new Foo(),
+[foo ; ?b, bar ; ?b] = a,
+b,                          // 4711
+c                           // "foo"
+```
+
+# Expressions
+
+Everything is an expression in Satie except for the top level
+constructs, i.e. `import`, `class`, `interface`, `enum` and named `fn
+defintions.
+
+Binding of names can only be performed as a standalone expression and
+cannot no be done deep within an expressions. For your own sake,
+
+Example:
+
+main() {
+    ?a = 42,
+    ?b = a + (?c = 42 + a) + a    // Compiler error!
+}
+
+## `{` a, b, c, ... `}' expression
+
+A block expression is a comma-separated sequence of expressions
+enclosed in curly braces. Expressions are evaluated in a sequence and
+introduces a lexical scope. An identifier bound in a scope is visible
+to all the following expressions in the scope. The identifier is not
+visible outside of the scope and it shadows an identifier with the
+same name introduced outside of the scope. The value of the last
+expression in the sequence is returned from the block.
+
+Example:
+
+```
+main() {                  // A function block starts here
+    ?a = 42,
+    ?d = {                // Local block starts here
+        ?b = a + 1,
+        ?a = b
+     }
+    // b is not defined
+    // a = 42
+    // d = 43
+}
+```
+
+## `if`, `else` expression
+
+Example:
+
+```
+?a == 4,
+?b = if a == 4 {
+         42;
+     } else {
+         c,
+         d
+     },
+a         // 42
+```
+
+## `switch`, `case`, `default` expression
+
+Example:
+
+```
+?a = "foo",
+?b = switch a {
+    case "foo" {
+        42;
+    }
+    case foo(c) {
+        a + 1;
+    }
+    default {
+        a;
+    }
+},
+b          // 42
+```
+
+There is no fall through mechanism and the `default` keyword is optional.
+
+## Tuples
+
+Example:
+
+```
+?a = 42,
+?b = #(4711, #(a, [1, 2])),
+#(_, #(?a, [_, c])) = b;
+a,                           // 4711
+c                            // 2
+```
+
+## Arrays
+
+Lists containin elements of any type. Arrays support slicing which
+makes it easy to work with portions of list.
 
 HERE first rest
 
@@ -413,95 +541,16 @@ slice is updated the origin array will also be be updated. `i` and `j`
 can any valid expressions and the keyword `$` is the length of the
 array.
 
-# Constructs
 
-## Comments
-
-Everything after `//` and within `/* ... */` are considered comments.
-
-## Lexical scope
-
-A block sequence is a sequence of base expressions and
-match/assignment expressions enclosed in curly braces. Expressions
-there within are evaluated in sequence and the braces introduce a
-lexical scope. A symbol defined in a scope is not visible outside of
-the scope and it shadows a symbol with the same name being introduced
-outside of the scope.
+`arr[i]` access the i:th element of an array or map. For an array
+`i` must be an integral type and for a map it can be a key of any
+type. If the indexing expression is an `lvalue` in an assignment the
+expression inserts a value in the array or map.
 
 Example:
 
-```
-main() {
-    a = 42;
-    {
-        b  = a + 1;
-        a = b;
-    }
-    // b not defined
-    // a = 43
-}
-```
+`a[i] = 0;`
 
-## `if`
-
-Example:
-
-```
-if a {
-  b;
-} else {
-  c;
-  d;
-}
-```
-
-An `if` expression returns the last expression in the evaluated
-block sequence.
-
-## `switch`
-
-Example:
-
-```
-switch a {
-    case b {
-        42;
-    }
-    case c {
-        a + 1;
-    }
-    default {
-        a;
-    }
-}
-```
-
-A `switch` expression returns the last expression in the evaluated
-block sequence. There is no fall through mechanism and the
-`default` keyword is optional.
-
-## Tuples
-
-Tuples are a finite ordered sequence of elements of any type. It can
-hold a fixed number of elements. The elements of a tuple are usually
-deconstructed with the `<*` match operator. Tuples are comma separated
-values within parenthesis prefixed with `#`.
-
-Example:
-
-```
-a = 42;
-b = #(4711, #(a, [1, 2]));
-#(_, #(_, [_, c])) <* b;    // c = 2
-```
-
-> [!NOTE]
-> The `<*` match operator is described below
-
-## Arrays
-
-Lists containin elements of any type. Arrays support slicing which
-makes it easy to work with portions of list.
 
 Examples:
 
@@ -596,6 +645,14 @@ r.length == 9                   // true
 ```
 
 ## Functions
+
+## Function calls
+
+`fun(a, b)` invokes the function `fun` with a comma separated argument
+list of expressions. Arguments are evaluated left to right before the
+function is invoked. `fun` can refer to the name of a defined function
+or a function literal.
+
 
 No function can be declared in the global context except for the `main`
 function and it **must** be declared there. At most one main function
@@ -850,7 +907,7 @@ only be defined on the top-level of each satie file.
 
 FIXME
 
-# `struct`
+# `class` defintion
 
 Structs encapsulate member values and member functions and they can
 only be defined on the top-level construct of each module.
@@ -1023,61 +1080,66 @@ Ackermann singleton to start 10 jobs and then waits for all jobs to
 send a result back as a message.
 
 ```
-import std.concurrency
+import std.jobs : OnCrowding, Job
 import std.stdio
+import std.lists
 
 fn main() {
-  jobs = Ackermann.startJobs(3, 10);
-  Ackermann.waitForJobs(jobs);
+  ?ackermann = new Ackermann(),
+  ?ackermann = ackermann.startJobs(3, 10),
+  ?ackermann = ackermann.waitForJobs()
 }
 
-singleton Ackermann {
-    public fn startJobs(m, n, i = 0, jobs = []) {
+class Ackermann {
+    private jobs = []
+
+    public fn startJobs(m, n, i = 0) {
         if i < n {
             fn computeAckermann(parentJob, m, n) {
-                result = ackermann(m, n);
-                 parentJob <- #(self, m, n, result);
-            }
-            job = mspawn computeAckermann(self, m, ++i);
-            concurrency.setMaxMailboxSize(job, 4, concurrency.OnCrowding.block);
-            startJobs(m, n, i, jobs ~ job);
+                ?result = ackermann(m, n),
+                parentJob <| #(self, m, n, result)
+            },
+            ?job = spawn monitor computeAckermann(self, m, i),
+            job.setMaxMailboxSize(job, 4, OnCrowding.block),
+            jobs => job ~ jobs,
+            startJobs(m, n, i + 1)
+        } else {
+            this
         }
-        jobs;
     }
 
-    public fn waitForJobs(jobs) {
+    public fn waitForJobs() {
         if jobs.length > 0 {
             receive {
                 case #(?job, ?m, ?n, ?result) {
-                    stdio.writeln("ackermann($m, $n) = $result");
+                    stdio.writeln("ackermann($m, $n) = $result"),
+                    jobs => jobs.delete(job),
+                    waitForJobs()
                 }
-                case #(JobMonitor.died, ?job, ?reason) {
-                    stdio.writeln("Oh no! Compute job $job died: $reason");
+                case #(Job.died, ?job, ?reason) {
+                    stdio.writeln("Oh no! Compute job $job died: $reason")
                 }
             }
-            waitForJobs(jobs[0 .. $ - 1]);
+        } else {
+            this
         }
     }
 
     private fn ackermann(m, n) {
         if m == 0 {
-            n + 1;
-        } else if n == 0 {
-            ackermann(m - 1, 1);
+            n + 1
+        } elif n == 0 {
+            ackermann(m - 1, 1)
         } else {
-            ackermann(m - 1, ackermann(m, n - 1));
+            ackermann(m - 1, ackermann(m, n - 1))
         }
     }
 }
 ```
 
-# Appendix A: Expressions in decreasing order of precedence
+# Appendix A: Operator precedence
 
-Everything is an expression.
-
-> [!NOTE]
-> The keywords `import`, `enum`, `interface`, `struct` and `singleton`
-> can only be used as top-level constructs.
+Operators in decreasing order of precedence:
 
 | Expression   | Description                              |
 |--------------|------------------------------------------|
@@ -1125,174 +1187,227 @@ Everything is an expression.
 # Top level structure
 #
 
-Program            <- _ Import* _
-                      (TopLevelConstructs _)* _
-                      MainFunctionDef? _
-                      (TopLevelConstructs _)*
-                      EOF
+Program <- _ (Imports __)? TopLevelDefs EOF
+TopLevelDefs <- TopLevelDef (__ TopLevelDef)*
+TopLevelDef <- ClassDef / InterfaceDef / EnumDef / FunctionDef
 
-Import             <- "import" __ (Identifier _ "=" _)? _ ModulePath
-ModulePath         <- Identifier ("." Identifier)* ("." "*")?
-
-TopLevelConstructs <- StructDef / InterfaceDef / EnumDef
-
-#
-# Expressions
-#
-
-Expr               <- Or
-
-Or                 <- And (_ "||" _ And)*
-And                <- Add (_ "&&" _ Add)*
-Add                <- Multiplicate (_ ("+" / "-") _ Multiplicate)*
-Multiplicate       <- Not (_ ("*" / "/") _  Not)*
-Not                <- "!" _ Unary / Unary
-Unary              <- ("+" / "-")? Primary
-Primary            <- Boolean / Number / String / Character / If / Switch /
-                      Match / Receive / Block / Tuple / List / Table / Struct /
-                      Variable / UnboundVariable / AnonFunctionDef /
-                      FunctionCall / ParanthesizedExpr
-
-Boolean            <- "true" / "false"
-
-Number             <- Integral / FloatingPoint
-Integral           <- OctalIntegral / HexIntegral / BinaryIntegral /
-                      DecimalIntegral
-OctalIntegral      <- "0"[0-7]+
-HexIntegral        <- "0x"[0-9a-fA-F]+
-BinaryIntegral     <- "0b"[01]+
-DecimalIntegral    <- [0-9]+ !("." / [eE])
-FloatingPoint      <- [0-9]* "." [0-9]+ ExponentPart? / [0-9]+ ExponentPart
-ExponentPart       <- [eE] [+-]? [0-9]+
-
-String             <- RegularString / RawString
-RegularString      <- '"' ( EscapeSequence / [^"] )* '"'
-EscapeSequence     <- "\\" [btnvfr"\\]
-RawString          <- 'r"' [^"]* '"'
-
-Character          <- "'" ( Escape / NonQuoteChar ) "'"
-Escape             <- "\\" ( [abfnrtv'"\\] /
-                      "x" HexDigit HexDigit /
-                      "u" HexDigit HexDigit HexDigit HexDigit /
-                      "U" HexDigit HexDigit HexDigit HexDigit
-                          HexDigit HexDigit HexDigit HexDigit /
-                      OctalDigit /
-                      OctalDigit OctalDigit /
-                      OctalDigit OctalDigit OctalDigit )
-HexDigit           <- [0-9a-fA-F]
-OctalDigit         <- [0-7]
-NonQuoteChar       <- [^']
-
-If                 <- "if" __ Expr _ Block
-                      (_ "elseif" __ Expr _ Block)*
-                      (_ "else" _ Block)?
-
-Switch             <- "switch" __ Expr _ "{"
-                      (_ "case" _ Expr _ Block)+
-                      (_ "default" _ Block)?
-                      _ "}"
-
-Match              <- "match" __ Expr _ "{"
-                      (_ "case" __ Expr _ Block)+
-                      _ "}"
-
-Receive            <- "receive" __ Expr _ "{"
-                      (_ "case" _ Expr _ Block)+
-                      (_ "timeout" _ DecimalIntegral _ Block)?
-                      _ "}"
-
-Tuple              <- "#(" _ ExprList? _ ")"
-
-Array              <- "[" _ ExprList? _ "]" / "[" Expr _ ".." _ Expr "]"
-
-Table              <- "[" _ (KeyValues / ":") _ "]"
-KeyValues          <- KeyValue (_ "," _ KeyValues)*
-KeyValue           <- Key _ ":" _ Value
-Key                <- Expr
-Value              <- Expr
-
-Struct             <- "struct" _ Identifier
-
-AnonFunctionDef    <- "fn" _ "(" _ Params _ ")" _ Block
-
-FunctionCall       <- FunctionName _ "(" _ ExprList? _ ")"
-
-ParanthesizedExpr  <- "(" _ Expr _ ")"
+Imports <- Import (__ Import)*
+Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
+ModuleAlias <- Identifier
+ModulePath <- Identifier ("." Identifier)* (_ ":" _ ImportedEntities)?
+ImportedEntities <- Identifier (_ "," _ Identifier)*
 
 #
-# Struct
+# Expression
 #
 
-StructDef          <- ("singleton" _)? "struct" _ Identifier _
-                      ( ":" _ Interfaces _)? "{" _
-                      StructMembers _ "}"
-Interfaces         <- Identifier (_ "," _ Identifier)*
-StructMembers      <- StructMember (_ "," _ StructMember)*
-StructMember       <- Constructor / Deconstructor / MemberVariableDef /
-                      MemberFunctionDef
-Constructor        <- "this" _ "(" _ Params? _ ")" _ Block
-Deconstructor      <- "~this" _ "(" _ Params? _ ")" _ Block
-MemberVariableDef  <- MemberVisibility _ (MemberAccess _)? _ !"fn" Variable
-                      (_ "=" _ Expr)?
-MemberFunctionDef  <- MemberVisibility _ (MemberAccess _)? FunctionDef
-MemberVisibility   <- "public" / "private"
-MemberAccess       <- "const" / "readonly"
+```
+Expr <- BindExpr
+BindExpr <- (Literal / UnboundVariable / Identifier) (_ "=" _ Expr) / SendExpr
+SendExpr <- ("self" /
+             ControlFlowExpr /
+             SpawnExpr /
+             Identifier /
+             "(" _ Expr _ ")") (_ "<|" _ Expr) / TransformExpr
+TransformExpr <- ("this" _ "." _)? Identifier _ "=>" _ Expr / LogicalOrExpr
+LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
+LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
+BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
+BitwiseXorExpr <- BitwiseOrExpr (_ "^" _ BitwiseOrExpr)*
+BitwiseOrExpr <- LargerThanEqualExpr (_ "|" _ LargerThanEqualExpr)*
+LargerThanEqualExpr <- LargerThanExpr (_ ">=" _ LargerThanExpr)*
+LargerThanExpr <- LessThanEqualExpr (_ ">" _ LessThanEqualExpr)*
+LessThanEqualExpr <- LessThanExpr (_ "<=" _ LessThanExpr)*
+LessThanExpr <- IsNotExpr (_ "<" _ IsNotExpr)*
+IsNotExpr <- IsExpr (_ "!is" _ IsExpr)*
+IsExpr <- NotEqualExpr (_ "is" _ NotEqualExpr)*
+NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
+EqualExpr <- InExpr (_ "==" _ InExpr)*
+InExpr <- UnsignedRightShiftExpr (_ "in" _ UnsignedRightShiftExpr)*
+UnsignedRightShiftExpr  <- RightShiftExpr (_ ">>>" _ RightShiftExpr)*
+RightShiftExpr <- LeftShiftExpr (_ ">>" _ LeftShiftExpr)*
+LeftShiftExpr <- ConcatenateExpr (_ "<<" _ ConcatenateExpr)*
+ConcatenateExpr <- MinusExpr (_ "~" _ MinusExpr)*
+MinusExpr <- PlusExpr (_ "-" _ PlusExpr)*
+PlusExpr <- ModulusExpr (_ "+" _ ModulusExpr)*
+ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
+DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
+MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
+ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
+CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ SendMessageExpr /
+            SendMessageExpr
+SendMessageExpr <- BitwiseComplementExpr (_ "*" _ BitwiseComplementExpr)*
+BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
+NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
+UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
+UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
+PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
+                              "(" _ Args? _ ")" /
+                              "[" _ Expr _ "]")*
+
+PrimaryExpr <- "this" /
+               "self" /
+               "$" /
+               Literal /
+               ControlFlowExpr /
+               SpawnExpr /
+               NewExpr /
+               UnboundVariable /
+               Identifier /
+               "(" _ Expr _ ")"
+
+Literal <- BooleanLiteral /
+           NumberLiteral /
+           CharacterLiteral /
+           StringLiteral /
+           FunctionLiteral /
+           TupleLiteral /
+           (Identifier _)? ListLiteral /
+           (Identifier _)? MapLiteral /
+           ClassLiteral
+
+BooleanLiteral <- "true" / "false"
+
+NumberLiteral <- FloatingPoint / Integral
+Integral <- HexIntegral / BinaryIntegral / OctalIntegral / DecimalIntegral
+FloatingPoint <- DecimalPointLeading / DecimalPointTrailing
+DecimalPointLeading <- [0-9]* "." [0-9]+ ExponentPart?
+DecimalPointTrailing <- [0-9]+ ExponentPart
+ExponentPart <- [eE] [+-]? [0-9]+
+DecimalIntegral <- [0-9]+
+OctalIntegral <- "0" [0-7]+
+HexIntegral <- "0x" [0-9a-fA-F]+
+BinaryIntegral <- "0b" [01]+
+
+CharacterLiteral <- "'" ( Escape / NonQuoteChar ) "'"
+Escape <- "\\" ( [abfnrtv'"\\] /
+                 "x" HexDigit HexDigit /
+                 "u" HexDigit HexDigit HexDigit HexDigit /
+                 "U" HexDigit HexDigit HexDigit HexDigit
+                     HexDigit HexDigit HexDigit HexDigit /
+                  OctalDigit /
+                  OctalDigit OctalDigit /
+                  OctalDigit OctalDigit OctalDigit )
+HexDigit <- [0-9a-fA-F]
+OctalDigit <- [0-7]
+NonQuoteChar <- [^']
+
+StringLiteral <- RegularString / RawString
+RegularString <- '"' ( EscapeSequence / [^"] )* '"'
+EscapeSequence  <- "\\" [btnvfr"\\]
+RawString <- 'r"' [^"]* '"'
+
+FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
+
+TupleLiteral <- "#(" _ Exprs? _ ")"
+Exprs <- Expr (_ "," _ Expr)*
+
+ListLiteral <- "[" _ Exprs? _ "]" /
+               "[" Expr _ ".." _ Expr "]" /
+               "[" _ IndexValues _ "]"
+IndexValues <- IndexValue (_ "," _ IndexValue)*
+IndexValue <- DecimalIntegral _ ":" _ Expr
+
+MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
+KeyValues <- KeyValue (_ "," _ KeyValue)*
+KeyValue <- (Literal / Identifier) _ ":" _ Expr
+
+ClassLiteral <- "[" _ MemberValues? _ "]"
+MemberValues <- MemberValue (_ "," _ MemberValue)*
+MemberValue <- Identifier _ ";" _ Expr
+
+ControlFlowExpr <- IfExpr / SwitchExpr / MatchExpr / ReceiveExpr
+
+IfExpr <- "if" __ Expr _ BlockExpr
+          (_ "elif" __ Expr _ BlockExpr)*
+          (_ "else" _ BlockExpr)?
+
+SwitchExpr <- "switch" __ Expr _ "{"
+              (_ "case" _ Expr _ BlockExpr)+
+              (_ "default" _ BlockExpr)? _ "}"
+
+MatchExpr <- "match" __ Expr _ "{"
+             (_ "case" __ Expr _ BlockExpr)+ _ "}"
+
+ReceiveExpr <- "receive" _ "{"
+               (_ "case" __ Expr _ BlockExpr)+
+               (_ "timeout" _ DecimalIntegral _ BlockExpr)? _ "}"
+
+SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
+
+NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
+
+UnboundVariable <- "?" _ Identifier
+
+Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 
 #
-# Interface
+# Class definition
 #
 
-InterfaceDef         <- "interface" _ Identifier _ "{" _ InterfaceMembers _ "}"
-InterfaceMembers     <- InterfaceMember (_ "," _ InterfaceMember)*
-InterfaceMember      <- InterfaceMemberVariableDef / InterfaceMemberFunctionDef
-InterfaceMemberVariableDef
-                     <- MemberVisibility _ (MemberAccess _)? _ !"fn" Variable
-InterfaceMemberFunctionDef
-                     <- MemberVisibility _ (MemberAccess _)?
-                        InterfaceFunctionDef
-InterfaceFunctionDef <- "fn" _ FunctionName _ "(" _ Params? _ ")"
+ClassDef <- "class" __ Identifier _ ( ":" _ Interfaces _)?
+                   "{" _ ClassMembers _ "}"
+Interfaces <- Identifier (_ "," _ Identifier)*
+ClassMembers <- ClassMember (_ ClassMember)*
+ClassMember <- Constructor / Deconstructor / MemberFunction / MemberVariable
+Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
+Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
+MemberFunction <- MemberAccess _ FunctionDef
+MemberAccess <- "public" / "private"
+MemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+                  (_ "=" _ Expr)?
 
 #
-# Enum
+# Interface definition
 #
 
-EnumDef            <- "enum" _ Identifier _ "{" _ EnumValues _ "}"
-EnumValues         <- EnumValue (_ "," _ EnumValue)*
-EnumValue          <- Identifier (_ "=" _ Expr)?
-
-MainFunctionDef    <- "fn" _ "main" _ "(" _ Param? _ ")" _ Block
-Param              <- Identifier
-Block              <- "{" _ StatementSequence _ "}"
-StatementSequence  <- Statement _ ";"  (_ StatementSequence)*
-Statement          <- Assignment / MatchOperation / FunctionDef / Expr
-Assignment         <- Variable _ "=" _ Expr
-MatchOperation     <- Expr _ "<*" _ Expr
-FunctionDef        <- "fn" _ FunctionName _ "(" _ Params? _ ")" _ Block
-FunctionName       <- Identifier
-Params             <- NonDefaultParams _ "," _ DefaultParams /
-                      NonDefaultParams /
-                      DefaultParams
-NonDefaultParams   <- NonDefaultParam (_ "," _ NonDefaultParam)*
-NonDefaultParam    <- Param !(_ "=")
-DefaultParams      <- DefaultParam (_ "," _ DefaultParam)*
-DefaultParam       <- Param _ "=" _ Expr
+InterfaceDef <- "interface" __ Identifier _ "{" _ InterfaceMembers _ "}"
+InterfaceMembers <- InterfaceMember (_ InterfaceMember)*
+InterfaceMember <- InterfaceMemberFunction / InterfaceMemberVariable
+InterfaceMemberFunction <- MemberAccess _ InterfaceFunction
+InterfaceFunction <- "fn" _ Identifier _ "(" _ Params? _ ")"
+InterfaceMemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
 
 #
-# Common stuff
+# Enumeration definition
 #
 
-ExprList           <- Expr (_ "," _ Expr)*
-Variable           <- Identifier !(_ "(")
-Identifier         <- [a-zA-Z_][a-zA-Z_0-9_]*
-UnboundVariable    <- "?" Variable
-#_                  <- WS*
-#__                 <- WS+
-_                   <- (WS / Comments)*
-__                  <- (WS / Comments)+
-WS                  <- [ \t\r\n]
-Comments           <- SingleLineComment / BlockComment
-SingleLineComment  <- "//" (!EOL .)* EOL?
-EOL                <- "\r\n" / "\n" / "\r"
-BlockComment       <- "/*" (!"*/" .)* "*/"
-EOF                <- _ !.
+EnumDef <- "enum" __ Identifier _ "{" _ EnumValues _ "}"
+EnumValues <- EnumValue (__ EnumValue)*
+EnumValue <- Identifier (_ "=" _ Expr)?
+
+#
+# Function definition
+#
+
+FunctionDef <- "fn" __ Identifier _ "(" _ Params? _ ")" _ BlockExpr
+Params <- NonDefaultParams _ "," _ DefaultParams /
+          NonDefaultParams /
+          DefaultParams
+NonDefaultParams <- NonDefaultParam (_ "," _ NonDefaultParam)*
+NonDefaultParam <- Identifier !(_ "=")
+DefaultParams <- DefaultParam (_ "," _ DefaultParam)*
+DefaultParam <- Identifier _ "=" _ Expr
+
+BlockExpr <- "{" _ BlockLevelExprs _ "}"
+BlockLevelExprs <- BlockLevelExpr (_ "," _ BlockLevelExpr)*
+BlockLevelExpr <- FunctionDef / Expr
+
+Args <- PositionalArgs / NamedArgs
+PositionalArgs <- !NamedArg Expr (_ "," _ Expr)*
+NamedArgs <- NamedArg (_ "," _ NamedArg)*
+NamedArg <- Identifier _ ":" _ Expr
+
+#
+# Misc
+#
+
+_ <- (WS / Comments)*
+__ <- (WS / Comments)+
+WS <- [ \t\r\n]
+Comments <- SingleLineComment / BlockComment
+SingleLineComment <- "//" (!EOL .)* EOL?
+EOL <- "\r\n" / "\n" / "\r"
+BlockComment <- "/*" (!"*/" .)* "*/"
+EOF <- _ !.
 ```
