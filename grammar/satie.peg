@@ -143,14 +143,7 @@ FunctionLiteral         <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 TupleLiteral            <- "#(" _ Exprs? _ ")"
 Exprs                   <- Expr (_ "," _ Expr)*
 
-#ListLiteral             <- &("[" _ DecimalIntegral _ "=")
-#                               "[" _ IndexValues _ "]" /
-#                           "[" _ Exprs? _ "]" /
-#                           "[" Expr _ ".." _ Expr "]"
 ListLiteral             <- "[" _ Exprs? _ "]" / "[" Expr _ ".." _ Expr "]"
-
-#IndexValues             <- IndexValue (_ "," _ IndexValue)*
-#IndexValue              <- DecimalIntegral _ ":" _ Expr
 
 MapLiteral              <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues               <- KeyValue (_ "," _ KeyValue)*
@@ -243,13 +236,9 @@ DefaultParam      <- Identifier _ "=" _ Expr
 BlockExpr         <- "{" _ BlockLevelExprs _ "}"
 BlockLevelExprs   <- BlockLevelExpr (_ "," _ BlockLevelExpr)*
 BlockLevelExpr    <- FunctionDef / Expr
-#AssignExpr        <- Expr _ "=" _ Expr
-#AssignExpr        <- (Literal / UnboundVariable / Identifier)
-#                     (_ "=" _ Expr) / TransformExpr
-#TransformExpr     <- ("this" _ "." _)? Identifier _ "=>" Expr
 
 #
-# Miscb
+# Misc
 #
 
 #_                  <- WS*
