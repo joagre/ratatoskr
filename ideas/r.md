@@ -23,7 +23,7 @@ fn main(args) {
     ?jobs = hello(n),
     lists.foreach(fn (job) { job <| "Hello World!" }, jobs)
 }
-$ rsatie hello.sa
+$ sac hello.sa && sa hello 100000
 0: Hello World!
 1: Hello World!
 2: Hello World!
@@ -32,6 +32,7 @@ $ rsatie hello.sa
 ...
 ```
 
+pattern matching
 
 
 Satie has been designed to be a language suitable to write a better
@@ -53,7 +54,7 @@ included):
    mind.
 
 regukajär
-
+repl
 
 syntax that element a syntax
 

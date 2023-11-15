@@ -1,4 +1,4 @@
-import std.stdio
+import std.stdio : writeln
 import std.lists
 
 class TodoItem {
@@ -37,13 +37,13 @@ class TodoList {
     }
 
     public fn displayItems() {
-        lists.foreach(fn () { stdio.writeln(item.toString())}, items)
+        lists.foreach(fn () { writeln(item.toString())}, items)
     }
 }
 
 fn main() {
     fn loopUntilQuit(todoList) {
-        ?input = stdio.readLine(stdio),
+        ?input = stdio.readLine(stdio.Stream.stdin),
         if input.command == "add" {
             ?todoList = todoList.addItem(input.description),
             loopUntilQuit(todoList)
