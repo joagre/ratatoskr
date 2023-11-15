@@ -3,24 +3,25 @@
 ```
 $ cat hello.sa
 import std.stdio : writeln
+import std.lists
 
 fn main(args) {
-  ?n = args[1],
-  fn hello(n, jobs = []) {
-    if n > 0 {
-      ?job = spawn fn () {
-        receive {
-          case ?message {
-            writeln("$n: $message")
-          }
-        }
-      },
-      hello(n - 1, job ~ jobs)
+    ?n = args[1],
+    fn hello(n, jobs = []) {
+        if n > 0 {
+            ?job = spawn fn () {
+                receive {
+                    case ?message {
+                       writeln("$n: $message")
+                    }
+                }
+            },
+            hello(n - 1, job ~ jobs)
+        },
+        jobs
     },
-    jobs
-  },
-  hello(n),
-  lists.foreach(fn (job) { job <| "Hello World!" }, jobs)
+    ?jobs = hello(n),
+    lists.foreach(fn (job) { job <| "Hello World!" }, jobs)
 }
 $ rsatie hello.sa
 0: Hello World!
@@ -50,6 +51,8 @@ included):
 
    being easy on the
    mind.
+
+regukajär
 
 
 syntax that element a syntax
