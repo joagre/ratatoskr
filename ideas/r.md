@@ -437,7 +437,7 @@ b,                          // 4711
 c                           // "foo"
 ```
 
-# Expressions
+# Top level contructs and expressions
 
 Everything is an expression in Satie except for the top level
 constructs, i.e. `import`, `class`, `interface`, `enum` and named `fn
@@ -452,6 +452,8 @@ main() {
     ?a = 42,
     ?b = a + (?c = 42 + a) + a    // Compiler error!
 }
+
+# Control flow
 
 ## `{` a, b, c, ... `}' expression
 
@@ -1201,7 +1203,6 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 # Expression
 #
 
-```
 Expr <- BindExpr
 BindExpr <- (Literal / UnboundVariable / Identifier) (_ "=" _ Expr) / SendExpr
 SendExpr <- ("self" /
