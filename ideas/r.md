@@ -14,7 +14,7 @@ programming languages (and all people standing behind [and beside] them).
 
 All rise.
 
-<small>(hello.sa)[../grammar/hello.sa]:</small>
+<small>[hello.sa](../grammar/hello.sa):</small>
 ```
 $ cat hello.sa
 import std.stdio : writeln
