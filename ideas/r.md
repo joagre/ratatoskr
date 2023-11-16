@@ -61,8 +61,8 @@ The following design choices have been made (in some sort of order):
    massively scalable soft real-time systems with an emphasis on fault
    tolerance and high availability. Jobs can create monitors and links
    between each other which makes it possible write supervisor jobs
-   that are responsible to restart jobs that die due to unexpected
-   errors (or whatever).
+   that are responsible to restart a job that died due to an
+   unexpected error (or whatever).
 
  * Satie is a pure functional programming language with native
    persistent datatypes in its core. All data is immutable and the
@@ -97,30 +97,31 @@ The following design choices have been made (in some sort of order):
    regular and consistent. The syntax of the D and Erlang programming
    language have been a heavy influencers when applicable. Another
    leading principle has been to make the syntax familiar and easy on
-   the eye. You have to be the judge on taht. Satie reserves 24
+   the eye but you have to be the judge on that. Satie reserves 24
    keywords and sports 16 operators and the complete syntax is
    formally defined as a PEG grammar in appendix B.
 
  * Satie has pattern matching in its core and the `=` operator is
    actually all about pattern matching rather than assignment (*there
-   must not be mutable updates*). Everything can be matched aand taken
-   with the `=` operator and match patterns are also used by the
-   `match` construct. It is is a sibling to the `switch` construct but
-   on pattern matching speed. The `receive` construct also uses
-   pattern matching to do selective receive on messages in job's mailbox.
+   must not be mutable updates*). Everything can be matched and taken
+   apart with the help of a match pattern in combination with the `=`
+   operator. Match patterns are also used by `match` which is a
+   sibling to `switch`, but on pattern matching speed. `receive` also
+   uses pattern matching to do selective receive on messages in a
+   job's mailbox.
 
  * Satie is implemented using a custom built VM consisting of a
    multi-core and time slicing job scheduler running multiple
    instances (one for each job) of a custom built register
    machine. The VM has a small memory footprint but each job it
-   schedules is also lean on resources (< 512 bytes to begin
+   schedules is also lean on resources (< 256 bytes to start
    with). The VM is standalone and has few dependencies making it easy
    to port to restricted targets.
 
  * Great care has been taken to add a purely functional encapsulating
-   `class` construct. It makes it possible group member variables and
-   member functions together using well known member modifiers such
-   `public`, `private`, `const` and a `this` reference and more.
+   `class`. It makes it possible group member variables and member
+   functions together using well known member modifiers such `public`,
+   `private`, `const` and `this` references and more.
 
 Many things are by design not a part of Satie:
 
@@ -133,6 +134,7 @@ Many things are by design not a part of Satie:
  * Mutability
  * Currying
  * Inheritance (class interfaces are there though)
+ * Monads
 
 and more I am sure you will miss.
 
