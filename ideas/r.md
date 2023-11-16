@@ -317,8 +317,8 @@ Satie <0.3.1> (press ctrl-c to abort)
 ```
 
 In the shell Satie expressions can be evaulated and the status of a
-running application can be inspected. A shell can be made to connect
-to to an already running instance of a `sa` runner. Read more about
+executing application can be inspected. A shell can be made to connect
+to to an already executing instance of a `sa` runner. Read more about
 this and more in the `sa` runner's manual page.
 
 # Comments
