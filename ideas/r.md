@@ -47,6 +47,9 @@ $ sac hello.sa && sa hello 100000
 2: Standing on the shoulders of giants
 3: Standing on the shoulders of giants
 ...
+...
+99999: Standing on the shoulders of giants
+100000: Standing on the shoulders of giants
 ```
 *Source: [hello.sa](../grammar/hello.sa)*
 
@@ -214,9 +217,9 @@ cluttering. Only functions being marked with `export` can be imported
 by other modules. The `class`, `enum` and `interface` definitions can
 be imported by other modules without restrictions though.
 
-`#(` .. `)` is a tuple and the question mark before a variable name
-informs the compiler that it is to be seen as unbound (even if it was
-bound before). If the question mark is omitted the compiler makes sure
+`#(` .. `)` is a tuple and the question mark before a variable informs
+the compiler that it is to be seen as unbound (even if it was bound
+before). If the question mark is omitted the compiler makes sure
 that the variable is already bound, and a run-time a check is made to
 verify that the bound variable matches the rvalue. This may sound
 harsh but match patterns are also used by the `match` and `receive`
@@ -230,7 +233,103 @@ can also call itself with its member variables as named parameters.
 
 That is it. The rest is in the gory details.
 
-# HERE
+# Build and executing
+
+Satie's compiler is called `sac` and the byte code it produces can be
+executed with the `sa` runner. This was done in the introduction chapter
+above and is repeated here for clarity:
+
+```
+$ ls
+hello.sa
+$ sac hello.sa && sa build/hello 100000
+0: Standing on the shoulders of giants
+1: Standing on the shoulders of giants
+2: Standing on the shoulders of giants
+3: Standing on the shoulders of giants
+...
+99999: Standing on the shoulders of giants
+100000: Standing on the shoulders of giants
+$ find .
+.
+./hello.sa
+./build
+./build/hello.sab
+```
+
+That is it.
+
+If a Satie application consists of many modules in a directory
+hierarchy the process above is the same. Say for example that you have
+and application called `zarah` with the following directory hierachy:
+
+```
+$ cd zarah
+$ find .
+.
+./src
+./src/main.sa
+./src/utils
+./src/utils/database.sa
+./src/utils/httpclient.sa
+```
+
+This is how this application can be compiled and executed:
+
+```
+$ sac src/main.sa
+$ find .
+.
+./build
+./build/main.sab
+./build/utils
+./build/utils/httpclient.sab
+./build/utils/database.sab
+./src
+./src/main.sa
+./src/utils
+./src/utils/database.sa
+./src/utils/httpclient.sa
+$ sac build/main
+```
+
+> [!NOTE]
+> The `sac` compiler has options to point to alternative `src/` and
+> `build/` directories.
+
+Note how the compiler by default follows the module dependencies
+introduced by `main.sa` and automatically compiles all of these
+modules as well. The compiler can be made not to follow module
+dependecies or just ignore modules that are missing or not possible to
+compile (for some reason).
+
+Read more about the `sac` compiler and the `sa` runner in their
+respective manual page.
+
+# The shell
+
+The `sa` runner can also be made to start an interactive Satie shell:
+
+```
+$ sa --shell
+Satie <0.3.1> (press ctrl-c to abort)
+0> _
+```
+
+In the shell Satie expressions can be evaulated and the status of a
+running application can be inspected. A shell can be made to connect
+to to an already running instance of a `sa` runner. Read more about
+this and more in the `sa` runner's manual page.
+
+# Comments
+
+HERE
+
+# Types
+
+
+
+
 
 Pattern matching
 Compile run repl
