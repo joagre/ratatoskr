@@ -59,14 +59,14 @@ That said.
 
 The following design choices have been made (in some sort of order):
 
- * Satie is built on a custom multi-core VM with strong support for
-   time sliced green threads (from now on called *jobs*). Jobs have
-   share nothing semantics relying solely on message passing to
+ * Satie is built on a custom built multi-core VM with strong support
+   for  time sliced green threads (from now on called *jobs*). Jobs
+   have share nothing semantics relying solely on message passing to
    make it easier to reason about, and implement highly concurrent,
    massively scalable soft real-time systems with an emphasis on fault
    tolerance and high availability. Jobs can create monitors and links
-   between each other and this makes it feasible to write supervisor
-   jobs that are responsible to restart jobs if if they should die
+   between each other and this makes it possible to write supervisor
+   jobs that are responsible to restart jobs if they should die
    unexpectedly.
 
  * Satie is a pure functional programming language with native
@@ -90,43 +90,45 @@ The following design choices have been made (in some sort of order):
 
  * Satie's dynamic type system relies on a Garbage Collect (GC)
    mechanism that takes great care to do garbage collection on a job
-   basis. All to avoid the GC becoming a stop-the-world activity.
+   basis. All to avoid the GC mechanism becoming a stop-the-world
+   activity.
 
  * Satie is a small language and should be easy to learn. It has a
    clean, regular and minimalist syntax adhering to the school of
    curly braces languages, i.e. it uses well known reserved words,
    syntax and scoping rules. The element of least surprise has been a
    leading principle but in Satie everything is an expression, i.e. no
-   statements to be seen (and no semicolons). This may have resulted
-   in seemingly unorthodox syntactical choices at times albeit being
-   regular and consistent. The syntax of the D and Erlang programming
-   language have been heavy influencers when applicable. Another
-   leading principle has been to make the syntax familiar and easy on
-   the eye, but you have to be the judge on that. Satie reserves 24
-   keywords and sports 16 operators and the complete syntax is
-   formally defined as a PEG grammar in appendix B.
+   statements to be seen (and no semicolons). Because of this certain
+   syntactical constructs may seem unorthodox even though they
+   represent a regular and consistent syntax. The syntax of the D and
+   Erlang programming language have been heavy influencers when
+   applicable and another leading principle has been to make the
+   syntax familiar and easy on the eye, but you have to be the judge
+   on that. Satie reserves 24 keywords and sports 16 operators and the
+   complete syntax is formally defined as a PEG grammar in appendix B.
 
  * Satie has pattern matching in its core and the `=` operator is
    actually all about pattern matching rather than assignment (*there
    must not be mutable updates*). Everything can be matched and taken
    apart with the help of a pattern matching in combination with the
-   `=` operator. Pattern matching is also used by `match` constrict
-   which is a sibling to `switch`, but on pattern matching speed. The
-   `receive` expression also uses pattern matching to do selective
-   receive on messages in a job's mailbox.
+   `=` operator. Pattern matching is also used by the `match`
+   expression which is a sibling to `switch` but on pattern matching
+   speed. The `receive` expression also uses pattern matching to do
+   selective receive on messages in a job's mailbox.
 
  * Satie is implemented using a custom built VM consisting of a
    multi-core and time slicing job scheduler running multiple
    instances (one for each job) of a custom built register
-   machine. The VM and its scheduler has a small memory footprint but
-   each job started by a scheduler initially allocates 1KB for its
-   heap and stack (program code excluded). The VM is standalone and
-   has few dependencies making it easy to port to restricted targets.
+   machine. The VM and its scheduler has a small memory footprint and
+   each job startedinitially only allocates 1KB for its heap and stack
+   (program code excluded). The VM is standalone and has few
+   dependencies making it easy to port to restricted targets.
 
  * Great care has been taken to add a purely functional and
    encapsulating `class` definition. It makes it possible group member
-   variables and member functions using well known member modifiers
-   such `public`,  `private`, `const` and `this` references and more.
+   variables and member functions using well known C++/Java member
+   modifiers such as `public`,  `private`, `const` and `this`
+   references and more.
 
 Many things are by design not a part of Satie:
 
@@ -145,18 +147,18 @@ and more I am sure you will miss.
 
 ## Overall structure
 
-A Satie file also constitute a Satie *module* with the same basename
-as its filename. Why make it more complicated? A satie file starts
-with a number of import statements and are followed by a mix of
-`enum`, `interface`, `class` and `fn` (function) definitions (in any
-order).
+A Satie file has a `.sa` suffix and constitute a Satie *module* with
+the same name as the basename of its filename. Why make it more
+complicated? A satie file starts with a number of import statements
+which are followed by a mix of `enum`, `interface`, `class` and `fn`
+(function) definitions (in any order).
 
 `class`, `enum`  and `interface` definitions are **only** allowed on
-the top level in a module. Function definitions can be nested
+the top level of a module. Function definitions can be nested
 arbitrarily within other function definitions though.
 
-Finally, a single exported main function must be defined in exactly
-one of the Satie modules that constitutes an application.
+A single exported main function must be defined in exactly one of the
+Satie modules that constitutes an application.
 
 Example:
 
@@ -211,13 +213,13 @@ export fn main() {
 *Source: [color.sa](../grammar/color.sa)*
 
 That was very boring but hopefully informative. Noteworthy is that
-the module above has one exported function definition (the famous
-`main` function). A module can define as many functions it needs on
-the top level (exported or not) but it is a good idea to define
-functions as member functions in classes to avoid function
-cluttering. Only functions being marked with `export` can be imported
-by other modules. The `class`, `enum` and `interface` definitions can
-be imported by other modules without restrictions though.
+the Satie module above has one exported function (the famous `main`
+function). A module can define as many functions it needs on the top
+level (exported or not) but it is a good idea to define functions as
+member functions in classes to avoid function cluttering. Only
+functions being marked with `export` can be imported by other
+modules. The `class`, `enum` and `interface` definitions can be
+imported by other modules without restrictions though.
 
 `#(` .. `)` is a tuple and the question mark before a variable informs
 the compiler that it is to be seen as unbound (even if it was bound
