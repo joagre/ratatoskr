@@ -233,7 +233,7 @@ can also call itself with its member variables as named parameters.
 
 That is it. The rest is in the gory details.
 
-# Build and executing
+# Building and executing
 
 Satie's compiler is called `sac` and the byte code it produces can be
 executed with the `sa` runner. This was done in the introduction chapter
