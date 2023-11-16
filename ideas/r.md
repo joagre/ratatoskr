@@ -222,15 +222,12 @@ harsh but match patterns are also used by the `match` and `receive`
 expressions (see below).
 
 The final thing that might be confusing is how the `this` constructor
-calls itself to set its member variables, but this is the final step a
-constructor has to perform to initialize its member variables. The `:`
-notation is Satie's way to call a function with named parameters and a
-constructor can also call itself with its member variables as named
-parameters.
+calls itself, but this is the final step a constructor has to perform
+to actually initialize its member variables. The `:` notation is
+Satie's way to call a function with named parameters and a constructor
+can also call itself with its member variables as named parameters.
 
 That is it. The rest is in the gory details.
-
-
 
 # HERE
 
