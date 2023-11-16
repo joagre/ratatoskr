@@ -19,7 +19,7 @@ class Ackermann {
             },
             ?job = spawn monitor computeAckermann(self, m, i),
             job.setMaxMailboxSize(job, 4, OnCrowding.block),
-            jobs => job ~ jobs,
+            jobs isnow job ~ jobs,
             startJobs(m, n, i + 1)
         } else {
             this
@@ -31,7 +31,7 @@ class Ackermann {
             receive {
                 case #(?job, ?m, ?n, ?result) {
                     stdio.writeln("ackermann($m, $n) = $result"),
-                    jobs => jobs.delete(job),
+                    jobs isnow jobs.delete(job),
                     waitForJobs()
                 }
                 case #(Job.died, ?job, ?reason) {

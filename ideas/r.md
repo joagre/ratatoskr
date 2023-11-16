@@ -173,7 +173,7 @@ class Ackermann {
             },
             ?job = spawn monitor computeAckermann(self, m, i),
             job.setMaxMailboxSize(job, 4, OnCrowding.block),
-            jobs => job ~ jobs,
+            jobs isnow job ~ jobs,
             startJobs(m, n, i + 1)
         } else {
             this
@@ -185,7 +185,7 @@ class Ackermann {
             receive {
                 case #(?job, ?m, ?n, ?result) {
                     stdio.writeln("ackermann($m, $n) = $result"),
-                    jobs => jobs.delete(job),
+                    jobs isnow jobs.delete(job),
                     waitForJobs()
                 }
                 case #(Job.died, ?job, ?reason) {
@@ -1176,7 +1176,7 @@ class Ackermann {
             },
             ?job = spawn monitor computeAckermann(self, m, i),
             job.setMaxMailboxSize(job, 4, OnCrowding.block),
-            jobs => job ~ jobs,
+            jobs isnow job ~ jobs,
             startJobs(m, n, i + 1)
         } else {
             this
@@ -1188,7 +1188,7 @@ class Ackermann {
             receive {
                 case #(?job, ?m, ?n, ?result) {
                     stdio.writeln("ackermann($m, $n) = $result"),
-                    jobs => jobs.delete(job),
+                    jobs isnow jobs.delete(job),
                     waitForJobs()
                 }
                 case #(Job.died, ?job, ?reason) {
@@ -1252,7 +1252,7 @@ Operators in decreasing order of precedence:
 | a & b        |                                          |
 | a && b       | Logical and                              |
 | a \|\| b     |                                          |
-| a => b       | Transform                                |
+| a isnow b       | Transform                                |
 | a = b        |                                          |
 
 # Appendix B: PEG grammar
@@ -1283,7 +1283,7 @@ SendExpr <- ("self" /
              SpawnExpr /
              Identifier /
              "(" _ Expr _ ")") (_ "<|" _ Expr) / TransformExpr
-TransformExpr <- ("this" _ "." _)? Identifier _ "=>" _ Expr / LogicalOrExpr
+TransformExpr <- ("this" _ "." _)? Identifier _ "isnow" _ Expr / LogicalOrExpr
 LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
 BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
@@ -1368,7 +1368,7 @@ NonQuoteChar <- [^']
 
 StringLiteral <- RegularString / RawString
 RegularString <- '"' ( EscapeSequence / [^"] )* '"'
-EscapeSequence  <- "\\" [btnvfr"\\]
+EscapeSequence <- "\\" [btnvfr"\\]
 RawString <- 'r"' [^"]* '"'
 
 FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
@@ -1390,7 +1390,7 @@ ClassLiteral <- "[" _ MemberValues? _ "]"
 MemberValues <- MemberValue (_ "," _ MemberValue)*
 MemberValue <- Identifier _ ";" _ Expr
 
-ControlFlowExpr <- IfExpr / SwitchExpr / MatchExpr / ReceiveExpr
+ControlFlowExpr <- IfExpr / SwitchExpr / MatchExpr / ReceiveExpr / BlockExpr
 
 IfExpr <- "if" __ Expr _ BlockExpr
           (_ "elif" __ Expr _ BlockExpr)*
@@ -1454,7 +1454,8 @@ EnumValue <- Identifier (_ "=" _ Expr)?
 # Function definition
 #
 
-FunctionDef <- "fn" __ Identifier _ "(" _ Params? _ ")" _ BlockExpr
+FunctionDef <- ("export" _)?
+               "fn" __ Identifier _ "(" _ Params? _ ")" _ BlockExpr
 Params <- NonDefaultParams _ "," _ DefaultParams /
           NonDefaultParams /
           DefaultParams
@@ -1476,6 +1477,8 @@ NamedArg <- Identifier _ ":" _ Expr
 # Misc
 #
 
+#_ <- WS*
+#__ <- WS+
 _ <- (WS / Comments)*
 __ <- (WS / Comments)+
 WS <- [ \t\r\n]

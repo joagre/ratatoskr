@@ -31,7 +31,7 @@ SendExpr <- ("self" /
              SpawnExpr /
              Identifier /
              "(" _ Expr _ ")") (_ "<|" _ Expr) / TransformExpr
-TransformExpr <- ("this" _ "." _)? Identifier _ "=>" _ Expr / LogicalOrExpr
+TransformExpr <- ("this" _ "." _)? Identifier _ "isnow" _ Expr / LogicalOrExpr
 LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
 BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*

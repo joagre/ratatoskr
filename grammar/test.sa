@@ -65,7 +65,7 @@ a[b] = 3,
 
 
     a[1],
-    ?a = foo => #(2, 1),
+    ?a = foo isnow #(2, 1),
     1 = 1,
     match a {
         case b {
