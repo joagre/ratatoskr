@@ -221,11 +221,11 @@ bound since before and in run-time a check is made to verify that the
 bound variable matches the rvalue.
 
 The final thing that might be confusing is how the `this` constructor
-calls itself to actually set its member variables. It might seem
-confusing but this is the final step a constructor has to perform to
-initialize its member variables. The `:` in notation in is Satie's way
-to call a function with named parameters and constructors can call
-itself with their member variables as named parameters as well.
+calls itself to set its member variables. It might seem confusing but
+this is the final step a constructor has to perform to initialize its
+member variables. The `:` notation is Satie's way to call a function
+with named parameters and a constructor can call itself with its
+member variables as named parameters as well.
 
 That is it. The rest is in the gory details.
 
