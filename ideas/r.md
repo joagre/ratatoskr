@@ -14,9 +14,9 @@ programming languages (and all people standing behind [and beside] them).
 
 All rise.
 
-File: [hello.sa](../grammar/ackermann.sa)
-
+<small>(hello.sa)[../grammar/hello.sa]:</small>
 ```
+$ cat hello.sa
 import std.stdio : writeln
 import std.lists
 
@@ -42,6 +42,11 @@ fn hello(n, jobs = []) {
         jobs
     }
 }
+$ sac hello.sa && sa hello 100000
+0: Standing on the shoulders of giants
+1: Standing on the shoulders of giants
+2: Standing on the shoulders of giants
+3: Standing on the shoulders of giants
 ...
 ```
 
