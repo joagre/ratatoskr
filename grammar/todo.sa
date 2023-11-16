@@ -6,12 +6,11 @@ class TodoItem {
     private completed
 
     this(description) {
-        this.description isnow description,
-        completed isnow false
+        this(descriptor: descriptor, completed: false)
     }
 
     public fn markCompleted() {
-        completed isnow true
+        this(completed: true)
     }
 
     public fn toString() {
@@ -28,12 +27,12 @@ class TodoList {
 
     public fn addItem(tag, description) {
         ?item = new TodoItem(tag, description),
-        items isnow [tag : description] ~ items
+        this(items: [tag : description] ~ items)
     }
 
     public fn markItemCompleted(tag) {
         ?item = items[tag].markCompleted(),
-        items isnow item ~ items.delete(tag)
+        this(items: item ~ items.delete(tag))
     }
 
     public fn displayItems() {

@@ -1,12 +1,12 @@
 # The Satie Programming Language
 
 Satie is envisioned as a forward-thinking programming language, ideal
-for crafting a programming editor of tomorrow. Its capabilities extend
-beyond merely constructing the editor; it is also adept at
+for crafting the programming editor of tomorrow. Its capabilities
+extend beyond merely constructing the editor; it is also adept at
 serving as the scripting language for creating editor plugins and
 customizations. Yet, the essence of Satie lies in its versatility — it
-is a purpose-built language and VM that boasts a high degree of
-generality, adaptable to a wide range of applications.
+is a purpose-built language and Virtual Machine (VM) that boasts a
+high degree of generality, adaptable to a wide range of applications.
 
 Satie owes much to the great people behind the
 [Erlang](https://www.erlang.org/) and [D](https://dlang.org/)
@@ -57,12 +57,12 @@ The following design choices have been made (in some sort of order):
  * Satie is built on a custom multi-core VM with strong support for
    time sliced green threads (from now on called *jobs*). Jobs have
    share nothing semantics relying solely on message passing to
-   make it easier to reason about, and implementm highly concurrent,
+   make it easier to reason about, and implement highly concurrent,
    massively scalable soft real-time systems with an emphasis on fault
    tolerance and high availability. Jobs can create monitors and links
-   between each other which makes it possible write supervisor jobs
-   that are responsible to restart a job that died due to an
-   unexpected error (or whatever).
+   between each other and this makes it feasible to write supervisor
+   jobs that are responsible to restart jobs if if they should die
+   unexpectedly.
 
  * Satie is a pure functional programming language with native
    persistent datatypes in its core. All data is immutable and the
@@ -78,50 +78,50 @@ The following design choices have been made (in some sort of order):
  * Satie is dynamically typed and comes with a small set of basic
    types (`bool`, `int`, `flot`, `char`, `function`, `job` and `enum`)
    and composite types (`string`, `tuple`, `list`, `map` and
-   `class`). The compiler uses compile-time Hindley–Milner type
-   inference to deduce the types of variables, expressions and
-   functions. Semantic and syntactic care has been taken to make it
-   feasible to add a gradual type system later on.
+   `class`). The compiler uses Hindley–Milner type inference to deduce
+   the types of variables, expressions and functions. Semantic and
+   syntactic care has been taken to make it feasible to add a gradual
+   type system later on.
 
- * Satie's dynamic type system relies on a GC mechanism that takes
-   great care to do garbage collection on a job basis. All to avoid
-   the GC becoming a stop-the-world activity.
+ * Satie's dynamic type system relies on a Garbage Collect (GC)
+   mechanism that takes great care to do garbage collection on a job
+   basis. All to avoid the GC becoming a stop-the-world activity.
 
  * Satie is a small language and should be easy to learn. It has a
    clean, regular and minimalist syntax adhering to the school of
-   curly braces languages; well known reserved words, syntax and
-   scoping rules. The element of least surprise has been a leading
-   principle but in Satie everything is an expression, i.e. no
+   curly braces languages, i.e. it uses well known reserved words,
+   syntax and scoping rules. The element of least surprise has been a
+   leading principle but in Satie everything is an expression, i.e. no
    statements to be seen (and no semicolons). This may have resulted
    in seemingly unorthodox syntactical choices at times albeit being
    regular and consistent. The syntax of the D and Erlang programming
-   language have been a heavy influencers when applicable. Another
+   language have been heavy influencers when applicable. Another
    leading principle has been to make the syntax familiar and easy on
-   the eye but you have to be the judge on that. Satie reserves 24
+   the eye, but you have to be the judge on that. Satie reserves 24
    keywords and sports 16 operators and the complete syntax is
    formally defined as a PEG grammar in appendix B.
 
  * Satie has pattern matching in its core and the `=` operator is
    actually all about pattern matching rather than assignment (*there
    must not be mutable updates*). Everything can be matched and taken
-   apart with the help of a match pattern in combination with the `=`
-   operator. Match patterns are also used by `match` which is a
-   sibling to `switch`, but on pattern matching speed. `receive` also
-   uses pattern matching to do selective receive on messages in a
-   job's mailbox.
+   apart with the help of a pattern matchine in combination with the
+   `=` operator. Pattern matching is also used by `match` constrict
+   which is a sibling to `switch`, but on pattern matching speed. The
+   `receive` construct also uses pattern matching to do selective
+   receive on messages in a job's mailbox.
 
  * Satie is implemented using a custom built VM consisting of a
    multi-core and time slicing job scheduler running multiple
    instances (one for each job) of a custom built register
-   machine. The VM has a small memory footprint but each job it
-   schedules is also lean on resources (< 256 bytes to start
-   with). The VM is standalone and has few dependencies making it easy
-   to port to restricted targets.
+   machine. The VM and its scheduler has a small memory footprint but
+   each job started by a scheduler initially allocates 1KB for its
+   heap and stack (program code excluded). The VM is standalone and
+   has few dependencies making it easy to port to restricted targets.
 
- * Great care has been taken to add a purely functional encapsulating
-   `class`. It makes it possible group member variables and member
-   functions together using well known member modifiers such `public`,
-   `private`, `const` and `this` references and more.
+ * Great care has been taken to add a purely functional and
+   encapsulating `class` construct. It makes it possible group member
+   variables and member functions using well known member modifiers
+   such `public`,  `private`, `const` and `this` references and more.
 
 Many things are by design not a part of Satie:
 
@@ -152,61 +152,6 @@ struct
 
 
 
-import std.jobs : OnCrowding, Job
-import std.stdio
-import std.lists
-
-export fn main() {
-  ?ackermann = new Ackermann(),
-  ?ackermann = ackermann.startJobs(3, 10),
-  ackermann.waitForJobs()
-}
-
-class Ackermann {
-    private jobs = []
-
-    public fn startJobs(m, n, i = 0) {
-        if i < n {
-            fn computeAckermann(parentJob, m, n) {
-                ?result = ackermann(m, n),
-                parentJob <| #(self, m, n, result)
-            },
-            ?job = spawn monitor computeAckermann(self, m, i),
-            job.setMaxMailboxSize(job, 4, OnCrowding.block),
-            jobs isnow job ~ jobs,
-            startJobs(m, n, i + 1)
-        } else {
-            this
-        }
-    }
-
-    public fn waitForJobs() {
-        if jobs.length > 0 {
-            receive {
-                case #(?job, ?m, ?n, ?result) {
-                    stdio.writeln("ackermann($m, $n) = $result"),
-                    jobs isnow jobs.delete(job),
-                    waitForJobs()
-                }
-                case #(Job.died, ?job, ?reason) {
-                    stdio.writeln("Oh no! Compute job $job died: $reason")
-                }
-            }
-        } else {
-            this
-        }
-    }
-
-    private fn ackermann(m, n) {
-        if m == 0 {
-            n + 1
-        } elif n == 0 {
-            ackermann(m - 1, 1)
-        } else {
-            ackermann(m - 1, ackermann(m, n - 1))
-        }
-    }
-}
 
 
 # Comments
@@ -1159,16 +1104,16 @@ import std.jobs : OnCrowding, Job
 import std.stdio
 import std.lists
 
-fn main() {
+export fn main() {
   ?ackermann = new Ackermann(),
   ?ackermann = ackermann.startJobs(3, 10),
-  ?ackermann = ackermann.waitForJobs()
+  ackermann.waitForJobs()
 }
 
 class Ackermann {
     private jobs = []
 
-    public fn startJobs(m, n, i = 0) {
+    public fn startJobs(m, n, i = 0, startedJobs = []) {
         if i < n {
             fn computeAckermann(parentJob, m, n) {
                 ?result = ackermann(m, n),
@@ -1176,28 +1121,29 @@ class Ackermann {
             },
             ?job = spawn monitor computeAckermann(self, m, i),
             job.setMaxMailboxSize(job, 4, OnCrowding.block),
-            jobs isnow job ~ jobs,
-            startJobs(m, n, i + 1)
+            startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
-            this
+            this(jobs: startedJobs)
         }
     }
 
     public fn waitForJobs() {
-        if jobs.length > 0 {
-            receive {
-                case #(?job, ?m, ?n, ?result) {
-                    stdio.writeln("ackermann($m, $n) = $result"),
-                    jobs isnow jobs.delete(job),
-                    waitForJobs()
+        fn waitForJobs(jobs) {
+            if jobs.length > 0 {
+                receive {
+                    case #(?job, ?m, ?n, ?result) {
+                        stdio.writeln("ackermann($m, $n) = $result"),
+                        waitForJobs(jobs.delete(job))
+                    }
+                    case #(Job.died, ?job, ?reason) {
+                        stdio.writeln("Oh no! Compute job $job died: $reason")
+                    }
                 }
-                case #(Job.died, ?job, ?reason) {
-                    stdio.writeln("Oh no! Compute job $job died: $reason")
-                }
+            } else {
+                this(jobs: [])
             }
-        } else {
-            this
-        }
+        },
+        waitForJobs(jobs)
     }
 
     private fn ackermann(m, n) {
@@ -1282,8 +1228,7 @@ SendExpr <- ("self" /
              ControlFlowExpr /
              SpawnExpr /
              Identifier /
-             "(" _ Expr _ ")") (_ "<|" _ Expr) / TransformExpr
-TransformExpr <- ("this" _ "." _)? Identifier _ "isnow" _ Expr / LogicalOrExpr
+             "(" _ Expr _ ")") (_ "<|" _ Expr) / LogicalOrExpr
 LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
 BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
