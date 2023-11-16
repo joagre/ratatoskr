@@ -14,15 +14,18 @@ programming languages (and all people standing behind [and beside] them).
 
 All rise.
 
+File: [hello.sa](../grammar/ackermann.sa)
+
 ```
-$ cat hello.sa
 import std.stdio : writeln
 import std.lists
 
 export fn main(args) {
     ?n = args[1],
     ?jobs = hello(n),
-    lists.foreach(fn (job) { job <| "Hello World!" }, jobs)
+    lists.foreach(fn (job) {
+        job <| "Standing on the shoulders of giants"
+    }, jobs)
 }
 
 fn hello(n, jobs = []) {
@@ -39,12 +42,6 @@ fn hello(n, jobs = []) {
         jobs
     }
 }
-$ sac hello.sa && sa hello 100000
-0: Hello World!
-1: Hello World!
-2: Hello World!
-3: Hello World!
-4: Hello World!
 ...
 ```
 
