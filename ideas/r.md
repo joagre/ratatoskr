@@ -171,6 +171,11 @@ interface Iterator {
 
 class ColorIterator : Iterator {
     private colors
+    private graffiti
+
+    this(colors) {
+        this(colors: colors, graffiti: "Killroy was here")
+    }
 
     public fn next() {
         if (!hasNext()) {
@@ -187,7 +192,7 @@ class ColorIterator : Iterator {
 
 export main() {
     ?colors = [Color.red, Color.red, Color.blue, Color.green],
-    ?iterator = new ColorIterator(colors: colors),
+    ?iterator = new ColorIterator(colors),
     fn iterate(iterator) {
         if (iterator.hasNext()) {
             #(?nextIterator, ?color) = iterator.next(),
@@ -201,17 +206,42 @@ export main() {
 
 That was very boring but hopefully informative. Noteworthy is that
 the module above has one exported function definition (the famous
-`main` function). A module can define as many function it needs on the
-top level (exported or not) but is a good idea to early on define
+`main` function). A module can define as many functions it needs on
+the top level (exported or not) but it is a good idea to define
 functions as member functions in classes to avoid function
 cluttering. Only functions being marked with `export` can be imported
 by other modules but the `class`, `enum` and `interface` definitions
 can be imported by other modules without restrictions.
 
+`#(` .. `)` is a tuple and the question marks before variable names
+informs that it is an unbound variable (even if its was bound since
+before). That means that it is ready to be bound again. If the
+question mark is omitted the compiler makes sure that the variable is
+bound since before and in run-time a check is made to verify that the
+bound variable matches the rvalue.
+
+The final thing that might be confusing is how the `this` constructor
+calls itself to actually set its member variables. It might seem
+confusing but this is the final step a constructor has to perform to
+initialize its member variables. The `:` in notation in is Satie's way
+to call a function with named parameters and constructors can call
+itself with their member variables as named parameters as well.
+
 That is it. The rest is in the gory details.
 
 # HERE
 
+
+
+
+
+
+
+
+means that the variable is unbound (even if it previously was bound
+
+
+pattern matching, tuple, default paramters, this.
 
 
 
