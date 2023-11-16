@@ -133,7 +133,7 @@ Many things are by design not a part of Satie:
  * Mutexes (not needed)
  * Mutability
  * Currying
- * Inheritance (class interfaces are there though)
+ * Inheritance
  * Monads
 
 and more I am sure you will miss.
@@ -159,8 +159,8 @@ Example:
 import std.stdio : writeln
 
 enum Color {
-    red,
-    green,
+    red
+    green
     blue
 }
 
@@ -190,19 +190,20 @@ class ColorIterator : Iterator {
     }
 }
 
-export main() {
+export fn main() {
     ?colors = [Color.red, Color.red, Color.blue, Color.green],
     ?iterator = new ColorIterator(colors),
     fn iterate(iterator) {
         if (iterator.hasNext()) {
             #(?nextIterator, ?color) = iterator.next(),
-            writeln("Color: $color")
+            writeln("Color: $color"),
             iterate(nextIterator)
         }
     },
     iterate(iterator)
 }
 ```
+*Source: [color.sa](../grammar/color.sa)*
 
 That was very boring but hopefully informative. Noteworthy is that
 the module above has one exported function definition (the famous
