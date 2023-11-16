@@ -261,7 +261,7 @@ That is it.
 
 If a Satie application consists of many modules in a directory
 hierarchy the process above is the same. Say for example that you have
-and application called `zarah` with the following directory hierachy:
+an application called `zarah` with the following directory hierachy:
 
 ```
 $ cd zarah
@@ -297,11 +297,10 @@ $ sac build/main
 > The `sac` compiler has options to point to alternative `src/` and
 > `build/` directories.
 
-Note how the compiler by default follows the module dependencies
-introduced by `main.sa` and automatically compiles all of these
-modules as well. The compiler can be made not to follow module
-dependecies or just ignore modules that are missing or not possible to
-compile (for some reason).
+The compiler by default follows module dependencies introduced by
+`main.sa` and automatically compiles these modules as well. The
+compiler can be made not to follow module dependecies, ignore modules
+that are missing or not possible to compile (for some reason) etc.
 
 Read more about the `sac` compiler and the `sa` runner in their
 respective manual page.
@@ -316,10 +315,10 @@ Satie <0.3.1> (press ctrl-c to abort)
 0> _
 ```
 
-In the shell Satie expressions can be evaulated and the status of a
-executing application can be inspected. A shell can be made to connect
-to to an already executing instance of a `sa` runner. Read more about
-this and more in the `sa` runner's manual page.
+In the shell Satie expressions can be evaulated and the status of an
+already executing application can be inspected, i.e a shell can be
+made to connect to an already executing instance of a `sa`
+runner. Read more about this and more in the `sa` runner's manual page.
 
 # Comments
 
