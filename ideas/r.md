@@ -8,8 +8,6 @@ customizations. Yet, the essence of Satie lies in its versatility — it
 is a purpose-built language and VM that boasts a high degree of
 generality, adaptable to a wide range of applications.
 
-YMMV
-
 Satie owes much to the great people behind the Erlang and D
 programming languages (and all people standing behind [and beside]
 them). All rise.
