@@ -126,7 +126,7 @@ Many things are by design not a part of Satie:
  * Type specifications
  * Exceptions
  * Pre-processor and macros
- * Variadic function paramters
+ * Variadic function parameters
  * Mutexes (not needed)
  * Mutability
  * Currying
