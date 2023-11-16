@@ -104,10 +104,10 @@ The following design choices have been made (in some sort of order):
  * Satie has pattern matching in its core and the `=` operator is
    actually all about pattern matching rather than assignment (*there
    must not be mutable updates*). Everything can be matched and taken
-   apart with the help of a pattern matchine in combination with the
+   apart with the help of a pattern matching in combination with the
    `=` operator. Pattern matching is also used by `match` constrict
    which is a sibling to `switch`, but on pattern matching speed. The
-   `receive` construct also uses pattern matching to do selective
+   `receive` expression also uses pattern matching to do selective
    receive on messages in a job's mailbox.
 
  * Satie is implemented using a custom built VM consisting of a
@@ -119,7 +119,7 @@ The following design choices have been made (in some sort of order):
    has few dependencies making it easy to port to restricted targets.
 
  * Great care has been taken to add a purely functional and
-   encapsulating `class` construct. It makes it possible group member
+   encapsulating `class` definition. It makes it possible group member
    variables and member functions using well known member modifiers
    such `public`,  `private`, `const` and `this` references and more.
 
@@ -140,6 +140,102 @@ and more I am sure you will miss.
 
 ## Overall structure
 
+A Satie file also constitute a Satie *module* with the same basename
+as its filename. Why make it more complicated? A satie file starts
+with a number of import statements and are followed by a mix of
+`enum`, `interface`, `class` and `fn` (function) definitions (in any
+order).
+
+`class`, `enum`  and `interface` definitions are **only** allowed on
+the top level in a module. Function definitions can be nested
+arbitrarily within other function definitions though.
+
+Finally, a single exported main function must be defined in exactly
+one of the Satie modules that constitutes an application.
+
+Example:
+
+```
+import std.stdio : writeln
+
+enum Color {
+    red,
+    green,
+    blue
+}
+
+interface Iterator {
+    public fn next()
+    public fn hasNext()
+}
+
+class ColorIterator : Iterator {
+    private colors
+
+    public fn next() {
+        if (!hasNext()) {
+            false
+        } else {
+            #(this(colors: colors.rest()), colors.first())
+        }
+    }
+
+    public fn hasNext() {
+        !colors.isEmpty()
+    }
+}
+
+export main() {
+    ?colors = [Color.red, Color.red, Color.blue, Color.green],
+    ?iterator = new ColorIterator(colors: colors),
+    fn iterate(iterator) {
+        if (iterator.hasNext()) {
+            #(?nextIterator, ?color) = iterator.next(),
+            writeln("Color: $color")
+            iterate(nextIterator)
+        }
+    },
+    iterate(iterator)
+}
+```
+
+That was very boring but hopefully informative. Noteworthy is that
+the module above has one exported function definition (the famous
+`main` function). A module can define as many function it needs on the
+top level (exported or not) but is a good idea to early on define
+functions as member functions in classes to avoid function
+cluttering. Only functions being marked with `export` can be imported
+by other modules but the `class`, `enum` and `interface` definitions
+can be imported by other modules without restrictions.
+
+That is it. The rest is in the gory details.
+
+# HERE
+
+
+
+
+
+
+
+        while (iterator.hasNext()) {
+            int number = iterator.next();
+            System.out.println(number);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -151,6 +247,9 @@ enum
 struct
 
 
+
+
+# pattern matching
 
 
 
@@ -458,7 +557,7 @@ c                           // "foo"
 # Top level contructs and expressions
 
 Everything is an expression in Satie except for the top level
-constructs, i.e. `import`, `class`, `interface`, `enum` and named `fn
+definitions, i.e. `import`, `class`, `interface`, `enum` and named `fn
 defintions.
 
 Binding of names can only be performed as a standalone expression and
@@ -930,7 +1029,7 @@ FIXME
 # `class` defintion
 
 Structs encapsulate member values and member functions and they can
-only be defined on the top-level construct of each module.
+only be defined on the top-level defintions of each module.
 
 Examples:
 
