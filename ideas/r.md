@@ -1,5 +1,7 @@
 # The Satie Programming Language
 
+## Introduction
+
 Satie is envisioned as a forward-thinking programming language, ideal
 for crafting the programming editor of tomorrow. Its capabilities
 extend beyond merely constructing the editor; it is also adept at
