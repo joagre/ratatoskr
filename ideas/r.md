@@ -14,7 +14,6 @@ programming languages (and all people standing behind [and beside] them).
 
 All rise.
 
-<small>[hello.sa](../grammar/hello.sa):</small>
 ```
 $ cat hello.sa
 import std.stdio : writeln
@@ -49,6 +48,7 @@ $ sac hello.sa && sa hello 100000
 3: Standing on the shoulders of giants
 ...
 ```
+*Source: [hello.sa](../grammar/hello.sa)*
 
 That said.
 
