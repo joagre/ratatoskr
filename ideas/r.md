@@ -1,27 +1,43 @@
 # The Satie Programming Language
 
+Satie is envisioned as a forward-thinking programming language, ideal
+for crafting a programming editor of tomorrow. Its capabilities extend
+beyond merely constructing the editor; it is also adept at
+serving as the scripting language for creating editor plugins and
+customizations. Yet, the essence of Satie lies in its versatility — it
+is a purpose-built language and VM that boasts a high degree of
+generality, adaptable to a wide range of applications.
+
+YMMV
+
+Satie owes much to the great people behind the Erlang and D
+programming languages (and all people standing behind [and beside]
+them). All rise.
+
 ```
 $ cat hello.sa
 import std.stdio : writeln
 import std.lists
 
-fn main(args) {
+export fn main(args) {
     ?n = args[1],
-    fn hello(n, jobs = []) {
-        if n > 0 {
-            ?job = spawn fn () {
-                receive {
-                    case ?message {
-                       writeln("$n: $message")
-                    }
-                }
-            },
-            hello(n - 1, job ~ jobs)
-        },
-        jobs
-    },
     ?jobs = hello(n),
     lists.foreach(fn (job) { job <| "Hello World!" }, jobs)
+}
+
+fn hello(n, jobs = []) {
+    if n > 0 {
+        ?job = spawn fn () {
+            receive {
+                case ?message {
+                   writeln("$n: $message")
+                }
+            }
+        },
+        hello(n - 1, job ~ jobs)
+    } else {
+        jobs
+    }
 }
 $ sac hello.sa && sa hello 100000
 0: Hello World!
@@ -32,123 +48,95 @@ $ sac hello.sa && sa hello 100000
 ...
 ```
 
-pattern matching
+That said.
+
+The following design choices have been made (in some sort of order):
+
+ * Satie is built on a custom multi-core VM with strong support for
+   time sliced green threads (from now on called *jobs*). Jobs have
+   share nothing semantics relying solely on message passing to
+   make it easier to reason about, and implementm highly concurrent,
+   massively scalable soft real-time systems with an emphasis on fault
+   tolerance and high availability. Jobs can create monitors and links
+   between each other which makes it possible write supervisor jobs
+   that are responsible to restart jobs that die due to unexpected
+   errors (or whatever).
+
+ * Satie is a pure functional programming language with native
+   persistent datatypes in its core. All data is immutable and the
+   persistent datatypes have been custom built to efficiently handle
+   large amount of data. There are limits to Satie's purity though. No
+   monads.
+
+ * Satie tries to be a balanced blend between a fully fledged
+   application language and a script language for reasons given
+   above. This shines through in its choice of semantics, syntax, type
+   system, object-orientation support and more.
+
+ * Satie is dynamically typed and comes with a small set of basic
+   types (`bool`, `int`, `flot`, `char`, `function`, `job` and `enum`)
+   and composite types (`string`, `tuple`, `list`, `map` and
+   `class`). The compiler uses compile-time Hindley–Milner type
+   inference to deduce the types of variables, expressions and
+   functions. Semantic and syntactic care has been taken to make it
+   feasible to add a gradual type system later on.
+
+ * Satie's dynamic type system relies on a GC mechanism that takes
+   great care to do garbage collection on a job basis. All to avoid
+   the GC becoming a stop-the-world activity.
+
+ * Satie is a small language and should be easy to learn. It has a
+   clean, regular and minimalist syntax adhering to the school of
+   curly braces languages; well known reserved words, syntax and
+   scoping rules. The element of least surprise has been a leading
+   principle but in Satie everything is an expression, i.e. no
+   statements to be seen (and no semicolons). This may have resulted
+   in seemingly unorthodox syntactical choices at times albeit being
+   regular and consistent. The syntax of the D and Erlang programming
+   language have been a heavy influencers when applicable. Another
+   leading principle has been to make the syntax familiar and easy on
+   the eye. You have to be the judge on taht. Satie reserves 24
+   keywords and sports 16 operators and the complete syntax is
+   formally defined as a PEG grammar in appendix B.
+
+ * Satie has pattern matching in its core and the `=` operator is
+   actually all about pattern matching rather than assignment (*there
+   must not be mutable updates*). Everything can be matched aand taken
+   with the `=` operator and match patterns are also used by the
+   `match` construct. It is is a sibling to the `switch` construct but
+   on pattern matching speed. The `receive` construct also uses
+   pattern matching to do selective receive on messages in job's mailbox.
+
+ * Satie is implemented using a custom built VM consisting of a
+   multi-core and time slicing job scheduler running multiple
+   instances (one for each job) of a custom built register
+   machine. The VM has a small memory footprint but each job it
+   schedules is also lean on resources (< 512 bytes to begin
+   with). The VM is standalone and has few dependencies making it easy
+   to port to restricted targets.
+
+ * Great care has been taken to add a purely functional encapsulating
+   `class` construct. It makes it possible group member variables and
+   member functions together using well known member modifiers such
+   `public`, `private`, `const` and a `this` reference and more.
+
+Many things are by design not a part of Satie:
+
+ * Pointers
+ * Type specifications
+ * Exceptions
+ * Pre-processor and macros
+ * Variadic function paramters
+ * Mutexes (not needed)
+ * Mutability
+ * Currying
+ * Inheritance (class interfaces are there though)
+
+and more I am sure you will miss.
+
+## Overall structure
 
 
-Satie has been designed to be a language suitable to write a better
-Emacs programming editor. The language itself should not only be
-suitable to build the editor but also work as the script language used
-to write editor plugins and customizations.
-
-A number of design choices follow on this (my own preferences
-included):
-
- * A pure functional programming language with persistent datatypes
-   suited to build a programming editor, light weight threads with
-   shared nothing semantics and message passing.
- * A balanced blend between a script language and a fully fledged
-   application language with a semantics and syntax
-
-
-   being easy on the
-   mind.
-
-regukajär
-repl
-
-syntax that element a syntax
-
-* Dynamically typed with Hindley Millner type inferens and forward
-   compatible to add a gradual type system later on.
- * Fast and lean on resources being built on a custom made time sliced
-   register machine written in C for this purpose.
-
-*
-
-   with a new aVery lean on resources
-
-
-
-
- * Very lean on resources
-
-
- * The languge should be purely functional with persistent
-
- language shoould be small and easy to learn.
-
-R is a tiny but powerful programming language
-
-
-functional, dynamically typed and concurrency oriented
-programming language.
-
-lokala context är bra
-
-
-Inspired D and Erlang
-
-condynamically typed language with type inference and
-
-Dynamically typed
-Hindley-Milner type inference
-Concurrently oriented
-Time sliced light weight green threads scheduler(1024 bytes)
-Pattern matching
-Selective message passing using pattwern matching
-Fixed and dynmaic arrays
-Hashtables
-Light-weight (microprocessor -> desktop)
-Small memory foot print but built to scale
-Pluggable Scceduler (build you own Interpreter and plug it in)
-int,  float, bool, tuple, fixed and dynamic array, hashtable, string,
-struct, interface
-Everything is
-No data can be shared be between job + spawn, send , recieve, monitor,
-link, telleub external format
- etc (no data can be shared)
-Not immutable
-Lean
-and fast
-Register machine
-Functional, everythiung is an expression
-Tail recusrve optimixation
-Everything is refewred to be reference expecpt for int, float and long
-which can be reference based
-utf8 in strings
-
-ows much to D, syntax and semantics
-
-shamelessly taken the syntax whwre it fits and removed everything that
-wqs necessaryu in this. just the fatct taht everyins aexpresion no
-loop constructs.. no semicolon. no much
-
-astdlib for string, lists, and network built
-
-Structural and reference equality
-Immutable
-A script langue or not
-
-No pointers
-No type specifications
-No exceptions
-No preprocessor and no macros
-No variadic functions
-No mutexes
-Not immutable
-No inheritance (if that means not being object oriented it may be so)
-
-Everything is an expression. no loopiing iteratiuons.
-
-Syntactically a { language and ows D { based langiugae, ows heavy to the d language but because of its being a dynamic ally tyoped and garbage collected, functional (everything is an expression). No semicolons. Meager syntax but recognizable.
-
-
-where everything is a an expressive loads of
-
-
-with because the functional everything is an expression
-
-# Overall structure
 
 
 import std.concurrency
@@ -160,46 +148,58 @@ struct
 
 
 
-fn main() {
-  jobs = Ackermann.startJobs(3, 10);
-  Ackermann.waitForJobs(jobs);
+import std.jobs : OnCrowding, Job
+import std.stdio
+import std.lists
+
+export fn main() {
+  ?ackermann = new Ackermann(),
+  ?ackermann = ackermann.startJobs(3, 10),
+  ackermann.waitForJobs()
 }
 
-singleton Ackermann {
-    public fn startJobs(m, n, i = 0, jobs = []) {
+class Ackermann {
+    private jobs = []
+
+    public fn startJobs(m, n, i = 0) {
         if i < n {
             fn computeAckermann(parentJob, m, n) {
-                result = ackermann(m, n);
-                 parentJob <: #(self, m, n, result);
-            }
-            job = mspawn computeAckermann(self, m, ++i);
-            concurrency.setMaxMailboxSize(job, 4, concurrency.OnCrowding.block);
-            startJobs(m, n, i, job ~ jobs);
+                ?result = ackermann(m, n),
+                parentJob <| #(self, m, n, result)
+            },
+            ?job = spawn monitor computeAckermann(self, m, i),
+            job.setMaxMailboxSize(job, 4, OnCrowding.block),
+            jobs => job ~ jobs,
+            startJobs(m, n, i + 1)
+        } else {
+            this
         }
-        jobs;
     }
 
-    public fn waitForJobs(jobs) {
+    public fn waitForJobs() {
         if jobs.length > 0 {
             receive {
                 case #(?job, ?m, ?n, ?result) {
-                    stdio.writeln("ackermann($m, $n) = $result");
+                    stdio.writeln("ackermann($m, $n) = $result"),
+                    jobs => jobs.delete(job),
+                    waitForJobs()
                 }
-                case #(JobMonitor.died, ?job, ?reason) {
-                    stdio.writeln("Oh no! Compute job $job died: $reason");
+                case #(Job.died, ?job, ?reason) {
+                    stdio.writeln("Oh no! Compute job $job died: $reason")
                 }
             }
-            waitForJobs(jobs[0 .. $ - 1]);
+        } else {
+            this
         }
     }
 
     private fn ackermann(m, n) {
         if m == 0 {
-            n + 1;
-        } else if n == 0 {
-            ackermann(m - 1, 1);
+            n + 1
+        } elif n == 0 {
+            ackermann(m - 1, 1)
         } else {
-            ackermann(m - 1, ackermann(m, n - 1));
+            ackermann(m - 1, ackermann(m, n - 1))
         }
     }
 }
@@ -336,8 +336,8 @@ enum
 in
 is
 fn
+export
 if
-then
 else
 switch
 default

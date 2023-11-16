@@ -2,10 +2,10 @@ import std.jobs : OnCrowding, Job
 import std.stdio
 import std.lists
 
-fn main() {
+export fn main() {
   ?ackermann = new Ackermann(),
   ?ackermann = ackermann.startJobs(3, 10),
-  ?ackermann = ackermann.waitForJobs()
+  ackermann.waitForJobs()
 }
 
 class Ackermann {

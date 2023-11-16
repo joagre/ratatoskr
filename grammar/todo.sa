@@ -41,7 +41,7 @@ class TodoList {
     }
 }
 
-fn main() {
+export fn main() {
     fn loopUntilQuit(todoList) {
         ?input = stdio.readLine(stdio.Stream.stdin),
         if input.command == "add" {

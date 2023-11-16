@@ -116,7 +116,7 @@ NonQuoteChar <- [^']
 
 StringLiteral <- RegularString / RawString
 RegularString <- '"' ( EscapeSequence / [^"] )* '"'
-EscapeSequence  <- "\\" [btnvfr"\\]
+EscapeSequence <- "\\" [btnvfr"\\]
 RawString <- 'r"' [^"]* '"'
 
 FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
@@ -138,7 +138,7 @@ ClassLiteral <- "[" _ MemberValues? _ "]"
 MemberValues <- MemberValue (_ "," _ MemberValue)*
 MemberValue <- Identifier _ ";" _ Expr
 
-ControlFlowExpr <- IfExpr / SwitchExpr / MatchExpr / ReceiveExpr
+ControlFlowExpr <- IfExpr / SwitchExpr / MatchExpr / ReceiveExpr / BlockExpr
 
 IfExpr <- "if" __ Expr _ BlockExpr
           (_ "elif" __ Expr _ BlockExpr)*
@@ -202,7 +202,8 @@ EnumValue <- Identifier (_ "=" _ Expr)?
 # Function definition
 #
 
-FunctionDef <- "fn" __ Identifier _ "(" _ Params? _ ")" _ BlockExpr
+FunctionDef <- ("export" _)?
+               "fn" __ Identifier _ "(" _ Params? _ ")" _ BlockExpr
 Params <- NonDefaultParams _ "," _ DefaultParams /
           NonDefaultParams /
           DefaultParams
