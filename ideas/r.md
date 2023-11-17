@@ -268,7 +268,7 @@ That is it.
 
 If a Satie application consists of many modules in a directory
 hierarchy the process above is the same. Say for example that there is
-an application called **zarah** with the following directory hierachy:
+an application called *zarah* with the following directory hierachy:
 
 ```
 $ cd zarah
