@@ -59,6 +59,8 @@ That said.
 
 The following design choices have been made (in some sort of order):
 
+#### Concurrent oriented
+
  * Satie is built on a custom built multi-core VM with strong support
    for  time sliced green threads (from now on called *jobs*). Jobs
    have share nothing semantics relying solely on message passing to
@@ -68,6 +70,8 @@ The following design choices have been made (in some sort of order):
    between each other and this makes it possible to write supervisor
    jobs that are responsible to restart jobs if they should die
    unexpectedly.
+
+#### Functional and immutable
 
  * Satie is a pure functional programming language with native
    persistent datatypes in its core. All data is immutable and the
@@ -294,7 +298,7 @@ $ find .
 ./src/utils
 ./src/utils/database.sa
 ./src/utils/httpclient.sa
-$ sac build/main
+$ sa build/main
 ```
 
 > [!NOTE]
@@ -304,10 +308,8 @@ $ sac build/main
 The compiler by default follows module dependencies introduced by
 `main.sa` and automatically compiles these modules as well. The
 compiler can be made not to follow module dependecies, ignore modules
-that are missing or not possible to compile (for some reason) etc.
-
-Read more about the `sac` compiler and the `sa` runner in their
-respective manual page.
+that are missing or not possible to compile. Read more about the `sac`
+compiler and the `sa` runner in their respective manual page.
 
 # The shell
 
