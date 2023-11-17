@@ -248,9 +248,13 @@ executed with the `sa` runner. This was done in the introduction chapter
 above and is repeated here for clarity:
 
 ```
-$ ls
-hello.sa
-$ sac hello.sa && sa build/hello 100000
+$ sac hello.sa
+$ find .
+.
+./hello.sa
+./build
+./build/hello.sab
+$ sa build/hello 100000
 0: Standing on the shoulders of giants
 1: Standing on the shoulders of giants
 2: Standing on the shoulders of giants
@@ -258,11 +262,6 @@ $ sac hello.sa && sa build/hello 100000
 ...
 99999: Standing on the shoulders of giants
 100000: Standing on the shoulders of giants
-$ find .
-.
-./hello.sa
-./build
-./build/hello.sab
 ```
 
 That is it.
@@ -282,7 +281,7 @@ $ find .
 ./src/utils/httpclient.sa
 ```
 
-This is how this application can be compiled and executed:
+This is how zarah can be compiled and executed:
 
 ```
 $ sac src/main.sa
