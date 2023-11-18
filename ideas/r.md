@@ -1143,24 +1143,16 @@ editing and manipulation in a functional programming environment.
 Any function can be spawned to run as a concurrent job with the
 `spawn` keyword:
 
-`job = spawn ackermann(3, 1);`
-
-Jobs share **nothing** with each other and input parameters to `spawn`
-are automatically deep copied before the job is spawned:
-
 ```
-a = [1, 2, 3];
-job = spawn sum(a);    // a.dup() is performed automatically
+fn sum(l) { l.first() + sum(l.rest() },
+?a = [1, 2, 3],
+job = spawn sum(a)
 ```
 
-> [!NOTE]
-> If any singletons (see below) have been defined each job gets
-> its own own copy of them. Nothing is shared between jobs.
+`spawn` returns a job reference which can be used to send messages to
+the job using the `<|` operator:
 
-`spawn` returns a job reference which, for example, can be used to
-send messages to the job using the `<:` operator:
-
-`job <- `#(timeout, 1000)`
+`job <| `#(timeout, 1000)`
 
 A message sent to a job ends up in its mailbox and can be retrieved
 with the `receive` keyword:
@@ -1181,18 +1173,19 @@ receive {
 
 The mailbox is unbounded in size but can be restricted using the
 `setMaxMailboxSize` function provided by the `std.concurrency`
+library:
 
 `setMaxMailboxSize(job, 64, OnCrowding.block)`
 
 Above a job's mailbox is restricted to contain at most 64 messages,
 and if a sending job hits this threshold it is automatically blocked
-in `<-` waiting for the mailbox to shrink.
+in `<|` waiting for the mailbox to shrink.
 
 `OnCrowding.ignore` can be used instead `OnCrowding.block` to specify
 that overflowing messages should be ignored. The `OnCrowding` enum can
 alternatively be replaced with a function that returns `false` if
 overflowing messages should be ignored or `true` if the sending job
-should be blocked in `<-`.
+should be blocked in `<|`.
 
 The last concurrency keyword is `self` and it refers to the job which
 user code currently runs in.
@@ -1205,24 +1198,18 @@ me if a job dies
 `link(job)` : Send a message `#(JobMonitor.died, job, reason)` to me
 if a job dies. Do the same to the linked job if I die.
 
-The `spawn` keyword have the siblings `mspawn` and `lspawn`. They,
-respectively, spawn jobs at the same time as they create a monitor, or
-a link. That didn't come as a surprise.
+The `spawn` expression may also take an extra `monitor` or `link`
+specifier to spawn jobs and create a monitor or link at tyhe same
+time. (See ackermann example below).
 
 `kill(job)`: Just like that
 
 ## A concurrency example
 
-A small concurrent example may clear things up. Below is a main
-function which spawns jobs to compute Ackermann function values for
-the parameters `m = 3, n = 1 .. 10`. The `main` function uses an
-Ackermann singleton to start 10 jobs and then waits for all jobs to
-send a result back as a message.
-
-
-### An example
-
-Right in your face:
+A small concurrent example may clear things up. Below jobs are spawned
+which compute Ackermann function values for the parameters `m = 3, n =
+1 .. 10`. The `main` function uses an Ackermann singleton to start 10
+jobs and then waits for all jobs to send a result back as a message.
 
 ```
 import std.jobs : OnCrowding, Job
@@ -1261,7 +1248,8 @@ struct Ackermann {
                         waitForJobs(jobs.delete(job))
                     }
                     case #(Job.died, ?job, ?reason) {
-                        stdio.writeln("Oh no! Compute job $job died: $reason")
+                        stdio.writeln(
+                            "Oh no! Compute job $job died: $reason")
                     }
                 }
             } else {
@@ -1286,23 +1274,9 @@ struct Ackermann {
 
 # Directory hierarchy of modules
 
-A Satie application can composed of multiple modules within a
-directory hierarchy, the process remains the same. For instance,
-consider an application named `zarah` with the following directory
-hierarchy:
-
-
-
-
-A module is implemented in a file with a `.sa` suffix and the module
-name is the basename of the filename. A module hiearchy is implemented
-as a nested hierachy of directories.
-
-Nothing new here but is all in the details.
-
-A module hierarchy is a nice way to organize code and in the example
-below a module uses the `foreach` and ` writeln` functions from the
-standard libray:
+A directory hierarchy of modules is a nice way to organize code and in
+the example below a module uses the `foreach` and ` writeln` functions
+from the standard libray:
 
 ```
 import std.stdio
@@ -1314,11 +1288,11 @@ export fn main(args) {
 ```
 
 The name of the modules in the standard library must be specified when
-calling `foreach` and `writeln`, i.e. nothing is automatically
-imported into the namespace of module itself.
+in the call to `foreach` and `writeln`, i.e. nothing is automatically
+imported into the moduole namespace.
 
-It is possible to import functions and enumerations etc into the
-namespace the module:
+It is possible to import functions and enumerations into a module
+namespace:
 
 ```
 import std.stdio : writeln
@@ -1329,11 +1303,14 @@ export fn main(args) {
 }
 ```
 
-In the [Building and Executing](building-and-executing) chapter the
-*zarah* project was introduced and it had the follwoing module
-hierarchy:
+In the [Building and Executing](building-and-executing) above the
+*zarah* project was introduced and it had the following directry
+hierarchy of modules:
 
 ```
+$ cd zarah
+$ find .
+.
 ./src
 ./src/main.sa
 ./src/utils
@@ -1342,17 +1319,10 @@ hierarchy:
 ./src/database/backup.sa
 ./src/database/utils
 ./src/database/tablestore.sa
-
-./src
-./src/main.sa
-./src/database/tablestore.sa
-./src/database/backup.sa
-./src/database/utils/lists.sa
-./src/utils/httpclient.sa
 ```
 
-The modules `std.lists` and `database.utils.lists` has the same module
-name and to resolve this import aliasing is used:
+Note the modules `std.lists` and `database.utils.lists` has the same
+module name and to resolve this fact an import aliasing must be done:
 
 ```
 import std.stdio : writeln
