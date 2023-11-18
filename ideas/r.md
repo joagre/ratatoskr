@@ -84,7 +84,7 @@ The following design choices have been made (in some sort of order):
   large amounts of data efficiently. However, there are limits to
   Satie's purity; no monads.
 
-### A fusion of application and scripting language
+### A fushion of application and scripting language
 
 * Satie aims to strike a balance between a fully-fledged application
   language and a scripting language, as highlighted by the reasons
@@ -367,7 +367,7 @@ already executing application can be inspected, i.e a shell can be
 made to connect to an already executing `sa` runner instance. Read
 more about this and more in the `sa` runner's manual page.
 
-# The Gory Details
+# The gory details
 
 ## Comments
 
@@ -376,7 +376,7 @@ considered comments.
 
 ## Types
 
-### Basic Types
+### Basic types
 
 `bool` : A boolean value
 
@@ -399,7 +399,7 @@ on, aligning with the specific architecture.
 
 `enum`: An enumeration value
 
-### Composite Types
+### Composite types
 
 `string` : An immutable sequence of UTF-8 encoded characters
 
@@ -414,7 +414,7 @@ functions
 
 `buf` : A buffer to efficiently manipulate large amount of characters
 
-### Type Management
+### Type management
 
 All values can be type checked in run-time using the functions
 `isBool`, `isInt`, `isFloat`, `isChar`, `isFunction`, `isJob`,
@@ -522,11 +522,11 @@ self
 
 ## Literals
 
-### Boolean Literals
+### Boolean literal
 
 `true` or `false`
 
-### Integral Literals
+### Integral literal
 
 An integral literal can be represented as decimal, octal and
 hexadecimal format
@@ -538,7 +538,7 @@ hexadecimal format
 0b101010100    // Binary format
 ```
 
-### Floating-point Literal
+### Floating-point literal
 
 A floating point literal represents a real number that includes a
 fractional part. Its notation is similar to that used in other
@@ -549,7 +549,7 @@ languages like C or Java.
 .666e2
 ```
 
-### Character Literal
+### Character literal
 
 A character literal is a Unicode code point value enclosed within
 single quotation marks. Internally, it consists of foure bytes.
@@ -560,7 +560,7 @@ single quotation marks. Internally, it consists of foure bytes.
 '\u03c9'    // ω
 ```
 
-### Function Literal
+### Function literal
 
 A function literal follows the same syntax as regular [function
 definitions](function), but without a function name.
@@ -570,11 +570,11 @@ definitions](function), but without a function name.
 sum(1, 2)                   // 3
 ```
 
-### Job Literals
+### Job literal
 
 Job literals are opaque.
 
-### Enumeration Literal
+### Enumeration literal
 
 An enumeration is a named constant, and it's always defined
 within a [enumeration definition](enumeration). An enumeration literal
@@ -591,7 +591,7 @@ enum Color {
 Color.red                   // An enumeration literal
 ```
 
-### String Literal
+### String literal
 
 A string literal is represented as an immutable UTF-8 encoded sequence
 of Unicode characters, enclosed within double quotation marks. Escape
@@ -607,7 +607,7 @@ a[3],               // 'ω'
 ?b = r"foo\nbar"    // b.length == 8
 ```
 
-### Tuple Literal
+### Tuple literal
 
 A tuple literal is represented as comma separated, fixed size sequence
 of values of any type. This sequence is enclosed between a leading
@@ -639,7 +639,7 @@ a `:` character. Thus sequence is enclosed within square brackets.
 a[3.14: 4711, 2 : 4]                         // ["foo" : 12, 3.14: 4711, 2 : 4],
 ```
 
-### Struct Literal
+### Struct literal
 
 A struct literal is represented as a semicolon-separated sequence of
 member-value pairs. Each pair consists of a member (which is an
@@ -722,9 +722,9 @@ main() {
 }
 ```
 
-### Control Flow Expressions
+### Control flow expressions
 
-#### Block Expression -- `{` a, b, c, ... `}`
+#### Block expression -- `{` a, b, c, ... `}`
 
 A block expression is a comma-separated sequence of expressions
 enclosed in curly braces. Expressions are evaluated in a sequence and
@@ -747,7 +747,7 @@ main() {                  // A function block starts here
 }
 ```
 
-#### If Expression -- `if`, `elif`, `else`
+#### If expression -- `if`, `elif`, `else`
 
 No surprises here.
 
@@ -762,7 +762,7 @@ No surprises here.
 b         // 42
 ```
 
-#### Switch Expression -- `switch`, `case`, `default`
+#### Switch expression -- `switch`, `case`, `default`
 
 A switch expression uses pattern matching to dispatch between its case
 paths but also to do deconstruction as introduced in the
@@ -806,7 +806,7 @@ No more no less.
 > optional. Switch fall through must be next most expensive mistake
 > not counting Hoare's null pointer. YMMV.
 
-### Value Expressions
+### Value expressions
 
 #### Enumeration
 
@@ -1138,84 +1138,6 @@ becomes a comprehensive and robust tool for building a programming
 editor, offering a wide range of functionalities required for text
 editing and manipulation in a functional programming environment.
 
-# Hierarchy of Modules
-
-A module is implemented in a file with a `.sa` suffix and the module
-name is the basename of the filename. A module hiearchy is implemented
-as a nested hierachy of directories.
-
-Nothing new here but is all in the details.
-
-A module hierarchy is a nice way to organize code and in the example
-below a module uses the `foreach` and ` writeln` functions from the
-standard libray:
-
-```
-import std.stdio
-import std.lists
-
-export fn main(args) {
-  lists.foreach(fn (arg) { stdio.writeln("$arg") }, args)
-}
-```
-
-The name of the modules in the standard library must be specified when
-calling `foreach` and `writeln`, i.e. nothing is automatically
-imported into the namespace of module itself.
-
-It is possible to import functions and enumerations etc into the
-namespace the module:
-
-```
-import std.stdio : writeln
-import std.lists : foreach
-
-export fn main(args) {
-  foreach(fn (arg) { writeln("$arg") }, args)
-}
-```
-
-In the [Building and Executing](building-and-executing) chapter the
-*zarah* project was introduced and it had the follwoing module
-hierarchy:
-
-```
-./src
-./src/main.sa
-./src/utils
-./src/utils/httpclient.sa
-./src/database
-./src/database/backup.sa
-./src/database/utils
-./src/database/tablestore.sa
-
-./src
-./src/main.sa
-./src/database/tablestore.sa
-./src/database/backup.sa
-./src/database/utils/lists.sa
-./src/utils/httpclient.sa
-```
-
-The modules `std.lists` and `database.utils.lists` has the same module
-name and to resolve this import aliasing is used:
-
-```
-import std.stdio : writeln
-import std.lists
-import dlists = database.utils.lists
-import database
-
-export fn main(args) {
-  lists.foreach(fn (arg) { writeln("$arg") }, args)  // as before
-  dlists.removeReference(fn (staleReference) {
-      database.removeReference(staleReference)
-  }, database.getStaleReferences())
-}
-```
-
-That is it.
-
 # Concurrency
 
 Any function can be spawned to run as a concurrent job with the
@@ -1300,7 +1222,7 @@ send a result back as a message.
 
 ### An example
 
-Right in your face.
+Right in your face:
 
 ```
 import std.jobs : OnCrowding, Job
@@ -1308,7 +1230,7 @@ import std.stdio
 import std.lists
 
 export fn main() {
-  ?ackermann = new Ackermann(),
+  ?ackermann = struct Ackermann(),
   ?ackermann = ackermann.startJobs(3, 10),
   ackermann.waitForJobs()
 }
@@ -1360,6 +1282,93 @@ struct Ackermann {
     }
 }
 ```
+*Source: [ackermann.sa](../grammar/ackermann.sa)*
+
+# Directory hierarchy of modules
+
+A Satie application can composed of multiple modules within a
+directory hierarchy, the process remains the same. For instance,
+consider an application named `zarah` with the following directory
+hierarchy:
+
+
+
+
+A module is implemented in a file with a `.sa` suffix and the module
+name is the basename of the filename. A module hiearchy is implemented
+as a nested hierachy of directories.
+
+Nothing new here but is all in the details.
+
+A module hierarchy is a nice way to organize code and in the example
+below a module uses the `foreach` and ` writeln` functions from the
+standard libray:
+
+```
+import std.stdio
+import std.lists
+
+export fn main(args) {
+  lists.foreach(fn (arg) { stdio.writeln("$arg") }, args)
+}
+```
+
+The name of the modules in the standard library must be specified when
+calling `foreach` and `writeln`, i.e. nothing is automatically
+imported into the namespace of module itself.
+
+It is possible to import functions and enumerations etc into the
+namespace the module:
+
+```
+import std.stdio : writeln
+import std.lists : foreach
+
+export fn main(args) {
+  foreach(fn (arg) { writeln("$arg") }, args)
+}
+```
+
+In the [Building and Executing](building-and-executing) chapter the
+*zarah* project was introduced and it had the follwoing module
+hierarchy:
+
+```
+./src
+./src/main.sa
+./src/utils
+./src/utils/httpclient.sa
+./src/database
+./src/database/backup.sa
+./src/database/utils
+./src/database/tablestore.sa
+
+./src
+./src/main.sa
+./src/database/tablestore.sa
+./src/database/backup.sa
+./src/database/utils/lists.sa
+./src/utils/httpclient.sa
+```
+
+The modules `std.lists` and `database.utils.lists` has the same module
+name and to resolve this import aliasing is used:
+
+```
+import std.stdio : writeln
+import std.lists
+import dlists = database.utils.lists
+import database
+
+export fn main(args) {
+  lists.foreach(fn (arg) { writeln("$arg") }, args)  // as before
+  dlists.removeReference(fn (staleReference) {
+      database.removeReference(staleReference)
+  }, database.getStaleReferences())
+}
+```
+
+That is it.
 
 # Appendix A: Operator precedence
 
@@ -1472,7 +1481,7 @@ PrimaryExpr <- "this" /
                Literal /
                ControlFlowExpr /
                SpawnExpr /
-               NewExpr /
+               StructExpr /
                UnboundVariable /
                Identifier /
                "(" _ Expr _ ")"
@@ -1537,17 +1546,13 @@ StructLiteral <- "[" _ MemberValues? _ "]"
 MemberValues <- MemberValue (_ "," _ MemberValue)*
 MemberValue <- Identifier _ ";" _ Expr
 
-ControlFlowExpr <- IfExpr / SwitchExpr / MatchExpr / ReceiveExpr / BlockExpr
+ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
 
 IfExpr <- "if" __ Expr _ BlockExpr
           (_ "elif" __ Expr _ BlockExpr)*
           (_ "else" _ BlockExpr)?
 
-SwitchExpr <- "switch" __ Expr _ "{"
-              (_ "case" _ Expr _ BlockExpr)+
-              (_ "default" _ BlockExpr)? _ "}"
-
-MatchExpr <- "match" __ Expr _ "{"
+SwitchExpr <- "match" __ Expr _ "{"
              (_ "case" __ Expr _ BlockExpr)+ _ "}"
 
 ReceiveExpr <- "receive" _ "{"
@@ -1556,7 +1561,7 @@ ReceiveExpr <- "receive" _ "{"
 
 SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
 
-NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
+StructExpr <- "struct" _ Identifier _ "(" _ Args? _ ")"
 
 UnboundVariable <- "?" _ Identifier
 
@@ -1635,3 +1640,73 @@ EOL <- "\r\n" / "\n" / "\r"
 BlockComment <- "/*" (!"*/" .)* "*/"
 EOF <- _ !.
 ```
+
+# Appendix C: A todo list
+
+```
+import std.stdio : writeln
+import std.lists
+
+struct TodoItem {
+    private description
+    private completed
+
+    this(description) {
+        this(descriptor: descriptor, completed: false)
+    }
+
+    public fn markCompleted() {
+        this(completed: true)
+    }
+
+    public fn toString() {
+       if completed {
+           "[x] "
+       } else {
+           "[ ] "
+       }
+    }
+}
+
+struct TodoList {
+    private items = [:]
+
+    public fn addItem(tag, description) {
+        ?item = struct TodoItem(tag, description),
+        this(items: [tag : description] ~ items)
+    }
+
+    public fn markItemCompleted(tag) {
+        ?item = items[tag].markCompleted(),
+        this(items: item ~ items.delete(tag))
+    }
+
+    public fn displayItems() {
+        lists.foreach(fn () { writeln(item.toString())}, items)
+    }
+}
+
+export fn main() {
+    fn loopUntilQuit(todoList) {
+        ?input = stdio.readLine(stdio.Stream.stdin),
+        if input.command == "add" {
+            ?todoList = todoList.addItem(input.description),
+            loopUntilQuit(todoList)
+        } elif input.command == "complete" {
+            ?todoList = todoList.markItemCompleted(input.index),
+            loopUntilQuit(todoList)
+        } elif input.command == "show" {
+            todoList.displayItems(),
+            loopUntilQuit(todoList)
+        } elif input.command == "quit" {
+            0
+        } else {
+          stdio.writeln("Unknown command: $input.command"),
+          loopUntilQuit(todoList)
+        }
+    },
+    ?todoList = struct TodoList(),
+    loopUntilQuit(todoList)
+}
+```
+*Source: [todo.sa](../grammar/todo.sa)*
