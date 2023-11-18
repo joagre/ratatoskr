@@ -1,4 +1,4 @@
-# The Satie Programming Language
+# The Satie programming language
 
 ## Introduction
 
@@ -60,7 +60,7 @@ That said.
 
 The following design choices have been made (in some sort of order):
 
-### Concurrent Oriented
+### Concurrent Oriented Programming (COP)
 
 * Satie is built on a custom multi-core virtual machine (VM) that
   offers robust support for time-sliced green threads, hereafter
@@ -76,81 +76,92 @@ The following design choices have been made (in some sort of order):
   the creation of supervisor jobs, which can start and restart
   children jobs should they unexpectedly fail.
 
+### Functional and immutable
 
+* Satie is a pure functional programming language featuring native
+  persistent datatypes at its core. All data within Satie is
+  immutable, and the persistent datatypes are custom-built to handle
+  large amounts of data efficiently. However, there are limits to
+  Satie's purity; no monads.
 
+### A fusion of application and scripting language capabilities
 
+* Satie aims to strike a balance between a fully-fledged application
+  language and a scripting language, as highlighted by the reasons
+  mentioned above. This is evident in its choice of semantics, syntax,
+  type system, support for object-orientation, and other aspects.
 
+### Dynamically typed with type inference capabilities
 
+* Satie is dynamically typed and offers a concise set of basic and
+  composite types. Its compiler employs Hindley-Milner type inference
+  to deduce the types of variables, expressions, and functions.
 
+* Semantic and syntactic considerations have been made to facilitate
+  the future addition of a gradual type system.
 
+* Satie's dynamic type system utilizes a Garbage Collection (GC)
+  mechanism that is carefully designed to perform garbage collection
+  on a job basis. This approach is intended to prevent the GC process
+  from becoming a "stop-the-world" activity.
 
+### A streamlined syntax using curly braces
 
+* Satie, as a compact language, features a clean, regular, and
+  minimalist syntax that aligns with the tradition of curly braces
+  languages. This includes the use of well-known reserved words,
+  syntax conventions, and scoping rules.
 
+* The principle of least surprise has been a guiding factor in Satie's
+  development. However, in Satie, everything is an expression; there
+  are no statements (and consequently, no semicolons). Due to this
+  designchoice, certain syntactic constructs might appear unorthodox,
+  yet they embody a regular and consistent syntax.
 
+* The syntax of the D and Erlang programming languages has heavily
+  influenced Satie's design where applicable. Another key principle
+  has been to create a syntax that is both familiar and visually
+  appealing, though ultimately, you'll be the judge of that. Satie
+  uses only a few keywords and has an even smaller set of
+  operators. The complete syntax is formally defined as a Parsing
+  Expression Grammar (PEG) in Appendix B.
 
-### Functional and Immutable
+### Pattern matching in its core
 
- * Satie is a pure functional programming language with native
-   persistent datatypes in its core. All data is immutable and the
-   persistent datatypes have been custom built to efficiently handle
-   large amount of data. There are limits to Satie's purity though. No
-   monads.
+* Satie incorporates pattern matching as a fundamental feature, with
+  the `=` operator primarily serving pattern matching rather than
+  traditional assignment (emphasizing the absence of mutable
+  updates). Essentially, everything can be matched and deconstructed
+  using pattern matching in conjunction with the = operator.
 
- * Satie tries to be a balanced blend between a fully fledged
-   application language and a script language for reasons given
-   above. This shines through in its choice of semantics, syntax, type
-   system, object-orientation support and more.
+* Pattern matching is also employed by the `switch` expression in
+  Satie. Furthermore, the `receive` expression utilizes pattern
+  matching to perform selective reception of messages in a job's
+  mailbox.
 
- * Satie is dynamically typed and comes with a small set of basic
-   types (`bool`, `int`, `flot`, `char`, `function`, `job` and `enum`)
-   and composite types (`string`, `tuple`, `list`, `map` and
-   `struct`). The compiler uses Hindley–Milner type inference to deduce
-   the types of variables, expressions and functions. Semantic and
-   syntactic care has been taken to make it feasible to add a gradual
-   type system later on.
+### A custom-built Virtual Machine (VM)
 
- * Satie's dynamic type system relies on a Garbage Collect (GC)
-   mechanism that takes great care to do garbage collection on a job
-   basis. All to avoid the GC mechanism becoming a stop-the-world
-   activity.
+* Satie operates on a custom-built virtual machine (VM), which
+  includes a multi-core and time-slicing job scheduler. This scheduler
+  runs multiple instances, one for each job, of a custom-built
+  register machine.
 
- * Satie is a small language and should be easy to learn. It has a
-   clean, regular and minimalist syntax adhering to the school of
-   curly braces languages, i.e. it uses well known reserved words,
-   syntax and scoping rules. The element of least surprise has been a
-   leading principle but in Satie everything is an expression, i.e. no
-   statements to be seen (and no semicolons). Because of this certain
-   syntactical constructs may seem unorthodox even though they
-   represent a regular and consistent syntax. The syntax of the D and
-   Erlang programming language have been heavy influencers when
-   applicable and another leading principle has been to make the
-   syntax familiar and easy on the eye, but you have to be the judge
-   on that. Satie reserves 25 keywords and sports few operators and the
-   complete syntax is formally defined as a PEG grammar in appendix B.
+* The Virtual Machine (VM) and its scheduler are designed to have a
+  small memory footprint. Each job, when initially started, allocates
+  1KB for its heap and stack (excluding the program code).
 
- * Satie has pattern matching in its core and the `=` operator is
-   actually all about pattern matching rather than assignment (*there
-   must not be mutable updates*). Everything can be matched and taken
-   apart with the help of a pattern matching in combination with the
-   `=` operator. Pattern matching is also used by the `switch`
-   expression and the `receive` expression also uses pattern matching to do
-   selective receive on messages in a job's mailbox.
+* The VM is standalone and has minimal dependencies, making it easily
+  portable to systems with restricted capabilities.
 
- * Satie is implemented using a custom built VM consisting of a
-   multi-core and time slicing job scheduler running multiple
-   instances (one for each job) of a custom built register
-   machine. The VM and its scheduler has a small memory footprint and
-   each job startedinitially only allocates 1KB for its heap and stack
-   (program code excluded). The VM is standalone and has few
-   dependencies making it easy to port to restricted targets.
+### Encapsulation/Object-orientation
 
- * Great care has been taken to add a purely functional and
-   encapsulating `struct` definition. It makes it possible group member
-   variables and member functions using well known C++/Java member
-   modifiers such as `public`,  `private`, `const` and `this`
-   references and more.
+* Considerable effort has been invested in introducing a purely
+  functional and encapsulating `struct` definition. This allows for
+  the grouping of member variables and functions using familiar
+  C++/Java member modifiers such as `public`, `private`, and `const`,
+  as well as `this` references and more.
 
-Many things are by design not a part of Satie:
+Many features are intentionally excluded from Satie by design, including:
 
  * Pointers
  * Type specifications
@@ -163,7 +174,7 @@ Many things are by design not a part of Satie:
  * Inheritance
  * Monads
 
-and more I am sure you will miss.
+There are most likely other elements that you might miss.
 
 ## Overall Structure
 
