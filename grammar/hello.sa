@@ -2,15 +2,15 @@ import std.stdio : writeln
 import std.lists
 
 export fn main(args) {
-    ?n = args[1],
-    ?jobs = hello(n),
+    ?numberOfTributes = args[1],
+    ?jobs = startTributes(numberOfTributes),
     lists.foreach(fn (job) {
         job <| "Standing on the shoulders of giants"
     }, jobs)
 }
 
-fn hello(n, jobs = []) {
-    if n > 0 {
+fn startTributes(m, n = m, jobs = []) {
+    if n < m {
         ?job = spawn fn () {
             receive {
                 case ?message {
@@ -18,7 +18,7 @@ fn hello(n, jobs = []) {
                 }
             }
         },
-        hello(n - 1, job ~ jobs)
+        startTributes(m, n + 1, job ~ jobs)
     } else {
         jobs
     }

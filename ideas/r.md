@@ -3,18 +3,18 @@
 ## Introduction
 
 Satie is envisioned as a forward-thinking programming language, ideal
-for crafting the programming editor of tomorrow. Its capabilities
+for crafting programming editors of tomorrow. Its capabilities
 extend beyond merely constructing the editor; it is also adept at
 serving as the scripting language for creating editor plugins and
 customizations. Yet, the essence of Satie lies in its versatility — it
-is a purpose-built language and Virtual Machine (VM) that boasts a
+is a purpose-built language and Virtual Machine (VM) that boast a
 high degree of generality, adaptable to a wide range of applications.
 
 Satie owes much to the great people behind the
 [Erlang](https://www.erlang.org/) and [D](https://dlang.org/)
 programming languages (and all people standing behind [and beside] them).
 
-All rise.
+All rise. A tribute and crash course:
 
 ```
 $ cat hello.sa
@@ -23,13 +23,13 @@ import std.lists
 
 export fn main(args) {
     ?n = args[1],
-    ?jobs = hello(n),
+    ?jobs = startTributes(n),
     lists.foreach(fn (job) {
         job <| "Standing on the shoulders of giants"
     }, jobs)
 }
 
-fn hello(n, jobs = []) {
+fn startTributes(n, n = n, jobs = []) {
     if n > 0 {
         ?job = spawn fn () {
             receive {
@@ -38,7 +38,7 @@ fn hello(n, jobs = []) {
                 }
             }
         },
-        hello(n - 1, job ~ jobs)
+        startTributes(n - 1, job ~ jobs)
     } else {
         jobs
     }
@@ -49,9 +49,7 @@ $ sac hello.sa && sa hello 100000
 2: Standing on the shoulders of giants
 3: Standing on the shoulders of giants
 ...
-...
 99999: Standing on the shoulders of giants
-100000: Standing on the shoulders of giants
 ```
 *Source: [hello.sa](../grammar/hello.sa)*
 
