@@ -1087,7 +1087,7 @@ becomes a comprehensive and robust tool for building a programming
 editor, offering a wide range of functionalities required for text
 editing and manipulation in a functional programming environment.
 
-## Hierarchy of Modules
+# Hierarchy of Modules
 
 A module is implemented in a file with a `.sa` suffix and the module
 name is the basename of the filename. A module hiearchy is implemented
