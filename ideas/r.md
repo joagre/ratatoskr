@@ -1062,7 +1062,7 @@ API overview:
 
 1. Reading and Access
 
-* `charAt(index)`: Returns the character at a specified index.
+   * `charAt(index)`: Returns the character at a specified index.
    * `substring(startIndex, endIndex)`: Retrieves a substring from the
      buffer.
    * `length()`: Provides the length of the text in the buffer.
