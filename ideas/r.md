@@ -4,8 +4,8 @@
 
 Satie is envisioned as a forward-thinking programming language, ideal
 for crafting programming editors of tomorrow. Its capabilities
-extend beyond merely constructing editors; it is also adept at serving
-as the scripting language for creating editor plugins and
+extend beyond merely constructing editors though; it is also adept at
+serving as the scripting language for creating editor plugins and
 customizations. Yet, the essence of Satie lies in its versatility — it
 is a purpose-built language and Virtual Machine (VM) that boast a high
 degree of generality, adaptable to a wide range of applications.
