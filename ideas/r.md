@@ -211,7 +211,7 @@ struct ColorIterator : Iterator {
     private graffiti
 
     this(colors) {
-        this(colors: colors, graffiti: "Killroy was here")
+        this(colors: colors, graffiti: "Kilroy was here")
     }
 
     public fn next() {
@@ -229,12 +229,12 @@ struct ColorIterator : Iterator {
 
 export fn main() {
     ?colors = [Color.red, Color.red, Color.blue, Color.green],
-    ?iterator = new ColorIterator(colors),
+    ?iterator = struct ColorIterator(colors),
     fn iterate(iterator) {
         if (iterator.hasNext()) {
-            #(?nextIterator, ?color) = iterator.next(),
+            #(?iterator, ?color) = iterator.next(),
             writeln("Color: $color"),
-            iterate(nextIterator)
+            iterate(iterator)
         }
     },
     iterate(iterator)
