@@ -29,8 +29,8 @@ export fn main(args) {
     }, jobs)
 }
 
-fn startTributes(m, n = m, jobs = []) {
-    if n < m {
+fn startTributes(numberOfTributes, n = 0, jobs = []) {
+    if n < numberOfTributes {
         ?job = spawn fn () {
             receive {
                 case ?message {
@@ -38,7 +38,7 @@ fn startTributes(m, n = m, jobs = []) {
                 }
             }
         },
-        startTributes(m, n + 1, job ~ jobs)
+        startTributes(numberOfTributes, n + 1, job ~ jobs)
     } else {
         jobs
     }
