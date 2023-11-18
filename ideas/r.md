@@ -1059,21 +1059,16 @@ API overview:
    * `fromString(string)`: Creates a buf from a given string.
    * `fromFile(filePath, lazyLoad)`: Initializes a buf from a file,
      with optional lazy loading for large files.
-
 1. Reading and Access
-
    * `charAt(index)`: Returns the character at a specified index.
    * `substring(startIndex, endIndex)`: Retrieves a substring from the
      buffer.
    * `length()`: Provides the length of the text in the buffer.
-
 1. Text Modification
-
    * `insert(index, string)`: Inserts a string at the specified index.
    * `delete(startIndex, endIndex)`: Deletes text between given indices.
    * `replace(startIndex, endIndex, string)`: Replaces a segment of
      text with a new string.
-
 1. Text Selection and Clipboard Operations
    * `select(startIndex, endIndex)`: Selects text between given indices.
    * `cut(startIndex, endIndex)`: Cuts (removes and copies) the
