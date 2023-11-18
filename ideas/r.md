@@ -59,7 +59,7 @@ That said.
 
 The following design choices have been made (in some sort of order):
 
-#### Concurrent Oriented
+### Concurrent Oriented
 
  * Satie is built on a custom built multi-core VM with strong support
    for  time sliced green threads (from now on called *jobs*). Jobs
@@ -71,7 +71,7 @@ The following design choices have been made (in some sort of order):
    jobs that are responsible to restart jobs if they should die
    unexpectedly.
 
-#### Functional and Immutable
+### Functional and Immutable
 
  * Satie is a pure functional programming language with native
    persistent datatypes in its core. All data is immutable and the
