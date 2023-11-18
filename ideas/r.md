@@ -2,19 +2,21 @@
 
 ## Introduction
 
-Satie is envisioned as a forward-thinking programming language, ideal
-for crafting programming editors of tomorrow. Its capabilities
-extend beyond merely constructing editors though; it is also adept at
-serving as the scripting language for creating editor plugins and
-customizations. Yet, the essence of Satie lies in its versatility — it
-is a purpose-built language and Virtual Machine (VM) that boast a high
-degree of generality, adaptable to a wide range of applications.
+Satie is envisioned as a forward-thinking programming language, suited
+for developing the programming editors of tomorrow. Its capabilities
+extend beyond just constructing editors; Satie also excels as a
+scripting language for creating editor plugins and
+customizations. However, the true essence of Satie lies in its
+versatility. It is a purpose-built language and Virtual Machine (VM)
+that boasts a high degree of generality, making it adaptable to a wide
+array of applications.
 
-Satie owes much to the people behind the
+Satie owes a great deal to the individuals behind the
 [Erlang](https://www.erlang.org/) and [D](https://dlang.org/)
-programming languages (and all people standing behind [and beside] them).
+programming languages, as well as all those who stand with them and
+support their efforts.
 
-All rise. A tribute and crash course:
+All rise. Here is a tribute and a crash course:
 
 ```
 $ cat tribute.sa
@@ -60,16 +62,28 @@ The following design choices have been made (in some sort of order):
 
 ### Concurrent Oriented
 
-* Satie is built on a custom built multi-core VM with strong support
-  for  time sliced green threads (from now on called *jobs*). Jobs
-  have share nothing semantics rely solely on message passing to
-  make it easier to reason about, and implement highly concurrent,
-  massively scalable soft real-time systems with an emphasis on fault
-  tolerance and high availability.
+* Satie is built on a custom multi-core virtual machine (VM) that
+  offers robust support for time-sliced green threads, hereafter
+  referred to as *jobs*. These jobs adhere to a "share-nothing"
+  semantics and depend exclusively on message passing for
+  communication. This architecture simplifies the process of designing
+  and implementing highly concurrent, massively scalable soft
+  real-time systems. It emphasizes fault tolerance and high
+  availability, making it easier to reason about such systems.
 
-* Jobs can create monitors and links between each other and this makes
-  it possible to write supervisor jobs that are responsible to start
-  and restart jobs should die unexpectedly.
+* Jobs have the capability to establish *monitors* and *links* (which
+  are bidirectional monitors) with one another. This feature enables
+  the creation of supervisor jobs, which can start and restart
+  children jobs should they unexpectedly fail.
+
+
+
+
+
+
+
+
+
 
 
 
