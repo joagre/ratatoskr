@@ -960,42 +960,42 @@ a == d                         // true
 
 #### Encapsulation -- `struct`
 
-Member values and member functions and structs can
-only be defined as top-level defintions in each module.
+A struct in Satie is more that a struct in C. It is immutable and
+functional in its nature and it a unit of encapsulation for member
+variables and functions.
+
+Lets dive right in:
 
 ```
 struct Foo {
-  public a = 1,
-  private b = 2,
-  public readonly c = 3,
-  public const d = 4,
-  private const e = 5,
+    public a = 1
+    private b = 2
+    readonly c = 3
+    public const d = 4
+    private const e = 5
 
-  this(a, g) {          // Optional constructor
-    this.a = a;
-    b = g;
-  }
+    this(a, g) {          // Optional constructor
+        this(a: a, b: g)
+    }
 
-  ~this(a, g) {         // Optional destructor
-    this.a = a;
-    b = g;
-  }
+    ~this() {             // Optional destructor
+        // Do nothing for now
+    }
 
-  public fn foo() {
-    a + b;
-  }
+    public fn foo(a) {
+        this.a + b;
+    }
 
-  private fn bar(b) {
-    c + d
-  }
+    private fn bar(b) {
+        b + d
+    }
 }
 ```
 
 A struct Foo can be instantiated like this:
 
 ```
-a = struct Foo
-b = struct Foo(2, 1)
+?a = struct Foo(2, 1)
 ```
 
 A struct may choose to implement mandatory interfaces. An interface
@@ -1004,7 +1004,8 @@ the struct. An interface definition looks like this:
 
 ```
 interface Bar {
-  public fn bonk()
+    public zippo
+    public fn bonk()
 }
 ```
 
@@ -1012,36 +1013,33 @@ A struct which decides to implement this interface looks looks like this:
 
 ```
 struct Foo : Bar {
+    public zippo = 8
     public fn bonk() {
-        0;
+        // Delve into the nature of God
     }
     ...
 }
 ```
 
 A struct can implement several interfaces using a comma separated
-sequence of interfaces.
+sequence of interfaces:
 
 ```
 struct Foo : Bar, Bonk {
-    public fn bonk() {
-        0;
-    }
     ...
 }
 ```
 
-A struct can also be defined as a singleton. It means what you think.
-
-If you need to define a bunch of constants you do this in a singleton
-struct:
+If you need to define a bunch of constants this is how it is done:
 
 ```
-singleton struct Math {
-    const PI = 3.1;
-    const SQUARE2 = math.sqrt(2);
+struct Math {
+    public const PI = 3.1;
+    public const SQUARE2 = math.sqrt(2);
 }
 ```
+
+And yes, this struct has to be instantiated somewhere. No static.
 
 #### Buf(fer) -- `buf`
 
