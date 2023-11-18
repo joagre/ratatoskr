@@ -10,7 +10,7 @@ customizations. Yet, the essence of Satie lies in its versatility — it
 is a purpose-built language and Virtual Machine (VM) that boast a high
 degree of generality, adaptable to a wide range of applications.
 
-Satie owes much to the great people behind the
+Satie owes much to the people behind the
 [Erlang](https://www.erlang.org/) and [D](https://dlang.org/)
 programming languages (and all people standing behind [and beside] them).
 
@@ -43,7 +43,8 @@ fn startTributes(numberOfTributes, n = 0, jobs = []) {
         jobs
     }
 }
-$ sac tribute.sa && sa build/hello 100000
+$ sac tribute.sa
+$ sa build/tribute 100000
 0: Standing on the shoulders of giants
 1: Standing on the shoulders of giants
 2: Standing on the shoulders of giants
@@ -59,15 +60,19 @@ The following design choices have been made (in some sort of order):
 
 ### Concurrent Oriented
 
- * Satie is built on a custom built multi-core VM with strong support
-   for  time sliced green threads (from now on called *jobs*). Jobs
-   have share nothing semantics relying solely on message passing to
-   make it easier to reason about, and implement highly concurrent,
-   massively scalable soft real-time systems with an emphasis on fault
-   tolerance and high availability. Jobs can create monitors and links
-   between each other and this makes it possible to write supervisor
-   jobs that are responsible to restart jobs if they should die
-   unexpectedly.
+* Satie is built on a custom built multi-core VM with strong support
+  for  time sliced green threads (from now on called *jobs*). Jobs
+  have share nothing semantics rely solely on message passing to
+  make it easier to reason about, and implement highly concurrent,
+  massively scalable soft real-time systems with an emphasis on fault
+  tolerance and high availability.
+
+* Jobs can create monitors and links between each other and this makes
+  it possible to write supervisor jobs that are responsible to start
+  and restart jobs should die unexpectedly.
+
+
+
 
 ### Functional and Immutable
 
