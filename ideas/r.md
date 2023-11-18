@@ -63,7 +63,7 @@ The following design choices have been made (in some sort of order):
 ### Concurrent Oriented Programming (COP)
 
 * Satie is built on a custom multi-core virtual machine (VM) that
-  offers robust support for time-sliced green threads, hereafter
+  offers robust support for time-sliced green threads, here after
   referred to as *jobs*. These jobs adhere to a "share-nothing"
   semantics and depend exclusively on message passing for
   communication. This architecture simplifies the process of designing
@@ -177,20 +177,20 @@ including:
 
 There are most likely other elements that you might miss as well.
 
-## Overall Structure
+## Overall structure
 
-A Satie file has a `.sa` suffix and constitute a Satie *module* with
-the same name as the basename of its filename. Why make it more
-complicated? A satie file starts with a number of import statements
-which are followed by a mix of `enum`, `interface`, `struct` and `fn`
-(function) definitions (in any order).
+A Satie file is identified by a `.sa` suffix and constitutes a Satie
+*module* named after the basename of its filename. Why complicate
+things? A Satie file begins with a series of import defintions,
+followed by a mix of `enum`, `interface`, `struct`, and `fn`
+(function) definitions, which can be arranged in any order.
 
-`struct`, `enum`  and `interface` definitions are **only** allowed on
-the top level of a module. Function definitions can be nested
-arbitrarily within other function definitions though.
+`struct`, `enum`, and `interface` definitions are **only** permitted
+at the top level of a module. However, function definitions can be
+nested within other function definitions freely.
 
-A single exported main function must be defined in exactly one of the
-Satie modules that constitutes an application.
+In a Satie application, exactly one of the Satie modules must define a
+single exported main function.
 
 ```
 import std.stdio : writeln
@@ -242,59 +242,63 @@ export fn main() {
 ```
 *Source: [color.sa](../grammar/color.sa)*
 
-That was boring but hopefully informative. Noteworthy is that
-the Satie module above has one exported function (the famous `main`
-function). A module can define as many functions it needs on the top
-level (exported or not) but it is a good idea to define functions as
-member functions in structes to avoid function cluttering. Only
-functions being marked with `export` can be imported by other
-modules. The `struct`, `enum` and `interface` definitions can be
-imported by other modules without restrictions though.
+That was boring but hopefully informative. A module can define as many
+top-level functions as needed, whether exported or not. However, it's
+advisable to define functions as member functions within structs to
+prevent cluttering of the global function namespace.
 
-`#(` .. `)` is a tuple and the question mark before a variable informs
-the compiler that it is to be seen as unbound (even if it was bound
-before). If the question mark is omitted the compiler makes sure
-that the variable is already bound, and a run-time a check is made to
-verify that the bound variable matches the rvalue. This may sound
-harsh but match patterns are also used by the `match` and `receive`
-expressions (see below).
+Only functions marked with the `export` keyword can be imported by
+other modules.
 
-The final thing that might be confusing is how the `this` constructor
-calls itself, but this is the final step a constructor has to perform
-to actually initialize its member variables. The `:` notation is
-Satie's way to call a function with named parameters and a constructor
-can also call itself with its member variables as named parameters.
+`struct`, `enum`, and `interface` definitions can be imported by other
+modules without any restrictions though.
 
-That is it. The rest is in the gory details.
+`#(` ... `)` defines a tuple, and placing a question mark before a
+variable informs the compiler that the variable should be treated as
+unbound, regardless of its previous state. Omitting the question mark
+prompts the compiler to ensure that the variable is already bound. At
+runtime, a check is conducted to verify that the bound variable
+matches the rvalue.
 
-## Building and Executing
+The use of the `this` constructor calling itself might initially seem
+confusing. However, this is the final step a constructor must perform
+to actually initialize its member variables. The `:` notation in Satie
+is a method to call a function with named parameters, and a
+constructor can call itself using its member variables as named
+parameters. This self-referential mechanism is an integral part of
+Satie's approach to object construction and initialization.
 
-Satie's compiler is called `sac` and the byte code it produces can be
-executed with the `sa` runner. This was done in the introduction chapter
-above and is repeated here for clarity:
+That covers the basics, but naturally, many aspects are left
+unexplained at this stage.  The rest is in the gory details.
+
+## Building and executing
+
+The compiler for Satie is named `sac`, and the bytecode it generates
+is executed using the `sa` runner. This process was outlined in the
+introduction chapter above and is reiterated here for clarity:
 
 ```
-$ sac hello.sa
+$ sac tribute.sa
 $ find .
 .
-./hello.sa
+./tribute.sa
 ./build
-./build/hello.sab
-$ sa build/hello 100000
+./build/tribute.sab
+$ sa build/tribute 100000
 0: Standing on the shoulders of giants
 1: Standing on the shoulders of giants
 2: Standing on the shoulders of giants
 3: Standing on the shoulders of giants
 ...
 99999: Standing on the shoulders of giants
-100000: Standing on the shoulders of giants
 ```
 
 That is it.
 
-If a Satie application consists of many modules in a directory
-hierarchy the process above is the same. Say for example that there is
-an application called *zarah* with the following directory hierachy:
+A Satie application can composed of multiple modules within a
+directory hierarchy, the process remains the same. For instance,
+consider an application named `zarah` with the following directory
+hierarchy:
 
 ```
 $ cd zarah
@@ -303,44 +307,54 @@ $ find .
 ./src
 ./src/main.sa
 ./src/utils
-./src/utils/database.sa
 ./src/utils/httpclient.sa
-./src/utils/lists.sa
-
+./src/database
+./src/database/backup.sa
+./src/database/utils
+./src/database/tablestore.sa
 ```
 
-This is how zarah can be compiled and executed:
+Here is how the application can be compiled and executed:
 
 ```
 $ sac src/main.sa
 $ find .
 .
+
 ./build
 ./build/main.sab
 ./build/utils
 ./build/utils/httpclient.sab
-./build/utils/database.sab
+./build/database
+./build/database/utils
+./build/database/backup.sab
+./build/database/tablestore.sab
 ./src
 ./src/main.sa
 ./src/utils
-./src/utils/database.sa
 ./src/utils/httpclient.sa
+./src/database
+./src/database/backup.sa
+./src/database/utils
+./src/database/tablestore.sa
 $ sa build/main
 ```
 
 > [!NOTE]
-> The `sac` compiler can be made to use alternative `src/` and
-> `build/` directories
+> The `sac` compiler can be configured  to use alternative directories
+> for `src/` and `build/`
 
-The compiler by default follows module dependencies introduced by
-`main.sa` and automatically compiles those modules as well. The
-compiler can be made not to follow module dependecies, ignore missing
-modules, or modules not possible to compile. Read more about the `sac`
-compiler and the `sa` runner in their respective manual page.
+By default, the `sac` compiler follows module dependencies starting
+from `main.sa` and automatically compiles those modules as
+well. However, it can be configured not to follow these dependencies,
+to ignore missing modules, or to skip modules that cannot be
+compiled. For more detailed information about the `sac` compiler and
+the `sa` runner, refer to their respective manual pages.
 
-## The Shell
+## The interactive shell
 
-The `sa` runner can also start an interactive Satie shell:
+The `sa` runner is also capable of launching an interactive Satie
+shell:
 
 ```
 $ sa --shell
@@ -366,14 +380,16 @@ considered comments.
 
 `bool` : A boolean value
 
-`int` : A signed integer value. On a 64-bits machine integers are
-handled naively if they fit within 61 bits, and if not they are
-transparently represented as arbitrary-precision bignums. On a 32-bits
-machine they must fit within 29 bits etc.
+`int` : On a 64-bit machine, a signed integer values is handled
+natively if it fit within 61 bits. If it exceed this limit, it is
+transparently represented as an arbitrary-precision bignum. Similarly,
+on a 32-bit machine, an integer must fit within 29 bits, and so on,
+adapting to the architecture's capabilities.
 
-`float` :  A floating point value. On a 64-bits machine floats are
-must fit fit within 61 bits. On a 32-bits machine they must within 29
-bits etc.
+`float` : A floating-point value in Satie must conform to the
+machine's bit capacity. On a 64-bit machine, floats must fit within 61
+bits, while on a 32-bit machine, they must fit within 29 bits, and so
+on, aligning with the specific architecture.
 
 `char` : A 32-bits Unicode code point value
 
@@ -393,10 +409,10 @@ bits etc.
 
 `map`: A mapping between a key of any type and a value of any type
 
-`struct` : A Unit of encapsulation for member variables and member
+`struct` : A unit of encapsulation for member variables and member
 functions
 
-`buf` : A buffer to efficiently manipulate large amount characters
+`buf` : A buffer to efficiently manipulate large amount of characters
 
 ### Type Management
 
@@ -412,10 +428,10 @@ a.isFloat(),    // true
 a.typeof()      // "float"
 ```
 
-Operators which operate on `int` and `float` values require the
+Operators that operate on `int` and `float` values require the
 operands to be of the same type. No implicit numeric conversion is
-performed. A `cast` operator exists to cast between `int` and `float`
-values.
+performed. However, a cast operator is available to facilitate casting
+between int and float values.
 
 ```
 ?a = 3,
@@ -425,7 +441,7 @@ values.
 d + c                        // Compiler error!
 ```
 
-The `inspect` function provides even more run-time type information.
+The `inspect` function offers more run-time type information.
 
 ```
 enum Foo {          //  Defined in bar.sa
@@ -443,8 +459,9 @@ d.inspect()         // [ "type" : "list", "length": 2 ]
 ```
 
 > [!NOTE]
-> The enumeration value in the example above would normally be
-> accessed with `c.value` and the list length with `d.length`
+> In the above example the value attached to the enumeration constant
+> would typically be accessed using `c.value`, and the list length
+> would be referred to as `d.length`.
 
 All values can be converted to string representation using the
 `toString` function.
@@ -458,20 +475,23 @@ b.toString()        // "[Foo.a : 42, "bar": fn/0]"
 
 ## Identifiers
 
-An identifier is a case sensitive sequence of characters starting with
-an ASCII letter or an underscore, followed by any number of ASCII
-letters, underscores or digits,
-i.e. `^[[:alpha:]_][[:alnum:]_]*$`. Keywords, variables, function
-names, struct names and enum names are all identifiers.
+An identifier is a case-sensitive sequence of characters that begins
+with an ASCII letter or an underscore, followed by any number of ASCII
+letters, underscores, or digits. This is denoted by the regular
+expression `^[[:alpha:]_][[:alnum:]_]*$`. Identifiers are used for
+various elements such as keywords, variables, function names, struct
+names, and enum names.
 
 > [!NOTE]
-> By design only strings may contain Unicode characters. This
-> restriction may be lifted if compelling reasons should appear.
+> By design, only strings in Satie may contain Unicode
+> characters. However, this restriction could be reconsidered and
+> potentially lifted if compelling reasons arise.
 
 ### Keywords
 
-The following 24 special identifiers are reserved by Satie and cannot
-be used in user code:
+Satie reserves 24 special identifiers that cannot be used in user
+code. These reserved identifiers are exclusive to the language's
+internal syntax and functionality.
 
 ```
 import
@@ -508,8 +528,8 @@ self
 
 ### Integral Literals
 
-An integral literal can be formatted as decimal, octal and hexadecimal
-value.
+An integral literal can be represented as decimal, octal and
+hexadecimal format
 
 ```
 4,             // Decimal format
@@ -520,9 +540,9 @@ value.
 
 ### Floating-point Literal
 
-A floating point literal represent real number that include a
-fractional part. It is written in a similar manner to other languages
-like C or Java.
+A floating point literal represents a real number that includes a
+fractional part. Its notation is similar to that used in other
+languages like C or Java.
 
 ```
 1.0,
@@ -532,7 +552,7 @@ like C or Java.
 ### Character Literal
 
 A character literal is a Unicode code point value enclosed within
-single quotation marks. It consists of four bytes under the hood.
+single quotation marks. Internally, it consists of foure bytes.
 
 ```
 'A',
@@ -542,8 +562,8 @@ single quotation marks. It consists of four bytes under the hood.
 
 ### Function Literal
 
-A function literal follows the same syntax as regular function
-definitions (see below) but with a function name.
+A function literal follows the same syntax as regular [function
+definitions](function), but without a function name.
 
 ```
 ?sum = fn (x, y) { x + y },
@@ -556,9 +576,10 @@ Job literals are opaque.
 
 ### Enumeration Literal
 
-An enumeration is a named constant and it is always defined in a named
-[enumeration definition](enumeration). An enumeration literal is a
-dot-separated enumeration name and constant name.
+An enumeration is a named constant, and it's always defined
+within a [enumeration definition](enumeration). An enumeration literal
+is represented as a dot-separated sequence, consisting of the
+enumeration name followed by the constant name.
 
 ```
 enum Color {
@@ -573,11 +594,12 @@ Color.red                   // An enumeration literal
 ### String Literal
 
 A string literal is represented as an immutable UTF-8 encoded sequence
-of Unicode characters enclosed within double quotation marks. Escape
-sequences has meaning in double quoted strings. Raw strings are also
-enclosed within double quotation marks but are prefixed with the
-letter `r`. Escape sequences have no meaning in raw strings and all
-characters are parsed verbatim.
+of Unicode characters, enclosed within double quotation marks. Escape
+sequences are interpreted in these double quoted
+strings. Additionally, raw strings, which are also enclosed within
+double quotation marks but prefixed with the letter `r`. In raw
+strings, escape sequences have no meaning, and all characters are
+parsed verbatim.
 
 ```
 ?a = "fooω",
@@ -587,16 +609,16 @@ a[3],               // 'ω'
 
 ### Tuple Literal
 
-A tuple literal is represented as comma separated fixed size sequence
-of values of any type enclosed between a leading `#(` and a trailing
-`)`.
+A tuple literal is represented as comma separated, fixed size sequence
+of values of any type. This sequence is enclosed between a leading
+`#(` and a trailing `)`.
 
 `#("foo", 3.14, #("bar", fn (x) { x + 1}))`
 
 ### List literal
 
-A list literal is represented as comma-separated sequence of values of
-any type enclosed within square brackets.
+A list literal is represented as comma-separated sequence of values,
+which can be if any type enclosed within square brackets.
 
 ```
 ?a = [3.14, "foo", 1816381],
@@ -608,9 +630,9 @@ any type enclosed within square brackets.
 
 ### Map literal
 
-A map literal is represented as comma-separated sequence of key-values
-of any type (separated by a `:` character) enclosed within square
-brackets.
+A map literal is represented as comma-separated sequence of key-value
+pairs, where the key an value can be of any type and are separated by
+a `:` character. Thus sequence is enclosed within square brackets.
 
 ```
 ?a = ["foo" : 12, 3.14 : 981237198192378 ],
@@ -620,8 +642,9 @@ a[3.14: 4711, 2 : 4]                         // ["foo" : 12, 3.14: 4711, 2 : 4],
 ### Struct Literal
 
 A struct literal is represented as a semicolon-separated sequence of
-member-values, where the member is an identifier and the value is of
-any type, (separated by a `=` character) enclosed in square brackets.
+member-value pairs. Each pair consists of a member (which is an
+identifier) and a a value of any type, separated by a `=`
+character. This sequence is enclosed within square brackets.
 
 ```
 struct Foo P {
@@ -1158,6 +1181,15 @@ In the [Building and Executing](building-and-executing) chapter the
 hierarchy:
 
 ```
+./src
+./src/main.sa
+./src/utils
+./src/utils/httpclient.sa
+./src/database
+./src/database/backup.sa
+./src/database/utils
+./src/database/tablestore.sa
+
 ./src
 ./src/main.sa
 ./src/database/tablestore.sa
