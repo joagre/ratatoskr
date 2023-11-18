@@ -59,7 +59,7 @@ That said.
 
 The following design choices have been made (in some sort of order):
 
-#### Concurrent oriented
+#### Concurrent Oriented
 
  * Satie is built on a custom built multi-core VM with strong support
    for  time sliced green threads (from now on called *jobs*). Jobs
@@ -71,7 +71,7 @@ The following design choices have been made (in some sort of order):
    jobs that are responsible to restart jobs if they should die
    unexpectedly.
 
-#### Functional and immutable
+#### Functional and Immutable
 
  * Satie is a pure functional programming language with native
    persistent datatypes in its core. All data is immutable and the
@@ -87,7 +87,7 @@ The following design choices have been made (in some sort of order):
  * Satie is dynamically typed and comes with a small set of basic
    types (`bool`, `int`, `flot`, `char`, `function`, `job` and `enum`)
    and composite types (`string`, `tuple`, `list`, `map` and
-   `class`). The compiler uses Hindley–Milner type inference to deduce
+   `struct`). The compiler uses Hindley–Milner type inference to deduce
    the types of variables, expressions and functions. Semantic and
    syntactic care has been taken to make it feasible to add a gradual
    type system later on.
@@ -108,16 +108,15 @@ The following design choices have been made (in some sort of order):
    Erlang programming language have been heavy influencers when
    applicable and another leading principle has been to make the
    syntax familiar and easy on the eye, but you have to be the judge
-   on that. Satie reserves 24 keywords and sports 16 operators and the
+   on that. Satie reserves 25 keywords and sports few operators and the
    complete syntax is formally defined as a PEG grammar in appendix B.
 
  * Satie has pattern matching in its core and the `=` operator is
    actually all about pattern matching rather than assignment (*there
    must not be mutable updates*). Everything can be matched and taken
    apart with the help of a pattern matching in combination with the
-   `=` operator. Pattern matching is also used by the `match`
-   expression which is a sibling to `switch` but on pattern matching
-   speed. The `receive` expression also uses pattern matching to do
+   `=` operator. Pattern matching is also used by the `switch`
+   expression and the `receive` expression also uses pattern matching to do
    selective receive on messages in a job's mailbox.
 
  * Satie is implemented using a custom built VM consisting of a
@@ -129,7 +128,7 @@ The following design choices have been made (in some sort of order):
    dependencies making it easy to port to restricted targets.
 
  * Great care has been taken to add a purely functional and
-   encapsulating `class` definition. It makes it possible group member
+   encapsulating `struct` definition. It makes it possible group member
    variables and member functions using well known C++/Java member
    modifiers such as `public`,  `private`, `const` and `this`
    references and more.
@@ -149,22 +148,20 @@ Many things are by design not a part of Satie:
 
 and more I am sure you will miss.
 
-## Overall structure
+## Overall Structure
 
 A Satie file has a `.sa` suffix and constitute a Satie *module* with
 the same name as the basename of its filename. Why make it more
 complicated? A satie file starts with a number of import statements
-which are followed by a mix of `enum`, `interface`, `class` and `fn`
+which are followed by a mix of `enum`, `interface`, `struct` and `fn`
 (function) definitions (in any order).
 
-`class`, `enum`  and `interface` definitions are **only** allowed on
+`struct`, `enum`  and `interface` definitions are **only** allowed on
 the top level of a module. Function definitions can be nested
 arbitrarily within other function definitions though.
 
 A single exported main function must be defined in exactly one of the
 Satie modules that constitutes an application.
-
-Example:
 
 ```
 import std.stdio : writeln
@@ -180,7 +177,7 @@ interface Iterator {
     public fn hasNext()
 }
 
-class ColorIterator : Iterator {
+struct ColorIterator : Iterator {
     private colors
     private graffiti
 
@@ -220,9 +217,9 @@ That was very boring but hopefully informative. Noteworthy is that
 the Satie module above has one exported function (the famous `main`
 function). A module can define as many functions it needs on the top
 level (exported or not) but it is a good idea to define functions as
-member functions in classes to avoid function cluttering. Only
+member functions in structes to avoid function cluttering. Only
 functions being marked with `export` can be imported by other
-modules. The `class`, `enum` and `interface` definitions can be
+modules. The `struct`, `enum` and `interface` definitions can be
 imported by other modules without restrictions though.
 
 `#(` .. `)` is a tuple and the question mark before a variable informs
@@ -241,7 +238,7 @@ can also call itself with its member variables as named parameters.
 
 That is it. The rest is in the gory details.
 
-# Building and executing
+## Building and Executing
 
 Satie's compiler is called `sac` and the byte code it produces can be
 executed with the `sa` runner. This was done in the introduction chapter
@@ -279,6 +276,8 @@ $ find .
 ./src/utils
 ./src/utils/database.sa
 ./src/utils/httpclient.sa
+./src/utils/lists.sa
+
 ```
 
 This is how zarah can be compiled and executed:
@@ -305,12 +304,12 @@ $ sa build/main
 > `build/` directories
 
 The compiler by default follows module dependencies introduced by
-`main.sa` and automatically compiles these modules as well. The
+`main.sa` and automatically compiles those modules as well. The
 compiler can be made not to follow module dependecies, ignore missing
-modules or not possible to compile. Read more about the `sac` compiler
-and the `sa` runner in their respective manual page.
+modules, or modules not possible to compile. Read more about the `sac`
+compiler and the `sa` runner in their respective manual page.
 
-# The shell
+# The Shell
 
 The `sa` runner can also start an interactive Satie shell:
 
@@ -325,71 +324,57 @@ already executing application can be inspected, i.e a shell can be
 made to connect to an already executing `sa` runner instance. Read
 more about this and more in the `sa` runner's manual page.
 
-# Comments
+# The Gory Details
 
-HERE
-
-# Types
-
-
-
-
-
-Pattern matching
-Compile run repl
-
-# pattern matching
-
-
-
-# Comments
+## Comments
 
 Everything after `//` and to end of line and within `/* ... */` are
 considered comments.
 
-# Types
+## Types
 
-## Basic types
+### Basic Types
 
-`bool` : Boolean value `true` or `false`
+`bool` : A boolean value
 
-`int` : Signed arbitrary-precision integer. On a 64-bits target
-machine integers are handled natievly if they fit within 61 bits. If
-they don't they are transparently represented as bignums. On a 32-bits
-machine they must fit within 29 bits.
+`int` : A signed integer value. On a 64-bits machine integers are
+handled naively if they fit within 61 bits, and if not they are
+transparently represented as arbitrary-precision bignums. On a 32-bits
+machine they must fit within 29 bits etc.
 
-`float` : Floating point with a precision decided by the target
-machine minus three bits.
+`float` :  A floating point value. On a 64-bits machine floats are
+must fit fit within 61 bits. On a 32-bits machine they must within 29
+bits etc.
 
-`char` : 32-bits Unicode code point
+`char` : A 32-bits Unicode code point value
 
-`function` : Function reference
+`function` : A function reference
 
-`job` : Job reference
+`job` : A job reference
 
-`enum`: Enumeration reference
+`enum`: An enumeration value
 
-FIXME: Add a chapter about Enums
+### Composite Types
 
-## Composite types
+`string` : An immutable sequence of UTF-8 encoded characters
 
-`string` : Immutable sequence of UTF-8 encoded characters
-
-`tuple` : A fized sized sequence of values of any type
+`tuple` : A fixed sized sequence of values of any type
 
 `list`: A list of values of any type
 
 `map`: A mapping between a key of any type and a value of any type
 
-`class` : Unit of encapsulation for member variables and functions
+`struct` : A Unit of encapsulation for member variables and member
+functions
 
-## Type management
+`buf` : A buffer to efficiently manipulate large amount characters
+
+### Type Management
 
 All values can be type checked in run-time using the functions
 `isBool`, `isInt`, `isFloat`, `isChar`, `isFunction`, `isJob`,
-`isEnum`, `isString`, `isList`, `isMap`, `isObject` and `typeof`.
-
-Example:
+`isEnum`, `isString`, `isList`, `isMap`, `isStruct`, `isBuf` and
+`typeof`.
 
 ```
 ?a = 3.14,
@@ -403,19 +388,15 @@ operands to be of the same type. No implicit numeric conversion is
 performed. A `cast` operator exists to cast between `int` and `float`
 values.
 
-Example:
-
 ```
-3,
-93326215443944152681,
-3.0,
-b / cast(int)c + a,      // 31108738481314713603
-d + c                    // Compiler error!
+?a = 3,
+?b = 93326215443944152681,
+?c = 3.0,
+?d = b / cast(int)c + a,     // 31108738481314713603
+d + c                        // Compiler error!
 ```
 
 The `inspect` function provides even more run-time type information.
-
-Example:
 
 ```
 enum Foo {          //  Defined in bar.sa
@@ -436,10 +417,8 @@ d.inspect()         // [ "type" : "list", "length": 2 ]
 > The enumeration value in the example above would normally be
 > accessed with `c.value` and the list length with `d.length`
 
-All values can be convrted to string representation using the
+All values can be converted to string representation using the
 `toString` function.
-
-Example:
 
 ```
 ?a = 3.14,
@@ -448,22 +427,22 @@ a.toString(),       // "3.14"
 b.toString()        // "[Foo.a : 42, "bar": fn/0]"
 ```
 
-# Identifiers
+## Identifiers
 
-Identifiers are case sensitive strings of characters starting with an
-ASCII letter or an underscore, followed by any number of ASCII
+An identifier is a case sensitive sequence of characters starting with
+an ASCII letter or an underscore, followed by any number of ASCII
 letters, underscores or digits,
 i.e. `^[[:alpha:]_][[:alnum:]_]*$`. Keywords, variables, function
-names, class names and enum names are all identifiers.
+names, struct names and enum names are all identifiers.
 
 > [!NOTE]
-> By design only strings can contain Unicode characters. This
+> By design only strings may contain Unicode characters. This
 > restriction may be lifted if compelling reasons should appear.
 
-## Keywords
+### Keywords
 
-The following 26 special identifiers are language-reserved and cannot
-be defined in user code:
+The following 24 special identifiers are reserved by Satie and cannot
+be used in user code:
 
 ```
 import
@@ -471,15 +450,13 @@ true
 false
 enum
 in
-is
 fn
 export
 if
 else
 switch
 default
-match
-class
+struct
 interface
 public
 private
@@ -494,18 +471,16 @@ timeout
 self
 ```
 
-# Literals
+## Literals
 
-## Boolean literals
+### Boolean Literals
 
 `true` or `false`
 
-## Integral literals
+### Integral Literals
 
-Integral literals can be formatted as decimal, octal and hexadecimal
-values.
-
-Examples:
+An integral literal can be formatted as decimal, octal and hexadecimal
+value.
 
 ```
 4,             // Decimal format
@@ -514,20 +489,21 @@ Examples:
 0b101010100    // Binary format
 ```
 
-## Floating-point literals
+### Floating-point Literal
 
-Examples:
+A floating point literal represent real number that include a
+fractional part. It is written in a similar manner to other languages
+like C or Java.
 
 ```
 1.0,
 .666e2
 ```
 
-## Character literals
+### Character Literal
 
-A character literal is a Unicode code point enclosed within single
-quotation marks. It consists of four bytes.
-Examples:
+A character literal is a Unicode code point value enclosed within
+single quotation marks. It consists of four bytes under the hood.
 
 ```
 'A',
@@ -535,47 +511,44 @@ Examples:
 '\u03c9'    // ω
 ```
 
-## Function literals
+### Function Literal
 
-Function literals follow the same syntax as regular function
+A function literal follows the same syntax as regular function
 definitions (see below) but with a function name.
-
-Example:
 
 ```
 ?sum = fn (x, y) { x + y },
-?a = sum(1, 2)                // a = 3
+sum(1, 2)                   // 3
 ```
 
-## Job literals
+### Job Literals
 
-Job literas are opaque.
+Job literals are opaque.
 
-## Enum literals
+### Enumeration Literal
 
-Example:
+An enumeration is a named constant and it is always defined in a named
+[enumeration definition](enumeration). An enumeration literal is a
+dot-separated enumeration name and constant name.
 
 ```
 enum Color {
-    red,
-    green,
+    red
+    green
     blue
 }
+
+Color.red                   // An enumeration literal
 ```
 
-The `Color` enumeration above introduces the literals `Foo.red`,
-`Foo.green` and `Foo.blue`.
+### String Literal
 
-## String literals
-
-String literals are represented as comma separated sequence UTF-8
-encodedsequences of Unicode characters enclosed within double
-quotation marks. Escape sequences has meaning in double quoted
-strings. Raw strings are also enclosed within double quotation marks
-but are prefixed with the letter `r`. Escape sequences have no meaning
-in raw strings and all characters are parsed verbatim.
-
-Examples:
+A string literal is represented as an immutable UTF-8 encoded sequence
+of Unicode characters enclosed within double quotation marks. Escape
+sequences has meaning in double quoted strings. Raw strings are also
+enclosed within double quotation marks but are prefixed with the
+letter `r`. Escape sequences have no meaning in raw strings and all
+characters are parsed verbatim.
 
 ```
 ?a = "fooω",
@@ -583,95 +556,131 @@ a[3],               // 'ω'
 ?b = r"foo\nbar"    // b.length == 8
 ```
 
-## Tuple literals
+### Tuple Literal
 
-Tuple literals are represented as comma separated fixed size sequences
+A tuple literal is represented as comma separated fixed size sequence
 of values of any type enclosed between a leading `#(` and a trailing
 `)`.
 
-Example:
-
 `#("foo", 3.14, #("bar", fn (x) { x + 1}))`
 
-## List literals
+### List literal
 
-List literals are represented as comma-separated sequences of values of
+A list literal is represented as comma-separated sequence of values of
 any type enclosed within square brackets.
-
-Example:
 
 ```
 ?a = [3.14, "foo", 1816381],
-?b = a[1 = 42, 2 = "bar"]      // b = [3.14, 42, "bar"]
+?b = a[1 = 42, 2 = "bar"]      // b == [3.14, 42, "bar"]
 ```
 
 > [!NOTE]
 > Only existing list entries can be updated this way
 
-## Map literals
+### Map literal
 
-Map literals are represented as comma-separated sequence of key-values
+A map literal is represented as comma-separated sequence of key-values
 of any type (separated by a `:` character) enclosed within square
 brackets.
-
-Example:
 
 ```
 ?a = ["foo" : 12, 3.14 : 981237198192378 ],
 a[3.14: 4711, 2 : 4]                         // ["foo" : 12, 3.14: 4711, 2 : 4],
 ```
 
-## Class literals
+### Struct Literal
 
-Class literals are represented as semicolon-separated sequences of
-member-values, where the member is a class member name and value is of
+A struct literal is represented as a semicolon-separated sequence of
+member-values, where the member is an identifier and the value is of
 any type, (separated by a `=` character) enclosed in square brackets.
 
-Example:
-
 ```
-class Foo P {
+struct Foo P {
     public foo = 4711
     public bar = "foo"
-    public zonk = #(1, 3.14)
+    public zonk = #(42, 3.14)
 }
 
-
-?a = new Foo(),
-[foo ; ?b, bar ; ?b] = a,
+?a = struct Foo(),
+[foo ; ?b, bar ; ?c] = a,
 b,                          // 4711
 c                           // "foo"
 ```
 
-# Top level contructs and expressions
+## Expressions
 
 Everything is an expression in Satie except for the top level
-definitions, i.e. `import`, `class`, `interface`, `enum` and named `fn
-defintions.
+definitions, i.e. `import`, `struct`, `interface`, and `enum`.
 
-Binding of names can only be performed as a standalone expression and
-cannot no be done deep within an expressions. For your own sake,
+Out of all expressions the *bind* expression, and its `=` operator,
+stands out for its ability to bind variables to values. There is no
+notion of variable assignment in Satie but instead unbound variables
+are bound to values. An unbound variable starts with a `?` character
+and a naked variable (without a `?` character) is required to be bind
+before use.
 
-Example:
+```
+?a = 42,
+a = 42,
+a = "foo"     // Compiler or runtime error!
+```
 
+In the above example `a = "foo"` leads to a compile time error at best
+or at least a catastrophic runtime error, i.e. `a` is `42` not
+`"foo"`. This kind of mismatch is most often used as an assertment or
+it may be a software bug. A catastrophic runtime error stops the
+execution of *job* in which the mismatch occured. Read more about
+concurrency and jobs in the "Concurrency" chapter.
+
+The following code snippet is rejected by the compiler if variable `a`
+is unbound:
+
+`a = 42`
+
+The pattern matching performed by bind expressions can be useed to
+deconstruct composite values into its primitive values:
+
+```
+fn foo(x) {
+  #(4711, x + x, "bar")
+},
+?a = 1,
+#(a, ?b, 1) = #(1, 2, 1),     // b == 2
+#(?a, b, ?c) = foo(1),        // a == 4711 && c == "bar"
+#(a, a, a) = c                // A catastrophic mismatch!
+```
+
+> [!NOTE]
+> Above we used expressions not yet explained but it suffices to say
+> that #(1, 2, 1) is a fixed size tuple.
+
+Pretty nifty.
+
+The `switch` and `receive` expressions also use pattern matching
+able to deconstruct and select. Read more about them below.
+
+Furthermore, the `=` operator is only allowed as a standalone
+expression and cannot be used deep within expressions. For your
+sanity's sake. Don't kill me. 😇
+
+```
 main() {
     ?a = 42,
-    ?b = a + (?c = 42 + a) + a    // Compiler error!
+    a + (?c = 42 + a) + a    // Compiler error!
 }
+```
 
-# Control flow
+### Control Flow Expressions
 
-## `{` a, b, c, ... `}' expression
+#### Block Expression -- `{` a, b, c, ... `}`
 
 A block expression is a comma-separated sequence of expressions
 enclosed in curly braces. Expressions are evaluated in a sequence and
-introduces a lexical scope. An identifier bound in a scope is visible
-to all the following expressions in the scope. The identifier is not
+introduces a lexical scope. An variable bound in a scope is visible to
+all the following expressions in the scope. The variable is not
 visible outside of the scope and it shadows an identifier with the
 same name introduced outside of the scope. The value of the last
 expression in the sequence is returned from the block.
-
-Example:
 
 ```
 main() {                  // A function block starts here
@@ -686,195 +695,92 @@ main() {                  // A function block starts here
 }
 ```
 
-## `if`, `else` expression
+#### If Expression -- `if`, `elif`, `else`
 
-Example:
+No surprises here.
 
 ```
-?a == 4,
+?a = 4,
 ?b = if a == 4 {
-         42;
-     } else {
+         42
+     } elif {
          c,
          d
      },
-a         // 42
+b         // 42
 ```
 
-## `switch`, `case`, `default` expression
+#### Switch Expression -- `switch`, `case`, `default`
 
-Example:
+A switch expression uses pattern matching to dispatch between its case
+paths but also to do deconstruction as introduced in the
+[Expressions](#expressions) chapter.
 
-```
-?a = "foo",
-?b = switch a {
-    case "foo" {
-        42;
-    }
-    case foo(c) {
-        a + 1;
-    }
-    default {
-        a;
-    }
-},
-b          // 42
-```
-
-There is no fall through mechanism and the `default` keyword is optional.
-
-## Tuples
-
-Example:
+In the first example things are kept simple:
 
 ```
 ?a = 42,
-?b = #(4711, #(a, [1, 2])),
-#(_, #(?a, [_, c])) = b;
-a,                           // 4711
-c                            // 2
-```
-
-## Arrays
-
-Lists containin elements of any type. Arrays support slicing which
-makes it easy to work with portions of list.
-
-HERE first rest
-
-
-`a[i .. j]` returns a list slice which starts at index `i` and ends
-with index `j - 1`. No data is copied from the origin array, i.e. if the
-slice is updated the origin array will also be be updated. `i` and `j`
-can any valid expressions and the keyword `$` is the length of the
-array.
-
-
-`arr[i]` access the i:th element of an array or map. For an array
-`i` must be an integral type and for a map it can be a key of any
-type. If the indexing expression is an `lvalue` in an assignment the
-expression inserts a value in the array or map.
-
-Example:
-
-`a[i] = 0;`
-
-
-Examples:
-
-```
-a = []                 // An empty array
-a = [1, 2, 3, 4, 5]
-a.first()              // 1
-a.rest()               // [2, 3, 4, 5]
-b = a[1 .. 3]          // b = [2, 3]
-c = a[2 .. $ - 1]      // c = [3, 4]
-d = b ~ c              // d = [2, 3, 3, 4] (A copy!)
-d[1] = 42              // d = [2, 42, 3, 4]
-a[2] = 23              // a = [1, 2, 23, 4, 5]
-                       // b = [2, 23]
-                       // c = [23, 4]
-                       // d = [2, 42, 3, 4]
-e = b.dup()            // e = [2, 23] (A copy!)
-b = [4711] ~ b         // b = [4711, 2, 23] (A copy!)
-e ~= 4711              // e = [2, 23, 4711]
-f = a[$ / 2 .. $]      // f = [23, 4, 5]
-g = a                  // g = [1, 2, 23, 4, 5]
-h = a.dup()            // h = [1, 2, 23, 4, 5] (A copy!)
-h.length == 5          // true
-g is a                 // true
-h is a                 // false
-h !is a                // true
-g == a                 // true
-h == a                 // true
-h != a                 // false
-h.length = 4           // h = [1, 2, 23, 4]
-```
-
-## Maps
-
-An array can be seen as a function mapping between integers and values
-of any type using an underlying contiguous memory region. A map is a
-generalized array where key values of any type map to values of any
-type.
-
-Examples:
-
-```
-a = [:]                // En empty map
-a = [ "a" : 1.0, "b" : "foo" ]
-a["a"] = "bar"
-a[42] = "baz"          // a = ["a" : "bar", "b" : "foo", 42 : "baz"]
-b = a                  // b = ["a" : "bar", "b" : 0, 42 : "baz"]
-b["a"] = 0             // a = ["a" : 0, "b" : 0, 42 : "baz"]
-                       // b = ["a" : 0, "b" : 0, 42 : "baz"]
-c = a["a"]             // c = 0
-d = a ~ [42 : 4711]    // d = [42 : 4711, "a" : 0, "b" : 0] (A copy!)
-e = b.dup()            // e = ["a" : 0, "b" : 0, 42 : "baz"] (A copy!)
-e.length == 3          // true
-f = b                  // f = ["a" : 0, "b" : 0, 42 : "baz"]
-f is b                 // true
-e is b                 // false
-e !is b                // true
-f == b                 // true
-e == b                 // true
-e != b                 // false
-e.remove("b")          // e = ["a" : 0, 42 : "baz"]
-e.keys ==
-    ["a", 42] ||
-    [42, 42]           // true
-e.values ==
-    [0, "baz"] ||
-    ["baz", 0]         // true
-```
-
-> [!NOTE]
-> Structural equality is used for all key lookups
-
-## Strings
-
-Strings are immutable sequences of UTF-8 encoded characters. String
-interpolation is supported as well as random access. A character in a
-string can be compared with a `char` value even though the
-representation of characters in a string is UTF-8 encoded.
-
-Examples:
-
-```
-a = 3.0
-b = "foo $a is not ${a + 1.0}"  // String interpolation: b = "foo 3.0 is not 4.0"
-a = "foo"
-b = "bar"
-c = a ~ b                       // String concatenation: c = "foobar" (A copy!)
-c = a ~ '\u03c9'                // Character appending: c = "fooω" (A copy!)
-c[3] == 'ω'                     // true
-r"foo\nbar"                     // Raw string without escape processing
-r.length == 9                   // true
-```
-
-## Functions
-
-## Function calls
-
-`fun(a, b)` invokes the function `fun` with a comma separated argument
-list of expressions. Arguments are evaluated left to right before the
-function is invoked. `fun` can refer to the name of a defined function
-or a function literal.
-
-
-No function can be declared in the global context except for the `main`
-function and it **must** be declared there. At most one main function
-can be defined for each application.
-
-```
-import std.stdio
-
-fn main() {
-  stdio.writeln("Hello World!");
+switch a {
+    case "foo" {
+        "No!"
+    }
+    case 42 {
+        "Yes!"
+    }
 }
 ```
 
-Functions can be overloaded and are defined like this:
+In the second example a tuple is matched
+
+```
+?a = #("bar", 4711),
+switch a {
+    case "foo" {
+        "Darn!"
+    }
+    case #("bar", ?c) {
+        c
+    }
+    default {
+        "No one picks me!"
+    }
+}
+```
+
+No more no less.
+
+> [!NOTE]
+> There is no fall through mechanism and the `default` keyword is
+> optional. Switch fall through must be next most expensive mistake
+> not counting Hoare's null pointer. YMMV.
+
+### Value Expressions
+
+#### Enumeration
+
+Enumeration introduces named constans and can enhance code readability
+and maintainability. An named constant can have an optional constant
+value, of any type, attached to it.
+
+```
+enum Color {
+    red = #(255, 0, 0)
+    green = #(0, 255, 0)
+    blue = #(0, 0, 255)
+}
+
+Foo.red,              // An enumeration literal
+Foo.red.value         // #(255, 0, 0)
+```
+
+#### Function
+
+`foo(a, b)` invokes the function `foo` with a comma separated list of
+expression arguments. Arguments are evaluated left to right before the
+function is invoked and `foo` may refer to a named function definition
+or to a variable bound to a function literal.
+
+Functions can be overloaded and function parameters have default values:
 
 ```
 fn foo(a, b, c = 0) {
@@ -887,240 +793,123 @@ fn foo(a = 1) {
 }
 ```
 
-Trailing parameters may have default values and these parameters can
-be omitted in function calls. A function call can either be called
-with positional parameters **only** or with named parameters
-**only**. The following function calls are equivalent:
+Default values can only be given to trailing parameters and these
+parameters can be omitted in function calls. A function call can
+either be called with positional parameters **only** or with named
+parameters **only**. The following function calls are equivalent:
 
 ```
-fn foo(2, 6);
-fn foo(2, 6, 0);
-fn foo(a = 2, b = 6);
-fn foo(a = 2, b = 6, 0);
-fn foo(b = 6, a = 2);
-fn foo(b = 6, a = 2, 0);
+foo(2, 6),
+foo(2, 6, 0),
+foo(a: 2, b: 6),
+foo(b: 6, a: 2)
 ```
 
 Named functions can be defined within functions:
 
 ```
 fn foo(a, b, c = 0) {
-  fn bar(d) {
-    d;
-  }
-  bar(a);
+    fn bar(d) {
+        d
+    },
+    bar(a)
 }
 ```
 
-Anonymous functions are defined as described above under "Function
-literals", i.e.
+Functions are first class citizens:
 
 ```
-c = fn (a, b) {
-        b;
-    }
-```
+import stdio.lists
 
-Example:
-
-```
-fn main() {
-    l = [1, 2, 3];
-    f = (l, n) { l[n] + 1 };
-    map(l, f);
-}
-
-fn map(l, f, n = 0) {
-    if (n > l.length()) {
-        true;
-    } else {
-         l[n] = f(l, n);
-         a(l, f, n + 1);
-    }
+export fn main() {
+    ?l = [1, 3, 2],
+    ?f = fn (x, y) { x > y },
+    lists.sort(l, f)
 }
 ```
 
-If a function parameter is prepended with a `ref` keyword it is
-referred to by reference instead of by value. This only has meaning
-for the basic types, i.e. `bool`, `int`, `float`, `char`, `function`
-and `enum`.
+#### String
 
-Example:
-
-```
-a = 1;
-c = 2;
-fn foo(ref b, ref c) {
-    b += 1;
-    c = fn (n) { n + 1};
-}
-foo(a);
-writeln(a);                  // 2
-c(2);                        // 3
-```
-
-## Matching and deconstruction
-
-### `match`
+A string is an immutable sequence of UTF-8 encoded characters. String
+interpolation is supported as well as random access to individual
+charcters in a string even though the string is UTF-8 encoded.
 
 ```
-match expr {
-  match-expr {
-    a
-    b
-  }
-  match-expr {
-    c
-  }
-}
+?a = 3.0,
+?b = "foo $a is not ${a + 1.0}"  // b == "foo 3.0 is not 4.0" (interpolation)
+?a = "foo",
+?b = "bar",
+?c = a ~ b,                     // c == "foobar"
+?c = a ~ '\u03c9'               // c == "fooω"
+c[3] == 'ω'                     // true
+r"foo\nbar"                     // A raw string
+r.length == 9                   // true
 ```
+#### Tuple -- `#(` a, b, c, ... `)`
 
-The `match` keyword applies matching and optional deconstructing for
-each `match-expr`. A `match-expr` can be any valid literal except it
-may contain both bound and unbound variables (prefixed with `?`) and
-wildcards `_`.
-
-Example:
+A no-brainer.
 
 ```
-a = 1;
-b = 3;
-match (expr) {
-  case #(_, ?a): {
-    a;
-  }
-  case a || b: {
-    a + 1;
-  }
-  case _: {
-    0;
-  }
-}
+?a = 42,
+?b = #(4711, #(a, [1, 2])),
+#(_, #(?a, [_, c])) = b,
+a,                           // 4711
+c                            // 2
 ```
 
-## The `<*` operator
+#### List -- `[` a, b, c, ... `]`
 
-Matching/deconstructing can also be performed with the `<*` operator.
+A list contains elements of any type and list slicing makes it easy to
+work with portions of a list. `a[i .. j]` returns a list slice
+starting at index `i` and ending with index `j - 1`. `i` and `j` can
+be any valid expression and the keyword `$` is the length of the list.
 
-Examples:
+`a[i]` returns the i:th element.
 
-```
-a = 1;
-#(a, ?a, 1) <* #(1, 2, 1);                   // a = 2
-#(?a, b, ?h) <* foo(42);
-[1, ?a] <* [1, 2];                           // a = 2
-[42 : 1, "foo" : ?a] <* [42 : 1, "foo" : 2]; // a = 2
-```
-
-# Hierarchical packages
-
-
-
-
-
-import a.b.c
-  c.foo()
-  c.Type
-
-import d = a.b.c
-  d.foo()
-  d.Type
-
-import a.b.c : Type;
-  c.foo()
-  Type
-
-
-
-
-
-
-
-
-
-
-
-A satie file is called a module and it can be a member of a package. A
-package is a directory in a hierarchy of nested package directories,
-and each package directory contains zero or many modules.
-
-Example:
+`a[2 = "foo"]` evaluates to a new list with element 2 set to "foo".
 
 ```
-${SPATH}/foo/
-         f.sa
-         bonk/zap/
-              a.sa
-              b.sa
-         baz/honk/
-             a.sa
-             c.sa
+?a = [],                 // An empty list
+?a = [1, 2, 3, 4, 5],    // A rebind of variable a
+a.first(),               // 1
+a.rest(),                // [2, 3, 4, 5]
+?b = a[1 .. 3],          // b == [2, 3, 4]
+b.length == 3,           // true
+?c = a[2 .. $ - 1],      // c == [3, 4, 5]
+?d = b ~ c,              // d == [2, 3, 4, 3, 4, 5]
+d[1 = 42],               // [2, 42, 4, 3, 4, 5]
+a[2 = 23],               // [1, 2, 23, 4, 5],
+?b = 4711 ~ b,           // b == [4711, 2, 3, 4]
+?f = a[$ / 2 .. $ - 1]   // f == [3, 4, 5],
+f.delete(2),             // [3, 4]
+?g = a,
+g == a                   // true
 ```
 
-The mpdule name is the filename with prefix.
+#### Map  -- `[` a `:` b, ... `]`
 
-If a module needs an enumeration defined in another module it imports
-it and use it's base name to refer to the enumeration.
-
-Example:
+A map can be seen as a function mapping between keys of any type and
+values of any type.
 
 ```
-import foo.bonk.zap.a
-
-main() {
-  a.Color foo = a.Color.red;
-}
+?a = [:],                      // En empty map
+?a = ["a": 1.0, "b": "foo"],
+a["a": "bar"],                 // ["a": "bar", "b": "foo"],
+a[42 : 4711],                  // ["a": "bar", "b": "foo", 42: 4711],
+?c = a ~ ["pi": 3.14]          // c == [ "a" : 1.0, "b" : "foo", "pi" : 3.14 ]
+c.length == 3,                 // true
+a.delete("a"),                 // [ "b" : "foo" ]
+a.keys,                        // ["a", b] || ["b", "a"]
+a["a"],                        // 1.0
+a.values                       // [1.0, "foo"] || ["foo", 1.0]
+?d = ["a": 1.0, "b": "foo"],   //
+a == d                         // true
 ```
 
-Modules can also be imported using wildcard notation:
+#### Encapsulation -- `struct`
 
-`import foo.bonk.zap.*`
-
-If two modules share the same base name in two different packages one
-of them must be aliased.
-
-Example:
-
-```
-import foo.bonk.zap.a;
-import honkA = foo.boz.honk.a;
-
-main() {
-  a.Color foo = a.Color.red;
-  honkA.Color bar = honkA.Color.blue;
-}
-```
-
-The alias `.` means that the need to prefix the enumeration with the
-module name goes away.
-
-Example:
-
-```
-import . = foo.bonk.zap.a
-
-main() {
-  Color foo = Color.red;
-}
-```
-
-> [!NOTE] Name clashes only occur if a module refers to something that
-> can't be uniquely resolved in compile time
-
-# `enum`
-
-Structs encapsulate member values and member functions and they can
-only be defined on the top-level of each satie file.
-
-
-FIXME
-
-# `class` defintion
-
-Structs encapsulate member values and member functions and they can
-only be defined on the top-level defintions of each module.
-
-Examples:
+Member values and member functions and structs can
+only be defined as top-level defintions in each module.
 
 ```
 struct Foo {
@@ -1202,7 +991,170 @@ singleton struct Math {
 }
 ```
 
-FIXME: interface
+#### Buf(fer) -- `buf`
+
+A buffer is an opaque persistent datatype which can be used to
+efficiently manipulate large amount characters. It fits well in a
+programming language intending make it easy to implement programming
+editors (and more).
+
+> [!NOTE]
+> This part is very much under consideration nothing is set in stone
+
+API overview:
+
+1. Creation and Initialization
+   * `create()`: Initializes an empty buf.
+   * `fromString(string)`: Creates a buf from a given string.
+   * `fromFile(filePath, lazyLoad)`: Initializes a buf from a file,
+     with optional lazy loading for large files.
+1. Reading and Access
+   * `charAt(index)`: Returns the character at a specified index.
+   * `substring(startIndex, endIndex)`: Retrieves a substring from the
+     buffer.
+   * `length()`: Provides the length of the text in the buffer.
+1. Text Modification
+   * `insert(index, string)`: Inserts a string at the specified index.
+   * `delete(startIndex, endIndex)`: Deletes text between given indices.
+   * `replace(startIndex, endIndex, string)`: Replaces a segment of
+     text with a new string.
+1. Text Selection and Clipboard Operations
+   * `select(startIndex, endIndex)`: Selects text between given indices.
+   * `cut(startIndex, endIndex)`: Cuts (removes and copies) the
+   selected text.
+   * `copy(startIndex, endIndex)`: Copies the selected text.
+   * `paste(index, string)`: Pastes the copied text at the specified index.
+1. Search and Navigation
+   * `indexOf(substring, startIndex)`: Finds the index of the first
+     occurrence of a substring.
+   * `lastIndexOf(substring, startIndex)`: Locates the last occurrence
+     of a substring.
+   * `moveCursorTo(index)`: Moves the cursor to a specified index for
+     navigation purposes.
+1. Text Transformation
+   * `toUpperCase()`: Converts all text in the buffer to uppercase.
+   * `toLowerCase()`: Converts all text in the buffer to lowercase.
+   * `map(function)`: Applies a specified function to each character
+     in the buffer.
+1. Undo Mechanism
+   * `undo()`: Reverts the buffer to its previous state, utilizing a
+     history of operations or states.
+1. Concurrency
+   * `asyncInsert(index, string)`: Asynchronously inserts a string at
+     a specified index.
+   * `asyncDelete(startIndex, endIndex)`: Asynchronously deletes text
+     between given indices.
+   * `asyncReplace(startIndex, endIndex, string)`: Asynchronously
+     replaces text in a specified range.
+1. Utility Functions
+   * `toString()`: Converts the buf to a standard string for output or
+      display.
+   * `serialize()`: Serializes the buf for storage or transmission.
+   * `deserialize(serializedData)`: Constructs a buf from serialized data.
+1. Advanced Editing
+   * `batch(operations)`: Performs multiple operations in a single
+     step for efficiency.
+1. File Handling and Lazy Loading
+   * `loadMore()`: Incrementally loads more content from the file if
+     lazy loading is enabled.
+1. Pending additions
+   * `isEmpty()`: Checks if the buffer is empty.
+   * `trim()`: Removes whitespace from the beginning and end of the text.
+   * `split(separator)`: Splits the buffer into a list of bufs based
+     on a separator.
+   * `merge(buffers)`: Combines multiple buf instances into one.
+
+Design Considerations:
+* Immutability: Each operation creates a new buf instance, preserving
+the original and adhering to the principles of functional programming.
+* Efficiency and Scalability: The design is optimized for common text
+editing operations, with considerations for handling large files
+through lazy loading.
+* Clipboard Operations: The addition of select, cut, copy, and paste
+functionalities provides essential editing capabilities.
+* Extensibility: The design allows for future extensions, such as
+language-specific features or plugins.
+* Undo Mechanism: The undo functionality is natural and integral,
+implemented via a history of states or operations.
+* Concurrency Support (if applicable): Concurrency support is vital
+for collaborative editing scenarios, requiring thread-safe operations
+and potential conflict resolution strategies.
+* Lazy Loading: This feature enables efficient handling of large
+files, loading content as needed rather than all at once.
+
+With these functionalities and considerations, the "buf" datatype
+becomes a comprehensive and robust tool for building a programming
+editor, offering a wide range of functionalities required for text
+editing and manipulation in a functional programming environment.
+
+## Hierarchy of Modules
+
+A module is implemented in a file with a `.sa` suffix and the module
+name is the basename of the filename. A module hiearchy is implemented
+as a nested hierachy of directories.
+
+Nothing new here but is all in the details.
+
+A module hierarchy is a nice way to organize code and in the example
+below a module uses the `foreach` and ` writeln` functions from the
+standard libray:
+
+```
+import std.stdio
+import std.lists
+
+export fn main(args) {
+  lists.foreach(fn (arg) { stdio.writeln("$arg") }, args)
+}
+```
+
+The name of the modules in the standard library must be specified when
+calling `foreach` and `writeln`, i.e. nothing is automatically
+imported into the namespace of module itself.
+
+It is possible to import functions and enumerations etc into the
+namespace the module:
+
+```
+import std.stdio : writeln
+import std.lists : foreach
+
+export fn main(args) {
+  foreach(fn (arg) { writeln("$arg") }, args)
+}
+```
+
+In the [Building and Executing](building-and-executing) chapter the
+*zarah* project was introduced and it had the follwoing module
+hierarchy:
+
+```
+./src
+./src/main.sa
+./src/database/tablestore.sa
+./src/database/backup.sa
+./src/database/utils/lists.sa
+./src/utils/httpclient.sa
+```
+
+The modules `std.lists` and `database.utils.lists` has the same module
+name and to resolve this import aliasing is used:
+
+```
+import std.stdio : writeln
+import std.lists
+import dlists = database.utils.lists
+import database
+
+export fn main(args) {
+  lists.foreach(fn (arg) { writeln("$arg") }, args)  // as before
+  dlists.removeReference(fn (staleReference) {
+      database.removeReference(staleReference)
+  }, database.getStaleReferences())
+}
+```
+
+That is it.
 
 # Concurrency
 
@@ -1248,8 +1200,6 @@ receive {
 The mailbox is unbounded in size but can be restricted using the
 `setMaxMailboxSize` function provided by the `std.concurrency`
 
-Example:
-
 `setMaxMailboxSize(job, 64, OnCrowding.block)`
 
 Above a job's mailbox is restricted to contain at most 64 messages,
@@ -1287,6 +1237,11 @@ the parameters `m = 3, n = 1 .. 10`. The `main` function uses an
 Ackermann singleton to start 10 jobs and then waits for all jobs to
 send a result back as a message.
 
+
+### An example
+
+Right in your face.
+
 ```
 import std.jobs : OnCrowding, Job
 import std.stdio
@@ -1298,7 +1253,7 @@ export fn main() {
   ackermann.waitForJobs()
 }
 
-class Ackermann {
+struct Ackermann {
     private jobs = []
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {
@@ -1354,13 +1309,16 @@ Operators in decreasing order of precedence:
 |--------------|------------------------------------------|
 | a.b          | Field access                             |
 | a(b, c)      | Function call                            |
-| a[i]         | Indexing                                 |
-| a[b .. c]    | List slicing                             |
+| a[i]         | List indexing                            |
+| a[b .. c]    | List slicing  (see "List Literal" above) |
+| a[a = b]     | List setter (see "List Literal" above)   |
+| a[a : b]     | Map setter (see "Map Literal" above)     |
+| a[a ; b]     | Struct setter (see "Struct Literal")     |
 | -a           |                                          |
 | +a           |                                          |
 | !a           |                                          |
 | ~a           | Bitwise complement                       |
-| <-           | Send message                             |
+| <\|          | Send message                             |
 | cast(t)a     | Cast expression                          |
 | a ^^ b       | Exponentiation                           |
 | a * b        |                                          |
@@ -1373,10 +1331,7 @@ Operators in decreasing order of precedence:
 | a >> b       |                                          |
 | a >>> b      | Unsigned right shift                     |
 | a in b       | Map membership                           |
-| a == b       | Equality test (a == b == c is not legal) |
-| a != b       |                                          |
-| a is b       | Identity test                            |
-| a !is b      | !(a is b)                                |
+| a == b       | Equality                                 |
 | a &lt; b     |                                          |
 | a &lt;= b    |                                          |
 | a > b        |                                          |
@@ -1386,7 +1341,6 @@ Operators in decreasing order of precedence:
 | a & b        |                                          |
 | a && b       | Logical and                              |
 | a \|\| b     |                                          |
-| a isnow b       | Transform                                |
 | a = b        |                                          |
 
 # Appendix B: PEG grammar
@@ -1398,7 +1352,7 @@ Operators in decreasing order of precedence:
 
 Program <- _ (Imports __)? TopLevelDefs EOF
 TopLevelDefs <- TopLevelDef (__ TopLevelDef)*
-TopLevelDef <- ClassDef / InterfaceDef / EnumDef / FunctionDef
+TopLevelDef <- StructDef / InterfaceDef / EnumDef / FunctionDef
 
 Imports <- Import (__ Import)*
 Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
@@ -1471,7 +1425,7 @@ Literal <- BooleanLiteral /
            TupleLiteral /
            (Identifier _)? ListLiteral /
            (Identifier _)? MapLiteral /
-           ClassLiteral
+           StructLiteral
 
 BooleanLiteral <- "true" / "false"
 
@@ -1519,7 +1473,7 @@ MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues <- KeyValue (_ "," _ KeyValue)*
 KeyValue <- (Literal / Identifier) _ ":" _ Expr
 
-ClassLiteral <- "[" _ MemberValues? _ "]"
+StructLiteral <- "[" _ MemberValues? _ "]"
 MemberValues <- MemberValue (_ "," _ MemberValue)*
 MemberValue <- Identifier _ ";" _ Expr
 
@@ -1549,14 +1503,14 @@ UnboundVariable <- "?" _ Identifier
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 
 #
-# Class definition
+# Struct definition
 #
 
-ClassDef <- "class" __ Identifier _ ( ":" _ Interfaces _)?
-                   "{" _ ClassMembers _ "}"
+StructDef <- "struct" __ Identifier _ ( ":" _ Interfaces _)?
+                   "{" _ StructMembers _ "}"
 Interfaces <- Identifier (_ "," _ Identifier)*
-ClassMembers <- ClassMember (_ ClassMember)*
-ClassMember <- Constructor / Deconstructor / MemberFunction / MemberVariable
+StructMembers <- StructMember (_ StructMember)*
+StructMember <- Constructor / Deconstructor / MemberFunction / MemberVariable
 Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
 Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
 MemberFunction <- MemberAccess _ FunctionDef

@@ -137,17 +137,13 @@ ClassLiteral <- "[" _ MemberValues? _ "]"
 MemberValues <- MemberValue (_ "," _ MemberValue)*
 MemberValue <- Identifier _ ";" _ Expr
 
-ControlFlowExpr <- IfExpr / SwitchExpr / MatchExpr / ReceiveExpr / BlockExpr
+ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
 
 IfExpr <- "if" __ Expr _ BlockExpr
           (_ "elif" __ Expr _ BlockExpr)*
           (_ "else" _ BlockExpr)?
 
-SwitchExpr <- "switch" __ Expr _ "{"
-              (_ "case" _ Expr _ BlockExpr)+
-              (_ "default" _ BlockExpr)? _ "}"
-
-MatchExpr <- "match" __ Expr _ "{"
+SwitchExpr <- "match" __ Expr _ "{"
              (_ "case" __ Expr _ BlockExpr)+ _ "}"
 
 ReceiveExpr <- "receive" _ "{"
