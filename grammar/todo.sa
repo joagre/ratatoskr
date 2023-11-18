@@ -1,7 +1,7 @@
 import std.stdio : writeln
 import std.lists
 
-class TodoItem {
+struct TodoItem {
     private description
     private completed
 
@@ -22,11 +22,11 @@ class TodoItem {
     }
 }
 
-class TodoList {
+struct TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
-        ?item = new TodoItem(tag, description),
+        ?item = struct TodoItem(tag, description),
         this(items: [tag : description] ~ items)
     }
 
@@ -59,6 +59,6 @@ export fn main() {
           loopUntilQuit(todoList)
         }
     },
-    ?todoList = new TodoList(),
+    ?todoList = struct TodoList(),
     loopUntilQuit(todoList)
 }

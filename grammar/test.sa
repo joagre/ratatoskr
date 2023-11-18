@@ -2,7 +2,7 @@ import a.b.c
 import d = a.b.c
 import a.b.c : Type
 
-class Foo {
+struct Foo {
     this(a) {
         a
     }
@@ -57,7 +57,7 @@ a[b] = 3,
 
 
 
-    ?ackermann = new Ackermann(),
+    ?ackermann = struct Ackermann(),
     ackermann = startJobs(3, 10),
 
 

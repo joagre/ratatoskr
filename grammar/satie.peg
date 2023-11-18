@@ -12,7 +12,7 @@
 
 Program <- _ (Imports __)? TopLevelDefs EOF
 TopLevelDefs <- TopLevelDef (__ TopLevelDef)*
-TopLevelDef <- ClassDef / InterfaceDef / EnumDef / FunctionDef
+TopLevelDef <- StructDef / InterfaceDef / EnumDef / FunctionDef
 
 Imports <- Import (__ Import)*
 Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
@@ -72,7 +72,7 @@ PrimaryExpr <- "this" /
                Literal /
                ControlFlowExpr /
                SpawnExpr /
-               NewExpr /
+               StructExpr /
                UnboundVariable /
                Identifier /
                "(" _ Expr _ ")"
@@ -85,7 +85,7 @@ Literal <- BooleanLiteral /
            TupleLiteral /
            (Identifier _)? ListLiteral /
            (Identifier _)? MapLiteral /
-           ClassLiteral
+           StructLiteral
 
 BooleanLiteral <- "true" / "false"
 
@@ -133,7 +133,7 @@ MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues <- KeyValue (_ "," _ KeyValue)*
 KeyValue <- (Literal / Identifier) _ ":" _ Expr
 
-ClassLiteral <- "[" _ MemberValues? _ "]"
+StructLiteral <- "[" _ MemberValues? _ "]"
 MemberValues <- MemberValue (_ "," _ MemberValue)*
 MemberValue <- Identifier _ ";" _ Expr
 
@@ -152,21 +152,21 @@ ReceiveExpr <- "receive" _ "{"
 
 SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
 
-NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
+StructExpr <- "struct" _ Identifier _ "(" _ Args? _ ")"
 
 UnboundVariable <- "?" _ Identifier
 
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 
 #
-# Class definition
+# Struct definition
 #
 
-ClassDef <- "class" __ Identifier _ ( ":" _ Interfaces _)?
-                   "{" _ ClassMembers _ "}"
+StructDef <- "struct" __ Identifier _ ( ":" _ Interfaces _)?
+                   "{" _ StructMembers _ "}"
 Interfaces <- Identifier (_ "," _ Identifier)*
-ClassMembers <- ClassMember (_ ClassMember)*
-ClassMember <- Constructor / Deconstructor / MemberFunction / MemberVariable
+StructMembers <- StructMember (_ StructMember)*
+StructMember <- Constructor / Deconstructor / MemberFunction / MemberVariable
 Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
 Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
 MemberFunction <- MemberAccess _ FunctionDef

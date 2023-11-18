@@ -115,7 +115,7 @@ The following design choices have been made (in some sort of order):
 * The principle of least surprise has been a guiding factor in Satie's
   development. However, in Satie, everything is an expression; there
   are no statements (and consequently, no semicolons). Due to this
-  designchoice, certain syntactic constructs might appear unorthodox,
+  design choice, certain syntactic constructs might appear unorthodox,
   yet they embody a regular and consistent syntax.
 
 * The syntax of the D and Erlang programming languages has heavily
@@ -132,7 +132,7 @@ The following design choices have been made (in some sort of order):
   the `=` operator primarily serving pattern matching rather than
   traditional assignment (emphasizing the absence of mutable
   updates). Essentially, everything can be matched and deconstructed
-  using pattern matching in conjunction with the = operator.
+  using pattern matching in conjunction with the `=` operator.
 
 * Pattern matching is also employed by the `switch` expression in
   Satie. Furthermore, the `receive` expression utilizes pattern
