@@ -309,7 +309,7 @@ compiler can be made not to follow module dependecies, ignore missing
 modules, or modules not possible to compile. Read more about the `sac`
 compiler and the `sa` runner in their respective manual page.
 
-# The Shell
+## The Shell
 
 The `sa` runner can also start an interactive Satie shell:
 
