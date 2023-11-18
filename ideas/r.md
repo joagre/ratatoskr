@@ -153,7 +153,7 @@ The following design choices have been made (in some sort of order):
 * The VM is standalone and has minimal dependencies, making it easily
   portable to systems with restricted capabilities.
 
-### Encapsulation/Object-orientation
+### Functional encapsulation
 
 * Considerable effort has been invested in introducing a purely
   functional and encapsulating `struct` definition. This allows for
@@ -163,16 +163,16 @@ The following design choices have been made (in some sort of order):
 
 Many features are intentionally excluded from Satie by design, including:
 
- * Pointers
- * Type specifications
- * Exceptions
- * Pre-processor and macros
- * Variadic function parameters
- * Mutexes (not needed)
- * Mutability
- * Currying
- * Inheritance
- * Monads
+* Pointers
+* Type specifications
+* Exceptions
+* Pre-processor and macros
+* Variadic function parameters
+* Mutexes (not needed)
+* Mutability
+* Currying
+* Inheritance
+* Monads
 
 There are most likely other elements that you might miss.
 
