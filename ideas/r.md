@@ -17,20 +17,20 @@ programming languages (and all people standing behind [and beside] them).
 All rise. A tribute and crash course:
 
 ```
-$ cat hello.sa
+$ cat tribute.sa
 import std.stdio : writeln
 import std.lists
 
 export fn main(args) {
-    ?n = args[1],
-    ?jobs = startTributes(n),
+    ?numberOfTributes = args[1],
+    ?jobs = startTributes(numberOfTributes),
     lists.foreach(fn (job) {
         job <| "Standing on the shoulders of giants"
     }, jobs)
 }
 
-fn startTributes(n, n = n, jobs = []) {
-    if n > 0 {
+fn startTributes(m, n = m, jobs = []) {
+    if n < m {
         ?job = spawn fn () {
             receive {
                 case ?message {
@@ -38,12 +38,12 @@ fn startTributes(n, n = n, jobs = []) {
                 }
             }
         },
-        startTributes(n - 1, job ~ jobs)
+        startTributes(m, n + 1, job ~ jobs)
     } else {
         jobs
     }
 }
-$ sac hello.sa && sa hello 100000
+$ sac tribute.sa && sa build/hello 100000
 0: Standing on the shoulders of giants
 1: Standing on the shoulders of giants
 2: Standing on the shoulders of giants
@@ -51,7 +51,7 @@ $ sac hello.sa && sa hello 100000
 ...
 99999: Standing on the shoulders of giants
 ```
-*Source: [hello.sa](../grammar/hello.sa)*
+*Source: [tribute.sa](../grammar/tribute.sa)*
 
 That said.
 
