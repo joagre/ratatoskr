@@ -84,14 +84,14 @@ The following design choices have been made (in some sort of order):
   large amounts of data efficiently. However, there are limits to
   Satie's purity; no monads.
 
-### A fusion of application and scripting language capabilities
+### A fusion of application and scripting language
 
 * Satie aims to strike a balance between a fully-fledged application
   language and a scripting language, as highlighted by the reasons
   mentioned above. This is evident in its choice of semantics, syntax,
   type system, support for object-orientation, and other aspects.
 
-### Dynamically typed with type inference capabilities
+### Dynamically typed with type inference
 
 * Satie is dynamically typed and offers a concise set of basic and
   composite types. Its compiler employs Hindley-Milner type inference
@@ -161,7 +161,8 @@ The following design choices have been made (in some sort of order):
   C++/Java member modifiers such as `public`, `private`, and `const`,
   as well as `this` references and more.
 
-Many features are intentionally excluded from Satie by design, including:
+Many features are intentionally excluded from Satie by design,
+including:
 
 * Pointers
 * Type specifications
@@ -174,7 +175,7 @@ Many features are intentionally excluded from Satie by design, including:
 * Inheritance
 * Monads
 
-There are most likely other elements that you might miss.
+There are most likely other elements that you might miss as well.
 
 ## Overall Structure
 
@@ -241,7 +242,7 @@ export fn main() {
 ```
 *Source: [color.sa](../grammar/color.sa)*
 
-That was very boring but hopefully informative. Noteworthy is that
+That was boring but hopefully informative. Noteworthy is that
 the Satie module above has one exported function (the famous `main`
 function). A module can define as many functions it needs on the top
 level (exported or not) but it is a good idea to define functions as
