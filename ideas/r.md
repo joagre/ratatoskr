@@ -1116,24 +1116,24 @@ API overview:
    * `merge(buffers)`: Combines multiple buf instances into one.
 
 Design Considerations:
-* Immutability: Each operation creates a new buf instance, preserving
+* *Immutability*: Each operation creates a new buf instance, preserving
 the original and adhering to the principles of functional programming.
-* Efficiency and Scalability: The design is optimized for common text
+* *Efficiency and Scalability*: The design is optimized for common text
 editing operations, with considerations for handling large files
 through lazy loading.
-* Clipboard Operations: The addition of select, cut, copy, and paste
+* *Clipboard Operations*: The addition of select, cut, copy, and paste
 functionalities provides essential editing capabilities.
-* Extensibility: The design allows for future extensions, such as
+* *Extensibility*: The design allows for future extensions, such as
 language-specific features or plugins.
-* Undo Mechanism: The undo functionality is natural and integral,
+* *Undo Mechanism*: The undo functionality is natural and integral,
 implemented via a history of states or operations.
-* Concurrency Support (if applicable): Concurrency support is vital
-for collaborative editing scenarios, requiring thread-safe operations
-and potential conflict resolution strategies.
-* Lazy Loading: This feature enables efficient handling of large
+* *Concurrency Support*: Concurrency support is vital for
+collaborative editing scenarios, requiring thread-safe operations and
+potential conflict resolution strategies.
+* *Lazy Loading*: This feature enables efficient handling of large
 files, loading content as needed rather than all at once.
 
-With these functionalities and considerations, the "buf" datatype
+With these functionalities and considerations, the `buf` datatype
 becomes a comprehensive and robust tool for building a programming
 editor, offering a wide range of functionalities required for text
 editing and manipulation in a functional programming environment.
