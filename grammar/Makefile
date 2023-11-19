@@ -27,7 +27,7 @@ ackermann: satie
 	$(CC) -c $(CFLAGS) $< -o $@ -MMD -MF $(@:.o=.d)
 
 r.pdf: ../ideas/r.md
-	echo "pandoc --toc --pdf-engine=xelatex -f gfm -o $@ $^"
+	pandoc --toc --pdf-engine=xelatex -f gfm -o $@ $^
 
 Like this:
 
