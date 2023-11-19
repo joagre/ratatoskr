@@ -26,14 +26,13 @@ ackermann: satie
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@ -MMD -MF $(@:.o=.d)
 
-r.pdf: r.md
-	pandoc --toc --pdf-engine=xelatex -f gfm -o $@ $^
-
+r.pdf: ../ideas/r.md
+	echo "pandoc --toc --pdf-engine=xelatex -f gfm -o $@ $^"
 
 Like this:
 
 
 clean:
-	rm -f satie satie.c satie.h satie.o *.d
+	rm -f satie satie.c satie.h satie.o r.pdf *.d
 
 .PHONY: all clean
