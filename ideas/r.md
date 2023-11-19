@@ -3,13 +3,13 @@
 ## Introduction
 
 Satie is envisioned as programming language especially suited for
-manipulating of large text masses. Be it the programming editors of tomorrow. Its capabilities
-extend beyond just constructing editors; Satie also excels as a
-scripting language for creating editor plugins and
-customizations. However, the true essence of Satie lies in its
-versatility. It is a purpose-built language and Virtual Machine (VM)
-that boasts a high degree of generality, making it adaptable to a wide
-array of applications.
+manipulation large text masses. Ideal for implementing programming and
+text editors of tomorrow. Its capabilities extend beyond just
+constructing editors; Satie also excels as a scripting language for
+creating editor plugins and customizations. However, the true essence
+of Satie lies in its versatility. It is a purpose-built language and
+Virtual Machine (VM) that boasts a high degree of generality, making
+it adaptable to a wide array of applications.
 
 Satie owes a great deal to the individuals behind the
 [Erlang](https://www.erlang.org/) and [D](https://dlang.org/)
@@ -58,6 +58,8 @@ $ sa build/tribute 100000
 
 That said.
 
+## Design choices
+
 The following design choices have been made (in some sort of order):
 
 ### Concurrent Oriented Programming (COP)
@@ -84,7 +86,7 @@ The following design choices have been made (in some sort of order):
   large amounts of data efficiently. However, there are limits to
   Satie's purity; no monads.
 
-### A fushion of application and scripting language
+### A fusion of application and scripting language
 
 * Satie aims to strike a balance between a fully-fledged application
   language and a scripting language, as highlighted by the reasons
@@ -181,15 +183,15 @@ There are most likely other elements that you might miss as well.
 
 A Satie file is identified by a `.sa` suffix and constitutes a Satie
 *module* named after the basename of its filename. Why complicate
-things? A Satie file begins with a series of import defintions,
-followed by a mix of `enum`, `interface`, `struct`, and `fn`
-(function) definitions, which can be arranged in any order.
+things? A module begins with a series of import definitions, followed
+by a mix of `enum`, `interface`, `struct`, and `fn` (function)
+definitions, which can be arranged in any order.
 
 `struct`, `enum`, and `interface` definitions are **only** permitted
 at the top level of a module. However, function definitions can be
 nested within other function definitions freely.
 
-In a Satie application, exactly one of the Satie modules must define a
+In an application, exactly one of the Satie modules must define a
 single exported main function.
 
 ```
@@ -273,8 +275,8 @@ unexplained at this stage.  The rest is in the gory details.
 
 ## Building and executing
 
-The compiler for Satie is named `sac`, and the bytecode it generates
-is executed using the `sa` runner. This process was outlined in the
+The compiler for is named `sac`, and the bytecode it generates is
+executed using the `sa` runner. This process was outlined in the
 introduction chapter above and is reiterated here for clarity:
 
 ```
@@ -295,12 +297,10 @@ $ sa build/tribute 100000
 
 That is it.
 
-A Satie application can composed of multiple modules within a
-directory hierarchy, the process remains the same. For instance,
-consider an application named `zarah` consisting of a hierarchy of
-modules.
+An application can be composed of a multitude of modules within a
+directory hierarchy, the build process remains the same. For instance,
+consider an application named `zarah` that looks like this:
 
-The zarah modules:
 ```
 $ cd zarah
 $ find .
@@ -341,9 +341,8 @@ $ find .
 $ sa build/main
 ```
 
-> **NOTE**
-> The `sac` compiler can be configured  to use alternative directories
-> for `src/` and `build/`
+**Note:** The `sac` compiler can be configured  to use alternative
+directories for `src/` and `build/`.
 
 By default, the `sac` compiler follows module dependencies starting
 from `main.sa` and automatically compiles those modules as
@@ -354,8 +353,7 @@ the `sa` runner, refer to their respective manual pages.
 
 ## The interactive shell
 
-The `sa` runner is also capable of launching an interactive Satie
-shell:
+The `sa` runner is also capable of launching an interactive shell:
 
 ```
 $ sa --shell
@@ -363,19 +361,21 @@ Satie <0.3.1> (press ctrl-c to abort)
 0> _
 ```
 
-In the shell Satie expressions can be evaulated and the status of an
-already executing application can be inspected, i.e a shell can be
-made to connect to an already executing `sa` runner instance. Read
-more about this and more in the `sa` runner's manual page.
+In the shell expressions can be evaulated and the status of an already
+executing application can be inspected, i.e a shell can be made to
+connect to an already executing `sa` runner instance. Read more about
+this and more in the `sa` runner's manual page.
 
-# Comments
+# The gory details
+
+## Comments
 
 Everything after `//` and to end of line and within `/* ... */` are
 considered comments.
 
-# Types
+## Types
 
-## Basic types
+### Basic types
 
 `bool` : A boolean value
 
@@ -385,10 +385,10 @@ transparently represented as an arbitrary-precision bignum. Similarly,
 on a 32-bit machine, an integer must fit within 29 bits, and so on,
 adapting to the architecture's capabilities.
 
-`float` : A floating-point value in Satie must conform to the
-machine's bit capacity. On a 64-bit machine, floats must fit within 61
-bits, while on a 32-bit machine, they must fit within 29 bits, and so
-on, aligning with the specific architecture.
+`float` : A floating-point value must conform to the machine's bit
+capacity. On a 64-bit machine, floats must fit within 61 bits, while
+on a 32-bit machine, they must fit within 29 bits, and so on, aligning
+with the specific architecture.
 
 `char` : A 32-bits Unicode code point value
 
@@ -398,7 +398,7 @@ on, aligning with the specific architecture.
 
 `enum`: An enumeration value
 
-## Composite types
+### Composite types
 
 `string` : An immutable sequence of UTF-8 encoded characters
 
@@ -413,7 +413,7 @@ functions
 
 `buf` : A buffer to efficiently manipulate large amount of characters
 
-## Type management
+### Type management
 
 All values can be type checked in run-time using the functions
 `isBool`, `isInt`, `isFloat`, `isChar`, `isFunction`, `isJob`,
@@ -457,10 +457,9 @@ c.inspect(),        // [ "type" : "enum",
 d.inspect()         // [ "type" : "list", "length": 2 ]
 ```
 
-> **NOTE**
-> In the above example the value attached to the enumeration constant
-> would typically be accessed using `c.value`, and the list length
-> would be referred to as `d.length`.
+**Note:** In the above example the value attached to the enumeration
+constant would typically be accessed using `c.value`, and the list
+length would be referred to as `d.length`.
 
 All values can be converted to string representation using the
 `toString` function.
@@ -472,7 +471,7 @@ a.toString(),       // "3.14"
 b.toString()        // "[Foo.a : 42, "bar": fn/0]"
 ```
 
-# Identifiers
+## Identifiers
 
 An identifier is a case-sensitive sequence of characters that begins
 with an ASCII letter or an underscore, followed by any number of ASCII
@@ -481,16 +480,15 @@ expression `^[[:alpha:]_][[:alnum:]_]*$`. Identifiers are used for
 various elements such as keywords, variables, function names, struct
 names, and enum names.
 
-> **NOTE**
-> By design, only strings in Satie may contain Unicode
-> characters. However, this restriction could be reconsidered and
-> potentially lifted if compelling reasons arise.
+**Note:** By design, only strings may contain Unicode
+characters. However, this restriction could be reconsidered and
+potentially lifted if compelling reasons arise.
 
-## Keywords
+### Keywords
 
-Satie reserves 24 special identifiers that cannot be used in user
-code. These reserved identifiers are exclusive to the language's
-internal syntax and functionality.
+24 special identifiers that cannot be used in user code. These
+reserved identifiers are exclusive to the language's internal syntax
+and functionality.
 
 ```
 import
@@ -519,13 +517,13 @@ timeout
 self
 ```
 
-# Literals
+## Literals
 
-## Boolean literal
+### Boolean literal
 
 `true` or `false`
 
-## Integral literal
+### Integral literal
 
 An integral literal can be represented as decimal, octal and
 hexadecimal format
@@ -537,7 +535,7 @@ hexadecimal format
 0b101010100    // Binary format
 ```
 
-## Floating-point literal
+### Floating-point literal
 
 A floating point literal represents a real number that includes a
 fractional part. Its notation is similar to that used in other
@@ -548,10 +546,10 @@ languages like C or Java.
 .666e2
 ```
 
-## Character literal
+### Character literal
 
 A character literal is a Unicode code point value enclosed within
-single quotation marks. Internally, it consists of foure bytes.
+single quotation marks. Internally, it consists of four bytes.
 
 ```
 'A',
@@ -559,7 +557,7 @@ single quotation marks. Internally, it consists of foure bytes.
 '\u03c9'    // ω
 ```
 
-## Function literal
+### Function literal
 
 A function literal follows the same syntax as regular [function
 definitions](function), but without a function name.
@@ -569,11 +567,11 @@ definitions](function), but without a function name.
 sum(1, 2)                   // 3
 ```
 
-## Job literal
+### Job literal
 
 Job literals are opaque.
 
-## Enumeration literal
+### Enumeration literal
 
 An enumeration is a named constant, and it's always defined
 within a [enumeration definition](enumeration). An enumeration literal
@@ -590,7 +588,7 @@ enum Color {
 Color.red                   // An enumeration literal
 ```
 
-## String literal
+### String literal
 
 A string literal is represented as an immutable UTF-8 encoded sequence
 of Unicode characters, enclosed within double quotation marks. Escape
@@ -606,7 +604,7 @@ a[3],               // 'ω'
 ?b = r"foo\nbar"    // b.length == 8
 ```
 
-## Tuple literal
+### Tuple literal
 
 A tuple literal is represented as comma separated, fixed size sequence
 of values of any type. This sequence is enclosed between a leading
@@ -614,7 +612,7 @@ of values of any type. This sequence is enclosed between a leading
 
 `#("foo", 3.14, #("bar", fn (x) { x + 1}))`
 
-## List literal
+### List literal
 
 A list literal is represented as comma-separated sequence of values,
 which can be if any type enclosed within square brackets.
@@ -624,10 +622,9 @@ which can be if any type enclosed within square brackets.
 ?b = a[1 = 42, 2 = "bar"]      // b == [3.14, 42, "bar"]
 ```
 
-> **NOTE**
-> Only existing list entries can be updated this way
+**Note:** Only existing list entries can be updated this way.
 
-## Map literal
+### Map literal
 
 A map literal is represented as comma-separated sequence of key-value
 pairs, where the key an value can be of any type and are separated by
@@ -638,7 +635,7 @@ a `:` character. Thus sequence is enclosed within square brackets.
 a[3.14: 4711, 2 : 4]                         // ["foo" : 12, 3.14: 4711, 2 : 4],
 ```
 
-## Struct literal
+### Struct literal
 
 A struct literal is represented as a semicolon-separated sequence of
 member-value pairs. Each pair consists of a member (which is an
@@ -658,38 +655,41 @@ b,                          // 4711
 c                           // "foo"
 ```
 
-# Expressions
+## Expressions
 
-Everything is an expression in Satie except for the top level
-definitions, i.e. `import`, `struct`, `interface`, and `enum`.
+Every element is treated as an expression, with the exception of
+top-level definitions. These include `import`, `struct`, `interface`,
+and `enum`.
 
-Out of all expressions the *bind* expression, and its `=` operator,
-stands out for its ability to bind variables to values. There is no
-notion of variable assignment in Satie but instead unbound variables
-are bound to values. An unbound variable starts with a `?` character
-and a naked variable (without a `?` character) is required to be bind
-before use.
+Among all expressions, the bind expression, marked by the `=`
+operator, stands out for its ability to bind variables to
+values. Instead of variable assignment, unbound variables are bound to
+values. An unbound variable is identified by a leading `?` character,
+and a naked variable (without a `?`) must be bound before use."
+
+Like this:
 
 ```
 ?a = 42,
 a = 42,
-a = "foo"     // Compiler or runtime error!
+a = "foo",     // Error!
+b = 4711       // Error!
 ```
 
-In the above example `a = "foo"` leads to a compile time error at best
-or at least a catastrophic runtime error, i.e. `a` is `42` not
-`"foo"`. This kind of mismatch is most often used as an assertment or
-it may be a software bug. A catastrophic runtime error stops the
-execution of *job* in which the mismatch occured. Read more about
-concurrency and jobs in the "Concurrency" chapter.
+In the example above, `a = "foo"` leads to a runtime error, where `a`
+is expected to be `42`, not `"foo"`. Such mismatches are typically
+used as assertions or may indicate a software bug. A catastrophic
+runtime error halts the execution of the job where the mismatch
+occurred. For more details on concurrency and jobs, refer to the
+[Concurrency](concurrency) section.
 
-The following code snippet is rejected by the compiler if variable `a`
-is unbound:
+Additionally, in the example above, `a = 4711` results in a compiler
+error because a has not been previously bound."
 
-`a = 42`
+The pattern matching capability of bind expressions can be utilized
+to deconstruct composite values into their primitive components.
 
-The pattern matching performed by bind expressions can be useed to
-deconstruct composite values into its primitive values:
+Grok this:
 
 ```
 fn foo(x) {
@@ -698,40 +698,47 @@ fn foo(x) {
 ?a = 1,
 #(a, ?b, 1) = #(1, 2, 1),     // b == 2
 #(?a, b, ?c) = foo(1),        // a == 4711 && c == "bar"
-#(a, a, a) = c                // A catastrophic mismatch!
+#(a, a, a) = c                // Error!
 ```
-
-> **NOTE**
-> Above we used expressions not yet explained but it suffices to say
-> that #(1, 2, 1) is a fixed size tuple.
 
 Pretty nifty.
 
-The `switch` and `receive` expressions also use pattern matching
-able to deconstruct and select. Read more about them below.
+**Note:** In the examples above, we used expressions that have not been
+explained yet. For now, it's sufficient to understand that `#(1, 2, 1)`
+represents a fixed-size tuple.
 
-Furthermore, the `=` operator is only allowed as a standalone
-expression and cannot be used deep within expressions. For your
-sanity's sake. Don't kill me. 😇
+The `switch` and `receive` expressions, which are described below,
+also employ pattern matching. This feature enables them to deconstruct
+and select specific elements. Further details about these expressions can
+be found in the subsequent sections.
+
+Furthermore, the `=` operator is restricted to use only as a
+standalone expression and is not permitted within more complex
+expressions. This restriction is in place to maintain clarity and
+simplicity in coding practices. Your understanding and cooperation are
+appreciated. 😇
+
+Like this:
 
 ```
 main() {
     ?a = 42,
-    a + (?c = 42 + a) + a    // Compiler error!
+    a + (?c = 42 + c) + a    // Error!
 }
 ```
 
-## Control flow expressions
-
 ### Block expression -- `{` a, b, c, ... `}`
 
-A block expression is a comma-separated sequence of expressions
-enclosed in curly braces. Expressions are evaluated in a sequence and
-introduces a lexical scope. An variable bound in a scope is visible to
-all the following expressions in the scope. The variable is not
-visible outside of the scope and it shadows an identifier with the
-same name introduced outside of the scope. The value of the last
-expression in the sequence is returned from the block.
+The block expression consists of a sequence of expressions separated by
+commas and enclosed in curly braces. These expressions are evaluated
+sequentially and establish a lexical scope. A variable bound within
+this scope is visible to all subsequent expressions in the same
+scope. However, it remains invisible outside of this scope and
+overshadows any identifier with the same name introduced outside the
+scope. The value of the last expression in the sequence is what the
+block ultimately returns.
+
+Take a look at this:
 
 ```
 main() {                  // A function block starts here
@@ -748,7 +755,8 @@ main() {                  // A function block starts here
 
 ### If expression -- `if`, `elif`, `else`
 
-No surprises here.
+The `if` expression is straightforward and does not require additional
+clarification:
 
 ```
 ?a = 4,
@@ -763,11 +771,11 @@ b         // 42
 
 ### Switch expression -- `switch`, `case`, `default`
 
-A switch expression uses pattern matching to dispatch between its case
-paths but also to do deconstruction as introduced in the
-[Expressions](#expressions) chapter.
+The `switch` expression employs pattern matching not only to dispatch
+between its case paths but also to perform deconstruction, as
+introduced in the [Expressions](expressions) section.
 
-In the first example things are kept simple:
+A simple case path selection:
 
 ```
 ?a = 42,
@@ -781,7 +789,7 @@ switch a {
 }
 ```
 
-In the second example a tuple is matched
+A combined case path selection and tuple deconstruction:
 
 ```
 ?a = #("bar", 4711),
@@ -800,18 +808,18 @@ switch a {
 
 No more no less.
 
-> **NOTE**
-> There is no fall through mechanism and the `default` keyword is
-> optional. Switch fall through must be next most expensive mistake
-> not counting Hoare's null pointer. YMMV.
+**Note:** The `switch`expression does not include a fall-through
+mechanism, and the use of the `default` keyword is optional. The
+absence of switch fall-through makes the world a little bit
+better. YMMV.
 
-## Value expressions
+### Enumeration -- `a.b`
 
-### Enumeration
+The Enumeration expression introduces named constants, improving code
+readability and maintainability. A named constant can optionally have
+a value of any type.
 
-Enumeration introduces named constans and can enhance code readability
-and maintainability. An named constant can have an optional constant
-value, of any type, attached to it.
+Like this:
 
 ```
 enum Color {
@@ -824,14 +832,16 @@ Foo.red,              // An enumeration literal
 Foo.red.value         // #(255, 0, 0)
 ```
 
-### Function
+### Function -- `fn`
 
-`foo(a, b)` invokes the function `foo` with a comma separated list of
-expression arguments. Arguments are evaluated left to right before the
-function is invoked and `foo` may refer to a named function definition
-or to a variable bound to a function literal.
+`foo(a, b)` calls the `foo` function with a list of expression
+arguments separated by commas. These arguments are evaluated from left
+to right before invoking the function. `foo` can refer to either a
+named function definition or a variable bound to a function
+literal. Functions in can be overloaded, and their parameters can have
+default values.
 
-Functions can be overloaded and function parameters have default values:
+Grok this:
 
 ```
 fn foo(a, b, c = 0) {
@@ -844,10 +854,11 @@ fn foo(a = 1) {
 }
 ```
 
-Default values can only be given to trailing parameters and these
-parameters can be omitted in function calls. A function call can
-either be called with positional parameters **only** or with named
-parameters **only**. The following function calls are equivalent:
+Default values are assignable only to trailing parameters, and such
+parameters can be omitted in function calls. Furthermore, a function
+call must use either positional parameters exclusively or named
+parameters exclusively. The following function calls illustrate
+equivalent methods:
 
 ```
 foo(2, 6),
@@ -856,7 +867,7 @@ foo(a: 2, b: 6),
 foo(b: 6, a: 2)
 ```
 
-Named functions can be defined within functions:
+Functions can be defined within functions:
 
 ```
 fn foo(a, b, c = 0) {
@@ -867,7 +878,7 @@ fn foo(a, b, c = 0) {
 }
 ```
 
-Functions are first class citizens:
+Functions are treated as first-class citizens:
 
 ```
 import stdio.lists
@@ -879,11 +890,13 @@ export fn main() {
 }
 ```
 
-### String
+### String -- `"` ... `"`
 
 A string is an immutable sequence of UTF-8 encoded characters. String
-interpolation is supported as well as random access to individual
-charcters in a string even though the string is UTF-8 encoded.
+interpolation is supported, and despite the UTF-8 encoding, random
+access to individual characters within a string is possible.
+
+Grok this:
 
 ```
 ?a = 3.0,
@@ -898,7 +911,9 @@ r.length == 9                   // true
 ```
 ### Tuple -- `#(` a, b, c, ... `)`
 
-A no-brainer.
+Not much needs to be said about tuples: they are simply tuples.
+
+Like this:
 
 ```
 ?a = 42,
@@ -910,14 +925,18 @@ c                            // 2
 
 ### List -- `[` a, b, c, ... `]`
 
-A list contains elements of any type and list slicing makes it easy to
-work with portions of a list. `a[i .. j]` returns a list slice
-starting at index `i` and ending with index `j - 1`. `i` and `j` can
-be any valid expression and the keyword `$` is the length of the list.
+A list can hold elements of any type, and list slicing makes it easy
+to work with portions of a list. The expression `a[i .. j]` returns a
+slice of the list starting at index `i` and ending at the index
+`j - 1`. Both `i` and `j` can be any valid expression, and the keyword
+`$` represents the list's length.
 
-`a[i]` returns the i:th element.
+There is more:
 
-`a[2 = "foo"]` evaluates to a new list with element 2 set to "foo".
+* `a[i]` returns the i:th element.
+* `a[2 = "foo"]` evaluates to a new list with element 2 set to "foo".
+
+Study this:
 
 ```
 ?a = [],                 // An empty list
@@ -939,8 +958,10 @@ g == a                   // true
 
 ### Map  -- `[` a `:` b, ... `]`
 
-A map can be seen as a function mapping between keys of any type and
-values of any type.
+A map can be viewed as a function that creates a mapping between keys
+and values, both of which can be of any type.
+
+Grok this as well:
 
 ```
 ?a = [:],                      // En empty map
@@ -957,13 +978,13 @@ a.values                       // [1.0, "foo"] || ["foo", 1.0]
 a == d                         // true
 ```
 
-### Encapsulation -- `struct`
+### Encapsulation -- `struct` a `{` ... `}'
 
-A struct in Satie is more that a struct in C. It is immutable and
-functional in its nature and it a unit of encapsulation for member
-variables and functions.
+A struct in Satie goes beyond a traditional C struct. It is immutable
+and inherently functional, serving as a unit of encapsulation for
+member variables and functions.
 
-Lets dive right in:
+Let's dive into an example right away:
 
 ```
 struct Foo {
@@ -991,15 +1012,24 @@ struct Foo {
 }
 ```
 
-A struct Foo can be instantiated like this:
+The example above revisits familiar concepts from Java, including
+member variables and functions, access specifiers and modifiers, along
+with a constructor and destructor, and the use of the this
+reference. No novel elements have been introduced here.
 
-```
-?a = struct Foo(2, 1)
-```
+Interestingly, the constructor is designed to call itself for the
+final initialization of its member variables. It's noteworthy how the
+constructor can use its member variables as named parameters in this
+self-referential call.
 
-A struct may choose to implement mandatory interfaces. An interface
-defines which member variables and functions that must be provided by
-the struct. An interface definition looks like this:
+To instantiate a struct `Foo`, the following approach is used:
+
+`?a = struct Foo(2, 1)`
+
+A struct can opt to implement certain mandatory interfaces. An
+*interface* specifies the member variables and functions that the
+struct must provide. The structure of an interface definition is as
+follows:
 
 ```
 interface Bar {
@@ -1008,7 +1038,8 @@ interface Bar {
 }
 ```
 
-A struct which decides to implement this interface looks looks like this:
+A struct that opts to implement this interface is structured as
+follows:
 
 ```
 struct Foo : Bar {
@@ -1029,7 +1060,7 @@ struct Foo : Bar, Bonk {
 }
 ```
 
-If you need to define a bunch of constants this is how it is done:
+To define a series of constants, the this approach can be used:
 
 ```
 struct Math {
@@ -1038,17 +1069,18 @@ struct Math {
 }
 ```
 
-And yes, this struct has to be instantiated somewhere. No static.
+**Note:** This struct must be instantiated in the code as there is by
+design no `static` modifier available.
 
 ### Buf(fer) -- `buf`
 
-A buffer is an opaque persistent datatype which can be used to
-efficiently manipulate large amount characters. It fits well in a
-programming language intending make it easy to implement programming
-editors (and more).
+A buffer is an opaque, persistent data type designed for the efficient
+manipulation of large amounts of characters. It is well-suited for a
+programming language aimed at simplifying the implementation of
+programming editors and more.
 
-> **NOTE**
-> This part is very much under consideration nothing is set in stone
+**Note:** This section is currently under consideration and the
+details are not yet finalized.
 
 API overview:
 
@@ -1148,10 +1180,12 @@ becomes a comprehensive and robust tool for building a programming
 editor, offering a wide range of functionalities required for text
 editing and manipulation in a functional programming environment.
 
-# Concurrency
+## Concurrency
 
-Any function can be spawned to run as a concurrent job with the
-`spawn` keyword:
+Any function can be executed concurrently as a job using the `spawn`
+keyword.
+
+Grok this:
 
 ```
 fn sum(l) { l.first() + sum(l.rest() },
@@ -1159,13 +1193,14 @@ fn sum(l) { l.first() + sum(l.rest() },
 job = spawn sum(a)
 ```
 
-`spawn` returns a job reference which can be used to send messages to
-the job using the `<|` operator:
+In the example above, `spawn` returns a job reference. The reference
+can be used, for instance to send messages to the job using the `<|`
+operator: `job <| `#(timeout, 1000)`
 
-`job <| `#(timeout, 1000)`
+A message sent to a job is placed in its mailbox and can be retrieved
+using the receive keyword.
 
-A message sent to a job ends up in its mailbox and can be retrieved
-with the `receive` keyword:
+Like this:
 
 ```
 receive {
@@ -1179,47 +1214,51 @@ receive {
 }
 ```
 
-(the `timeout` keyword is optional)
+**Note:** The `timeout` keyword is optional and the timeout unit is in
+milliseconds.
 
 The mailbox is unbounded in size but can be restricted using the
-`setMaxMailboxSize` function provided by the `std.concurrency`
-library:
+`std.concurrency` library function `setMaxMailboxSize`:
 
-`setMaxMailboxSize(job, 64, OnCrowding.block)`
+`concurrency.setMaxMailboxSize(job, 64, OnCrowding.block)`
 
-Above a job's mailbox is restricted to contain at most 64 messages,
-and if a sending job hits this threshold it is automatically blocked
-in `<|` waiting for the mailbox to shrink.
+In the example above the job's mailbox is restricted to contain at
+most 64 messages, and if a sending job hits that threshold it is
+automatically blocked in the `<|` operator waiting for the mailbox to
+shrink.
 
-`OnCrowding.ignore` can be used instead `OnCrowding.block` to specify
-that overflowing messages should be ignored. The `OnCrowding` enum can
-alternatively be replaced with a function that returns `false` if
-overflowing messages should be ignored or `true` if the sending job
-should be blocked in `<|`.
+As an alternative, `OnCrowding.ignore` can be used to specify that
+overflowing messages should be ignored.
 
-The last concurrency keyword is `self` and it refers to the job which
-user code currently runs in.
+The `OnCrowding` constant can also be replaced with a function that
+returns `false` if overflowing messages should be ignored or `true` if
+the sending job should be blocked in the `<|` operator.
+
+The  concurrency keyword `self`  refers to the job which user code
+currently runs within.
 
 The `std.concurrency` module also provides these functions:
 
-`monitor(job)` : Send a message `#(JobMonitor.died, job, reason)` to
+* `monitor(job)` : Send a message `#(JobMonitor.died, job, reason)` to
 me if a job dies
+* `link(job)` : Send a message `#(JobMonitor.died, job, reason)` to me
+if a job dies. Do the same to the linked job if I die. A link is a
+bidirectional monitor.
+* `kill(job)`
 
-`link(job)` : Send a message `#(JobMonitor.died, job, reason)` to me
-if a job dies. Do the same to the linked job if I die.
+The `spawn` keyword can take an extra `monitor` or `link` specifier to
+create a monitor or link during the actual spawn.
 
-The `spawn` expression may also take an extra `monitor` or `link`
-specifier to spawn jobs and create a monitor or link at tyhe same
-time. (See ackermann example below).
+### A small concurrency example
 
-`kill(job)`: Just like that
+A small concurrent example may clear things up. In the example below
+jobs are spawned to compute Ackermann function values for the
+parameters `m = 3, n = 1 .. 10`.
 
-# A concurrency example
+The `main` function uses an Ackermann to start 10 jobs and then waits
+for all jobs to send a result back as a message.
 
-A small concurrent example may clear things up. Below jobs are spawned
-which compute Ackermann function values for the parameters `m = 3, n =
-1 .. 10`. The `main` function uses an Ackermann singleton to start 10
-jobs and then waits for all jobs to send a result back as a message.
+Study this and do not despair:
 
 ```
 import std.jobs : OnCrowding, Job
@@ -1282,11 +1321,11 @@ struct Ackermann {
 ```
 *Source: [ackermann.sa](../grammar/ackermann.sa)*
 
-# Directory hierarchy of modules
+## Directory hierarchy of modules
 
 A directory hierarchy of modules is a nice way to organize code and in
 the example below a module uses the `foreach` and ` writeln` functions
-from the standard libray:
+from the standard libray module hierarchy:
 
 ```
 import std.stdio
@@ -1297,12 +1336,12 @@ export fn main(args) {
 }
 ```
 
-The name of the modules in the standard library must be specified when
-in the call to `foreach` and `writeln`, i.e. nothing is automatically
-imported into the moduole namespace.
+Note how the module names must be specified in the call to  the call
+to `foreach` and `writeln`, i.e. nothing is by design automatically
+imported into the module namespace.
 
-It is possible to import functions and enumerations into a module
-namespace:
+It is possible to import enumerations, interfaces, structs and
+functions into a module namespace:
 
 ```
 import std.stdio : writeln
@@ -1313,8 +1352,8 @@ export fn main(args) {
 }
 ```
 
-In the [Building and Executing](building-and-executing) above the
-*zarah* project was introduced and it had the following directry
+In the [Building and Executing](building-and-executing) section above
+the *zarah* project was introduced and it had the following directory
 hierarchy of modules:
 
 ```
@@ -1331,8 +1370,10 @@ $ find .
 ./src/database/tablestore.sa
 ```
 
-Note the modules `std.lists` and `database.utils.lists` has the same
-module name and to resolve this fact an import aliasing must be done:
+Note how the modules `std.lists` and `database.utils.lists` has the same
+module name. To resolve this, an import alias is used.
+
+Like this:
 
 ```
 import std.stdio : writeln
