@@ -3,7 +3,7 @@ PCC = packcc
 CFLAGS = -Wall -Wextra -std=c17 -g -pedantic -march=native -ffast-math
 LDLIBS = -lm
 
-all: satie
+all: satie r.pdf
 
 satie: satie.o
 	$(CC) $(LDLIBS) -o $@ $^
@@ -25,6 +25,13 @@ ackermann: satie
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@ -MMD -MF $(@:.o=.d)
+
+r.pdf: r.md
+	pandoc --toc --pdf-engine=xelatex -f gfm -o $@ $^
+
+
+Like this:
+
 
 clean:
 	rm -f satie satie.c satie.h satie.o *.d
