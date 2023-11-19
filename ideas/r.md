@@ -2,8 +2,8 @@
 
 ## Introduction
 
-Satie is envisioned as a forward-thinking programming language, suited
-for developing the programming editors of tomorrow. Its capabilities
+Satie is envisioned as programming language especially suited for
+manipulating of large text masses. Be it the programming editors of tomorrow. Its capabilities
 extend beyond just constructing editors; Satie also excels as a
 scripting language for creating editor plugins and
 customizations. However, the true essence of Satie lies in its
@@ -341,7 +341,7 @@ $ find .
 $ sa build/main
 ```
 
-> [!NOTE]
+> **NOTE**
 > The `sac` compiler can be configured  to use alternative directories
 > for `src/` and `build/`
 
@@ -368,16 +368,14 @@ already executing application can be inspected, i.e a shell can be
 made to connect to an already executing `sa` runner instance. Read
 more about this and more in the `sa` runner's manual page.
 
-# The gory details
-
-## Comments
+# Comments
 
 Everything after `//` and to end of line and within `/* ... */` are
 considered comments.
 
-## Types
+# Types
 
-### Basic types
+## Basic types
 
 `bool` : A boolean value
 
@@ -400,7 +398,7 @@ on, aligning with the specific architecture.
 
 `enum`: An enumeration value
 
-### Composite types
+## Composite types
 
 `string` : An immutable sequence of UTF-8 encoded characters
 
@@ -415,7 +413,7 @@ functions
 
 `buf` : A buffer to efficiently manipulate large amount of characters
 
-### Type management
+## Type management
 
 All values can be type checked in run-time using the functions
 `isBool`, `isInt`, `isFloat`, `isChar`, `isFunction`, `isJob`,
@@ -459,7 +457,7 @@ c.inspect(),        // [ "type" : "enum",
 d.inspect()         // [ "type" : "list", "length": 2 ]
 ```
 
-> [!NOTE]
+> **NOTE**
 > In the above example the value attached to the enumeration constant
 > would typically be accessed using `c.value`, and the list length
 > would be referred to as `d.length`.
@@ -474,7 +472,7 @@ a.toString(),       // "3.14"
 b.toString()        // "[Foo.a : 42, "bar": fn/0]"
 ```
 
-## Identifiers
+# Identifiers
 
 An identifier is a case-sensitive sequence of characters that begins
 with an ASCII letter or an underscore, followed by any number of ASCII
@@ -483,12 +481,12 @@ expression `^[[:alpha:]_][[:alnum:]_]*$`. Identifiers are used for
 various elements such as keywords, variables, function names, struct
 names, and enum names.
 
-> [!NOTE]
+> **NOTE**
 > By design, only strings in Satie may contain Unicode
 > characters. However, this restriction could be reconsidered and
 > potentially lifted if compelling reasons arise.
 
-### Keywords
+## Keywords
 
 Satie reserves 24 special identifiers that cannot be used in user
 code. These reserved identifiers are exclusive to the language's
@@ -521,13 +519,13 @@ timeout
 self
 ```
 
-## Literals
+# Literals
 
-### Boolean literal
+## Boolean literal
 
 `true` or `false`
 
-### Integral literal
+## Integral literal
 
 An integral literal can be represented as decimal, octal and
 hexadecimal format
@@ -539,7 +537,7 @@ hexadecimal format
 0b101010100    // Binary format
 ```
 
-### Floating-point literal
+## Floating-point literal
 
 A floating point literal represents a real number that includes a
 fractional part. Its notation is similar to that used in other
@@ -550,7 +548,7 @@ languages like C or Java.
 .666e2
 ```
 
-### Character literal
+## Character literal
 
 A character literal is a Unicode code point value enclosed within
 single quotation marks. Internally, it consists of foure bytes.
@@ -561,7 +559,7 @@ single quotation marks. Internally, it consists of foure bytes.
 '\u03c9'    // ω
 ```
 
-### Function literal
+## Function literal
 
 A function literal follows the same syntax as regular [function
 definitions](function), but without a function name.
@@ -571,11 +569,11 @@ definitions](function), but without a function name.
 sum(1, 2)                   // 3
 ```
 
-### Job literal
+## Job literal
 
 Job literals are opaque.
 
-### Enumeration literal
+## Enumeration literal
 
 An enumeration is a named constant, and it's always defined
 within a [enumeration definition](enumeration). An enumeration literal
@@ -592,7 +590,7 @@ enum Color {
 Color.red                   // An enumeration literal
 ```
 
-### String literal
+## String literal
 
 A string literal is represented as an immutable UTF-8 encoded sequence
 of Unicode characters, enclosed within double quotation marks. Escape
@@ -608,7 +606,7 @@ a[3],               // 'ω'
 ?b = r"foo\nbar"    // b.length == 8
 ```
 
-### Tuple literal
+## Tuple literal
 
 A tuple literal is represented as comma separated, fixed size sequence
 of values of any type. This sequence is enclosed between a leading
@@ -616,7 +614,7 @@ of values of any type. This sequence is enclosed between a leading
 
 `#("foo", 3.14, #("bar", fn (x) { x + 1}))`
 
-### List literal
+## List literal
 
 A list literal is represented as comma-separated sequence of values,
 which can be if any type enclosed within square brackets.
@@ -626,10 +624,10 @@ which can be if any type enclosed within square brackets.
 ?b = a[1 = 42, 2 = "bar"]      // b == [3.14, 42, "bar"]
 ```
 
-> [!NOTE]
+> **NOTE**
 > Only existing list entries can be updated this way
 
-### Map literal
+## Map literal
 
 A map literal is represented as comma-separated sequence of key-value
 pairs, where the key an value can be of any type and are separated by
@@ -640,7 +638,7 @@ a `:` character. Thus sequence is enclosed within square brackets.
 a[3.14: 4711, 2 : 4]                         // ["foo" : 12, 3.14: 4711, 2 : 4],
 ```
 
-### Struct literal
+## Struct literal
 
 A struct literal is represented as a semicolon-separated sequence of
 member-value pairs. Each pair consists of a member (which is an
@@ -660,7 +658,7 @@ b,                          // 4711
 c                           // "foo"
 ```
 
-## Expressions
+# Expressions
 
 Everything is an expression in Satie except for the top level
 definitions, i.e. `import`, `struct`, `interface`, and `enum`.
@@ -703,7 +701,7 @@ fn foo(x) {
 #(a, a, a) = c                // A catastrophic mismatch!
 ```
 
-> [!NOTE]
+> **NOTE**
 > Above we used expressions not yet explained but it suffices to say
 > that #(1, 2, 1) is a fixed size tuple.
 
@@ -723,9 +721,9 @@ main() {
 }
 ```
 
-### Control flow expressions
+## Control flow expressions
 
-#### Block expression -- `{` a, b, c, ... `}`
+### Block expression -- `{` a, b, c, ... `}`
 
 A block expression is a comma-separated sequence of expressions
 enclosed in curly braces. Expressions are evaluated in a sequence and
@@ -748,7 +746,7 @@ main() {                  // A function block starts here
 }
 ```
 
-#### If expression -- `if`, `elif`, `else`
+### If expression -- `if`, `elif`, `else`
 
 No surprises here.
 
@@ -763,7 +761,7 @@ No surprises here.
 b         // 42
 ```
 
-#### Switch expression -- `switch`, `case`, `default`
+### Switch expression -- `switch`, `case`, `default`
 
 A switch expression uses pattern matching to dispatch between its case
 paths but also to do deconstruction as introduced in the
@@ -802,14 +800,14 @@ switch a {
 
 No more no less.
 
-> [!NOTE]
+> **NOTE**
 > There is no fall through mechanism and the `default` keyword is
 > optional. Switch fall through must be next most expensive mistake
 > not counting Hoare's null pointer. YMMV.
 
-### Value expressions
+## Value expressions
 
-#### Enumeration
+### Enumeration
 
 Enumeration introduces named constans and can enhance code readability
 and maintainability. An named constant can have an optional constant
@@ -826,7 +824,7 @@ Foo.red,              // An enumeration literal
 Foo.red.value         // #(255, 0, 0)
 ```
 
-#### Function
+### Function
 
 `foo(a, b)` invokes the function `foo` with a comma separated list of
 expression arguments. Arguments are evaluated left to right before the
@@ -881,7 +879,7 @@ export fn main() {
 }
 ```
 
-#### String
+### String
 
 A string is an immutable sequence of UTF-8 encoded characters. String
 interpolation is supported as well as random access to individual
@@ -898,7 +896,7 @@ c[3] == 'ω'                     // true
 r"foo\nbar"                     // A raw string
 r.length == 9                   // true
 ```
-#### Tuple -- `#(` a, b, c, ... `)`
+### Tuple -- `#(` a, b, c, ... `)`
 
 A no-brainer.
 
@@ -910,7 +908,7 @@ a,                           // 4711
 c                            // 2
 ```
 
-#### List -- `[` a, b, c, ... `]`
+### List -- `[` a, b, c, ... `]`
 
 A list contains elements of any type and list slicing makes it easy to
 work with portions of a list. `a[i .. j]` returns a list slice
@@ -939,7 +937,7 @@ f.delete(2),             // [3, 4]
 g == a                   // true
 ```
 
-#### Map  -- `[` a `:` b, ... `]`
+### Map  -- `[` a `:` b, ... `]`
 
 A map can be seen as a function mapping between keys of any type and
 values of any type.
@@ -959,7 +957,7 @@ a.values                       // [1.0, "foo"] || ["foo", 1.0]
 a == d                         // true
 ```
 
-#### Encapsulation -- `struct`
+### Encapsulation -- `struct`
 
 A struct in Satie is more that a struct in C. It is immutable and
 functional in its nature and it a unit of encapsulation for member
@@ -1042,14 +1040,14 @@ struct Math {
 
 And yes, this struct has to be instantiated somewhere. No static.
 
-#### Buf(fer) -- `buf`
+### Buf(fer) -- `buf`
 
 A buffer is an opaque persistent datatype which can be used to
 efficiently manipulate large amount characters. It fits well in a
 programming language intending make it easy to implement programming
 editors (and more).
 
-> [!NOTE]
+> **NOTE**
 > This part is very much under consideration nothing is set in stone
 
 API overview:
@@ -1060,22 +1058,26 @@ API overview:
    * `fromString(string)`: Creates a buf from a given string.
    * `fromFile(filePath, lazyLoad)`: Initializes a buf from a file,
      with optional lazy loading for large files.
+
 1. Reading and Access
    * `charAt(index)`: Returns the character at a specified index.
    * `substring(startIndex, endIndex)`: Retrieves a substring from the
      buffer.
    * `length()`: Provides the length of the text in the buffer.
+
 1. Text Modification
    * `insert(index, string)`: Inserts a string at the specified index.
    * `delete(startIndex, endIndex)`: Deletes text between given indices.
    * `replace(startIndex, endIndex, string)`: Replaces a segment of
      text with a new string.
+
 1. Text Selection and Clipboard Operations
    * `select(startIndex, endIndex)`: Selects text between given indices.
    * `cut(startIndex, endIndex)`: Cuts (removes and copies) the
    selected text.
    * `copy(startIndex, endIndex)`: Copies the selected text.
    * `paste(index, string)`: Pastes the copied text at the specified index.
+
 1. Search and Navigation
    * `indexOf(substring, startIndex)`: Finds the index of the first
      occurrence of a substring.
@@ -1083,14 +1085,17 @@ API overview:
      of a substring.
    * `moveCursorTo(index)`: Moves the cursor to a specified index for
      navigation purposes.
+
 1. Text Transformation
    * `toUpperCase()`: Converts all text in the buffer to uppercase.
    * `toLowerCase()`: Converts all text in the buffer to lowercase.
    * `map(function)`: Applies a specified function to each character
      in the buffer.
+
 1. Undo Mechanism
    * `undo()`: Reverts the buffer to its previous state, utilizing a
      history of operations or states.
+
 1. Concurrency
    * `asyncInsert(index, string)`: Asynchronously inserts a string at
      a specified index.
@@ -1098,17 +1103,21 @@ API overview:
      between given indices.
    * `asyncReplace(startIndex, endIndex, string)`: Asynchronously
      replaces text in a specified range.
+
 1. Utility Functions
    * `toString()`: Converts the buf to a standard string for output or
       display.
    * `serialize()`: Serializes the buf for storage or transmission.
    * `deserialize(serializedData)`: Constructs a buf from serialized data.
+
 1. Advanced Editing
    * `batch(operations)`: Performs multiple operations in a single
      step for efficiency.
+
 1. File Handling and Lazy Loading
    * `loadMore()`: Incrementally loads more content from the file if
      lazy loading is enabled.
+
 1. Pending additions
    * `isEmpty()`: Checks if the buffer is empty.
    * `trim()`: Removes whitespace from the beginning and end of the text.
@@ -1205,7 +1214,7 @@ time. (See ackermann example below).
 
 `kill(job)`: Just like that
 
-## A concurrency example
+# A concurrency example
 
 A small concurrent example may clear things up. Below jobs are spawned
 which compute Ackermann function values for the parameters `m = 3, n =
