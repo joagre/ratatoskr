@@ -300,6 +300,7 @@ directory hierarchy, the process remains the same. For instance,
 consider an application named `zarah` with the following directory
 hierarchy:
 
+**Caption:** Example Python Function
 ```
 $ cd zarah
 $ find .
