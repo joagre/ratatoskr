@@ -297,10 +297,10 @@ That is it.
 
 A Satie application can composed of multiple modules within a
 directory hierarchy, the process remains the same. For instance,
-consider an application named `zarah` with the following directory
-hierarchy:
+consider an application named `zarah` consisting of a hierarchy of
+modules.
 
-**Caption:** Example Python Function
+The zarah modules:
 ```
 $ cd zarah
 $ find .
