@@ -3,7 +3,7 @@
 ## Introduction
 
 Satie is envisioned as programming language especially suited for
-manipulation large text masses. Ideal for implementing programming and
+manipulation of large text masses. Ideal for implementing programming and
 text editors of tomorrow. Its capabilities extend beyond just
 constructing editors; Satie also excels as a scripting language for
 creating editor plugins and customizations. However, the true essence
@@ -16,7 +16,7 @@ Satie owes a great deal to the individuals behind the
 programming languages, as well as all those who stand with them and
 support their efforts.
 
-All rise. Here is a tribute and a crash course:
+All rise. Here is a tribute and a premature Satie example:
 
 ```
 $ cat tribute.sa
@@ -66,38 +66,42 @@ The following design choices have been made (in some sort of order):
 
 * Satie is built on a custom multi-core virtual machine (VM) that
   offers robust support for time-sliced green threads, here after
-  referred to as *jobs*. These jobs adhere to a "share-nothing"
+  referred to as *jobs*. These jobs adhere to a *share-nothing*
   semantics and depend exclusively on message passing for
   communication. This architecture simplifies the process of designing
   and implementing highly concurrent, massively scalable soft
   real-time systems. It emphasizes fault tolerance and high
   availability, making it easier to reason about such systems.
 
-* Jobs have the capability to establish *monitors* and *links* (which
-  are bidirectional monitors) with one another. This feature enables
-  the creation of supervisor jobs, which can start and restart
-  children jobs should they unexpectedly fail.
+* Jobs have the capability to establish *monitors* and *links*
+  (bidirectional monitors) with one another. This feature enables the
+  creation of supervisor jobs, which can start and restart children
+  jobs should they unexpectedly fail.
 
 ### Functional and immutable
 
-* Satie is a pure functional programming language featuring native
-  persistent datatypes at its core. All data within Satie is
-  immutable, and the persistent datatypes are custom-built to handle
-  large amounts of data efficiently. However, there are limits to
-  Satie's purity; no monads.
+* Satie is a pure functional language featuring native persistent
+  datatypes at its core. All data within Satie is immutable, and the
+  persistent datatypes are custom-built to handle large amounts of
+  data efficiently. However, there are limits to Satie's purity; no
+  monads.
 
 ### A fusion of application and scripting language
 
 * Satie aims to strike a balance between a fully-fledged application
   language and a scripting language, as highlighted by the reasons
-  mentioned above. This is evident in its choice of semantics, syntax,
-  type system, support for object-orientation, and other aspects.
+  mentioned above (and below). This may be evident considering the
+  choice of semantics, syntax, type system, support for
+  object-orientation (from now on called *encapsulation*), and other
+  aspects.
 
-### Dynamically typed with type inference
+### Dynamically typed and type inference
 
 * Satie is dynamically typed and offers a concise set of basic and
-  composite types. Its compiler employs Hindley-Milner type inference
-  to deduce the types of variables, expressions, and functions.
+  composite types. Its compiler employs
+  [Hindley-Milner](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system)
+  type inference to deduce the types of variables, expressions, and
+  functions.
 
 * Semantic and syntactic considerations have been made to facilitate
   the future addition of a gradual type system.
@@ -126,7 +130,8 @@ The following design choices have been made (in some sort of order):
   appealing, though ultimately, you'll be the judge of that. Satie
   uses only a few keywords and has an even smaller set of
   operators. The complete syntax is formally defined as a Parsing
-  Expression Grammar (PEG) in Appendix B.
+  Expression Grammar (PEG) in
+  [Appendix B: PEG grammar](appendix-b:-peg-grammar).
 
 ### Pattern matching in its core
 
@@ -136,10 +141,10 @@ The following design choices have been made (in some sort of order):
   updates). Essentially, everything can be matched and deconstructed
   using pattern matching in conjunction with the `=` operator.
 
-* Pattern matching is also employed by the `switch` expression in
-  Satie. Furthermore, the `receive` expression utilizes pattern
-  matching to perform selective reception of messages in a job's
-  mailbox.
+* Pattern matching is also employed by the `switch` expression
+  Satie (described below). Furthermore, the `receive` expression (also
+  described below) utilizes pattern matching to perform selective
+  reception of messages in a job's mailbox.
 
 ### A custom-built Virtual Machine (VM)
 
@@ -157,14 +162,13 @@ The following design choices have been made (in some sort of order):
 
 ### Functional encapsulation
 
-* Considerable effort has been invested in introducing a purely
+* Effort has been invested in introducing a purely
   functional and encapsulating `struct` definition. This allows for
   the grouping of member variables and functions using familiar
-  C++/Java member modifiers such as `public`, `private`, and `const`,
-  as well as `this` references and more.
+  C++/Java member modifiers such as `public`, `private`, `const`,
+  `this` references and more.
 
-Many features are intentionally excluded from Satie by design,
-including:
+Many features are are by design excluded from Satie, including:
 
 * Pointers
 * Type specifications
@@ -177,7 +181,7 @@ including:
 * Inheritance
 * Monads
 
-There are most likely other elements that you might miss as well.
+There are most likely other features you will miss as well.
 
 ## Overall structure
 
@@ -193,6 +197,9 @@ nested within other function definitions freely.
 
 In an application, exactly one of the Satie modules must define a
 single exported main function.
+
+Here follows yet another premature Satie example but read it through
+and an explanation will follow:
 
 ```
 import std.stdio : writeln
@@ -244,10 +251,13 @@ export fn main() {
 ```
 *Source: [color.sa](../grammar/color.sa)*
 
-That was boring but hopefully informative. A module can define as many
-top-level functions as needed, whether exported or not. However, it's
-advisable to define functions as member functions within structs to
-prevent cluttering of the global function namespace.
+That was probably boring, but hopefully informative, and the promised
+explanation looks like this:
+
+A module can define as many top-level functions as needed, whether
+exported or not. However, it's advisable to define functions as member
+functions within structs to prevent cluttering of the global function
+namespace.
 
 Only functions marked with the `export` keyword can be imported by
 other modules.
@@ -262,20 +272,20 @@ prompts the compiler to ensure that the variable is already bound. At
 runtime, a check is conducted to verify that the bound variable
 matches the rvalue.
 
-The use of the `this` constructor calling itself might initially seem
+The `this` constructor calling itself might initially seem
 confusing. However, this is the final step a constructor must perform
-to actually initialize its member variables. The `:` notation in Satie
-is a method to call a function with named parameters, and a
-constructor can call itself using its member variables as named
-parameters. This self-referential mechanism is an integral part of
-Satie's approach to object construction and initialization.
+to actually initialize its member variables. The `:` notation is a way
+to call a function with **named** parameters, and a constructor can
+call itself using its member variables as named parameters. This
+self-referential mechanism is an integral part of Satie's support for
+functional encapsulation.
 
 That covers the basics, but naturally, many aspects are left
 unexplained at this stage.  The rest is in the gory details.
 
 ## Building and executing
 
-The compiler for is named `sac`, and the bytecode it generates is
+The compiler is named `sac`, and the bytecode it generates can be
 executed using the `sa` runner. This process was outlined in the
 introduction chapter above and is reiterated here for clarity:
 
@@ -297,9 +307,10 @@ $ sa build/tribute 100000
 
 That is it.
 
-An application can be composed of a multitude of modules within a
-directory hierarchy, the build process remains the same. For instance,
-consider an application named `zarah` that looks like this:
+An application can also be composed of a multitude of modules within a
+directory hierarchy, but the build process remains the same. For
+instance, consider an application named `zarah` consisting of these
+moodules:
 
 ```
 $ cd zarah
@@ -364,7 +375,7 @@ Satie <0.3.1> (press ctrl-c to abort)
 In the shell expressions can be evaulated and the status of an already
 executing application can be inspected, i.e a shell can be made to
 connect to an already executing `sa` runner instance. Read more about
-this and more in the `sa` runner's manual page.
+this in the `sa` runner's manual page.
 
 # The gory details
 
@@ -379,15 +390,15 @@ considered comments.
 
 `bool` : A boolean value
 
-`int` : On a 64-bit machine, a signed integer values is handled
-natively if it fit within 61 bits. If it exceed this limit, it is
+`int` : On a 64-bit machine, a signed integer value is handled
+natively if it fits within 61 bits. If it exceeds this limit, it is
 transparently represented as an arbitrary-precision bignum. Similarly,
 on a 32-bit machine, an integer must fit within 29 bits, and so on,
 adapting to the architecture's capabilities.
 
 `float` : A floating-point value must conform to the machine's bit
-capacity. On a 64-bit machine, floats must fit within 61 bits, while
-on a 32-bit machine, they must fit within 29 bits, and so on, aligning
+capacity. On a 64-bit machine, a float must fit within 61 bits, while
+on a 32-bit machine, ity must fit within 29 bits, and so on, aligning
 with the specific architecture.
 
 `char` : A 32-bits Unicode code point value
@@ -420,6 +431,8 @@ All values can be type checked in run-time using the functions
 `isEnum`, `isString`, `isList`, `isMap`, `isStruct`, `isBuf` and
 `typeof`.
 
+Look at these examples:
+
 ```
 ?a = 3.14,
 a.isInt(),      // false
@@ -432,15 +445,17 @@ operands to be of the same type. No implicit numeric conversion is
 performed. However, a cast operator is available to facilitate casting
 between int and float values.
 
+Grok this:
+
 ```
 ?a = 3,
 ?b = 93326215443944152681,
 ?c = 3.0,
 ?d = b / cast(int)c + a,     // 31108738481314713603
-d + c                        // Compiler error!
+d + c                        // Error!
 ```
 
-The `inspect` function offers more run-time type information.
+The `inspect` function offers more run-time type information:
 
 ```
 enum Foo {          //  Defined in bar.sa
@@ -464,6 +479,8 @@ length would be referred to as `d.length`.
 All values can be converted to string representation using the
 `toString` function.
 
+Try this:
+
 ```
 ?a = 3.14,
 ?b = [Foo.a : 42, "bar": #(fn () { x + x}, [1, 2,3])],
@@ -486,9 +503,9 @@ potentially lifted if compelling reasons arise.
 
 ### Keywords
 
-24 special identifiers that cannot be used in user code. These
-reserved identifiers are exclusive to the language's internal syntax
-and functionality.
+24 special identifiers cannot be used in user code. These reserved
+identifiers are exclusive to the language's internal syntax and
+functionality.
 
 ```
 import
@@ -526,7 +543,7 @@ self
 ### Integral literal
 
 An integral literal can be represented as decimal, octal and
-hexadecimal format
+hexadecimal values:
 
 ```
 4,             // Decimal format
@@ -539,7 +556,7 @@ hexadecimal format
 
 A floating point literal represents a real number that includes a
 fractional part. Its notation is similar to that used in other
-languages like C or Java.
+languages like C or Java:
 
 ```
 1.0,
@@ -549,7 +566,7 @@ languages like C or Java.
 ### Character literal
 
 A character literal is a Unicode code point value enclosed within
-single quotation marks. Internally, it consists of four bytes.
+single quotation marks. Internally, it consists of four bytes:
 
 ```
 'A',
@@ -560,7 +577,7 @@ single quotation marks. Internally, it consists of four bytes.
 ### Function literal
 
 A function literal follows the same syntax as regular [function
-definitions](function), but without a function name.
+definitions](function), but without a function name:
 
 ```
 ?sum = fn (x, y) { x + y },
@@ -573,10 +590,10 @@ Job literals are opaque.
 
 ### Enumeration literal
 
-An enumeration is a named constant, and it's always defined
+An enumeration is a named constant, and it is always defined
 within a [enumeration definition](enumeration). An enumeration literal
 is represented as a dot-separated sequence, consisting of the
-enumeration name followed by the constant name.
+enumeration name followed by the constant name:
 
 ```
 enum Color {
@@ -593,10 +610,12 @@ Color.red                   // An enumeration literal
 A string literal is represented as an immutable UTF-8 encoded sequence
 of Unicode characters, enclosed within double quotation marks. Escape
 sequences are interpreted in these double quoted
-strings. Additionally, raw strings, which are also enclosed within
-double quotation marks but prefixed with the letter `r`. In raw
+strings. Additionally, there is raw strings, which are also enclosed
+within double quotation marks but prefixed with the letter `r`. In raw
 strings, escape sequences have no meaning, and all characters are
 parsed verbatim.
+
+Like this:
 
 ```
 ?a = "fooω",
@@ -608,14 +627,14 @@ a[3],               // 'ω'
 
 A tuple literal is represented as comma separated, fixed size sequence
 of values of any type. This sequence is enclosed between a leading
-`#(` and a trailing `)`.
+`#(` and a trailing `)`:
 
 `#("foo", 3.14, #("bar", fn (x) { x + 1}))`
 
 ### List literal
 
 A list literal is represented as comma-separated sequence of values,
-which can be if any type enclosed within square brackets.
+which can be if any type enclosed within square brackets:
 
 ```
 ?a = [3.14, "foo", 1816381],
@@ -627,8 +646,8 @@ which can be if any type enclosed within square brackets.
 ### Map literal
 
 A map literal is represented as comma-separated sequence of key-value
-pairs, where the key an value can be of any type and are separated by
-a `:` character. Thus sequence is enclosed within square brackets.
+pairs, where the key and value can be of any type and are separated by
+a `:` character. This sequence is enclosed within square brackets:
 
 ```
 ?a = ["foo" : 12, 3.14 : 981237198192378 ],
@@ -657,15 +676,15 @@ c                           // "foo"
 
 ## Expressions
 
-Every element is treated as an expression, with the exception of
-top-level definitions. These include `import`, `struct`, `interface`,
-and `enum`.
+In Satie every element is treated as an expression, with the exception
+of top-level definitions. These include `import`, `struct`,
+`interface`, and `enum`.
 
 Among all expressions, the bind expression, marked by the `=`
 operator, stands out for its ability to bind variables to
 values. Instead of variable assignment, unbound variables are bound to
 values. An unbound variable is identified by a leading `?` character,
-and a naked variable (without a `?`) must be bound before use."
+and a naked variable (without a `?`) must be bound before use.
 
 Like this:
 
@@ -676,15 +695,15 @@ a = "foo",     // Error!
 b = 4711       // Error!
 ```
 
-In the example above, `a = "foo"` leads to a runtime error, where `a`
+In the example above, `a = "foo"` leads to an error, where `a`
 is expected to be `42`, not `"foo"`. Such mismatches are typically
-used as assertions or may indicate a software bug. A catastrophic
-runtime error halts the execution of the job where the mismatch
-occurred. For more details on concurrency and jobs, refer to the
+used as assertions or may indicate a software bug. A runtime error
+halts the execution of the job where the mismatch occurred. For more
+details on concurrency and jobs, refer to the
 [Concurrency](concurrency) section.
 
-Additionally, in the example above, `a = 4711` results in a compiler
-error because a has not been previously bound."
+Additionally, in the example above, `b = 4711` would result in a
+compiler error because `b` has not been previously bound.
 
 The pattern matching capability of bind expressions can be utilized
 to deconstruct composite values into their primitive components.
@@ -712,13 +731,13 @@ also employ pattern matching. This feature enables them to deconstruct
 and select specific elements. Further details about these expressions can
 be found in the subsequent sections.
 
-Furthermore, the `=` operator is restricted to use only as a
+Furthermore, the `=` operator is restricted to be used as a
 standalone expression and is not permitted within more complex
 expressions. This restriction is in place to maintain clarity and
 simplicity in coding practices. Your understanding and cooperation are
 appreciated. 😇
 
-Like this:
+This produces an error:
 
 ```
 main() {
@@ -808,14 +827,14 @@ switch a {
 
 No more no less.
 
-**Note:** The `switch`expression does not include a fall-through
+**Note:** The `switch` expression does not include a fall-through
 mechanism, and the use of the `default` keyword is optional. The
 absence of switch fall-through makes the world a little bit
 better. YMMV.
 
 ### Enumeration -- `a.b`
 
-The Enumeration expression introduces named constants, improving code
+The enumeration defintion introduces named constants, improving code
 readability and maintainability. A named constant can optionally have
 a value of any type.
 
@@ -834,11 +853,11 @@ Foo.red.value         // #(255, 0, 0)
 
 ### Function -- `fn`
 
-`foo(a, b)` calls the `foo` function with a list of expression
+`foo(a, b)` calls the function `foo` with a list of expression
 arguments separated by commas. These arguments are evaluated from left
 to right before invoking the function. `foo` can refer to either a
 named function definition or a variable bound to a function
-literal. Functions in can be overloaded, and their parameters can have
+literal. Functions can be overloaded, and their parameters can have
 default values.
 
 Grok this:
@@ -855,10 +874,10 @@ fn foo(a = 1) {
 ```
 
 Default values are assignable only to trailing parameters, and such
-parameters can be omitted in function calls. Furthermore, a function
-call must use either positional parameters exclusively or named
-parameters exclusively. The following function calls illustrate
-equivalent methods:
+parameters (as seen in the example above) can be omitted in function
+calls. Furthermore, a function call must use either positional
+parameters exclusively or named parameters exclusively. The following
+function calls illustrate equivalent function calls:
 
 ```
 foo(2, 6),
@@ -894,7 +913,7 @@ export fn main() {
 
 A string is an immutable sequence of UTF-8 encoded characters. String
 interpolation is supported, and despite the UTF-8 encoding, random
-access to individual characters within a string is possible.
+access to individual characters in a string is possible.
 
 Grok this:
 
@@ -931,7 +950,7 @@ slice of the list starting at index `i` and ending at the index
 `j - 1`. Both `i` and `j` can be any valid expression, and the keyword
 `$` represents the list's length.
 
-There is more:
+Grok this:
 
 * `a[i]` returns the i:th element.
 * `a[2 = "foo"]` evaluates to a new list with element 2 set to "foo".
@@ -978,13 +997,13 @@ a.values                       // [1.0, "foo"] || ["foo", 1.0]
 a == d                         // true
 ```
 
-### Encapsulation -- `struct` a `{` ... `}'
+### Encapsulation -- `struct` a `{` ... `}`
 
 A struct in Satie goes beyond a traditional C struct. It is immutable
 and inherently functional, serving as a unit of encapsulation for
 member variables and functions.
 
-Let's dive into an example right away:
+Lets dive into an example right away:
 
 ```
 struct Foo {
@@ -1022,7 +1041,7 @@ final initialization of its member variables. It's noteworthy how the
 constructor can use its member variables as named parameters in this
 self-referential call.
 
-To instantiate a struct `Foo`, the following approach is used:
+To instantiate a struct `Foo` do this:
 
 `?a = struct Foo(2, 1)`
 
@@ -1060,7 +1079,7 @@ struct Foo : Bar, Bonk {
 }
 ```
 
-To define a series of constants, the this approach can be used:
+Do the following to define a set of constants:
 
 ```
 struct Math {
@@ -1069,8 +1088,8 @@ struct Math {
 }
 ```
 
-**Note:** This struct must be instantiated in the code as there is by
-design no `static` modifier available.
+**Note:** This struct must be instantiated somewhere in the code as
+there is no `static` modifier in Satie.
 
 ### Buf(fer) -- `buf`
 
@@ -1193,9 +1212,12 @@ fn sum(l) { l.first() + sum(l.rest() },
 job = spawn sum(a)
 ```
 
-In the example above, `spawn` returns a job reference. The reference
-can be used, for instance to send messages to the job using the `<|`
-operator: `job <| `#(timeout, 1000)`
+In the example above, `spawn` returns a job reference and it can be
+used to send messages to the job using the `<|` operator:
+
+```
+job <| #(timeout, 1000)
+````
 
 A message sent to a job is placed in its mailbox and can be retrieved
 using the receive keyword.
@@ -1219,6 +1241,8 @@ milliseconds.
 
 The mailbox is unbounded in size but can be restricted using the
 `std.concurrency` library function `setMaxMailboxSize`:
+
+Like this:
 
 `concurrency.setMaxMailboxSize(job, 64, OnCrowding.block)`
 
@@ -1247,16 +1271,17 @@ bidirectional monitor.
 * `kill(job)`
 
 The `spawn` keyword can take an extra `monitor` or `link` specifier to
-create a monitor or link during the actual spawn.
+create a monitor or link during the actual spawn. Look how this is
+done in the upcoming example.
 
 ### A small concurrency example
 
-A small concurrent example may clear things up. In the example below
-jobs are spawned to compute Ackermann function values for the
-parameters `m = 3, n = 1 .. 10`.
+Here follows a small concurrent example that spawn jobs to compute
+Ackermann function values for the parameters `m = 3, n = 1 .. 10`.
 
-The `main` function uses an Ackermann to start 10 jobs and then waits
-for all jobs to send a result back as a message.
+The `main` function uses member functions in an Ackermann struct to
+start 10 jobs and then waits for all jobs to send a result back as a
+message.
 
 Study this and do not despair:
 
@@ -1337,8 +1362,8 @@ export fn main(args) {
 ```
 
 Note how the module names must be specified in the call to  the call
-to `foreach` and `writeln`, i.e. nothing is by design automatically
-imported into the module namespace.
+to `foreach` and `writeln`, i.e. nothing is automatically imported
+into the module namespace.
 
 It is possible to import enumerations, interfaces, structs and
 functions into a module namespace:
@@ -1370,8 +1395,8 @@ $ find .
 ./src/database/tablestore.sa
 ```
 
-Note how the modules `std.lists` and `database.utils.lists` has the same
-module name. To resolve this, an import alias is used.
+The modules `std.lists` and `database.utils.lists` have the same
+module name. To resolve this, an import alias can be used.
 
 Like this:
 
@@ -1391,7 +1416,7 @@ export fn main(args) {
 
 That is it.
 
-# Appendix A: Operator precedence
+# Appendix A: Operator precedences
 
 Operators in decreasing order of precedence:
 
@@ -1662,7 +1687,7 @@ BlockComment <- "/*" (!"*/" .)* "*/"
 EOF <- _ !.
 ```
 
-# Appendix C: A todo list
+# Appendix C: A todo list example
 
 ```
 import std.stdio : writeln
