@@ -661,7 +661,7 @@ a[3.14: 4711, 2 : 4]                         // ["foo" : 12, 3.14: 4711, 2 : 4],
 
 A struct literal is represented as a semicolon-separated sequence of
 member-value pairs. Each pair consists of a member (which is an
-identifier) and a a value of any type, separated by a `;`
+identifier) and a value of any type, separated by a `;`
 character. This sequence is enclosed within square brackets.
 
 ```
