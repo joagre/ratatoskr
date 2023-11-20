@@ -142,7 +142,7 @@ The following design choices have been made (in some sort of order):
   using pattern matching in conjunction with the `=` operator.
 
 * Pattern matching is also employed by the `switch` expression
-  Satie (described below). Furthermore, the `receive` expression (also
+  (described below). Furthermore, the `receive` expression (also
   described below) utilizes pattern matching to perform selective
   reception of messages in a job's mailbox.
 
@@ -251,13 +251,16 @@ export fn main() {
 ```
 *Source: [color.sa](../grammar/color.sa)*
 
-That was probably boring, but hopefully informative, and the promised
-explanation looks like this:
+A plain and fairly boring color iterator, and a main function that
+iterates over a list of colors. Still, it manages to show the overall
+structure of a Satie application.
 
-A module can define as many top-level functions as needed, whether
-exported or not. However, it's advisable to define functions as member
-functions within structs to prevent cluttering of the global function
-namespace.
+The short story without any preamble:
+
+A Satoe module can define as many top-level functions as needed,
+whether exported or not. However, it's advisable to define functions
+as member functions within structs to prevent cluttering of the global
+function namespace.
 
 Only functions marked with the `export` keyword can be imported by
 other modules.
