@@ -257,7 +257,7 @@ structure of a Satie application.
 
 The short story without any preamble:
 
-A Satoe module can define as many top-level functions as needed,
+A Satie module can define as many top-level functions as needed,
 whether exported or not. However, it's advisable to define functions
 as member functions within structs to prevent cluttering of the global
 function namespace.
@@ -313,7 +313,7 @@ That is it.
 An application can also be composed of a multitude of modules within a
 directory hierarchy, but the build process remains the same. For
 instance, consider an application named `zarah` consisting of these
-moodules:
+modules:
 
 ```
 $ cd zarah
@@ -401,7 +401,7 @@ adapting to the architecture's capabilities.
 
 `float` : A floating-point value must conform to the machine's bit
 capacity. On a 64-bit machine, a float must fit within 61 bits, while
-on a 32-bit machine, ity must fit within 29 bits, and so on, aligning
+on a 32-bit machine, it must fit within 29 bits, and so on, aligning
 with the specific architecture.
 
 `char` : A 32-bits Unicode code point value
@@ -837,7 +837,7 @@ better. YMMV.
 
 ### Enumeration -- `a.b`
 
-The enumeration defintion introduces named constants, improving code
+The enumeration definition introduces named constants, improving code
 readability and maintainability. A named constant can optionally have
 a value of any type.
 
