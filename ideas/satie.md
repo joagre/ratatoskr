@@ -672,7 +672,8 @@ struct Foo P {
 }
 
 ?a = struct Foo(),
-[foo ; ?b, bar ; ?c] = a,
+[foo ; ?b,
+ bar ; ?c] = a,
 b,                          // 4711
 c                           // "foo"
 ```
