@@ -1,0 +1,177 @@
+# Suggested hybrid stack/register instruction set
+
+NOTE: Sm must refer to an existing stack position
+NOTE: <label> is an unresolved <address>
+
+## Meta-instructions
+
+label <label>
+  A symbolic jump <label> (resolved to an address during byte code
+  loading)
+
+## Instructions
+
+pushi <long>
+  Push <long> onto stack
+pushr Rm
+  Push Rm onto stack
+pushstr <string>
+  Push <string> onto stack (use data stack for storage)
+
+pop
+  Pop top stack value
+popr Rm
+  Pop top stack value into Rm
+pops Sm
+  Pop top stack value into Sm
+
+dup
+  Duplicate top stack position
+
+swap
+  Swap top stack positions
+
+loadrsp Rm
+  Load SP into Rm
+loadssp Sm
+  Load SP into Sm
+
+loadri Rm <value>
+  Load <value> into Rm
+loadsi Sm <value>
+  Load <value> into Sm
+loadrs Rm Sm
+  Load Sm into Rm
+loadsr Sm Rm
+  Load Rm into Sm
+loadrr Rm Rn
+  Load Rn into Rm
+loadss Sm Sn
+  Load Sn into Sm
+
+alloci <m>
+  Pre-allocate <m> stack positions
+allocr Rm
+  Pre-allocate Rm stack positions
+allocs Sm
+  Pre-allocate Sn stack positions
+
+addrss Rm Sm Sm
+  Add Sm and Sn and load result into Rm
+addrrs Rm Rn Sm
+  Add Rn and Sm and load result into Rm
+addrrr Rm Rn Ro
+  Add Rn and Ro and load result into Rm
+addrsr Rm Sm Rn
+  Add Sm and Rn and load result into Rm
+addsss Sm Sn So
+  Add Sn and So and load result into Sm
+addsrs Sm Rm Sn
+  Add Rm and Sn and load result into Sm
+addsrr Sm Rm Rn
+  Add Rm and Rn and load result into Sm
+addssr Sm Sn Rm
+  Add Sn and Rm and load result into Sm
+
+Note:
+Same approach for sub, mul, div, and, or, not, eq, neq, lt, gt
+
+19 + 8 * 11 = 107
+
+not
+jump label        ; Unconditionally jumps to a label.
+cjump label       ; Conditionally jumps to a label if the top value of
+                  ; the stack is not 0.
+
+  jmprnze r1 2
+  jmprnz r2 3
+  jmpngtii r1 0 3
+r
+
+
+
+
+
+
+jumpr Rn
+  Jump to address in register
+jumpre Rn Rm <address>
+  Jump if equal. If Rn equals Rm, jump to <address>
+jumprne Rn Rm <address>
+  Jump if not equal
+jumprlt Rn Rm <address>
+  Jump if less than
+jumprgt Rn Rm <address>
+  Jump if greater than
+
+scall <label> <arity>
+  Call function at <label> with <arity> number of parameters on
+  stack. Push return address and previous FP onto call stack and data
+  stack respectively. Set call stack FP to point to first parameter,
+  and data stack FP to point to next available position on data stack.
+sret [copy]
+  Remove the call stack frame (and data stack frame), i.e. everything
+  below the current call stack FP and data stack FP are
+  nuked. Restores fp to the call stack
+
+rcall
+
+rret
+
+
+previous fp for both
+                  ; stacks. Pushes the return value onto the callers
+                  ; call stack. The copy operand is only meaningful if
+                  ; the return value is a string, i.e. the string
+                  ; return value's data is copied onto the callers
+                  ; data stack. Jumps to the return address.
+sys name          ; Calls a built-in function, e.g. self, send, recv,
+                  ; println, display and exit.
+                  ; pushes the result.
+halt              ; Halts the stack machine execution.
+
+
+
+
+
+loadr Rn <offset>
+  Load from stack to register using an FP offset
+storer <offset> Rn
+  Store from register to stac using an FP offset
+movr Rn Rm
+  Move data netween registers
+pushr Rn
+  Push a register into the stack
+popr Rn
+  Pop a register from stack into a register
+addr Rn Rm Ro
+  Add Rm and Ro, store in Rn
+subr Rn Rm Ro
+  Subtract Rm and Ro, store in Rn
+mulr Rn Rm Ro
+  Multiply Rm and Ro, store in Rn
+divr Rn Rm Ro
+  Diveide Rm and Ro, store in Rn
+andr Rn Rm R0
+  Logical AND between Rm and Ro, store in Rn
+orr Rn Rm R0
+  Logical OR between Rm and Ro, store in Rn
+notr Rn Rm
+  Logical NOT on Rm, store in Rn
+jumpr Rn
+  Jump to address in register
+jumpre Rn Rm <address>
+  Jump if equal. If Rn equals Rm, jump to <address>
+jumprne Rn Rm <address>
+  Jump if not equal
+jumprlt Rn Rm <address>
+  Jump if less than
+jumprgt Rn Rm <address>
+  Jump if greater than
+loadi Rn <value>
+  Load an immediate value into a register
+addi Rn Rm immediate
+  Add an immediate value to Rm, store in Rn
+subi
+muli
+divi

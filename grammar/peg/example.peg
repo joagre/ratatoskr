@@ -1,21 +1,22 @@
 %prefix "example"
+%value "ast_node_t*"
+
 %header {
+#include <stdio.h>
 #include "ast.h"
 #include <string.h>
 }
-%value "ast_node_t*"
 
-Program <- {$$ = ast_create_node("Program");} _ Imports EOF
+Program <- _ Imports* EOF
 Imports <- Import (__ Import)*
-Import <- "import" {$$ = ast_add_child("Import", $$);} _ (ModuleAlias _ "=" _)? _ ModulePath
+Import <- "import" __ (ModuleAlias _ "=" _ )? _ ModulePath
 ModuleAlias <- Identifier
-ModulePath <- {$$ = ast_add_child("ModulePath", $$);} Identifier ("." Identifier)* (_ ":" _ ImportedEntities)?
-ImportedEntities <- {$$ = ast_add_child("ImportedEntities", $$);} Identifier (_ "," _ Identifier)*
-Identifier <- [a-zA-Z_][a-zA-Z_0-9_]* {ast_add_value("Identifier", $$, $0);}
+ModulePath <- Identifier ("." Identifier)*
+Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 _ <- WS*
 __ <- WS+
-WS <- [ \t\r\n]
 EOF <- _ !.
+WS <- [ \t\r\n]+
 
 %%
 int main() {

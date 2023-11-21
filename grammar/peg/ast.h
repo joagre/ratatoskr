@@ -11,7 +11,10 @@ typedef struct {
 } ast_node_t;
 
 ast_node_t* ast_create_node(char *rule_name);
-ast_node_t* ast_add_child(char *rule_name, ast_node_t *parent_node);
-void ast_add_value(char *rule_name, ast_node_t *parent_node, const char *value);
+ast_node_t* ast_create_value_node(char *rule_name, const char *value);
+
+
+ast_node_t* ast_add_child_node(char *rule_name, ast_node_t *parent_node);
+void ast_add_value_node(char *rule_name, ast_node_t *parent_node, const char *value);
 
 #endif
