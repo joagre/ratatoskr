@@ -1,6 +1,6 @@
 CC = gcc
 PCC = packcc
-CFLAGS = -Wall -Wextra -std=c17 -g -pedantic -march=native -ffast-math
+CFLAGS = -Wall -Wextra -std=c17 -g -pedantic
 LDLIBS = -lm
 
 all: satie satie.pdf
