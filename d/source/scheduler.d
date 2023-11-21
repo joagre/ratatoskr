@@ -48,6 +48,7 @@ class Scheduler {
     }
 
 
+    /*
     public void foo() {
         while (true) {
         }
@@ -57,7 +58,7 @@ class Scheduler {
         while (true) {
         };
     }
-
+    */
 
 
 

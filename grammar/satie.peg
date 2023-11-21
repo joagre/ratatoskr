@@ -144,10 +144,10 @@ IfExpr <- "if" __ Expr _ BlockExpr
           (_ "else" _ BlockExpr)?
 
 SwitchExpr <- "match" __ Expr _ "{"
-             (_ "case" __ Expr _ BlockExpr)+ _ "}"
+             (_ "case" __ BindExpr _ BlockExpr)+ _ "}"
 
 ReceiveExpr <- "receive" _ "{"
-               (_ "case" __ Expr _ BlockExpr)+
+               (_ "case" __ BindExpr _ BlockExpr)+
                (_ "timeout" _ DecimalIntegral _ BlockExpr)? _ "}"
 
 SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr

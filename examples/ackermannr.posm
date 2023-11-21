@@ -7,7 +7,7 @@
 
 label 10
   loadri r1 #3
-  loadri r2 #4
+  loadri r2 #8
   rcall 0
   pushr r0
   sys display
