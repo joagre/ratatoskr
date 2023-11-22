@@ -84,8 +84,7 @@ Literal <- BooleanLiteral /
            FunctionLiteral /
            TupleLiteral /
            (Identifier _)? ListLiteral /
-           (Identifier _)? MapLiteral /
-           StructLiteral
+           (Identifier _)? MapLiteral
 
 BooleanLiteral <- "true" / "false"
 
@@ -132,10 +131,6 @@ IndexValue <- DecimalIntegral _ "=" _ Expr
 MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues <- KeyValue (_ "," _ KeyValue)*
 KeyValue <- (Literal / Identifier) _ ":" _ Expr
-
-StructLiteral <- "[" _ MemberValues? _ "]"
-MemberValues <- MemberValue (_ "," _ MemberValue)*
-MemberValue <- Identifier _ ";" _ Expr
 
 ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
 
