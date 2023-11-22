@@ -34,7 +34,7 @@ fn main() {
     ackermann <- startJobs(3, 10),
     a[1],
     1 <- 1,
-    match a {
+    switch a {
         case b {
             c
         }

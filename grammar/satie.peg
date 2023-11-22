@@ -25,7 +25,7 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 #
 
 Expr <- BindExpr
-BindExpr <- (Literal / UnboundVariable / Identifier) (_ "<-" _ Expr) / SendExpr
+BindExpr <- MatchExpr _ "<-" _ Expr / SendExpr
 SendExpr <- ("self" /
              ControlFlowExpr /
              SpawnExpr /
@@ -65,6 +65,8 @@ UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
 PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                               "(" _ Args? _ ")" /
                               "[" _ Expr _ "]")*
+
+MatchExpr <- Literal / UnboundVariable / Identifier
 
 PrimaryExpr <- "this" /
                "self" /
@@ -138,11 +140,11 @@ IfExpr <- "if" __ Expr _ BlockExpr
           (_ "elif" __ Expr _ BlockExpr)*
           (_ "else" _ BlockExpr)?
 
-SwitchExpr <- "match" __ Expr _ "{"
-             (_ "case" __ BindExpr _ BlockExpr)+ _ "}"
+SwitchExpr <- "switch" __ Expr _ "{"
+             (_ "case" __ MatchExpr _ BlockExpr)+ _ "}"
 
 ReceiveExpr <- "receive" _ "{"
-               (_ "case" __ BindExpr _ BlockExpr)+
+               (_ "case" __ MatchExpr _ BlockExpr)+
                (_ "timeout" _ DecimalIntegral _ BlockExpr)? _ "}"
 
 SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
