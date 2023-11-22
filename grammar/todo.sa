@@ -26,12 +26,12 @@ struct TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
-        ?item = struct TodoItem(tag, description),
+        ?item <- struct TodoItem(tag, description),
         this(items: [tag : description] ~ items)
     }
 
     public fn markItemCompleted(tag) {
-        ?item = items[tag].markCompleted(),
+        ?item <- items[tag].markCompleted(),
         this(items: item ~ items.delete(tag))
     }
 
@@ -42,12 +42,12 @@ struct TodoList {
 
 export fn main() {
     fn loopUntilQuit(todoList) {
-        ?input = stdio.readLine(stdio.Stream.stdin),
+        ?input <- stdio.readLine(stdio.Stream.stdin),
         if input.command == "add" {
-            ?todoList = todoList.addItem(input.description),
+            ?todoList <- todoList.addItem(input.description),
             loopUntilQuit(todoList)
         } elif input.command == "complete" {
-            ?todoList = todoList.markItemCompleted(input.index),
+            ?todoList <- todoList.markItemCompleted(input.index),
             loopUntilQuit(todoList)
         } elif input.command == "show" {
             todoList.displayItems(),
@@ -59,6 +59,6 @@ export fn main() {
           loopUntilQuit(todoList)
         }
     },
-    ?todoList = struct TodoList(),
+    ?todoList <- struct TodoList(),
     loopUntilQuit(todoList)
 }

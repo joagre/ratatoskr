@@ -21,75 +21,41 @@ struct Foo {
 }
 
 fn main() {
-   {
-      ?a = 3
-   },
-
-
-   ?b = b[3 : 4],
-   ?a = a[1,2,3],
-   [1 : 2],
-   [foo ; 2] = a,
-   [1, 2] = a,
-
-   ?a = a[1 = 2],
-
-
-
-a[b] = 3,
-
-
-
-//   [1 : 2] = a,
-//   [1 ; 2] = a,
-
-
-
-   //a["foo" : 2, 3 : 5],
-   //a[1 = 2, 5 = 1],
-
-
-
-
-
-
-
-
-
-
-    ?ackermann = struct Ackermann(),
-    ackermann = startJobs(3, 10),
-
-
-
-
-
+    {
+        ?a <- 3
+    },
+    ?b <- b[a: 4],
+    ?a <- a[1,2,3],
+    [b: 2],
+    [foo; 2] <- a,
+    [1, 2] <- a,
+    ?a <- a[1 = 2],
+    a[b] <- 3,
+    ?ackermann <- struct Ackermann(),
+    ackermann <- startJobs(3, 10),
     a[1],
-    1 = 1,
+    1 <- 1,
     match a {
         case b {
             c
         }
     },
-    #(1,2),
-    //a[2] = a[4],
-    //?a = a[1 = 3],
-    //?a = a[2 : 3],
-   receive {
-       case a {
-           stdio.writeln("Oh no! Compute job $job died: $reason"),
-           b
-       }
-   },
-   lists.foreach(fn () { stdio.writeln(item.toString())}, items),
-   a = 1,
-   #(1, 2) = a,
-   a = 1 + (2 + a) + 1,
-   foo(),
-   foo[1].baz.bonk,
-   ?len = if true {
-              a
-           } else {
-              b
-           }.length()
+    #(1, 2),
+    receive {
+        case a {
+            stdio.writeln("Oh no! Compute job $job died: $reason"),
+            b
+        }
+    },
+    lists.foreach(fn () { stdio.writeln(item.toString())}, items),
+    a <- 1,
+    #(1, 2) <- a,
+    a <- 1 + (2 + a) + 1,
+    foo(),
+    foo[1].baz.bonk,
+    ?len <- if true {
+                a
+            } else {
+                b
+            }.length()
 }

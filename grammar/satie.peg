@@ -25,7 +25,7 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 #
 
 Expr <- BindExpr
-BindExpr <- (Literal / UnboundVariable / Identifier) (_ "=" _ Expr) / SendExpr
+BindExpr <- (Literal / UnboundVariable / Identifier) (_ "<-" _ Expr) / SendExpr
 SendExpr <- ("self" /
              ControlFlowExpr /
              SpawnExpr /
@@ -127,7 +127,7 @@ ListLiteral <- "[" _ Exprs? _ "]" /
                "[" Expr _ ".." _ Expr "]" /
                "[" _ IndexValues _ "]"
 IndexValues <- IndexValue (_ "," _ IndexValue)*
-IndexValue <- DecimalIntegral _ ":" _ Expr
+IndexValue <- DecimalIntegral _ "=" _ Expr
 
 MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues <- KeyValue (_ "," _ KeyValue)*

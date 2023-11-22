@@ -3,9 +3,9 @@ PCC = packcc
 CFLAGS = -Wall -Wextra -std=c17 -g -pedantic
 LDLIBS = -lm
 
-all: satie satie.pdf
+all: sac
 
-satie: satie.o
+sac: satie.o
 	$(CC) $(LDLIBS) -o $@ $^
 
 satie.c: satie.peg
@@ -26,13 +26,7 @@ ackermann: satie
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@ -MMD -MF $(@:.o=.d)
 
-satie.pdf: ../ideas/satie.md
-	pandoc --toc --pdf-engine=xelatex -f gfm -o $@ $^
-
-Like this:
-
-
 clean:
-	rm -f satie satie.c satie.h satie.o satie.pdf *.d
+	rm -f satie satie.c satie.h satie.o *.d
 
 .PHONY: all clean

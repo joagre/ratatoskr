@@ -2,8 +2,8 @@ import std.stdio : writeln
 import std.lists
 
 export fn main(args) {
-    ?numberOfTributes = args[1],
-    ?jobs = startTributes(numberOfTributes),
+    ?numberOfTributes <- args[1],
+    ?jobs <- startTributes(numberOfTributes),
     lists.foreach(fn (job) {
         job <| "Standing on the shoulders of giants"
     }, jobs)
@@ -11,7 +11,7 @@ export fn main(args) {
 
 fn startTributes(numberOfTributes, n = 0, jobs = []) {
     if n < numberOfTributes {
-        ?job = spawn fn () {
+        ?job <- spawn fn () {
             receive {
                 case ?message {
                    writeln("$n: $message")
