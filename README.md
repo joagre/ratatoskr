@@ -24,8 +24,8 @@ import std.stdio : writeln
 import std.lists
 
 export fn main(args) {
-    ?numberOfTributes = args[1],
-    ?jobs = startTributes(numberOfTributes),
+    ?numberOfTributes <- args[1],
+    ?jobs <- startTributes(numberOfTributes),
     lists.foreach(fn (job) {
         job <| "Standing on the shoulders of giants"
     }, jobs)
@@ -33,7 +33,7 @@ export fn main(args) {
 
 fn startTributes(numberOfTributes, n = 0, jobs = []) {
     if n < numberOfTributes {
-        ?job = spawn fn () {
+        ?job <- spawn fn () {
             receive {
                 case ?message {
                    writeln("$n: $message")
@@ -54,7 +54,7 @@ $ sa build/tribute 100000
 ...
 99999: Standing on the shoulders of giants
 ```
-*Source: [tribute.sa](../grammar/tribute.sa)*
+*Source: [tribute.sa](grammar/tribute.sa)*
 
 That said.
 
@@ -237,11 +237,11 @@ struct ColorIterator : Iterator {
 }
 
 export fn main() {
-    ?colors = [Color.red, Color.red, Color.blue, Color.green],
-    ?iterator = new ColorIterator(colors),
+    ?colors <- [Color.red, Color.red, Color.blue, Color.green],
+    ?iterator <- new ColorIterator(colors),
     fn iterate(iterator) {
         if (iterator.hasNext()) {
-            #(?iterator, ?color) = iterator.next(),
+            #(?iterator, ?color) <- iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
         }
@@ -249,7 +249,7 @@ export fn main() {
     iterate(iterator)
 }
 ```
-*Source: [color.sa](../grammar/color.sa)*
+*Source: [color.sa](grammar/color.sa)*
 
 A plain and fairly boring color iterator, and a main function that
 iterates over a list of colors. Still, it manages to show the overall
@@ -1215,7 +1215,7 @@ used to send messages to the job using the `<|` operator:
 
 ```
 job <| #(timeout, 1000)
-````
+```
 
 A message sent to a job is placed in its mailbox and can be retrieved
 using the receive keyword.
@@ -1289,8 +1289,8 @@ import std.stdio
 import std.lists
 
 export fn main() {
-  ?ackermann = new Ackermann(),
-  ?ackermann = ackermann.startJobs(3, 10),
+  ?ackermann <- new Ackermann(),
+  ?ackermann <- ackermann.startJobs(3, 10),
   ackermann.waitForJobs()
 }
 
@@ -1300,10 +1300,10 @@ struct Ackermann {
     public fn startJobs(m, n, i = 0, startedJobs = []) {
         if i < n {
             fn computeAckermann(parentJob, m, n) {
-                ?result = ackermann(m, n),
+                ?result <- ackermann(m, n),
                 parentJob <| #(self, m, n, result)
             },
-            ?job = spawn monitor computeAckermann(self, m, i),
+            ?job <- spawn monitor computeAckermann(self, m, i),
             job.setMaxMailboxSize(job, 4, OnCrowding.block),
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
@@ -1320,8 +1320,7 @@ struct Ackermann {
                         waitForJobs(jobs.delete(job))
                     }
                     case #(Job.died, ?job, ?reason) {
-                        stdio.writeln(
-                            "Oh no! Compute job $job died: $reason")
+                        stdio.writeln("Oh no! Compute job $job died: $reason")
                     }
                 }
             } else {
@@ -1342,7 +1341,7 @@ struct Ackermann {
     }
 }
 ```
-*Source: [ackermann.sa](../grammar/ackermann.sa)*
+*Source: [ackermann.sa](grammar/ackermann.sa)*
 
 ## Directory hierarchy of modules
 
@@ -1478,7 +1477,7 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 #
 
 Expr <- BindExpr
-BindExpr <- (Literal / UnboundVariable / Identifier) (_ "=" _ Expr) / SendExpr
+BindExpr <- MatchExpr _ "<-" _ Expr / SendExpr
 SendExpr <- ("self" /
              ControlFlowExpr /
              SpawnExpr /
@@ -1519,13 +1518,15 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                               "(" _ Args? _ ")" /
                               "[" _ Expr _ "]")*
 
+MatchExpr <- Literal / UnboundVariable / Identifier
+
 PrimaryExpr <- "this" /
                "self" /
                "$" /
                Literal /
                ControlFlowExpr /
                SpawnExpr /
-               StructExpr /
+               NewExpr /
                UnboundVariable /
                Identifier /
                "(" _ Expr _ ")"
@@ -1537,8 +1538,7 @@ Literal <- BooleanLiteral /
            FunctionLiteral /
            TupleLiteral /
            (Identifier _)? ListLiteral /
-           (Identifier _)? MapLiteral /
-           StructLiteral
+           (Identifier _)? MapLiteral
 
 BooleanLiteral <- "true" / "false"
 
@@ -1580,15 +1580,11 @@ ListLiteral <- "[" _ Exprs? _ "]" /
                "[" Expr _ ".." _ Expr "]" /
                "[" _ IndexValues _ "]"
 IndexValues <- IndexValue (_ "," _ IndexValue)*
-IndexValue <- DecimalIntegral _ ":" _ Expr
+IndexValue <- DecimalIntegral _ "=" _ Expr
 
 MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues <- KeyValue (_ "," _ KeyValue)*
 KeyValue <- (Literal / Identifier) _ ":" _ Expr
-
-StructLiteral <- "[" _ MemberValues? _ "]"
-MemberValues <- MemberValue (_ "," _ MemberValue)*
-MemberValue <- Identifier _ ";" _ Expr
 
 ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
 
@@ -1596,16 +1592,16 @@ IfExpr <- "if" __ Expr _ BlockExpr
           (_ "elif" __ Expr _ BlockExpr)*
           (_ "else" _ BlockExpr)?
 
-SwitchExpr <- "match" __ Expr _ "{"
-             (_ "case" __ Expr _ BlockExpr)+ _ "}"
+SwitchExpr <- "switch" __ Expr _ "{"
+             (_ "case" __ MatchExpr _ BlockExpr)+ _ "}"
 
 ReceiveExpr <- "receive" _ "{"
-               (_ "case" __ Expr _ BlockExpr)+
+               (_ "case" __ MatchExpr _ BlockExpr)+
                (_ "timeout" _ DecimalIntegral _ BlockExpr)? _ "}"
 
 SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
 
-StructExpr <- "struct" _ Identifier _ "(" _ Args? _ ")"
+NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
 
 UnboundVariable <- "?" _ Identifier
 
@@ -1691,7 +1687,7 @@ EOF <- _ !.
 import std.stdio : writeln
 import std.lists
 
-struct TodoItem {
+TodoItem {
     private description
     private completed
 
@@ -1716,12 +1712,12 @@ struct TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
-        ?item = struct TodoItem(tag, description),
-        this.copy(items: [tag : description] ~ items)
+        ?item <- new TodoItem(description),
+        this.copy(items: [tag : item] ~ items)
     }
 
     public fn markItemCompleted(tag) {
-        ?item = items[tag].markCompleted(),
+        ?item <- items[tag].markCompleted(),
         this.copy(items: item ~ items.delete(tag))
     }
 
@@ -1732,12 +1728,12 @@ struct TodoList {
 
 export fn main() {
     fn loopUntilQuit(todoList) {
-        ?input = stdio.readLine(stdio.Stream.stdin),
+        ?input <- stdio.readLine(stdio.Stream.stdin),
         if input.command == "add" {
-            ?todoList = todoList.addItem(input.description),
+            ?todoList <- todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
         } elif input.command == "complete" {
-            ?todoList = todoList.markItemCompleted(input.index),
+            ?todoList <- todoList.markItemCompleted(input.tag),
             loopUntilQuit(todoList)
         } elif input.command == "show" {
             todoList.displayItems(),
@@ -1749,8 +1745,8 @@ export fn main() {
           loopUntilQuit(todoList)
         }
     },
-    ?todoList = struct TodoList(),
+    ?todoList <- new TodoList(),
     loopUntilQuit(todoList)
 }
 ```
-*Source: [todo.sa](../grammar/todo.sa)*
+*Source: [todo.sa](grammar/todo.sa)*
