@@ -11,10 +11,10 @@ of Satie lies in its versatility. It is a purpose-built language and
 Virtual Machine (VM) that boasts a high degree of generality, making
 it adaptable to a wide array of applications.
 
-Satie owes a great deal to the individuals behind the
-[Erlang](https://www.erlang.org/) and [D](https://dlang.org/)
-programming languages, as well as all those who stand with them and
-support their efforts.
+Satie owes the individuals behind the
+[Erlang](https://www.erlang.org/), [D](https://dlang.org/) and
+[Scala](https://www.scala-lang.org/) programming languages, as well as
+all those who stand with them and support their efforts.
 
 All rise. Here is a tribute and a premature Satie example:
 
