@@ -2,19 +2,19 @@
 
 ## Introduction
 
-Satie is envisioned as programming language especially suited for
-manipulation of large text masses. Ideal for implementing programming and
-text editors of tomorrow. Its capabilities extend beyond just
-constructing editors; Satie also excels as a scripting language for
-creating editor plugins and customizations. However, the true essence
-of Satie lies in its versatility. It is a purpose-built language and
-Virtual Machine (VM) that boasts a high degree of generality, making
-it adaptable to a wide array of applications.
+Satie is envisioned as functional programming language especially
+suited for manipulation of large text masses. This is important when,
+for example, implementing text editors. Its capabilities extend beyond
+just constructing these kind of appications; it also strives to be a
+suitable as a scripting language for end-user plugins and
+customizations. However, the true essence of Satie lies in its
+versatility. It is a purpose-built language and Virtual Machine (VM)
+that boasts a high degree of generality, making it adaptable to a wide
+array of applications.
 
-Satie owes the individuals behind the
+Satie owes much to the individuals behind the
 [Erlang](https://www.erlang.org/), [D](https://dlang.org/) and
-[Scala](https://www.scala-lang.org/) programming languages, as well as
-all those who stand with them and support their efforts.
+[Scala](https://www.scala-lang.org/) programming languages.
 
 All rise. Here is a tribute and a premature Satie example:
 
