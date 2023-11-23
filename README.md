@@ -227,7 +227,7 @@ struct ColorIterator : Iterator {
         if (!hasNext()) {
             false
         } else {
-            #(this(colors: colors.rest()), colors.first())
+            #(this.copy(colors: colors.rest()), colors.first())
         }
     }
 
@@ -238,7 +238,7 @@ struct ColorIterator : Iterator {
 
 export fn main() {
     ?colors = [Color.red, Color.red, Color.blue, Color.green],
-    ?iterator = struct ColorIterator(colors),
+    ?iterator = new ColorIterator(colors),
     fn iterate(iterator) {
         if (iterator.hasNext()) {
             #(?iterator, ?color) = iterator.next(),
@@ -415,7 +415,7 @@ considered comments.
 
 `map`: A mapping between a key of any type and a value of any type
 
-`struct` : A unit of encapsulation for member variables and member
+`object` : A unit of encapsulation for member variables and member
 functions
 
 `buf` : A buffer to efficiently manipulate large amount of characters
@@ -424,7 +424,7 @@ functions
 
 All values can be type checked in run-time using the functions
 `isBool`, `isInt`, `isFloat`, `isChar`, `isFunction`, `isJob`,
-`isEnum`, `isString`, `isList`, `isMap`, `isStruct`, `isBuf` and
+`isEnum`, `isString`, `isList`, `isMap`, `isObject`, `isBuf` and
 `typeof`.
 
 Look at these examples:
@@ -499,7 +499,7 @@ potentially lifted if compelling reasons arise.
 
 ### Keywords
 
-24 special identifiers cannot be used in user code. These reserved
+25 special identifiers cannot be used in user code. These reserved
 identifiers are exclusive to the language's internal syntax and
 functionality.
 
@@ -516,6 +516,7 @@ else
 switch
 default
 struct
+new
 interface
 public
 private
@@ -664,7 +665,7 @@ struct Foo P {
     public zonk = #(42, 3.14)
 }
 
-?a = struct Foo(),
+?a = new Foo(),
 [foo ; ?b,
  bar ; ?c] = a,
 b,                          // 4711
@@ -1040,7 +1041,7 @@ self-referential call.
 
 To instantiate a struct `Foo` do this:
 
-`?a = struct Foo(2, 1)`
+`?a = new Foo(2, 1)`
 
 A struct can opt to implement certain mandatory interfaces. An
 *interface* specifies the member variables and functions that the
@@ -1288,7 +1289,7 @@ import std.stdio
 import std.lists
 
 export fn main() {
-  ?ackermann = struct Ackermann(),
+  ?ackermann = new Ackermann(),
   ?ackermann = ackermann.startJobs(3, 10),
   ackermann.waitForJobs()
 }
@@ -1306,7 +1307,7 @@ struct Ackermann {
             job.setMaxMailboxSize(job, 4, OnCrowding.block),
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
-            this(jobs: startedJobs)
+            this.copy(jobs: startedJobs)
         }
     }
 
@@ -1324,7 +1325,7 @@ struct Ackermann {
                     }
                 }
             } else {
-                this(jobs: [])
+                this.copy(jobs: [])
             }
         },
         waitForJobs(jobs)
@@ -1699,7 +1700,7 @@ struct TodoItem {
     }
 
     public fn markCompleted() {
-        this(completed: true)
+        this.copy(completed: true)
     }
 
     public fn toString() {
@@ -1716,12 +1717,12 @@ struct TodoList {
 
     public fn addItem(tag, description) {
         ?item = struct TodoItem(tag, description),
-        this(items: [tag : description] ~ items)
+        this.copy(items: [tag : description] ~ items)
     }
 
     public fn markItemCompleted(tag) {
         ?item = items[tag].markCompleted(),
-        this(items: item ~ items.delete(tag))
+        this.copy(items: item ~ items.delete(tag))
     }
 
     public fn displayItems() {
