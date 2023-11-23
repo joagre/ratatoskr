@@ -66,7 +66,7 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                               "(" _ Args? _ ")" /
                               "[" _ Expr _ "]")*
 
-MatchExpr <- Literal / UnboundVariable / Identifier
+MatchExpr <- Literal / UnboundName / Identifier
 
 PrimaryExpr <- "this" /
                "self" /
@@ -75,7 +75,7 @@ PrimaryExpr <- "this" /
                ControlFlowExpr /
                SpawnExpr /
                NewExpr /
-               UnboundVariable /
+               UnboundName /
                Identifier /
                "(" _ Expr _ ")"
 
@@ -151,7 +151,7 @@ SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
 
 NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
 
-UnboundVariable <- "?" _ Identifier
+UnboundName <- "?" _ Identifier
 
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 
@@ -163,12 +163,12 @@ StructDef <- "struct" __ Identifier _ ( ":" _ Interfaces _)?
                    "{" _ StructMembers _ "}"
 Interfaces <- Identifier (_ "," _ Identifier)*
 StructMembers <- StructMember (_ StructMember)*
-StructMember <- Constructor / Deconstructor / MemberFunction / MemberVariable
+StructMember <- Constructor / Deconstructor / MemberMethod / MemberProperty
 Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
 Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
-MemberFunction <- MemberAccess _ FunctionDef
+MemberMethod <- MemberAccess _ MethodDef
 MemberAccess <- "public" / "private"
-MemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+MemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
                   (_ "=" _ Expr)?
 
 #
@@ -177,10 +177,10 @@ MemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
 
 InterfaceDef <- "interface" __ Identifier _ "{" _ InterfaceMembers _ "}"
 InterfaceMembers <- InterfaceMember (_ InterfaceMember)*
-InterfaceMember <- InterfaceMemberFunction / InterfaceMemberVariable
-InterfaceMemberFunction <- MemberAccess _ InterfaceFunction
-InterfaceFunction <- "fn" _ Identifier _ "(" _ Params? _ ")"
-InterfaceMemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+InterfaceMember <- InterfaceMemberMethod / InterfaceMemberProperty
+InterfaceMemberMethod <- MemberAccess _ InterfaceMethod
+InterfaceMethod <- "fn" _ Identifier _ "(" _ Params? _ ")"
+InterfaceMemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
 
 #
 # Enumeration definition

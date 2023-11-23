@@ -100,7 +100,7 @@ The following design choices have been made (in some sort of order):
 * Satie is dynamically typed and offers a concise set of basic and
   composite types. Its compiler employs
   [Hindley-Milner](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system)
-  type inference to deduce the types of variables, expressions, and
+  type inference to deduce the types of names, expressions, and
   functions.
 
 * Semantic and syntactic considerations have been made to facilitate
@@ -135,16 +135,13 @@ The following design choices have been made (in some sort of order):
 
 ### Pattern matching in its core
 
-* Satie incorporates pattern matching as a fundamental feature, with
-  the `=` operator primarily serving pattern matching rather than
-  traditional assignment (emphasizing the absence of mutable
-  updates). Essentially, everything can be matched and deconstructed
-  using pattern matching in conjunction with the `=` operator.
+Satie incorporates pattern matching as a fundamental feature.
 
-* Pattern matching is also employed by the `switch` expression
-  (described below). Furthermore, the `receive` expression (also
-  described below) utilizes pattern matching to perform selective
-  reception of messages in a job's mailbox.
+* The `<-` match operator can be used to deconstruct an expression
+  and bind it's components to new names.
+
+* The `switch` and `receive` expressions also rely on pattern matching
+  to pick case paths and deconstruction.
 
 ### A custom-built Virtual Machine (VM)
 
@@ -164,7 +161,7 @@ The following design choices have been made (in some sort of order):
 
 * Effort has been invested in introducing a purely
   functional and encapsulating `struct` definition. This allows for
-  the grouping of member variables and functions using familiar
+  the grouping of member properties and methods using familiar
   C++/Java member modifiers such as `public`, `private`, `const`,
   `this` references and more.
 
@@ -269,17 +266,17 @@ other modules.
 modules without any restrictions though.
 
 `#(` ... `)` defines a tuple, and placing a question mark before a
-variable informs the compiler that the variable should be treated as
+name informs the compiler that the name should be treated as
 unbound, regardless of its previous state. Omitting the question mark
-prompts the compiler to ensure that the variable is already bound. At
-runtime, a check is conducted to verify that the bound variable
+prompts the compiler to ensure that the name is already bound. At
+runtime, a check is conducted to verify that the bound name
 matches the rvalue.
 
 The `this` constructor calling itself might initially seem
 confusing. However, this is the final step a constructor must perform
-to actually initialize its member variables. The `:` notation is a way
+to actually initialize its member properties. The `:` notation is a way
 to call a function with **named** parameters, and a constructor can
-call itself using its member variables as named parameters. This
+call itself using its member properties as named parameters. This
 self-referential mechanism is an integral part of Satie's support for
 functional encapsulation.
 
@@ -415,8 +412,8 @@ considered comments.
 
 `map`: A mapping between a key of any type and a value of any type
 
-`object` : A unit of encapsulation for member variables and member
-functions
+`object` : A unit of encapsulation for member properties and member
+methods
 
 `buf` : A buffer to efficiently manipulate large amount of characters
 
@@ -490,7 +487,7 @@ An identifier is a case-sensitive sequence of characters that begins
 with an ASCII letter or an underscore, followed by any number of ASCII
 letters, underscores, or digits. This is denoted by the regular
 expression `^[[:alpha:]_][[:alnum:]_]*$`. Identifiers are used for
-various elements such as keywords, variables, function names, struct
+various elements such as keywords, names, function names, struct
 names, and enum names.
 
 **Note:** By design, only strings may contain Unicode
@@ -678,11 +675,10 @@ In Satie every element is treated as an expression, with the exception
 of top-level definitions. These include `import`, `struct`,
 `interface`, and `enum`.
 
-Among all expressions, the bind expression, marked by the `=`
-operator, stands out for its ability to bind variables to
-values. Instead of variable assignment, unbound variables are bound to
-values. An unbound variable is identified by a leading `?` character,
-and a naked variable (without a `?`) must be bound before use.
+Among all expressions, the match expression, marked by the `<-`
+operator, stands out for its ability to bind values to names. An
+unbound name is identified by a leading `?` character, and a naked
+name (without a `?`) must be bound before being refered.
 
 Like this:
 
@@ -729,7 +725,7 @@ also employ pattern matching. This feature enables them to deconstruct
 and select specific elements. Further details about these expressions can
 be found in the subsequent sections.
 
-Furthermore, the `=` operator is restricted to be used as a
+Furthermore, the `<-` operator is restricted to be used as a
 standalone expression and is not permitted within more complex
 expressions. This restriction is in place to maintain clarity and
 simplicity in coding practices. Your understanding and cooperation are
@@ -748,7 +744,7 @@ main() {
 
 The block expression consists of a sequence of expressions separated by
 commas and enclosed in curly braces. These expressions are evaluated
-sequentially and establish a lexical scope. A variable bound within
+sequentially and establish a lexical scope. A name bound within
 this scope is visible to all subsequent expressions in the same
 scope. However, it remains invisible outside of this scope and
 overshadows any identifier with the same name introduced outside the
@@ -854,7 +850,7 @@ Foo.red.value         // #(255, 0, 0)
 `foo(a, b)` calls the function `foo` with a list of expression
 arguments separated by commas. These arguments are evaluated from left
 to right before invoking the function. `foo` can refer to either a
-named function definition or a variable bound to a function
+named function definition or a name bound to a function
 literal. Functions can be overloaded, and their parameters can have
 default values.
 
@@ -957,7 +953,7 @@ Study this:
 
 ```
 ?a = [],                 // An empty list
-?a = [1, 2, 3, 4, 5],    // A rebind of variable a
+?a = [1, 2, 3, 4, 5],    // A rebind of name a
 a.first(),               // 1
 a.rest(),                // [2, 3, 4, 5]
 ?b = a[1 .. 3],          // b == [2, 3, 4]
@@ -999,7 +995,7 @@ a == d                         // true
 
 A struct in Satie goes beyond a traditional C struct. It is immutable
 and inherently functional, serving as a unit of encapsulation for
-member variables and functions.
+member properties and methods.
 
 Lets dive into an example right away:
 
@@ -1030,13 +1026,13 @@ struct Foo {
 ```
 
 The example above revisits familiar concepts from Java, including
-member variables and functions, access specifiers and modifiers, along
+member properties and methods, access specifiers and modifiers, along
 with a constructor and destructor, and the use of the this
 reference. No novel elements have been introduced here.
 
 Interestingly, the constructor is designed to call itself for the
-final initialization of its member variables. It's noteworthy how the
-constructor can use its member variables as named parameters in this
+final initialization of its member properties. It's noteworthy how the
+constructor can use its member properties as named parameters in this
 self-referential call.
 
 To instantiate a struct `Foo` do this:
@@ -1044,7 +1040,7 @@ To instantiate a struct `Foo` do this:
 `?a = new Foo(2, 1)`
 
 A struct can opt to implement certain mandatory interfaces. An
-*interface* specifies the member variables and functions that the
+*interface* specifies the member properties and functions that the
 struct must provide. The structure of an interface definition is as
 follows:
 
@@ -1518,7 +1514,7 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                               "(" _ Args? _ ")" /
                               "[" _ Expr _ "]")*
 
-MatchExpr <- Literal / UnboundVariable / Identifier
+MatchExpr <- Literal / UnboundName / Identifier
 
 PrimaryExpr <- "this" /
                "self" /
@@ -1527,7 +1523,7 @@ PrimaryExpr <- "this" /
                ControlFlowExpr /
                SpawnExpr /
                NewExpr /
-               UnboundVariable /
+               UnboundName /
                Identifier /
                "(" _ Expr _ ")"
 
@@ -1603,7 +1599,7 @@ SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
 
 NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
 
-UnboundVariable <- "?" _ Identifier
+UnboundName <- "?" _ Identifier
 
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 
@@ -1615,12 +1611,12 @@ StructDef <- "struct" __ Identifier _ ( ":" _ Interfaces _)?
                    "{" _ StructMembers _ "}"
 Interfaces <- Identifier (_ "," _ Identifier)*
 StructMembers <- StructMember (_ StructMember)*
-StructMember <- Constructor / Deconstructor / MemberFunction / MemberVariable
+StructMember <- Constructor / Deconstructor / MemberMethod / MemberProperty
 Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
 Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
-MemberFunction <- MemberAccess _ FunctionDef
+MemberMethod <- MemberAccess _ MethodDef
 MemberAccess <- "public" / "private"
-MemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+MemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
                   (_ "=" _ Expr)?
 
 #
@@ -1629,10 +1625,10 @@ MemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
 
 InterfaceDef <- "interface" __ Identifier _ "{" _ InterfaceMembers _ "}"
 InterfaceMembers <- InterfaceMember (_ InterfaceMember)*
-InterfaceMember <- InterfaceMemberFunction / InterfaceMemberVariable
-InterfaceMemberFunction <- MemberAccess _ InterfaceFunction
-InterfaceFunction <- "fn" _ Identifier _ "(" _ Params? _ ")"
-InterfaceMemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+InterfaceMember <- InterfaceMemberMethod / InterfaceMemberProperty
+InterfaceMemberMethod <- MemberAccess _ InterfaceMethod
+InterfaceMethod <- "fn" _ Identifier _ "(" _ Params? _ ")"
+InterfaceMemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
 
 #
 # Enumeration definition
