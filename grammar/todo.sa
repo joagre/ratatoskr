@@ -1,12 +1,12 @@
 import std.stdio : writeln
 import std.lists
 
-struct TodoItem {
+TodoItem {
     private description
     private completed
 
     this(description) {
-        this.copy(descriptor: descriptor, completed: false)
+        this(descriptor: descriptor, completed: false)
     }
 
     public fn markCompleted() {

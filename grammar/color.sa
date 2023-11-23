@@ -23,7 +23,7 @@ struct ColorIterator : Iterator {
         if (!hasNext()) {
             false
         } else {
-            #(this(colors: colors.rest()), colors.first())
+            #(this.copy(colors: colors.rest()), colors.first())
         }
     }
 

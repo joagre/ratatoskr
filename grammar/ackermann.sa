@@ -21,7 +21,7 @@ struct Ackermann {
             job.setMaxMailboxSize(job, 4, OnCrowding.block),
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
-            this(jobs: startedJobs)
+            this.copy(jobs: startedJobs)
         }
     }
 
@@ -38,7 +38,7 @@ struct Ackermann {
                     }
                 }
             } else {
-                this(jobs: [])
+                this.copy(jobs: [])
             }
         },
         waitForJobs(jobs)
