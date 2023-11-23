@@ -391,19 +391,19 @@ considered comments.
 
 ### Basic types
 
-`bool` : A boolean value
+`bool` : A boolean
 
-`int` : A signed integer value
+`int` : A signed integer
 
-`float` : A floating-point value
+`float` : A floating-point
 
-`char` : A 32-bits Unicode code point value
+`char` : A 32-bits Unicode code point
 
-`function` : A function value
+`function` : A function
 
-`job` : A job value
+`job` : A job
 
-`enum`: An enumeration value
+`enum`: An enumeration
 
 ### Composite types
 
