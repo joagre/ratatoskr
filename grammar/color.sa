@@ -34,7 +34,7 @@ struct ColorIterator : Iterator {
 
 export fn main() {
     ?colors <- [Color.red, Color.red, Color.blue, Color.green],
-    ?iterator <- struct ColorIterator(colors),
+    ?iterator <- new ColorIterator(colors),
     fn iterate(iterator) {
         if (iterator.hasNext()) {
             #(?iterator, ?color) <- iterator.next(),

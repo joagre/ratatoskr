@@ -393,22 +393,15 @@ considered comments.
 
 `bool` : A boolean value
 
-`int` : On a 64-bit machine, a signed integer value is handled
-natively if it fits within 61 bits. If it exceeds this limit, it is
-transparently represented as an arbitrary-precision bignum. Similarly,
-on a 32-bit machine, an integer must fit within 29 bits, and so on,
-adapting to the architecture's capabilities.
+`int` : A signed integer value
 
-`float` : A floating-point value must conform to the machine's bit
-capacity. On a 64-bit machine, a float must fit within 61 bits, while
-on a 32-bit machine, it must fit within 29 bits, and so on, aligning
-with the specific architecture.
+`float` : A floating-point value
 
 `char` : A 32-bits Unicode code point value
 
-`function` : A function reference
+`function` : A function value
 
-`job` : A job reference
+`job` : A job value
 
 `enum`: An enumeration value
 

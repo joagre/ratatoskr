@@ -74,7 +74,7 @@ PrimaryExpr <- "this" /
                Literal /
                ControlFlowExpr /
                SpawnExpr /
-               StructExpr /
+               NewExpr /
                UnboundVariable /
                Identifier /
                "(" _ Expr _ ")"
@@ -149,7 +149,7 @@ ReceiveExpr <- "receive" _ "{"
 
 SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
 
-StructExpr <- "struct" _ Identifier _ "(" _ Args? _ ")"
+NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
 
 UnboundVariable <- "?" _ Identifier
 

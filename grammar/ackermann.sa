@@ -3,7 +3,7 @@ import std.stdio
 import std.lists
 
 export fn main() {
-  ?ackermann <- struct Ackermann(),
+  ?ackermann <- new Ackermann(),
   ?ackermann <- ackermann.startJobs(3, 10),
   ackermann.waitForJobs()
 }
