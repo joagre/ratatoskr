@@ -275,6 +275,7 @@ static void *pcc_malloc_e(size_t size) {
     void *const p = malloc(size);
     if (p == NULL) {
         fprintf(stderr, "Out of memory\n");
+
         exit(1);
     }
     return p;
@@ -317,7 +318,7 @@ static void pcc_char_array__init(pcc_auxil_t auxil, pcc_char_array_t *array) {
 
 static void pcc_char_array__add(pcc_auxil_t auxil, pcc_char_array_t *array, char ch) {
     if (array->max <= array->len) {
-        const size_t n = array->len + 1;
+        const size_t n =  array->len + 1;
         size_t m = array->max;
         if (m == 0) m = PCC_BUFFER_MIN_SIZE;
         while (m < n && m != 0) m <<= 1;
