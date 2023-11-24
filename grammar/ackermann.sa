@@ -8,7 +8,7 @@ export fn main() {
   ackermann.waitForJobs()
 }
 
-struct Ackermann {
+class Ackermann {
     private jobs = []
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {

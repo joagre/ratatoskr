@@ -12,7 +12,7 @@
 
 Program <- _ (Imports __)? TopLevelDefs EOF
 TopLevelDefs <- TopLevelDef (__ TopLevelDef)*
-TopLevelDef <- StructDef / InterfaceDef / EnumDef / FunctionDef
+TopLevelDef <- ClassDef / InterfaceDef / EnumDef / FunctionDef
 
 Imports <- Import (__ Import)*
 Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
@@ -156,17 +156,17 @@ UnboundName <- "?" _ Identifier
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 
 #
-# Struct definition
+# Class definition
 #
 
-StructDef <- "struct" __ Identifier _ ( ":" _ Interfaces _)?
-                   "{" _ StructMembers _ "}"
+ClassDef <- "class" __ Identifier _ ( ":" _ Interfaces _)?
+                   "{" _ ClassMembers _ "}"
 Interfaces <- Identifier (_ "," _ Identifier)*
-StructMembers <- StructMember (_ StructMember)*
-StructMember <- Constructor / Deconstructor / MemberMethod / MemberProperty
+ClassMembers <- ClassMember (_ ClassMember)*
+ClassMember <- Constructor / Deconstructor / MemberMethod / MemberProperty
 Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
 Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
-MemberMethod <- MemberAccess _ MethodDef
+MemberMethod <- MemberAccess _ FunctionDef
 MemberAccess <- "public" / "private"
 MemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
                   (_ "=" _ Expr)?

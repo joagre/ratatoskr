@@ -5,16 +5,16 @@
 Satie is envisioned as functional programming language especially
 suited for manipulation of large text masses. This is important when,
 for example, implementing text editors. Its capabilities extend beyond
-just constructing these kind of appications; it also strives to be a
-suitable as a scripting language for end-user plugins and
-customizations. However, the true essence of Satie lies in its
-versatility. It is a purpose-built language and Virtual Machine (VM)
-that boasts a high degree of generality, making it adaptable to a wide
-array of applications.
+just constructing these kind of applications though; it also strives
+to be a suitable scripting language for end-user plugins and
+customization to these text manipulating applications. However, the
+true essence of Satie lies in its versatility. It is a purpose-built
+language and Virtual Machine (VM) that boasts a high degree of
+generality, making it adaptable to a wide array of applications.
 
-Satie owes much to the individuals behind the
-[Erlang](https://www.erlang.org/), [D](https://dlang.org/) and
-[Scala](https://www.scala-lang.org/) programming languages.
+Satie owes much to the [Erlang](https://www.erlang.org/),
+[D](https://dlang.org/) and [Scala](https://www.scala-lang.org/)
+programming languages.
 
 All rise. Here is a tribute and a premature Satie example:
 
@@ -88,12 +88,10 @@ The following design choices have been made (in some sort of order):
 
 ### A fusion of application and scripting language
 
-* Satie aims to strike a balance between a fully-fledged application
-  language and a scripting language, as highlighted by the reasons
-  mentioned above (and below). This may be evident considering the
-  choice of semantics, syntax, type system, support for
-  object-orientation (from now on called *encapsulation*), and other
-  aspects.
+* Satie aims to strike a balance between an application and a
+  scripting language. This may be evident considering the choice of
+  semantics, syntax, type system, support for object-orientation (from
+  now on called *encapsulation*), and other aspects.
 
 ### Dynamically typed and type inference
 

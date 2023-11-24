@@ -11,7 +11,7 @@ interface Iterator {
     public fn hasNext()
 }
 
-struct ColorIterator : Iterator {
+class ColorIterator : Iterator {
     private colors
     private graffiti
 
