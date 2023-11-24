@@ -1,39 +1,21 @@
 CC = gcc
 PCC = packcc
-CFLAGS = -Wall -Wextra -std=c17 -g -pedantic
+CFLAGS = -Wall -Wextra -std=c17 -g -pedantic -Wno-unused-parameter
 LDLIBS = -lm
 
-all: satie
-
-satie: satie.o
+lint: satie.o
 	$(CC) $(LDLIBS) -o $@ $^
+
+examples:
+	(cd examples; $(MAKE))
 
 satie.c: satie.peg
 	$(PCC) $^
 
-satie.o: satie.c
-	$(CC) -c $(CFLAGS) -Wno-unused-parameter $< -o $@ -MMD -MF $(@:.o=.d)
-
-## Examples
-
-all_examples: test todo ackermann color tribute
-
-test: satie
-	./satie < test.sa
-
-todo: satie
-	./satie < todo.sa
-
-ackermann: satie
-	./satie < ackermann.sa
-
-color: satie
-	./satie < color.sa
-
-tribute: satie
-	./satie < tribute.sa
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f satie satie.c satie.h satie.o *.d
+	rm -f lint satie.o satie.h satie.c
 
-.PHONY: all clean
+.PHONY: all clean examples

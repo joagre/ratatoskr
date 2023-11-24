@@ -1,22 +1,21 @@
 all: ackermann color test todo tribute
 
 ackermann: build
-	../../grammar/satie < ackermann.sa
+	../lint < ackermann.sa
 
 color: build
-	../../grammar/satie < color.sa
+	../lint < color.sa
 
 test: build
-	../../grammar/satie < test.sa
+	../lint < test.sa
 
 todo: build
-	../../grammar/satie < todo.sa
-
+	../lint < todo.sa
 
 tribute: build
-	../../grammar/satie < tribute.sa
+	../lint < tribute.sa
 
 build:
-	(cd ../../grammar; $(MAKE))
+	(cd ../; $(MAKE))
 
 .PHONY: all build ackermann color test todo tribute
