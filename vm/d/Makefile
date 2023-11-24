@@ -1,4 +1,4 @@
-build:
+all:
 #	dub build --build=unittest --debug=interpreter --debug=scheduler --debug=user
 #	dub build --build=unittest --debug=user --debug=scheduler
 #	dub build --build=release --debug=user
@@ -8,4 +8,4 @@ build:
 
 clean:
 	dub clean
-	rm -f bin/r
+	rm -f bin/sa
