@@ -71,7 +71,6 @@ int main(string[] args) {
     try {
         label = to!uint(args[2]);
         parameters = args[3 .. $].map!(s => s.to!long).array;
-
     } catch (ConvException e) {
         stderr.writeln("Parameter error: " ~ e.msg);
         stderr.writeln(usage);
