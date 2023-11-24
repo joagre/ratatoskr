@@ -3,9 +3,9 @@ PCC = packcc
 CFLAGS = -Wall -Wextra -std=c17 -g -pedantic
 LDLIBS = -lm
 
-all: sac
+all: satie
 
-sac: satie.o
+satie: satie.o
 	$(CC) $(LDLIBS) -o $@ $^
 
 satie.c: satie.peg
@@ -13,6 +13,10 @@ satie.c: satie.peg
 
 satie.o: satie.c
 	$(CC) -c $(CFLAGS) -Wno-unused-parameter $< -o $@ -MMD -MF $(@:.o=.d)
+
+## Examples
+
+all_examples: test todo ackermann color tribute
 
 test: satie
 	./satie < test.sa
@@ -23,8 +27,11 @@ todo: satie
 ackermann: satie
 	./satie < ackermann.sa
 
-%.o: %.c
-	$(CC) -c $(CFLAGS) $< -o $@ -MMD -MF $(@:.o=.d)
+color: satie
+	./satie < color.sa
+
+tribute: satie
+	./satie < tribute.sa
 
 clean:
 	rm -f satie satie.c satie.h satie.o *.d
