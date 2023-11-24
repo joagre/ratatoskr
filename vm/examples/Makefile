@@ -1,5 +1,4 @@
-all: ackermann0 ackermann10 ackermann1 ackermannr fac hello_world \
-message_passing module_calls tfac
+all: ackermann0 ackermann10 ackermann1 ackermannr fac hello_world message_passing module_calls tfac
 
 ackermann0: build
 	../d/bin/sa ackermann 0
@@ -31,5 +30,4 @@ tfac: build
 build:
 	(cd ../d; $(MAKE))
 
-.PHONY: all build ackermann0 ackermann10 ackermann1 ackermannr fac hello_world \
-message_passing module_calls tfac
+.PHONY: all ackermann0 ackermann10 ackermann1 ackermannr fac hello_world message_passing module_calls tfac build

@@ -1,7 +1,5 @@
-all: d
-
-d:
-	(cd d; make build)
+all:
+	(cd d; make all)
 
 clean:
 	(cd d; make clean)
@@ -9,4 +7,4 @@ clean:
 examples:
 	(cd examples; $(MAKE))
 
-.PHONY: all d clean examples
+.PHONY: all clean examples
