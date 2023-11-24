@@ -19,7 +19,6 @@ programming languages.
 All rise. Here is a tribute and a premature Satie example:
 
 ```
-$ cat tribute.sa
 import std.stdio : writeln
 import std.lists
 
@@ -54,7 +53,7 @@ $ sa build/tribute 100000
 ...
 99999: Standing on the shoulders of giants
 ```
-*Source: [tribute.sa](grammar/tribute.sa)*
+*Source: [tribute.sa](grammar/examples/tribute.sa)*
 
 That said.
 
@@ -210,7 +209,7 @@ interface Iterator {
     public fn hasNext()
 }
 
-struct ColorIterator : Iterator {
+class ColorIterator : Iterator {
     private colors
     private graffiti
 
@@ -244,7 +243,7 @@ export fn main() {
     iterate(iterator)
 }
 ```
-*Source: [color.sa](grammar/color.sa)*
+*Source: [color.sa](grammar/examples/color.sa)*
 
 A plain and fairly boring color iterator, and a main function that
 iterates over a list of colors. Still, it manages to show the overall
@@ -1288,7 +1287,7 @@ export fn main() {
   ackermann.waitForJobs()
 }
 
-struct Ackermann {
+class Ackermann {
     private jobs = []
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {
@@ -1335,7 +1334,7 @@ struct Ackermann {
     }
 }
 ```
-*Source: [ackermann.sa](grammar/ackermann.sa)*
+*Source: [ackermann.sa](grammar/examples/ackermann.sa)*
 
 ## Directory hierarchy of modules
 
@@ -1452,13 +1451,21 @@ Operators in decreasing order of precedence:
 # Appendix B: PEG grammar
 
 ```
+%prefix "satie"
+
+#%earlysource {
+#    static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
+#    #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
+#        fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
+#}
+
 #
 # Top level structure
 #
 
 Program <- _ (Imports __)? TopLevelDefs EOF
 TopLevelDefs <- TopLevelDef (__ TopLevelDef)*
-TopLevelDef <- StructDef / InterfaceDef / EnumDef / FunctionDef
+TopLevelDef <- ClassDef / InterfaceDef / EnumDef / FunctionDef
 
 Imports <- Import (__ Import)*
 Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
@@ -1602,17 +1609,17 @@ UnboundName <- "?" _ Identifier
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 
 #
-# Struct definition
+# Class definition
 #
 
-StructDef <- "struct" __ Identifier _ ( ":" _ Interfaces _)?
-                   "{" _ StructMembers _ "}"
+ClassDef <- "class" __ Identifier _ ( ":" _ Interfaces _)?
+                   "{" _ ClassMembers _ "}"
 Interfaces <- Identifier (_ "," _ Identifier)*
-StructMembers <- StructMember (_ StructMember)*
-StructMember <- Constructor / Deconstructor / MemberMethod / MemberProperty
+ClassMembers <- ClassMember (_ ClassMember)*
+ClassMember <- Constructor / Deconstructor / MemberMethod / MemberProperty
 Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
 Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
-MemberMethod <- MemberAccess _ MethodDef
+MemberMethod <- MemberAccess _ FunctionDef
 MemberAccess <- "public" / "private"
 MemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
                   (_ "=" _ Expr)?
@@ -1673,6 +1680,14 @@ SingleLineComment <- "//" (!EOL .)* EOL?
 EOL <- "\r\n" / "\n" / "\r"
 BlockComment <- "/*" (!"*/" .)* "*/"
 EOF <- _ !.
+
+%%
+int main() {
+    satie_context_t *context = satie_create(NULL);
+    satie_parse(context, NULL);
+    satie_destroy(context);
+    return 0;
+}
 ```
 
 # Appendix C: A todo list example
@@ -1681,7 +1696,7 @@ EOF <- _ !.
 import std.stdio : writeln
 import std.lists
 
-TodoItem {
+class TodoItem {
     private description
     private completed
 
@@ -1702,7 +1717,7 @@ TodoItem {
     }
 }
 
-struct TodoList {
+class TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
@@ -1722,7 +1737,7 @@ struct TodoList {
 
 export fn main() {
     fn loopUntilQuit(todoList) {
-        ?input <- stdio.readLine(stdio.Stream.stdin),
+        ?input <- readInput(), // implemented elsewhere
         if input.command == "add" {
             ?todoList <- todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
@@ -1743,4 +1758,4 @@ export fn main() {
     loopUntilQuit(todoList)
 }
 ```
-*Source: [todo.sa](grammar/todo.sa)*
+*Source: [todo.sa](grammar/examples/todo.sa)*
