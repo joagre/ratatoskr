@@ -19,4 +19,4 @@ tribute: build
 build:
 	(cd ../../grammar; $(MAKE))
 
-.PHONY: build all
+.PHONY: all build ackermann color test todo tribute
