@@ -1,27 +1,11 @@
-# The Ratatoskr Programming Language
+# Satie's byte code interpreter
 
-The Ratatoskr programming language is based on a Plain Old Stack Machine
-(POSM) with special features. Its base instructions does not come
-as a surprise: `push, pushs, pop, dup, swap, load, store, add, sub,
-mul, div, jump, cjump, call, ret, sys, and, or, not, eq, neq, lt, gt,
-nop and halt`. Additional special instructions such as `mcall, spawn,
-mspawn, send and recv` (send and receive are actually sys calls for
-the moment) and more has been added to cover for the concurrency
-oriented and functional flavor of the Ratatoskr programming
-language. More on that later.
+The Satie compiler produces byte code suitable to be executed by the
+interpeter described in this document. This is currently and ongoing
+experiment and the first prototype reincarnation was built as a plain
+stack machine but work is underway to switch to a register machine.
 
-> [!NOTE]
-> This is very much work in progress and starting with the
-> stack machine in a bottom up fashion, and at the same time starting
-> with the target language top down, is a deliberate choice.
-
-# A Plain Old Stack Machine (POSM)
-
-## Instruction set
-
-> [!NOTE]
-> The stack machine only understands two primitive datatypes for now,
-> i.e. 'ulong` integers and string values. :-) This will change.
+# Instruction set
 
 > [!IMPORTANT]
 > The stack grows downwards.
@@ -94,7 +78,7 @@ spawn label arity ; Works as call but spawns a new concurrent job.
 mspawn            ; Works as mcall but spawns a new concurrent job.
 ```
 
-## Examples
+# Examples
 
 Below follows a number of examples and they can be run using the r
 command tool:
@@ -114,12 +98,10 @@ Options:
 
 On to the examples.
 
-### Example: Hello world!
+## Example: Hello world!
 
 ```
-__hello_world__start__
-; File: ./examples/hello_word.posm
-; Run: ./d/bin/r -l ./examples hello_world 0
+; Run: sa -l ./ hello_world 0
 ;
 ; start() ->
 ;     io:format("Hello world!\n").
@@ -128,14 +110,11 @@ label 0
   pushs "Hello world!"
   sys println
   ret
-__hello_world__end__
 ```
 
-### Example: Factorial
+## Example: Factorial
 
 ```
-__fac__start__
-; File: fac.posm
 ; Run: sa -l ./ fac 0 10
 ;
 ; fac(1) ->
@@ -162,15 +141,12 @@ label 1          ; fac(N)
   call 0 1       ; fac(N - 1).
   mul            ; N * fac(N - 1).
   ret
-__fac__end__
 ```
 
-### Example: Factorial (tail recursive)
+## Example: Factorial (tail recursive)
 
 ```
-__tfac__start__
-; File: ./examples/tfac.posm
-; Run: ./d/bin/r -l ./examples tfac 0 10 1
+; Run: sa -l ./ tfac 0 10 1
 ;
 ; fac(N) when N >= 0 ->
 ;     fac(N, 1).
@@ -205,15 +181,12 @@ label 1          ; fac(N, Acc)
   push -2
   store          ; Replace parameter N
   jump 0         ; fac(N - 1, N * Acc).
-__tfac__end__
 ```
 
-### Dynamic code loading
+## Dynamic code loading
 
 ```
-__module_calls__start__
-; File: ./examples/module_calls.posm
-; Run: ./d/bin/r -l ./examples module_calls 0 10
+; Run: sa -l ./ module_calls 0 10
 ;
 ; start(N) ->
 ;     io:format("~w\n", [fac:fac(N)]),
@@ -239,17 +212,14 @@ label 0          ; start(N)
   mcall          ; tfac:fac(N, 1)
   sys display
   ret
-__module_calls__end__
 ```
 
-### Example: Concurrent Ackermann
+## Example: Concurrent Ackermann
 
 ```
-__ackermann__start__
-; File: ./examples/ackermann.posm
-; Run: ./d/bin/r -l ./examples ackermann 0
-; Run: ./d/bin/r -l ./examples ackermann 10
-; Run: ./d/bin/r -l ./examples ackermann 1 3 6
+; Run: sa -l ./ ackermann 0
+; Run: sa -l ./ ackermann 10
+; Run: sa -l ./ ackermann 1 3 6
 ;
 ; start() ->
 ;     ackermann(3, 6).
@@ -343,15 +313,12 @@ label 3          ; ackermann(M, N) when M > 0, N > 0
   push -2
   store          ; Replace parameter M
   jump 1         ; ackermann(M - 1, ackermann(M, N - 1))
-__ackermann__end__
 ```
 
-### Message passing
+## Message passing
 
 ```
-__message_passing__start__
-; File: ./examples/message_passing.posm
-; Run: ./d/bin/r -l ./examples message_passing 0 7
+; Run: sa -l ./ message_passing 0 7
 ;
 ; start(N) ->
 ;     spawn_all(self(), N),
@@ -443,5 +410,4 @@ label 21         ; wait_for_all(N)
   sub            ; N - 1
   call 20 1      ; wait_for_all(N - 1)
   ret
-__message_passing__end__
 ```

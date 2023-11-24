@@ -1,5 +1,14 @@
-all:
+FRAGMENTS = examples/hello_world.posm examples/fac.posm examples/tfac.posm examples/module_calls.posm examples/ackermann.posm examples/message_passing.posm
+
+all: README.md
 	(cd d; make all)
+
+README.md: README.md.in $(FRAGMENTS)
+	cp README.md.in README.md
+	for frag in $(FRAGMENTS); do \
+	    sed -i '/__'`basename $$frag`'__/r '$$frag README.md; \
+	    sed -i '/__'`basename $$frag`'__/d' README.md; \
+        done
 
 clean:
 	(cd d; make clean)
