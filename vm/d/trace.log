@@ -1,0 +1,451 @@
+------------------
+	    3	_D3std10functional__T6safeOpVAyaa1_3cZ__TQuTmTiZQBbFNaNbNiNfKmKiZb
+_D3std10functional__T6safeOpVAyaa1_3cZ__T8unsafeOpTmTiZQoFNaNbNiNfmiZb	3	20	20
+------------------
+	    3	_D3std9algorithm10comparison__T3maxTmTiZQjFNaNbNiNfmiZm
+_D3std10functional__T6safeOpVAyaa1_3cZ__TQuTmTiZQBbFNaNbNiNfKmKiZb	3	224	204
+	    3	_D3std10functional__T6safeOpVAyaa1_3cZ__T8unsafeOpTmTiZQoFNaNbNiNfmiZb
+------------------
+	   36	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TAhTQdZQBfFNaNbNiNfQsMQvZQy
+_D3std10functional__T9binaryFunVAyaa6_61203d3d2062VQta1_61VQBba1_62Z__TQByThThZQCgFNaNbNiNfKhKhZb	36	641	641
+------------------
+	    1	_D3std6getopt__T10getoptImplTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcKSQCiQCh13configurationKSQDfQDe12GetoptResultKCQEbQEa15GetOptExceptionHQDyAvQgQEfQEeQElQEeQErQEeZv
+	    1	_D3std6getopt__T10getoptImplTAyaTPtTQhTPQlZQBbFNfKAQwKSQCbQCa13configurationKSQCyQCx12GetoptResultKCQDuQDt15GetOptExceptionHQDrAvQgQDyQDxQEeQDxZv
+	    1	_D3std6getopt__T10getoptImplTAyaTPQfZQvFNfKAQpKSQBuQBt13configurationKSQCrQCq12GetoptResultKCQDnQDm15GetOptExceptionHQDkAvQgQDrQDqZv
+_D3std4conv__T2toTAyaZ__TQlTQkZQrFNaNbNiNfQyZQBb	3	232	204
+	    3	_D3std4conv__T6toImplTAyaTQeZQpFNaNbNiNfQsZQv
+------------------
+	    1	_Dmain
+_D3std4conv__T2toTAyaZ__TQlTkZQqFNaNbNfkZQx	1	594	73
+	    1	_D3std4conv__T6toImplTAyaTkZQoFNaNbNfkZQr
+------------------
+	    1	_Dmain
+_D3std4conv__T2toTAyaZ__TQlTtZQqFNaNbNftZQx	1	5691	90
+	    1	_D3std4conv__T6toImplTAyaTtZQoFNaNbNftZQr
+------------------
+	    3	_D3std4conv__T2toTAyaZ__TQlTQkZQrFNaNbNiNfQyZQBb
+_D3std4conv__T6toImplTAyaTQeZQpFNaNbNiNfQsZQv	3	28	28
+------------------
+	    1	_D3std4conv__T2toTAyaZ__TQlTkZQqFNaNbNfkZQx
+_D3std4conv__T6toImplTAyaTkZQoFNaNbNfkZQr	1	521	123
+	    1	_D4core8internal6string__T20unsignedToTempStringVki10Vbi0TaZQBiFNaNbNiNfmNkMAaZQd
+	    1	_D6object__T3dupTaZQhFNaNbNdNfAxaZAa
+------------------
+	    1	_D3std4conv__T2toTAyaZ__TQlTtZQqFNaNbNftZQx
+_D3std4conv__T6toImplTAyaTtZQoFNaNbNftZQr	1	5601	166
+	    1	_D4core8internal6string__T20unsignedToTempStringVki10Vbi0TaZQBiFNaNbNiNfmNkMAaZQd
+	    1	_D6object__T3dupTaZQhFNaNbNdNfAxaZAa
+------------------
+	    1	_D3std4path__T9_baseNameTAyaZQpFNaNbNiNfNkMQsZQv
+_D3std4path__T10stripDriveTyaZQqFNaNbNiNfAyaZQe	1	72	65
+	    1	_D3std4path__T11_stripDriveTAyaZQsFNaNbNiNfQpZQs
+------------------
+	    1	_D3std4path__T10stripDriveTyaZQqFNaNbNiNfAyaZQe
+_D3std4path__T11_stripDriveTAyaZQsFNaNbNiNfQpZQs	1	7	7
+------------------
+	    1	_D3std4path__T9_baseNameTAyaZQpFNaNbNiNfNkMQsZQv
+_D3std4path__T13lastSeparatorTAyaZQuFNaNbNiNfQpZl	1	59	59
+------------------
+	    1	_D3std4path__T9_baseNameTAyaZQpFNaNbNiNfNkMQsZQv
+_D3std4path__T18rtrimDirSeparatorsTAyaZQzFNaNbNiNfQpZQs	1	276	276
+------------------
+	    1	_Dmain
+_D3std4path__T8baseNameTyaZQnFNaNbNiNfNkMAyaZQe	1	965	75
+	    1	_D3std4path__T9_baseNameTAyaZQpFNaNbNiNfNkMQsZQv
+------------------
+	    1	_D3std4path__T8baseNameTyaZQnFNaNbNiNfNkMAyaZQe
+_D3std4path__T9_baseNameTAyaZQpFNaNbNiNfNkMQsZQv	1	890	468
+	    1	_D3std4path__T10stripDriveTyaZQqFNaNbNiNfAyaZQe
+	    2	_D3std5range10primitives__T5emptyTAyaZQlFNaNbNdNiNfMKQtZb
+	    1	_D3std4path__T18rtrimDirSeparatorsTAyaZQzFNaNbNiNfQpZQs
+	    1	_D3std4path__T13lastSeparatorTAyaZQuFNaNbNiNfQpZl
+------------------
+	    3	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv
+_D3std5array__T19appenderNewCapacityVmi16ZQBbFNaNbNiNfmmZm	3	783	349
+	    3	_D3std9algorithm10comparison__T3maxTmTiZQjFNaNbNiNfmiZm
+------------------
+	    1	_D3std6getopt__T10getoptImplTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcKSQCiQCh13configurationKSQDfQDe12GetoptResultKCQEbQEa15GetOptExceptionHQDyAvQgQEfQEeQElQEeQErQEeZv
+	    1	_D3std6getopt__T10getoptImplTAyaTPtTQhTPQlZQBbFNfKAQwKSQCbQCa13configurationKSQCyQCx12GetoptResultKCQDuQDt15GetOptExceptionHQDrAvQgQDyQDxQEeQDxZv
+	    1	_D3std6getopt__T10getoptImplTAyaTPQfZQvFNfKAQpKSQBuQBt13configurationKSQCrQCq12GetoptResultKCQDnQDm15GetOptExceptionHQDkAvQgQDrQDqZv
+_D3std5array__T5splitTAyaTQeZQoFNaNbNfQqQsZAQw	3	28234	665
+	    3	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFNaNbNiNfQDzQEcZSQFsQFrQFk__TQFdVQExa6_61203d3d2062VQExi0TQFwTQGaZQGoFQGiQGlZ6Result
+	    3	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCu8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6ResultZQGcFNaNbNfQGaZAQEv
+------------------
+	    6	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv
+_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv	6	4967	1149
+	    3	_D3std5array__T19appenderNewCapacityVmi16ZQBbFNaNbNiNfmmZm
+	    3	_D4core10checkedint__T4muluZQgFNaNbNiNfmmKbZm
+	    3	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFmZ9__lambda9MFNaNbNeZS4core6memory8BlkInfo_
+	    3	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFmZ10__lambda12MFNaNbNiNeZQBx
+------------------
+	    3	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv
+_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFmZ10__lambda12MFNaNbNiNeZQBx	3	21	21
+------------------
+	    3	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv
+_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFmZ9__lambda9MFNaNbNeZS4core6memory8BlkInfo_	3	2994	2994
+------------------
+	    3	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCu8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6ResultZQGcFNaNbNfQGaZAQEv
+_D3std5array__T8AppenderTAAyaZQp4dataMNgFNaNbNdNiNeZANgAya	3	224	202
+	    3	_D3std5array__T8AppenderTAAyaZQp7opSliceMNgFNaNbNdNiNeZANgAya
+------------------
+	    3	_D3std5array__T8appenderTAAyaZQpFNaNbNfZSQBnQBm__T8AppenderTQBjZQo
+_D3std5array__T8AppenderTAAyaZQp6__ctorMFNaNbNcNeQyZSQBzQBy__TQBvTQBpZQCd	3	6163	577
+	    3	_D4core8lifetime__T11_d_newitemTTS3std5array__T8AppenderTAAyaZQp4DataZQBzFNaNbNeZPQBx
+	    3	_D6object__T8capacityTAyaZQoFNaNbNdNeAQqZm
+------------------
+	    3	_D3std5array__T8AppenderTAAyaZQp4dataMNgFNaNbNdNiNeZANgAya
+_D3std5array__T8AppenderTAAyaZQp7opSliceMNgFNaNbNdNiNeZANgAya	3	22	22
+------------------
+	    6	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCu8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6ResultZQGcFNaNbNfQGaZAQEv
+_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv	6	8370	1638
+	    6	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv
+	    6	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFQvZ9__lambda3MFNaNbNiNeZQBu
+	    6	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFQvZ9__lambda5MFNaNbNiNeZPQBu
+	    6	_D4core8lifetime__T7emplaceTAyaTQeZQqFNaNbNiNfPQtKQwZQh
+------------------
+	    6	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv
+_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFQvZ9__lambda3MFNaNbNiNeZQBu	6	47	47
+------------------
+	    6	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv
+_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFQvZ9__lambda5MFNaNbNiNeZPQBu	6	40	40
+------------------
+	    3	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCu8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6ResultZQGcFNaNbNfQGaZAQEv
+_D3std5array__T8appenderTAAyaZQpFNaNbNfZSQBnQBm__T8AppenderTQBjZQo	3	6386	223
+	    3	_D3std5array__T8AppenderTAAyaZQp6__ctorMFNaNbNcNeQyZSQBzQBy__TQBvTQBpZQCd
+------------------
+	    3	_D3std5array__T5splitTAyaTQeZQoFNaNbNfQqQsZAQw
+_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCu8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6ResultZQGcFNaNbNfQGaZAQEv	3	27324	2195
+	    3	_D3std5array__T8appenderTAAyaZQpFNaNbNfZSQBnQBm__T8AppenderTQBjZQo
+	    9	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result5emptyMFNaNbNdNiNfZb
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result5frontMFNaNbNdNiNfZQEy
+	    6	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result8popFrontMFNaNbNiNfZv
+	    3	_D3std5array__T8AppenderTAAyaZQp4dataMNgFNaNbNdNiNeZANgAya
+------------------
+	    1	_D3std5stdio4File__T5writeTAyaTaZQnMFNfQmaZv
+_D3std5range10primitives__T3putTSQBf5stdio4File17LockingTextWriterTAyaZQBsFNfKQBuQoZv	1	14479	136
+	    1	_D3std5range10primitives__T5doPutTSQBh5stdio4File17LockingTextWriterTAyaZQBuFNfKQBuKQpZv
+------------------
+	    1	_D3std5stdio4File__T5writeTAyaTaZQnMFNfQmaZv
+_D3std5range10primitives__T3putTSQBf5stdio4File17LockingTextWriterTaZQBqFNfKQBsaZv	1	5237	129
+	    1	_D3std5range10primitives__T5doPutTSQBh5stdio4File17LockingTextWriterTaZQBsFNfKQBsKaZv
+------------------
+	    1	_D3std5range10primitives__T3putTSQBf5stdio4File17LockingTextWriterTAyaZQBsFNfKQBuQoZv
+_D3std5range10primitives__T5doPutTSQBh5stdio4File17LockingTextWriterTAyaZQBuFNfKQBuKQpZv	1	14343	157
+	    1	_D3std5stdio4File17LockingTextWriter__T3putTAyaZQjMFNfMQlZv
+------------------
+	    1	_D3std5range10primitives__T3putTSQBf5stdio4File17LockingTextWriterTaZQBqFNfKQBsaZv
+_D3std5range10primitives__T5doPutTSQBh5stdio4File17LockingTextWriterTaZQBsFNfKQBsKaZv	1	5108	133
+	    1	_D3std5stdio4File17LockingTextWriter__T3putTaZQhMFNfMaZv
+------------------
+	    6	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TAhTQdZQBfFNaNbNiNfQsMQvZQy
+_D3std5range10primitives__T5emptyTAhZQkFNaNbNdNiNfMKQsZb	6	46	46
+------------------
+	    2	_D3std4path__T9_baseNameTAyaZQpFNaNbNiNfNkMQsZQv
+	   15	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result5emptyMFNaNbNdNiNfZb
+	   12	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result17ensureFrontLengthMFNaNbNiNfZv
+_D3std5range10primitives__T5emptyTAyaZQlFNaNbNdNiNfMKQtZb	29	204	204
+------------------
+	    1	_D3std5range10primitives__T5doPutTSQBh5stdio4File17LockingTextWriterTAyaZQBuFNfKQBuKQpZv
+_D3std5stdio4File17LockingTextWriter__T3putTAyaZQjMFNfMQlZv	1	14186	124
+	    1	_D3std5stdio__T13trustedFwriteTaZQsFNbNiNePOS4core4stdcQBx8_IO_FILExAaZm
+------------------
+	    1	_D3std5range10primitives__T5doPutTSQBh5stdio4File17LockingTextWriterTaZQBsFNfKQBsKaZv
+_D3std5stdio4File17LockingTextWriter__T3putTaZQhMFNfMaZv	1	4975	4975
+------------------
+	    1	_D3std5stdio4File__T7writelnTAyaZQnMFNfQkZv
+_D3std5stdio4File__T5writeTAyaTaZQnMFNfQmaZv	1	22036	2297
+	    1	_D3std9exception__T7enforceZ__TQmTbZQrFNaNfbLAxaAyamZb
+	    1	_D3std5range10primitives__T3putTSQBf5stdio4File17LockingTextWriterTAyaZQBsFNfKQBuQoZv
+	    1	_D3std5range10primitives__T3putTSQBf5stdio4File17LockingTextWriterTaZQBqFNfKQBsaZv
+------------------
+	    1	_Dmain
+_D3std5stdio4File__T7writelnTAyaZQnMFNfQkZv	1	22189	153
+	    1	_D3std5stdio4File__T5writeTAyaTaZQnMFNfQmaZv
+------------------
+	    1	_D3std5stdio4File17LockingTextWriter__T3putTAyaZQjMFNfMQlZv
+_D3std5stdio__T13trustedFwriteTaZQsFNbNiNePOS4core4stdcQBx8_IO_FILExAaZm	1	14062	14062
+------------------
+	    1	_D3std6getopt__T10getoptImplTAyaTPtTQhTPQlZQBbFNfKAQwKSQCbQCa13configurationKSQCyQCx12GetoptResultKCQDuQDt15GetOptExceptionHQDrAvQgQDyQDxQEeQDxZv
+_D3std6getopt__T10getoptImplTAyaTPQfZQvFNfKAQpKSQBuQBt13configurationKSQCrQCq12GetoptResultKCQDnQDm15GetOptExceptionHQDkAvQgQDrQDqZv	1	15073	2872
+	    1	_D3std4conv__T2toTAyaZ__TQlTQkZQrFNaNbNiNfQyZQBb
+	    1	_D3std5array__T5splitTAyaTQeZQoFNaNbNfQqQsZAQw
+	    2	_D4core8internal5array13concatenation__T14_d_arraycatnTXTAyaTQeTQhZQBbFNaNbNeQuKQxZQBa
+	    4	_D4core8internal4hash__T9bytesHashVbi0ZQpFNaNbNiNeMAxhmZm
+	    1	_D4core8internal5array9appending__T21_d_arrayappendcTXImplHTAS3std6getopt6OptionTQuZ17_d_arrayappendcTXFNaNbNcNeMNkKQCemZQCj
+	    1	_D3std6getopt__T12handleOptionTPAyaZQuFNfQjQmKAQpKSQBxQBw13configurationbZb
+	    1	_D3std6getopt__T10getoptImplZQnFNfKAAyaKSQBnQBm13configurationKSQCkQCj12GetoptResultKCQDgQDf15GetOptExceptionHQCwAvQgZv
+------------------
+	    1	_D3std6getopt__TQkTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcQBfQBeQBlQBeQBrQBeZSQCqQCp12GetoptResult
+_D3std6getopt__T10getoptImplTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcKSQCiQCh13configurationKSQDfQDe12GetoptResultKCQEbQEa15GetOptExceptionHQDyAvQgQEfQEeQElQEeQErQEeZv	1	73634	24839
+	    1	_D3std4conv__T2toTAyaZ__TQlTQkZQrFNaNbNiNfQyZQBb
+	    1	_D3std5array__T5splitTAyaTQeZQoFNaNbNfQqQsZAQw
+	    2	_D4core8internal5array13concatenation__T14_d_arraycatnTXTAyaTQeTQhZQBbFNaNbNeQuKQxZQBa
+	    2	_D4core8internal4hash__T9bytesHashVbi0ZQpFNaNbNiNeMAxhmZm
+	    1	_D4core8internal5array9appending__T21_d_arrayappendcTXImplHTAS3std6getopt6OptionTQuZ17_d_arrayappendcTXFNaNbNcNeMNkKQCemZQCj
+	    1	_D3std6getopt__T12handleOptionTPkZQsFNfAyaQlKAQhKSQBwQBv13configurationbZb
+	    1	_D3std6getopt__T10getoptImplTAyaTPtTQhTPQlZQBbFNfKAQwKSQCbQCa13configurationKSQCyQCx12GetoptResultKCQDuQDt15GetOptExceptionHQDrAvQgQDyQDxQEeQDxZv
+------------------
+	    1	_D3std6getopt__T10getoptImplTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcKSQCiQCh13configurationKSQDfQDe12GetoptResultKCQEbQEa15GetOptExceptionHQDyAvQgQEfQEeQElQEeQErQEeZv
+_D3std6getopt__T10getoptImplTAyaTPtTQhTPQlZQBbFNfKAQwKSQCbQCa13configurationKSQCyQCx12GetoptResultKCQDuQDt15GetOptExceptionHQDrAvQgQDyQDxQEeQDxZv	1	30316	3109
+	    1	_D3std4conv__T2toTAyaZ__TQlTQkZQrFNaNbNiNfQyZQBb
+	    1	_D3std5array__T5splitTAyaTQeZQoFNaNbNfQqQsZAQw
+	    2	_D4core8internal5array13concatenation__T14_d_arraycatnTXTAyaTQeTQhZQBbFNaNbNeQuKQxZQBa
+	    4	_D4core8internal4hash__T9bytesHashVbi0ZQpFNaNbNiNeMAxhmZm
+	    1	_D4core8internal5array9appending__T21_d_arrayappendcTXImplHTAS3std6getopt6OptionTQuZ17_d_arrayappendcTXFNaNbNcNeMNkKQCemZQCj
+	    1	_D3std6getopt__T12handleOptionTPtZQsFNfAyaQlKAQhKSQBwQBv13configurationbZb
+	    1	_D3std6getopt__T10getoptImplTAyaTPQfZQvFNfKAQpKSQBuQBt13configurationKSQCrQCq12GetoptResultKCQDnQDm15GetOptExceptionHQDkAvQgQDrQDqZv
+------------------
+	    1	_D3std6getopt__T10getoptImplTAyaTPQfZQvFNfKAQpKSQBuQBt13configurationKSQCrQCq12GetoptResultKCQDnQDm15GetOptExceptionHQDkAvQgQDrQDqZv
+_D3std6getopt__T10getoptImplZQnFNfKAAyaKSQBnQBm13configurationKSQCkQCj12GetoptResultKCQDgQDf15GetOptExceptionHQCwAvQgZv	1	4244	130
+	    1	_D4core8internal5array9appending__T21_d_arrayappendcTXImplHTAS3std6getopt6OptionTQuZ17_d_arrayappendcTXFNaNbNcNeMNkKQCemZQCj
+------------------
+	    1	_D3std6getopt__T10getoptImplTAyaTPQfZQvFNfKAQpKSQBuQBt13configurationKSQCrQCq12GetoptResultKCQDnQDm15GetOptExceptionHQDkAvQgQDrQDqZv
+_D3std6getopt__T12handleOptionTPAyaZQuFNfQjQmKAQpKSQBxQBw13configurationbZb	1	225	225
+------------------
+	    1	_D3std6getopt__T10getoptImplTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcKSQCiQCh13configurationKSQDfQDe12GetoptResultKCQEbQEa15GetOptExceptionHQDyAvQgQEfQEeQElQEeQErQEeZv
+_D3std6getopt__T12handleOptionTPkZQsFNfAyaQlKAQhKSQBwQBv13configurationbZb	1	241	241
+------------------
+	    1	_D3std6getopt__T10getoptImplTAyaTPtTQhTPQlZQBbFNfKAQwKSQCbQCa13configurationKSQCyQCx12GetoptResultKCQDuQDt15GetOptExceptionHQDrAvQgQDyQDxQEeQDxZv
+_D3std6getopt__T12handleOptionTPtZQsFNfAyaQlKAQhKSQBwQBv13configurationbZb	1	187	187
+------------------
+	    1	_Dmain
+_D3std6getopt__TQkTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcQBfQBeQBlQBeQBrQBeZSQCqQCp12GetoptResult	1	73885	232
+	    1	_D3std9exception__T7enforceZ__TQmTmZQrFNaNfmLAxaAyamZm
+	    1	_D3std6getopt__T10getoptImplTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcKSQCiQCh13configurationKSQDfQDe12GetoptResultKCQEbQEa15GetOptExceptionHQDyAvQgQEfQEeQElQEeQErQEeZv
+------------------
+	    3	_D3std5array__T19appenderNewCapacityVmi16ZQBbFNaNbNiNfmmZm
+_D3std9algorithm10comparison__T3maxTmTiZQjFNaNbNiNfmiZm	3	434	210
+	    3	_D3std10functional__T6safeOpVAyaa1_3cZ__TQuTmTiZQBbFNaNbNiNfKmKiZb
+------------------
+	    3	_D3std5array__T5splitTAyaTQeZQoFNaNbNfQqQsZAQw
+_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFNaNbNiNfQDzQEcZSQFsQFrQFk__TQFdVQExa6_61203d3d2062VQExi0TQFwTQGaZQGoFQGiQGlZ6Result	3	245	218
+	    3	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result6__ctorMFNaNbNcNiNfQEyQFbZSQGrQGqQGj__TQGcVQFwa6_61203d3d2062VQFwi0TQGvTQGzZQHnFQHhQHkZQDq
+------------------
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result8popFrontMFNaNbNiNfZv
+_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result15separatorLengthMFNaNbNdNiNfZm	6	39	39
+------------------
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result5frontMFNaNbNdNiNfZQEy
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result8popFrontMFNaNbNiNfZv
+_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result17ensureFrontLengthMFNaNbNiNfZv	12	6853	1426
+	   12	_D3std5range10primitives__T5emptyTAyaZQlFNaNbNdNiNfMKQtZb
+	    6	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFNaNbNiNfQBlMQBpZQBt
+------------------
+	    9	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCu8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6ResultZQGcFNaNbNfQGaZAQEv
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result5frontMFNaNbNdNiNfZQEy
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result8popFrontMFNaNbNiNfZv
+_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result5emptyMFNaNbNdNiNfZb	21	1131	1025
+	   15	_D3std5range10primitives__T5emptyTAyaZQlFNaNbNdNiNfMKQtZb
+------------------
+	    6	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCu8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6ResultZQGcFNaNbNfQGaZAQEv
+_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result5frontMFNaNbNdNiNfZQEy	6	8045	814
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result5emptyMFNaNbNdNiNfZb
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result17ensureFrontLengthMFNaNbNiNfZv
+------------------
+	    3	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFNaNbNiNfQDzQEcZSQFsQFrQFk__TQFdVQExa6_61203d3d2062VQExi0TQFwTQGaZQGoFQGiQGlZ6Result
+_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result6__ctorMFNaNbNcNiNfQEyQFbZSQGrQGqQGj__TQGcVQFwa6_61203d3d2062VQFwi0TQGvTQGzZQHnFQHhQHkZQDq	3	27	27
+------------------
+	    6	_D3std5array__TQjTSQr9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCu8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6ResultZQGcFNaNbNfQGaZAQEv
+_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result8popFrontMFNaNbNiNfZv	6	1455	1312
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result5emptyMFNaNbNdNiNfZb
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result17ensureFrontLengthMFNaNbNiNfZv
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result15separatorLengthMFNaNbNdNiNfZm
+------------------
+	    6	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFNaNbNiNfQBlMQBpZQBt
+_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TAhTQdZQBfFNaNbNiNfQsMQvZQy	6	3706	3019
+	    6	_D3std5range10primitives__T5emptyTAhZQkFNaNbNdNiNfMKQsZb
+	   36	_D3std10functional__T9binaryFunVAyaa6_61203d3d2062VQta1_61VQBba1_62Z__TQByThThZQCgFNaNbNiNfKhKhZb
+------------------
+	    6	_D3std9algorithm9iteration__T8splitterVAyaa6_61203d3d2062VEQCf8typecons__T4FlagVQBpa14_6b656570536570617261746f7273ZQBqi0TQDfTQDjZQDxFQDrQDuZ6Result17ensureFrontLengthMFNaNbNiNfZv
+_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFNaNbNiNfQBlMQBpZQBt	6	5344	1508
+	   12	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFQBdMQBhZ__T5forceTAhTAaZQnFNaNbNiNeNgAaZQw
+	    6	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TAhTQdZQBfFNaNbNiNfQsMQvZQy
+	    6	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFQBdMQBhZ__T5forceTQBvTAhZQoFNaNbNiNeNgAhZQCs
+------------------
+	   12	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFNaNbNiNfQBlMQBpZQBt
+_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFQBdMQBhZ__T5forceTAhTAaZQnFNaNbNiNeNgAaZQw	12	86	86
+------------------
+	    6	_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFNaNbNiNfQBlMQBpZQBt
+_D3std9algorithm9searching__T4findVAyaa6_61203d3d2062TQtTQwZQBfFQBdMQBhZ__T5forceTQBvTAhZQoFNaNbNiNeNgAhZQCs	6	44	44
+------------------
+	    1	_D3std5stdio4File__T5writeTAyaTaZQnMFNfQmaZv
+_D3std9exception__T7enforceZ__TQmTbZQrFNaNfbLAxaAyamZb	1	23	23
+------------------
+	    1	_D3std6getopt__TQkTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcQBfQBeQBlQBeQBrQBeZSQCqQCp12GetoptResult
+_D3std9exception__T7enforceZ__TQmTmZQrFNaNfmLAxaAyamZm	1	19	19
+------------------
+	    3	_D3std5array__T8AppenderTAAyaZQp13ensureAddableMFNaNbNfmZv
+_D4core10checkedint__T4muluZQgFNaNbNiNfmmKbZm	3	20	20
+------------------
+	    2	_D3std6getopt__T10getoptImplTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcKSQCiQCh13configurationKSQDfQDe12GetoptResultKCQEbQEa15GetOptExceptionHQDyAvQgQEfQEeQElQEeQErQEeZv
+	    4	_D3std6getopt__T10getoptImplTAyaTPtTQhTPQlZQBbFNfKAQwKSQCbQCa13configurationKSQCyQCx12GetoptResultKCQDuQDt15GetOptExceptionHQDrAvQgQDyQDxQEeQDxZv
+	    4	_D3std6getopt__T10getoptImplTAyaTPQfZQvFNfKAQpKSQBuQBt13configurationKSQCrQCq12GetoptResultKCQDnQDm15GetOptExceptionHQDkAvQgQDrQDqZv
+_D4core8internal4hash__T9bytesHashVbi0ZQpFNaNbNiNeMAxhmZm	10	1484	1372
+	   13	_D4core8internal4hash__T9get32bitsZQlFNaNbNiMPxhZk
+------------------
+_D4core8internal4hash__T9bytesHashVbi1ZQpFNaNbNiNeMAxhmZm	0	5196	5196
+------------------
+	   13	_D4core8internal4hash__T9bytesHashVbi0ZQpFNaNbNiNeMAxhmZm
+_D4core8internal4hash__T9get32bitsZQlFNaNbNiMPxhZk	13	112	112
+------------------
+	    2	_D6object__T3dupTaZQhFNaNbNdNfAxaZAa
+_D4core8internal5array11duplication__T4_dupTxaTaZQlFNaNbNeMAxaZAa	2	5445	5445
+------------------
+	    1	_Dmain
+_D4core8internal5array13concatenation__T14_d_arraycatnTXTAyaTQeTQhTQkTQnTQqTQtTQwTQzTQBcZQBxFNaNbNeQBqQBtQBwQBzQCcKQCgQCjQCmQCpZQCt	1	4721	963
+	    1	_D4core8internal5array8capacity__T22_d_arraysetlengthTImplHTAyaTyaZ18_d_arraysetlengthTFNaNbNeNkMKQBmmZm
+------------------
+	    2	_D3std6getopt__T10getoptImplTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcKSQCiQCh13configurationKSQDfQDe12GetoptResultKCQEbQEa15GetOptExceptionHQDyAvQgQEfQEeQElQEeQErQEeZv
+	    2	_D3std6getopt__T10getoptImplTAyaTPtTQhTPQlZQBbFNfKAQwKSQCbQCa13configurationKSQCyQCx12GetoptResultKCQDuQDt15GetOptExceptionHQDrAvQgQDyQDxQEeQDxZv
+	    2	_D3std6getopt__T10getoptImplTAyaTPQfZQvFNfKAQpKSQBuQBt13configurationKSQCrQCq12GetoptResultKCQDnQDm15GetOptExceptionHQDkAvQgQDrQDqZv
+_D4core8internal5array13concatenation__T14_d_arraycatnTXTAyaTQeTQhZQBbFNaNbNeQuKQxZQBa	6	2104	628
+	    6	_D4core8internal5array8capacity__T22_d_arraysetlengthTImplHTAyaTyaZ18_d_arraysetlengthTFNaNbNeNkMKQBmmZm
+------------------
+	    1	_D4core8internal5array13concatenation__T14_d_arraycatnTXTAyaTQeTQhTQkTQnTQqTQtTQwTQzTQBcZQBxFNaNbNeQBqQBtQBwQBzQCcKQCgQCjQCmQCpZQCt
+	    6	_D4core8internal5array13concatenation__T14_d_arraycatnTXTAyaTQeTQhZQBbFNaNbNeQuKQxZQBa
+_D4core8internal5array8capacity__T22_d_arraysetlengthTImplHTAyaTyaZ18_d_arraysetlengthTFNaNbNeNkMKQBmmZm	7	5234	5234
+------------------
+_D4core8internal5array8equality__T8__equalsTaTaZQoFNaNbNiNeMxAaMxQeZb	0	383	383
+------------------
+	    1	_D3std6getopt__T10getoptImplTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcKSQCiQCh13configurationKSQDfQDe12GetoptResultKCQEbQEa15GetOptExceptionHQDyAvQgQEfQEeQElQEeQErQEeZv
+	    1	_D3std6getopt__T10getoptImplTAyaTPtTQhTPQlZQBbFNfKAQwKSQCbQCa13configurationKSQCyQCx12GetoptResultKCQDuQDt15GetOptExceptionHQDrAvQgQDyQDxQEeQDxZv
+	    1	_D3std6getopt__T10getoptImplTAyaTPQfZQvFNfKAQpKSQBuQBt13configurationKSQCrQCq12GetoptResultKCQDnQDm15GetOptExceptionHQDkAvQgQDrQDqZv
+	    1	_D3std6getopt__T10getoptImplZQnFNfKAAyaKSQBnQBm13configurationKSQCkQCj12GetoptResultKCQDgQDf15GetOptExceptionHQCwAvQgZv
+_D4core8internal5array9appending__T21_d_arrayappendcTXImplHTAS3std6getopt6OptionTQuZ17_d_arrayappendcTXFNaNbNcNeMNkKQCemZQCj	4	9977	9977
+------------------
+	    1	_D3std4conv__T6toImplTAyaTtZQoFNaNbNftZQr
+	    1	_D3std4conv__T6toImplTAyaTkZQoFNaNbNfkZQr
+_D4core8internal6string__T20unsignedToTempStringVki10Vbi0TaZQBiFNaNbNiNfmNkMAaZQd	2	235	235
+------------------
+_D4core8internal6string__T7dstrcmpZQjFNaNbNiNeMxAaMxQeZi	0	147	147
+------------------
+	    6	_D4core8internal8lifetime__T10emplaceRefTAyaTQeTQhZQxFNaNbNiNfKQwKQzZv
+_D4core8internal8lifetime__T10emplaceRefTAyaTQeTQhZQxFKQoKQrZ1S__T6__ctorZQiMFNaNbNcNiNfKQBwZSQDoQDmQDg__TQDaTQCrTQCvTQCzZQDqFKQDiKQDmZQCw	6	49	49
+------------------
+	    6	_D4core8internal8lifetime__T10emplaceRefTAyaTQeTQhZQxFNaNbNiNfKQwKQzZv
+_D4core8internal8lifetime__T10emplaceRefTAyaTQeTQhZQxFKQoKQrZ9__lambda5MFNaNbNiNeZPSQDeQDcQCw__TQCqTQChTQClTQCpZQDgFKQCyKQDcZ1S	6	42	42
+------------------
+	    6	_D4core8lifetime__T7emplaceTAyaTQeZQqFNaNbNiNfPQtKQwZQh
+_D4core8internal8lifetime__T10emplaceRefTAyaTQeTQhZQxFNaNbNiNfKQwKQzZv	6	1292	1111
+	    6	_D4core8internal8lifetime__T10emplaceRefTAyaTQeTQhZQxFKQoKQrZ9__lambda5MFNaNbNiNeZPSQDeQDcQCw__TQCqTQChTQClTQCpZQDgFKQCyKQDcZ1S
+	    6	_D4core8internal8lifetime__T18emplaceInitializerTSQBwQBuQBo__T10emplaceRefTAyaTQeTQhZQxFKQoKQrZ1SZQCsFNaNbNiNeMKQClZv
+	    6	_D4core8internal8lifetime__T10emplaceRefTAyaTQeTQhZQxFKQoKQrZ1S__T6__ctorZQiMFNaNbNcNiNfKQBwZSQDoQDmQDg__TQDaTQCrTQCvTQCzZQDqFKQDiKQDmZQCw
+------------------
+	    3	_D4core8lifetime__T11_d_newitemTTS3std5array__T8AppenderTAAyaZQp4DataZQBzFNaNbNeZPQBx
+_D4core8internal8lifetime__T18emplaceInitializerTS3std5array__T8AppenderTAAyaZQp4DataZQCgFNaNbNiNeMKQBzZv	3	67	67
+------------------
+	    6	_D4core8internal8lifetime__T10emplaceRefTAyaTQeTQhZQxFNaNbNiNfKQwKQzZv
+_D4core8internal8lifetime__T18emplaceInitializerTSQBwQBuQBo__T10emplaceRefTAyaTQeTQhZQxFKQoKQrZ1SZQCsFNaNbNiNeMKQClZv	6	90	90
+------------------
+	    3	_D3std5array__T8AppenderTAAyaZQp6__ctorMFNaNbNcNeQyZSQBzQBy__TQBvTQBpZQCd
+_D4core8lifetime__T11_d_newitemTTS3std5array__T8AppenderTAAyaZQp4DataZQBzFNaNbNeZPQBx	3	3160	3093
+	    3	_D4core8internal8lifetime__T18emplaceInitializerTS3std5array__T8AppenderTAAyaZQp4DataZQCgFNaNbNiNeMKQBzZv
+------------------
+	    6	_D3std5array__T8AppenderTAAyaZQp__T3putTQoZQiMFNaNbNfQBbZv
+_D4core8lifetime__T7emplaceTAyaTQeZQqFNaNbNiNfPQtKQwZQh	6	1678	386
+	    6	_D4core8internal8lifetime__T10emplaceRefTAyaTQeTQhZQxFNaNbNiNfKQwKQzZv
+------------------
+	    1	_D3std4conv__T6toImplTAyaTtZQoFNaNbNftZQr
+	    1	_D3std4conv__T6toImplTAyaTkZQoFNaNbNfkZQr
+_D6object__T3dupTaZQhFNaNbNdNfAxaZAa	2	5598	153
+	    2	_D4core8internal5array11duplication__T4_dupTxaTaZQlFNaNbNeMAxaZAa
+------------------
+	    3	_D3std5array__T8AppenderTAAyaZQp6__ctorMFNaNbNcNeQyZSQBzQBy__TQBvTQBpZQCd
+_D6object__T8capacityTAyaZQoFNaNbNdNeAQqZm	3	2426	2426
+------------------
+_Dmain	0	110632	2587
+	    1	_D3std4path__T8baseNameTyaZQnFNaNbNiNfNkMAyaZQe
+	    1	_D3std4conv__T2toTAyaZ__TQlTtZQqFNaNbNftZQx
+	    1	_D3std4conv__T2toTAyaZ__TQlTkZQqFNaNbNfkZQx
+	    1	_D4core8internal5array13concatenation__T14_d_arraycatnTXTAyaTQeTQhTQkTQnTQqTQtTQwTQzTQBcZQBxFNaNbNeQBqQBtQBwQBzQCcKQCgQCjQCmQCpZQCt
+	    1	_D3std6getopt__TQkTAyaTPkTQhTPtTQnTPQrZQBhFNfKAQBcQBfQBeQBlQBeQBrQBeZSQCqQCp12GetoptResult
+	    1	_D3std5stdio4File__T7writelnTAyaZQnMFNfQkZv
+
+======== Timer frequency unknown, Times are in Megaticks ========
+
+  Num          Tree        Func        Per
+  Calls        Time        Time        Call
+
+      1           0           0           0     @safe void std.getopt.getoptImpl!(immutable(char)[], uint*, immutable(char)[], ushort*, immutable(char)[], immutable(char)[]*).getoptImpl(ref immutable(char)[][], ref std.getopt.configuration, ref std.getopt.GetoptResult, ref std.getopt.GetOptException, void[][immutable(char)[]], void[][immutable(char)[]], immutable(char)[], uint*, immutable(char)[], ushort*, immutable(char)[], immutable(char)[]*)
+      1           0           0           0     nothrow @nogc @trusted ulong std.stdio.trustedFwrite!(char).trustedFwrite(shared(core.stdc.stdio._IO_FILE)*, const(char[]))
+      4           0           0           0     pure nothrow ref @trusted std.getopt.Option[] core.internal.array.appending._d_arrayappendcTXImpl!(std.getopt.Option[], std.getopt.Option)._d_arrayappendcTX(scope return ref std.getopt.Option[], ulong)
+      2           0           0           0     pure nothrow @trusted char[] core.internal.array.duplication._dup!(const(char), char)._dup(scope const(char)[])
+      7           0           0           0     pure nothrow @trusted ulong core.internal.array.capacity._d_arraysetlengthTImpl!(immutable(char)[], immutable(char))._d_arraysetlengthT(return scope ref immutable(char)[], ulong)
+      1           0           0           0     pure nothrow @nogc @trusted ulong core.internal.hash.bytesHash!(true).bytesHash(scope const(ubyte)[], ulong)
+      1           0           0           0     @safe void std.stdio.File.LockingTextWriter.put!(char).put(scope char)
+      1           0           0           0     @safe void std.getopt.getoptImpl!(immutable(char)[], ushort*, immutable(char)[], immutable(char)[]*).getoptImpl(ref immutable(char)[][], ref std.getopt.configuration, ref std.getopt.GetoptResult, ref std.getopt.GetOptException, void[][immutable(char)[]], void[][immutable(char)[]], immutable(char)[], ushort*, immutable(char)[], immutable(char)[]*)
+      3           0           0           0     pure nothrow @trusted std.array.Appender!(immutable(char)[][]).Appender.Data* core.lifetime._d_newitemT!(std.array.Appender!(immutable(char)[][]).Appender.Data)._d_newitemT()
+      6           0           0           0     pure nothrow @nogc @safe ubyte[] std.algorithm.searching.find!("a == b", ubyte[], ubyte[]).find(ubyte[], scope ubyte[])
+      3           0           0           0     pure nothrow @trusted core.memory.BlkInfo_ std.array.Appender!(immutable(char)[][]).Appender.ensureAddable(ulong).__lambda9()
+      1           0           0           0     @safe void std.getopt.getoptImpl!(immutable(char)[], immutable(char)[]*).getoptImpl(ref immutable(char)[][], ref std.getopt.configuration, ref std.getopt.GetoptResult, ref std.getopt.GetOptException, void[][immutable(char)[]], void[][immutable(char)[]], immutable(char)[], immutable(char)[]*)
+      1           0           0           0     _Dmain
+      3           0           0           0     pure nothrow @property @trusted ulong object.capacity!(immutable(char)[]).capacity(immutable(char)[][])
+      1           0           0           0     @safe void std.stdio.File.write!(immutable(char)[], char).write(immutable(char)[], char)
+      3           0           0           0     pure nothrow @safe immutable(char)[][] std.array.array!(std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result).array(std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result)
+      6           0           0           0     pure nothrow @safe void std.array.Appender!(immutable(char)[][]).Appender.put!(immutable(char)[]).put(immutable(char)[])
+      6           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.algorithm.searching.find!("a == b", immutable(char)[], immutable(char)[]).find(immutable(char)[], scope immutable(char)[])
+     12           0           0           0     pure nothrow @nogc @safe void std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result.ensureFrontLength()
+     10           0           0           0     pure nothrow @nogc @trusted ulong core.internal.hash.bytesHash!(false).bytesHash(scope const(ubyte)[], ulong)
+      6           0           0           0     pure nothrow @nogc @safe void std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result.popFront()
+      6           0           0           0     pure nothrow @safe void std.array.Appender!(immutable(char)[][]).Appender.ensureAddable(ulong)
+      6           0           0           0     pure nothrow @nogc @safe void core.internal.lifetime.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[])
+     21           0           0           0     pure nothrow @property @nogc @safe bool std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result.empty()
+      1           0           0           0     pure nothrow @trusted immutable(char)[] core.internal.array.concatenation._d_arraycatnTX!(immutable(char)[], immutable(char)[], immutable(char)[], immutable(char)[], immutable(char)[], immutable(char)[], immutable(char)[], immutable(char)[], immutable(char)[], immutable(char)[])._d_arraycatnTX(immutable(char)[], immutable(char)[], immutable(char)[], immutable(char)[], immutable(char)[], ref immutable(char)[], immutable(char)[], immutable(char)[], immutable(char)[])
+      6           0           0           0     pure nothrow @property @nogc @safe immutable(char)[] std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result.front()
+      3           0           0           0     pure nothrow @safe immutable(char)[][] std.array.split!(immutable(char)[], immutable(char)[]).split(immutable(char)[], immutable(char)[])
+     36           0           0           0     pure nothrow @nogc @safe bool std.functional.binaryFun!("a == b", "a", "b").binaryFun!(ubyte, ubyte).binaryFun(ref ubyte, ref ubyte)
+      6           0           0           0     pure nothrow @trusted immutable(char)[] core.internal.array.concatenation._d_arraycatnTX!(immutable(char)[], immutable(char)[], immutable(char)[])._d_arraycatnTX(immutable(char)[], ref immutable(char)[])
+      3           0           0           0     pure nothrow ref @trusted std.array.Appender!(immutable(char)[][]).Appender std.array.Appender!(immutable(char)[][]).Appender.__ctor(immutable(char)[][])
+      1           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.path._baseName!(immutable(char)[])._baseName(return scope immutable(char)[])
+      6           0           0           0     pure nothrow @nogc @safe immutable(char)[]* core.lifetime.emplace!(immutable(char)[], immutable(char)[]).emplace(immutable(char)[]*, ref immutable(char)[])
+      1           0           0           0     pure nothrow @nogc @trusted bool core.internal.array.equality.__equals!(char, char).__equals(scope const(char[]), scope const(char[]))
+      3           0           0           0     pure nothrow @nogc @safe ulong std.array.appenderNewCapacity!(16uL).appenderNewCapacity(ulong, ulong)
+      1           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.path.rtrimDirSeparators!(immutable(char)[]).rtrimDirSeparators(immutable(char)[])
+      1           0           0           0     @safe bool std.getopt.handleOption!(uint*).handleOption(immutable(char)[], uint*, ref immutable(char)[][], ref std.getopt.configuration, bool)
+      2           0           0           0     pure nothrow @nogc @safe char[] core.internal.string.unsignedToTempString!(10u, false, char).unsignedToTempString(ulong, return scope char[])
+      1           0           0           0     @safe std.getopt.GetoptResult std.getopt.getopt!(immutable(char)[], uint*, immutable(char)[], ushort*, immutable(char)[], immutable(char)[]*).getopt(ref immutable(char)[][], immutable(char)[], uint*, immutable(char)[], ushort*, immutable(char)[], immutable(char)[]*)
+      1           0           0           0     @safe bool std.getopt.handleOption!(immutable(char)[]*).handleOption(immutable(char)[], immutable(char)[]*, ref immutable(char)[][], ref std.getopt.configuration, bool)
+      3           0           0           0     pure nothrow @safe std.array.Appender!(immutable(char)[][]).Appender std.array.appender!(immutable(char)[][]).appender()
+      3           0           0           0     pure nothrow @nogc @safe std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[])
+      3           0           0           0     pure nothrow @nogc @safe ulong std.algorithm.comparison.max!(ulong, int).max(ulong, int)
+      3           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.conv.to!(immutable(char)[]).to!(immutable(char)[]).to(immutable(char)[])
+      3           0           0           0     pure nothrow @nogc @safe bool std.functional.safeOp!("<").safeOp!(ulong, int).safeOp(ref ulong, ref int)
+     29           0           0           0     pure nothrow @property @nogc @safe bool std.range.primitives.empty!(immutable(char)[]).empty(scope ref immutable(char)[])
+      3           0           0           0     inout pure nothrow @property @nogc @trusted inout(immutable(char)[])[] std.array.Appender!(immutable(char)[][]).Appender.data()
+      1           0           0           0     @safe bool std.getopt.handleOption!(ushort*).handleOption(immutable(char)[], ushort*, ref immutable(char)[][], ref std.getopt.configuration, bool)
+      1           0           0           0     pure nothrow @safe immutable(char)[] std.conv.toImpl!(immutable(char)[], ushort).toImpl(ushort)
+      1           0           0           0     @safe void std.range.primitives.doPut!(std.stdio.File.LockingTextWriter, immutable(char)[]).doPut(ref std.stdio.File.LockingTextWriter, ref immutable(char)[])
+      1           0           0           0     @safe void std.stdio.File.writeln!(immutable(char)[]).writeln(immutable(char)[])
+      2           0           0           0     pure nothrow @property @safe char[] object.dup!(char).dup(const(char)[])
+      1           0           0           0     pure nothrow @nogc @trusted int core.internal.string.dstrcmp!().dstrcmp(scope const(char[]), scope const(char[]))
+      1           0           0           0     @safe void std.range.primitives.put!(std.stdio.File.LockingTextWriter, immutable(char)[]).put(ref std.stdio.File.LockingTextWriter, immutable(char)[])
+      1           0           0           0     @safe void std.range.primitives.doPut!(std.stdio.File.LockingTextWriter, char).doPut(ref std.stdio.File.LockingTextWriter, ref char)
+      1           0           0           0     @safe void std.getopt.getoptImpl!().getoptImpl(ref immutable(char)[][], ref std.getopt.configuration, ref std.getopt.GetoptResult, ref std.getopt.GetOptException, void[][immutable(char)[]], void[][immutable(char)[]])
+      1           0           0           0     @safe void std.range.primitives.put!(std.stdio.File.LockingTextWriter, char).put(ref std.stdio.File.LockingTextWriter, char)
+      1           0           0           0     @safe void std.stdio.File.LockingTextWriter.put!(immutable(char)[]).put(scope immutable(char)[])
+      1           0           0           0     pure nothrow @safe immutable(char)[] std.conv.toImpl!(immutable(char)[], uint).toImpl(uint)
+     13           0           0           0     pure nothrow @nogc uint core.internal.hash.get32bits!().get32bits(scope const(ubyte)*)
+      1           0           0           0     pure nothrow @safe immutable(char)[] std.conv.to!(immutable(char)[]).to!(ushort).to(ushort)
+      6           0           0           0     pure nothrow @nogc @trusted void core.internal.lifetime.emplaceInitializer!(core.internal.lifetime.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[]).S).emplaceInitializer(scope ref core.internal.lifetime.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[]).S)
+     12           0           0           0     pure nothrow @nogc @trusted ubyte[] std.algorithm.searching.find!("a == b", immutable(char)[], immutable(char)[]).find(immutable(char)[], scope immutable(char)[]).force!(ubyte[], char[]).force(inout(char[]))
+      1           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.path.baseName!(immutable(char)).baseName(return scope immutable(char)[])
+      1           0           0           0     pure nothrow @safe immutable(char)[] std.conv.to!(immutable(char)[]).to!(uint).to(uint)
+      3           0           0           0     pure nothrow @nogc @trusted void core.internal.lifetime.emplaceInitializer!(std.array.Appender!(immutable(char)[][]).Appender.Data).emplaceInitializer(scope ref std.array.Appender!(immutable(char)[][]).Appender.Data)
+      1           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.path.stripDrive!(immutable(char)).stripDrive(immutable(char)[])
+      1           0           0           0     pure nothrow @nogc @safe long std.path.lastSeparator!(immutable(char)[]).lastSeparator(immutable(char)[])
+      6           0           0           0     pure nothrow ref @nogc @safe core.internal.lifetime.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[]).S core.internal.lifetime.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[]).S.__ctor!().__ctor(ref immutable(char)[])
+      6           0           0           0     pure nothrow @nogc @trusted immutable(char)[][] std.array.Appender!(immutable(char)[][]).Appender.put!(immutable(char)[]).put(immutable(char)[]).__lambda3()
+      6           0           0           0     pure nothrow @property @nogc @safe bool std.range.primitives.empty!(ubyte[]).empty(scope ref ubyte[])
+      6           0           0           0     pure nothrow @nogc @trusted immutable(char)[] std.algorithm.searching.find!("a == b", immutable(char)[], immutable(char)[]).find(immutable(char)[], scope immutable(char)[]).force!(immutable(char)[], ubyte[]).force(inout(ubyte[]))
+      6           0           0           0     pure nothrow @nogc @trusted core.internal.lifetime.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[]).S* core.internal.lifetime.emplaceRef!(immutable(char)[], immutable(char)[], immutable(char)[]).emplaceRef(ref immutable(char)[], ref immutable(char)[]).__lambda5()
+      6           0           0           0     pure nothrow @nogc @trusted immutable(char)[]* std.array.Appender!(immutable(char)[][]).Appender.put!(immutable(char)[]).put(immutable(char)[]).__lambda5()
+      6           0           0           0     pure nothrow @property @nogc @safe ulong std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result.separatorLength()
+      3           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.conv.toImpl!(immutable(char)[], immutable(char)[]).toImpl(immutable(char)[])
+      3           0           0           0     pure nothrow ref @nogc @safe std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result std.algorithm.iteration.splitter!("a == b", 0, immutable(char)[], immutable(char)[]).splitter(immutable(char)[], immutable(char)[]).Result.__ctor(immutable(char)[], immutable(char)[])
+      1           0           0           0     pure @safe bool std.exception.enforce!().enforce!(bool).enforce(bool, lazy const(char)[], immutable(char)[], ulong)
+      3           0           0           0     inout pure nothrow @property @nogc @trusted inout(immutable(char)[])[] std.array.Appender!(immutable(char)[][]).Appender.opSlice()
+      3           0           0           0     pure nothrow @nogc @trusted immutable(char)[][] std.array.Appender!(immutable(char)[][]).Appender.ensureAddable(ulong).__lambda12()
+      3           0           0           0     pure nothrow @nogc @safe bool std.functional.safeOp!("<").unsafeOp!(ulong, int).unsafeOp(ulong, int)
+      3           0           0           0     pure nothrow @nogc @safe ulong core.checkedint.mulu!().mulu(ulong, ulong, ref bool)
+      1           0           0           0     pure @safe ulong std.exception.enforce!().enforce!(ulong).enforce(ulong, lazy const(char)[], immutable(char)[], ulong)
+      1           0           0           0     pure nothrow @nogc @safe immutable(char)[] std.path._stripDrive!(immutable(char)[])._stripDrive(immutable(char)[])

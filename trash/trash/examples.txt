@@ -1,0 +1,52 @@
+börja med demo av allt utan att säga hur det är gjort
+visa erlanfg program (och ev pasm instryctions [teaser]
+
+===
+
+posm -> visa
+  walk through all
+loader
+  from files
+  dynamic
+scheduler
+  time slicing
+questions
+
+==
+
+hello_world.posm
+fac.posm
+tfac.posm
+module_calls.posm
+ackermann.posm
+
+
+
+1 hello world (hello_world.posm)
+  as easy as possibe. show how to start and the result. mention that the file is called hello.posm.
+
+  mention sys println and strings support (pushs).
+
+2 fac (fac.posm)
+
+recursive function
+call
+
+
+3 tail recsuive fac (tfac.posm)
+jump instead of call
+
+4. run mfac.psom from a start/0 (module_calls.posm)
+   shows mcall of fac.posm and tfac.posm
+   print results
+
+
+5 ackermann
+  a little bigger
+  run fri shell (5 secs)
+
+6. run several ackerman
+  intriduces spawn
+   start/0 spawns hardcoded + recv, print at the end (three?)
+
+7. improve (let each acker man send a message back whit the result when all results have arrived (end)

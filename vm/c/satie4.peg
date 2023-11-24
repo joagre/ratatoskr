@@ -1,0 +1,53 @@
+%prefix "satie"
+
+%source {
+static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
+#define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
+    fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
+}
+
+Program            <- _ MainFunction EOF
+MainFunction       <- "fn" _ "main" _ "(" _ Variable? _ ")" _ Block
+Block              <- "{" _ ExprSequence _ "}"
+ExprSequence       <- Expr (_ "," _ Expr)*
+Expr               <- Assignment /
+                      LogicalOr /
+                      Primary
+
+LogicalOr          <- LogicalAnd (_ "||" _ LogicalAnd)*
+Assignment         <- Variable _ "=" _ LogicalOr
+LogicalAnd         <- BitwiseOr (_ "&&" _ BitwiseOr)*
+BitwiseOr          <- BitwiseXor (_ "|" _ BitwiseXor)*
+BitwiseXor         <- BitwiseAnd (_ "^" _ BitwiseAnd)*
+BitwiseAnd         <- Equality (_ "&" _ Equality)*
+Equality           <- Relational (_ ("==" / "!=" / "is" / "!is") _ Relational)*
+Relational         <- Shift (_ ("<" / "<=" / ">" / ">=") _ Shift)*
+Shift              <- _ Addition (_ ("<<" / ">>" / ">>>") _ Addition _)*
+Addition           <- _ Multiplication _ (_ (_ "+" _ / "-" / "~") _ Multiplication _)*
+Multiplication     <- Unary (_ ("*" / "/" / "%") _ Unary)*
+Unary              <- ("+" / "-" / "!") _ Primary / Primary
+
+Primary            <- [0-9]+ /
+                      ParenthesizedExpr /
+                      Variable
+
+ParenthesizedExpr  <- "(" _ Expr _ ")"
+
+Variable          <- Identifier
+Identifier        <- [a-zA-Z_][a-zA-Z_0-9_]*
+_                 <- (WS / Comments)*
+#__                <- WS / Comments
+WS                <- [ \t\r\n]+
+Comments          <- SingleLineComment / BlockComment
+SingleLineComment <- '//' (!EOL .)* EOL?
+EOL               <- '\r\n' / '\n' / '\r'
+BlockComment      <- '/*' (!'*/' .)* '*/'
+EOF               <- _ !.
+
+%%
+int main() {
+    satie_context_t *context = satie_create(NULL);
+    satie_parse(context, NULL);
+    satie_destroy(context);
+    return 0;
+}

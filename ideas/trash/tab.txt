@@ -1,0 +1,101 @@
+# The Satie Programming Language
+
+  ## Introduction
+
+  ## Overall structure
+
+  ## Building and Executing
+
+  ## The shell
+
+# The Gory details
+
+  ## Comments
+
+  ## Types
+
+     ### Basic Types
+
+     ### Composite Types
+
+     ### Type Management
+
+  ## Identifiers
+
+     ### Keywords
+
+  ## Literals
+
+    ### Boolean Literals
+
+    ### Integral Literals
+
+    ### Floating-point Literals
+
+    ### Character Literals
+
+    ### Function Literals
+
+    ### Job Literals
+
+    ### Enumeration Literals
+
+    ### String Literals
+
+    ### Tuple Literals
+
+    ### List Literals
+
+    ### Map Literals
+
+    ### Struct Literals
+
+  ## Expressions
+
+    Refwr to top-level definetions below
+
+    All expressions are equal but som expressions are more equals tha others
+
+    ### Scoped Control Flow Expressions
+
+       #### Block Expression
+
+       #### If Expression
+
+       #### Switch Expression
+
+    ### Value expressions
+
+       #### Strings
+
+       #### Tuples
+
+       #### Lists
+
+       #### Maps
+
+       #### Struct
+
+       #### Encapsulation -- `struct`
+
+       #### Buf(fers)
+
+  ## Functions
+
+  ## Matching and Deconstruction
+
+    ### The Duplicity of the `=` Operator
+
+  ## Hierarchical Module Hieraarchy
+
+  ## Encapsulation with struct
+
+  ## Efficent buffer managemwnt with buf
+
+  ## Concurrency
+
+     # A concurrency exmaple
+
+# Appendix A: Operator Precedence
+
+# Appendix B: PEG grammar

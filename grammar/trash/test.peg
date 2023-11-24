@@ -1,0 +1,69 @@
+# Use PEG/PackCC for basic type checks?
+
+# I tried to build a simple PEG grammar that should accept these expressions:
+
+# 1+1;
+# a*1;
+# 1*a;
+# true&&true;
+# a&&true;
+
+# But fail on these:
+
+# 1+true;
+# 2&&1;
+# 1&&true;
+
+#I have tried with a PEG/PackCC solution and it almost works. It fails
+#on the expressions a*1; though (and  more). Can yu spot my bad. I'm
+#starting to believe that it's impossible and that I just should let my
+#compiler do type analysis in a later stage. It would be nice to catch
+#these errors early on though.
+#
+#Cheers
+#/J
+
+%prefix "test"
+
+%earlysource {
+    static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
+    #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
+        fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
+}
+
+Program            <- Statement+
+Statement          <- (Assignment / Expression) ';'
+Assignment         <- Variable '=' Expression
+
+# Expressions
+Expression         <- ArithmeticExpr / LogicalExpr
+
+# Logical expressions
+LogicalExpr        <- OrExpr
+OrExpr             <- AndExpr ('||' AndExpr)*
+AndExpr            <- NotExpr ('&&' NotExpr)*
+NotExpr            <- '!' LogicalPrimary / LogicalPrimary
+LogicalPrimary     <- BooleanLiteral / NonArithmetic
+NonArithmetic      <- (Variable / FunctionCall) !NumberLiteral
+
+# Arithmetic expressions
+ArithmeticExpr     <- AdditiveExpr
+AdditiveExpr       <- MultiplicativeExpr (('+' / '-') MultiplicativeExpr)*
+MultiplicativeExpr <- UnaryExpr (('*' / '/') UnaryExpr)*
+UnaryExpr          <- ('+' / '-')? ArithmeticPrimary
+ArithmeticPrimary  <- NumberLiteral / NonLogical
+NonLogical         <- (Variable / FunctionCall) !BooleanLiteral
+
+# Handling of literals and variables
+NumberLiteral      <- [0-9]+ ('.' [0-9]+)?
+BooleanLiteral     <- 'true' / 'false'
+Variable           <- !BooleanLiteral [a-zA-Z_][a-zA-Z0-9_]*
+FunctionCall       <- Variable '(' (Expression (',' Expression)*)? ')'
+
+%%
+int main() {
+    test_context_t *context = test_create(NULL);
+    test_parse(context, NULL);
+    test_destroy(context);
+    return 0;
+}

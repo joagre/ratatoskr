@@ -1,0 +1,2544 @@
+Evaluating rule Program @0 []
+  Evaluating rule _ @0 []
+    Evaluating rule WS @0 []
+    Abandoning rule WS @0 []
+  Matched rule _ @0 []
+  Evaluating rule Import @0 [i]
+    Evaluating rule __ @6 []
+      Evaluating rule WS @6 []
+      Matched rule WS @6 [ ]
+      Evaluating rule WS @7 []
+      Abandoning rule WS @7 []
+    Matched rule __ @6 [ ]
+    Evaluating rule Symbol @7 [s]
+    Matched rule Symbol @7 [std]
+    Evaluating rule _ @10 [.]
+      Evaluating rule WS @10 [.]
+      Abandoning rule WS @10 []
+    Matched rule _ @10 []
+    Evaluating rule _ @7 [std.]
+    Matched rule _ @7 []
+    Evaluating rule ModulePath @7 [std.]
+      Evaluating rule Symbol @11 []
+      Matched rule Symbol @11 [stdio]
+    Matched rule ModulePath @7 [std.stdio]
+    Evaluating rule _ @16 [;]
+      Evaluating rule WS @16 [;]
+      Abandoning rule WS @16 []
+    Matched rule _ @16 []
+  Matched rule Import @0 [import std.stdio;]
+  Evaluating rule _ @17 []
+    Evaluating rule WS @17 []
+    Matched rule WS @17 [
+]
+    Evaluating rule WS @18 []
+    Abandoning rule WS @18 []
+  Matched rule _ @17 [
+]
+  Evaluating rule Import @18 [i]
+    Evaluating rule __ @24 []
+      Evaluating rule WS @24 []
+      Matched rule WS @24 [ ]
+      Evaluating rule WS @25 []
+      Abandoning rule WS @25 []
+    Matched rule __ @24 [ ]
+    Evaluating rule Symbol @25 [s]
+    Matched rule Symbol @25 [std]
+    Evaluating rule _ @28 [.]
+      Evaluating rule WS @28 [.]
+      Abandoning rule WS @28 []
+    Matched rule _ @28 []
+    Evaluating rule _ @25 [std.]
+    Matched rule _ @25 []
+    Evaluating rule ModulePath @25 [std.]
+      Evaluating rule Symbol @29 []
+      Matched rule Symbol @29 [lists]
+    Matched rule ModulePath @25 [std.lists]
+    Evaluating rule _ @34 [;]
+      Evaluating rule WS @34 [;]
+      Abandoning rule WS @34 []
+    Matched rule _ @34 []
+  Matched rule Import @18 [import std.lists;]
+  Evaluating rule _ @35 []
+    Evaluating rule WS @35 []
+    Matched rule WS @35 [
+]
+    Evaluating rule WS @36 []
+    Matched rule WS @36 [
+]
+    Evaluating rule WS @37 []
+    Abandoning rule WS @37 []
+  Matched rule _ @35 [
+
+]
+  Evaluating rule Import @37 [s]
+  Abandoning rule Import @37 []
+  Evaluating rule _ @37 [struct]
+  Matched rule _ @37 []
+  Evaluating rule TopLevelConstructs @37 [struct]
+    Evaluating rule StructDef @37 [struct]
+      Evaluating rule _ @43 [ To]
+        Evaluating rule WS @43 [ To]
+        Matched rule WS @43 [ ]
+        Evaluating rule WS @44 [To]
+        Abandoning rule WS @44 []
+      Matched rule _ @43 [ ]
+      Evaluating rule Symbol @44 [To]
+      Matched rule Symbol @44 [TodoItem]
+      Evaluating rule _ @52 [ ]
+        Evaluating rule WS @52 [ ]
+        Matched rule WS @52 [ ]
+        Evaluating rule WS @53 []
+        Abandoning rule WS @53 []
+      Matched rule _ @52 [ ]
+      Evaluating rule _ @54 []
+        Evaluating rule WS @54 []
+        Matched rule WS @54 [
+]
+        Evaluating rule WS @55 []
+        Matched rule WS @55 [ ]
+        Evaluating rule WS @56 []
+        Matched rule WS @56 [ ]
+        Evaluating rule WS @57 []
+        Matched rule WS @57 [ ]
+        Evaluating rule WS @58 []
+        Matched rule WS @58 [ ]
+        Evaluating rule WS @59 []
+        Abandoning rule WS @59 []
+      Matched rule _ @54 [
+    ]
+      Evaluating rule StructMembers @59 [p]
+        Evaluating rule StructMember @59 [p]
+          Evaluating rule Constructor @59 [p]
+          Abandoning rule Constructor @59 []
+          Evaluating rule Deconstructor @59 [priv]
+          Abandoning rule Deconstructor @59 []
+          Evaluating rule MemberVariableDef @59 [priva]
+            Evaluating rule MemberAccess @59 [priva]
+            Matched rule MemberAccess @59 [private]
+            Evaluating rule _ @66 []
+              Evaluating rule WS @66 []
+              Matched rule WS @66 [ ]
+              Evaluating rule WS @67 []
+              Abandoning rule WS @67 []
+            Matched rule _ @66 [ ]
+            Evaluating rule MemberType @67 [v]
+              Evaluating rule BindingType @67 [v]
+              Matched rule BindingType @67 [var]
+            Matched rule MemberType @67 [var]
+            Evaluating rule _ @70 [ d]
+              Evaluating rule WS @70 [ d]
+              Matched rule WS @70 [ ]
+              Evaluating rule WS @71 [d]
+              Abandoning rule WS @71 []
+            Matched rule _ @70 [ ]
+            Evaluating rule Variable @71 [d]
+              Evaluating rule Symbol @71 [d]
+              Matched rule Symbol @71 [description]
+            Matched rule Variable @71 [description]
+            Evaluating rule _ @82 [;]
+              Evaluating rule WS @82 [;]
+              Abandoning rule WS @82 []
+            Matched rule _ @82 []
+          Matched rule MemberVariableDef @59 [private var description]
+        Matched rule StructMember @59 [private var description]
+        Evaluating rule _ @83 []
+          Evaluating rule WS @83 []
+          Matched rule WS @83 [
+]
+          Evaluating rule WS @84 []
+          Matched rule WS @84 [ ]
+          Evaluating rule WS @85 []
+          Matched rule WS @85 [ ]
+          Evaluating rule WS @86 []
+          Matched rule WS @86 [ ]
+          Evaluating rule WS @87 []
+          Matched rule WS @87 [ ]
+          Evaluating rule WS @88 []
+          Abandoning rule WS @88 []
+        Matched rule _ @83 [
+    ]
+        Evaluating rule StructMembers @88 [p]
+          Evaluating rule StructMember @88 [p]
+            Evaluating rule Constructor @88 [p]
+            Abandoning rule Constructor @88 []
+            Evaluating rule Deconstructor @88 [priv]
+            Abandoning rule Deconstructor @88 []
+            Evaluating rule MemberVariableDef @88 [priva]
+              Evaluating rule MemberAccess @88 [priva]
+              Matched rule MemberAccess @88 [private]
+              Evaluating rule _ @95 []
+                Evaluating rule WS @95 []
+                Matched rule WS @95 [ ]
+                Evaluating rule WS @96 []
+                Abandoning rule WS @96 []
+              Matched rule _ @95 [ ]
+              Evaluating rule MemberType @96 [v]
+                Evaluating rule BindingType @96 [v]
+                Matched rule BindingType @96 [var]
+              Matched rule MemberType @96 [var]
+              Evaluating rule _ @99 [ c]
+                Evaluating rule WS @99 [ c]
+                Matched rule WS @99 [ ]
+                Evaluating rule WS @100 [c]
+                Abandoning rule WS @100 []
+              Matched rule _ @99 [ ]
+              Evaluating rule Variable @100 [c]
+                Evaluating rule Symbol @100 [c]
+                Matched rule Symbol @100 [completed]
+              Matched rule Variable @100 [completed]
+              Evaluating rule _ @109 [;]
+                Evaluating rule WS @109 [;]
+                Abandoning rule WS @109 []
+              Matched rule _ @109 []
+            Matched rule MemberVariableDef @88 [private var completed]
+          Matched rule StructMember @88 [private var completed]
+          Evaluating rule _ @110 []
+            Evaluating rule WS @110 []
+            Matched rule WS @110 [
+]
+            Evaluating rule WS @111 []
+            Matched rule WS @111 [
+]
+            Evaluating rule WS @112 []
+            Matched rule WS @112 [ ]
+            Evaluating rule WS @113 []
+            Matched rule WS @113 [ ]
+            Evaluating rule WS @114 []
+            Matched rule WS @114 [ ]
+            Evaluating rule WS @115 []
+            Matched rule WS @115 [ ]
+            Evaluating rule WS @116 []
+            Abandoning rule WS @116 []
+          Matched rule _ @110 [
+
+    ]
+          Evaluating rule StructMembers @116 [t]
+            Evaluating rule StructMember @116 [t]
+              Evaluating rule Constructor @116 [t]
+                Evaluating rule _ @120 []
+                  Evaluating rule WS @120 []
+                  Abandoning rule WS @120 []
+                Matched rule _ @120 []
+                Evaluating rule _ @121 []
+                  Evaluating rule WS @121 []
+                  Abandoning rule WS @121 []
+                Matched rule _ @121 []
+                Evaluating rule Params @121 [v]
+                  Evaluating rule NonDefaultParams @121 [v]
+                    Evaluating rule NonDefaultParam @121 [v]
+                      Evaluating rule Param @121 [v]
+                        Evaluating rule By @121 [v]
+                        Matched rule By @121 [val]
+                        Evaluating rule _ @124 []
+                          Evaluating rule WS @124 []
+                          Matched rule WS @124 [ ]
+                          Evaluating rule WS @125 []
+                          Abandoning rule WS @125 []
+                        Matched rule _ @124 [ ]
+                        Evaluating rule Symbol @125 [d]
+                        Matched rule Symbol @125 [description]
+                      Matched rule Param @121 [val description]
+                      Evaluating rule _ @136 [)]
+                        Evaluating rule WS @136 [)]
+                        Abandoning rule WS @136 []
+                      Matched rule _ @136 []
+                    Matched rule NonDefaultParam @121 [val description]
+                  Matched rule NonDefaultParams @121 [val description]
+                Matched rule Params @121 [val description]
+                Evaluating rule _ @137 []
+                  Evaluating rule WS @137 []
+                  Matched rule WS @137 [ ]
+                  Evaluating rule WS @138 []
+                  Abandoning rule WS @138 []
+                Matched rule _ @137 [ ]
+                Evaluating rule Block @138 [{]
+                  Evaluating rule _ @139 []
+                    Evaluating rule WS @139 []
+                    Matched rule WS @139 [
+]
+                    Evaluating rule WS @140 []
+                    Matched rule WS @140 [ ]
+                    Evaluating rule WS @141 []
+                    Matched rule WS @141 [ ]
+                    Evaluating rule WS @142 []
+                    Matched rule WS @142 [ ]
+                    Evaluating rule WS @143 []
+                    Matched rule WS @143 [ ]
+                    Evaluating rule WS @144 []
+                    Matched rule WS @144 [ ]
+                    Evaluating rule WS @145 []
+                    Matched rule WS @145 [ ]
+                    Evaluating rule WS @146 []
+                    Matched rule WS @146 [ ]
+                    Evaluating rule WS @147 []
+                    Matched rule WS @147 [ ]
+                    Evaluating rule WS @148 []
+                    Abandoning rule WS @148 []
+                  Matched rule _ @139 [
+        ]
+                  Evaluating rule StatementSequence @148 [t]
+                    Evaluating rule TopLevelStatement @148 [t]
+                      Evaluating rule Binding @148 [t]
+                        Evaluating rule BindingType @148 [t]
+                        Abandoning rule BindingType @148 []
+                      Abandoning rule Binding @148 []
+                      Evaluating rule SimpleMatch @148 [this.]
+                      Abandoning rule SimpleMatch @148 []
+                      Evaluating rule FunctionDef @148 [this.]
+                      Abandoning rule FunctionDef @148 []
+                      Evaluating rule Expr @148 [this.]
+                        Evaluating rule Rebinding @148 [this.]
+                          Evaluating rule Or @148 [this.]
+                            Evaluating rule And @148 [this.]
+                              Evaluating rule Add @148 [this.]
+                                Evaluating rule Multiplicate @148 [this.]
+                                  Evaluating rule Not @148 [this.]
+                                    Evaluating rule Unary @148 [this.]
+                                      Evaluating rule FunctionCall @148 [this.]
+                                        Evaluating rule FunctionName @148 [this.]
+                                          Evaluating rule Symbol @148 [this.]
+                                          Matched rule Symbol @148 [this]
+                                        Matched rule FunctionName @148 [this]
+                                        Evaluating rule _ @152 [.]
+                                          Evaluating rule WS @152 [.]
+                                          Abandoning rule WS @152 []
+                                        Matched rule _ @152 []
+                                        Evaluating rule MemberAccessOp @148 [this.]
+                                          Evaluating rule Primary @148 [this.]
+                                            Evaluating rule Struct @148 [this.]
+                                            Abandoning rule Struct @148 []
+                                            Evaluating rule If @148 [this.d]
+                                            Abandoning rule If @148 []
+                                            Evaluating rule Switch @148 [this.d]
+                                            Abandoning rule Switch @148 []
+                                            Evaluating rule Match @148 [this.d]
+                                            Abandoning rule Match @148 []
+                                            Evaluating rule Receive @148 [this.d]
+                                            Abandoning rule Receive @148 []
+                                            Evaluating rule Block @148 [this.de]
+                                            Abandoning rule Block @148 []
+                                            Evaluating rule ParanthesizedExpr @148 [this.de]
+                                            Abandoning rule ParanthesizedExpr @148 []
+                                            Evaluating rule Function @148 [this.de]
+                                            Abandoning rule Function @148 []
+                                            Evaluating rule Tuple @148 [this.de]
+                                            Abandoning rule Tuple @148 []
+                                            Evaluating rule Map @148 [this.de]
+                                            Abandoning rule Map @148 []
+                                            Evaluating rule Array @148 [this.de]
+                                            Abandoning rule Array @148 []
+                                            Evaluating rule String @148 [this.de]
+                                              Evaluating rule RegularString @148 [this.de]
+                                              Abandoning rule RegularString @148 []
+                                              Evaluating rule RawString @148 [this.de]
+                                              Abandoning rule RawString @148 []
+                                            Abandoning rule String @148 []
+                                            Evaluating rule Character @148 [this.de]
+                                            Abandoning rule Character @148 []
+                                            Evaluating rule Number @148 [this.de]
+                                              Evaluating rule Integral @148 [this.de]
+                                                Evaluating rule OctalIntegral @148 [this.de]
+                                                Abandoning rule OctalIntegral @148 []
+                                                Evaluating rule HexIntegral @148 [this.de]
+                                                Abandoning rule HexIntegral @148 []
+                                                Evaluating rule BinaryIntegral @148 [this.de]
+                                                Abandoning rule BinaryIntegral @148 []
+                                                Evaluating rule DecimalIntegral @148 [this.de]
+                                                Abandoning rule DecimalIntegral @148 []
+                                              Abandoning rule Integral @148 []
+                                              Evaluating rule FloatingPoint @148 [this.de]
+                                              Abandoning rule FloatingPoint @148 []
+                                            Abandoning rule Number @148 []
+                                            Evaluating rule Boolean @148 [this.de]
+                                            Abandoning rule Boolean @148 []
+                                            Evaluating rule EmptyMap @148 [this.de]
+                                            Abandoning rule EmptyMap @148 []
+                                            Evaluating rule Slice @148 [this.de]
+                                            Abandoning rule Slice @148 []
+                                            Evaluating rule This @148 [this.de]
+                                            Matched rule This @148 [this]
+                                          Matched rule Primary @148 [this]
+                                          Evaluating rule _ @153 [de]
+                                            Evaluating rule WS @153 [de]
+                                            Abandoning rule WS @153 []
+                                          Matched rule _ @153 []
+                                          Evaluating rule Primary @153 [de]
+                                            Evaluating rule Struct @153 [de]
+                                            Abandoning rule Struct @153 []
+                                            Evaluating rule If @153 [descri]
+                                            Abandoning rule If @153 []
+                                            Evaluating rule Switch @153 [descri]
+                                            Abandoning rule Switch @153 []
+                                            Evaluating rule Match @153 [descri]
+                                            Abandoning rule Match @153 []
+                                            Evaluating rule Receive @153 [descri]
+                                            Abandoning rule Receive @153 []
+                                            Evaluating rule Block @153 [descrip]
+                                            Abandoning rule Block @153 []
+                                            Evaluating rule ParanthesizedExpr @153 [descrip]
+                                            Abandoning rule ParanthesizedExpr @153 []
+                                            Evaluating rule Function @153 [descrip]
+                                            Abandoning rule Function @153 []
+                                            Evaluating rule Tuple @153 [descrip]
+                                            Abandoning rule Tuple @153 []
+                                            Evaluating rule Map @153 [descrip]
+                                            Abandoning rule Map @153 []
+                                            Evaluating rule Array @153 [descrip]
+                                            Abandoning rule Array @153 []
+                                            Evaluating rule String @153 [descrip]
+                                              Evaluating rule RegularString @153 [descrip]
+                                              Abandoning rule RegularString @153 []
+                                              Evaluating rule RawString @153 [descrip]
+                                              Abandoning rule RawString @153 []
+                                            Abandoning rule String @153 []
+                                            Evaluating rule Character @153 [descrip]
+                                            Abandoning rule Character @153 []
+                                            Evaluating rule Number @153 [descrip]
+                                              Evaluating rule Integral @153 [descrip]
+                                                Evaluating rule OctalIntegral @153 [descrip]
+                                                Abandoning rule OctalIntegral @153 []
+                                                Evaluating rule HexIntegral @153 [descrip]
+                                                Abandoning rule HexIntegral @153 []
+                                                Evaluating rule BinaryIntegral @153 [descrip]
+                                                Abandoning rule BinaryIntegral @153 []
+                                                Evaluating rule DecimalIntegral @153 [descrip]
+                                                Abandoning rule DecimalIntegral @153 []
+                                              Abandoning rule Integral @153 []
+                                              Evaluating rule FloatingPoint @153 [descrip]
+                                              Abandoning rule FloatingPoint @153 []
+                                            Abandoning rule Number @153 []
+                                            Evaluating rule Boolean @153 [descrip]
+                                            Abandoning rule Boolean @153 []
+                                            Evaluating rule EmptyMap @153 [descrip]
+                                            Abandoning rule EmptyMap @153 []
+                                            Evaluating rule Slice @153 [descrip]
+                                            Abandoning rule Slice @153 []
+                                            Evaluating rule This @153 [descrip]
+                                            Abandoning rule This @153 []
+                                            Evaluating rule Self @153 [descrip]
+                                            Abandoning rule Self @153 []
+                                            Evaluating rule UnboundVariable @153 [descrip]
+                                            Abandoning rule UnboundVariable @153 []
+                                            Evaluating rule Symbol @153 [descrip]
+                                            Matched rule Symbol @153 [description]
+                                          Matched rule Primary @153 [description]
+                                          Evaluating rule _ @164 [ ]
+                                            Evaluating rule WS @164 [ ]
+                                            Matched rule WS @164 [ ]
+                                            Evaluating rule WS @165 []
+                                            Abandoning rule WS @165 []
+                                          Matched rule _ @164 [ ]
+                                        Matched rule MemberAccessOp @148 [this.description]
+                                      Matched rule FunctionCall @148 [this.description]
+                                    Matched rule Unary @148 [this.description]
+                                  Matched rule Not @148 [this.description]
+                                Matched rule Multiplicate @148 [this.description]
+                              Matched rule Add @148 [this.description]
+                            Matched rule And @148 [this.description]
+                          Matched rule Or @148 [this.description]
+                          Evaluating rule _ @166 [ ]
+                            Evaluating rule WS @166 [ ]
+                            Matched rule WS @166 [ ]
+                            Evaluating rule WS @167 []
+                            Abandoning rule WS @167 []
+                          Matched rule _ @166 [ ]
+                          Evaluating rule Or @167 [d]
+                            Evaluating rule And @167 [d]
+                              Evaluating rule Add @167 [d]
+                                Evaluating rule Multiplicate @167 [d]
+                                  Evaluating rule Not @167 [d]
+                                    Evaluating rule Unary @167 [d]
+                                      Evaluating rule FunctionCall @167 [d]
+                                        Evaluating rule FunctionName @167 [d]
+                                          Evaluating rule Symbol @167 [d]
+                                          Matched rule Symbol @167 [description]
+                                        Matched rule FunctionName @167 [description]
+                                        Evaluating rule _ @178 [;]
+                                          Evaluating rule WS @178 [;]
+                                          Abandoning rule WS @178 []
+                                        Matched rule _ @178 []
+                                        Evaluating rule MemberAccessOp @167 [description;]
+                                          Evaluating rule Primary @167 [description;]
+                                            Evaluating rule Struct @167 [description;]
+                                            Abandoning rule Struct @167 []
+                                            Evaluating rule If @167 [description;]
+                                            Abandoning rule If @167 []
+                                            Evaluating rule Switch @167 [description;]
+                                            Abandoning rule Switch @167 []
+                                            Evaluating rule Match @167 [description;]
+                                            Abandoning rule Match @167 []
+                                            Evaluating rule Receive @167 [description;]
+                                            Abandoning rule Receive @167 []
+                                            Evaluating rule Block @167 [description;]
+                                            Abandoning rule Block @167 []
+                                            Evaluating rule ParanthesizedExpr @167 [description;]
+                                            Abandoning rule ParanthesizedExpr @167 []
+                                            Evaluating rule Function @167 [description;]
+                                            Abandoning rule Function @167 []
+                                            Evaluating rule Tuple @167 [description;]
+                                            Abandoning rule Tuple @167 []
+                                            Evaluating rule Map @167 [description;]
+                                            Abandoning rule Map @167 []
+                                            Evaluating rule Array @167 [description;]
+                                            Abandoning rule Array @167 []
+                                            Evaluating rule String @167 [description;]
+                                              Evaluating rule RegularString @167 [description;]
+                                              Abandoning rule RegularString @167 []
+                                              Evaluating rule RawString @167 [description;]
+                                              Abandoning rule RawString @167 []
+                                            Abandoning rule String @167 []
+                                            Evaluating rule Character @167 [description;]
+                                            Abandoning rule Character @167 []
+                                            Evaluating rule Number @167 [description;]
+                                              Evaluating rule Integral @167 [description;]
+                                                Evaluating rule OctalIntegral @167 [description;]
+                                                Abandoning rule OctalIntegral @167 []
+                                                Evaluating rule HexIntegral @167 [description;]
+                                                Abandoning rule HexIntegral @167 []
+                                                Evaluating rule BinaryIntegral @167 [description;]
+                                                Abandoning rule BinaryIntegral @167 []
+                                                Evaluating rule DecimalIntegral @167 [description;]
+                                                Abandoning rule DecimalIntegral @167 []
+                                              Abandoning rule Integral @167 []
+                                              Evaluating rule FloatingPoint @167 [description;]
+                                              Abandoning rule FloatingPoint @167 []
+                                            Abandoning rule Number @167 []
+                                            Evaluating rule Boolean @167 [description;]
+                                            Abandoning rule Boolean @167 []
+                                            Evaluating rule EmptyMap @167 [description;]
+                                            Abandoning rule EmptyMap @167 []
+                                            Evaluating rule Slice @167 [description;]
+                                            Abandoning rule Slice @167 []
+                                            Evaluating rule This @167 [description;]
+                                            Abandoning rule This @167 []
+                                            Evaluating rule Self @167 [description;]
+                                            Abandoning rule Self @167 []
+                                            Evaluating rule UnboundVariable @167 [description;]
+                                            Abandoning rule UnboundVariable @167 []
+                                          Matched rule Primary @167 [description]
+                                        Matched rule MemberAccessOp @167 [description]
+                                      Matched rule FunctionCall @167 [description]
+                                    Matched rule Unary @167 [description]
+                                  Matched rule Not @167 [description]
+                                Matched rule Multiplicate @167 [description]
+                              Matched rule Add @167 [description]
+                            Matched rule And @167 [description]
+                          Matched rule Or @167 [description]
+                        Matched rule Rebinding @148 [this.description = description]
+                      Matched rule Expr @148 [this.description = description]
+                    Matched rule TopLevelStatement @148 [this.description = description]
+                    Evaluating rule _ @179 [
+]
+                      Evaluating rule WS @179 [
+]
+                      Matched rule WS @179 [
+]
+                      Evaluating rule WS @180 []
+                      Matched rule WS @180 [ ]
+                      Evaluating rule WS @181 []
+                      Matched rule WS @181 [ ]
+                      Evaluating rule WS @182 []
+                      Matched rule WS @182 [ ]
+                      Evaluating rule WS @183 []
+                      Matched rule WS @183 [ ]
+                      Evaluating rule WS @184 []
+                      Matched rule WS @184 [ ]
+                      Evaluating rule WS @185 []
+                      Matched rule WS @185 [ ]
+                      Evaluating rule WS @186 []
+                      Matched rule WS @186 [ ]
+                      Evaluating rule WS @187 []
+                      Matched rule WS @187 [ ]
+                      Evaluating rule WS @188 []
+                      Abandoning rule WS @188 []
+                    Matched rule _ @179 [
+        ]
+                    Evaluating rule StatementSequence @188 [t]
+                      Evaluating rule TopLevelStatement @188 [t]
+                        Evaluating rule Binding @188 [t]
+                          Evaluating rule BindingType @188 [t]
+                          Abandoning rule BindingType @188 []
+                        Abandoning rule Binding @188 []
+                        Evaluating rule SimpleMatch @188 [this.]
+                        Abandoning rule SimpleMatch @188 []
+                        Evaluating rule FunctionDef @188 [this.]
+                        Abandoning rule FunctionDef @188 []
+                        Evaluating rule Expr @188 [this.]
+                          Evaluating rule Rebinding @188 [this.]
+                            Evaluating rule Or @188 [this.]
+                              Evaluating rule And @188 [this.]
+                                Evaluating rule Add @188 [this.]
+                                  Evaluating rule Multiplicate @188 [this.]
+                                    Evaluating rule Not @188 [this.]
+                                      Evaluating rule Unary @188 [this.]
+                                        Evaluating rule FunctionCall @188 [this.]
+                                          Evaluating rule FunctionName @188 [this.]
+                                            Evaluating rule Symbol @188 [this.]
+                                            Matched rule Symbol @188 [this]
+                                          Matched rule FunctionName @188 [this]
+                                          Evaluating rule _ @192 [.]
+                                            Evaluating rule WS @192 [.]
+                                            Abandoning rule WS @192 []
+                                          Matched rule _ @192 []
+                                          Evaluating rule MemberAccessOp @188 [this.]
+                                            Evaluating rule Primary @188 [this.]
+                                              Evaluating rule Struct @188 [this.]
+                                              Abandoning rule Struct @188 []
+                                              Evaluating rule If @188 [this.c]
+                                              Abandoning rule If @188 []
+                                              Evaluating rule Switch @188 [this.c]
+                                              Abandoning rule Switch @188 []
+                                              Evaluating rule Match @188 [this.c]
+                                              Abandoning rule Match @188 []
+                                              Evaluating rule Receive @188 [this.c]
+                                              Abandoning rule Receive @188 []
+                                              Evaluating rule Block @188 [this.co]
+                                              Abandoning rule Block @188 []
+                                              Evaluating rule ParanthesizedExpr @188 [this.co]
+                                              Abandoning rule ParanthesizedExpr @188 []
+                                              Evaluating rule Function @188 [this.co]
+                                              Abandoning rule Function @188 []
+                                              Evaluating rule Tuple @188 [this.co]
+                                              Abandoning rule Tuple @188 []
+                                              Evaluating rule Map @188 [this.co]
+                                              Abandoning rule Map @188 []
+                                              Evaluating rule Array @188 [this.co]
+                                              Abandoning rule Array @188 []
+                                              Evaluating rule String @188 [this.co]
+                                                Evaluating rule RegularString @188 [this.co]
+                                                Abandoning rule RegularString @188 []
+                                                Evaluating rule RawString @188 [this.co]
+                                                Abandoning rule RawString @188 []
+                                              Abandoning rule String @188 []
+                                              Evaluating rule Character @188 [this.co]
+                                              Abandoning rule Character @188 []
+                                              Evaluating rule Number @188 [this.co]
+                                                Evaluating rule Integral @188 [this.co]
+                                                  Evaluating rule OctalIntegral @188 [this.co]
+                                                  Abandoning rule OctalIntegral @188 []
+                                                  Evaluating rule HexIntegral @188 [this.co]
+                                                  Abandoning rule HexIntegral @188 []
+                                                  Evaluating rule BinaryIntegral @188 [this.co]
+                                                  Abandoning rule BinaryIntegral @188 []
+                                                  Evaluating rule DecimalIntegral @188 [this.co]
+                                                  Abandoning rule DecimalIntegral @188 []
+                                                Abandoning rule Integral @188 []
+                                                Evaluating rule FloatingPoint @188 [this.co]
+                                                Abandoning rule FloatingPoint @188 []
+                                              Abandoning rule Number @188 []
+                                              Evaluating rule Boolean @188 [this.co]
+                                              Abandoning rule Boolean @188 []
+                                              Evaluating rule EmptyMap @188 [this.co]
+                                              Abandoning rule EmptyMap @188 []
+                                              Evaluating rule Slice @188 [this.co]
+                                              Abandoning rule Slice @188 []
+                                              Evaluating rule This @188 [this.co]
+                                              Matched rule This @188 [this]
+                                            Matched rule Primary @188 [this]
+                                            Evaluating rule _ @193 [co]
+                                              Evaluating rule WS @193 [co]
+                                              Abandoning rule WS @193 []
+                                            Matched rule _ @193 []
+                                            Evaluating rule Primary @193 [co]
+                                              Evaluating rule Struct @193 [co]
+                                              Abandoning rule Struct @193 []
+                                              Evaluating rule If @193 [comple]
+                                              Abandoning rule If @193 []
+                                              Evaluating rule Switch @193 [comple]
+                                              Abandoning rule Switch @193 []
+                                              Evaluating rule Match @193 [comple]
+                                              Abandoning rule Match @193 []
+                                              Evaluating rule Receive @193 [comple]
+                                              Abandoning rule Receive @193 []
+                                              Evaluating rule Block @193 [complet]
+                                              Abandoning rule Block @193 []
+                                              Evaluating rule ParanthesizedExpr @193 [complet]
+                                              Abandoning rule ParanthesizedExpr @193 []
+                                              Evaluating rule Function @193 [complet]
+                                              Abandoning rule Function @193 []
+                                              Evaluating rule Tuple @193 [complet]
+                                              Abandoning rule Tuple @193 []
+                                              Evaluating rule Map @193 [complet]
+                                              Abandoning rule Map @193 []
+                                              Evaluating rule Array @193 [complet]
+                                              Abandoning rule Array @193 []
+                                              Evaluating rule String @193 [complet]
+                                                Evaluating rule RegularString @193 [complet]
+                                                Abandoning rule RegularString @193 []
+                                                Evaluating rule RawString @193 [complet]
+                                                Abandoning rule RawString @193 []
+                                              Abandoning rule String @193 []
+                                              Evaluating rule Character @193 [complet]
+                                              Abandoning rule Character @193 []
+                                              Evaluating rule Number @193 [complet]
+                                                Evaluating rule Integral @193 [complet]
+                                                  Evaluating rule OctalIntegral @193 [complet]
+                                                  Abandoning rule OctalIntegral @193 []
+                                                  Evaluating rule HexIntegral @193 [complet]
+                                                  Abandoning rule HexIntegral @193 []
+                                                  Evaluating rule BinaryIntegral @193 [complet]
+                                                  Abandoning rule BinaryIntegral @193 []
+                                                  Evaluating rule DecimalIntegral @193 [complet]
+                                                  Abandoning rule DecimalIntegral @193 []
+                                                Abandoning rule Integral @193 []
+                                                Evaluating rule FloatingPoint @193 [complet]
+                                                Abandoning rule FloatingPoint @193 []
+                                              Abandoning rule Number @193 []
+                                              Evaluating rule Boolean @193 [complet]
+                                              Abandoning rule Boolean @193 []
+                                              Evaluating rule EmptyMap @193 [complet]
+                                              Abandoning rule EmptyMap @193 []
+                                              Evaluating rule Slice @193 [complet]
+                                              Abandoning rule Slice @193 []
+                                              Evaluating rule This @193 [complet]
+                                              Abandoning rule This @193 []
+                                              Evaluating rule Self @193 [complet]
+                                              Abandoning rule Self @193 []
+                                              Evaluating rule UnboundVariable @193 [complet]
+                                              Abandoning rule UnboundVariable @193 []
+                                              Evaluating rule Symbol @193 [complet]
+                                              Matched rule Symbol @193 [completed]
+                                            Matched rule Primary @193 [completed]
+                                            Evaluating rule _ @202 [ ]
+                                              Evaluating rule WS @202 [ ]
+                                              Matched rule WS @202 [ ]
+                                              Evaluating rule WS @203 []
+                                              Abandoning rule WS @203 []
+                                            Matched rule _ @202 [ ]
+                                          Matched rule MemberAccessOp @188 [this.completed]
+                                        Matched rule FunctionCall @188 [this.completed]
+                                      Matched rule Unary @188 [this.completed]
+                                    Matched rule Not @188 [this.completed]
+                                  Matched rule Multiplicate @188 [this.completed]
+                                Matched rule Add @188 [this.completed]
+                              Matched rule And @188 [this.completed]
+                            Matched rule Or @188 [this.completed]
+                            Evaluating rule _ @204 [ ]
+                              Evaluating rule WS @204 [ ]
+                              Matched rule WS @204 [ ]
+                              Evaluating rule WS @205 []
+                              Abandoning rule WS @205 []
+                            Matched rule _ @204 [ ]
+                            Evaluating rule Or @205 [f]
+                              Evaluating rule And @205 [f]
+                                Evaluating rule Add @205 [f]
+                                  Evaluating rule Multiplicate @205 [f]
+                                    Evaluating rule Not @205 [f]
+                                      Evaluating rule Unary @205 [f]
+                                        Evaluating rule FunctionCall @205 [f]
+                                          Evaluating rule FunctionName @205 [f]
+                                            Evaluating rule Symbol @205 [f]
+                                            Matched rule Symbol @205 [false]
+                                          Matched rule FunctionName @205 [false]
+                                          Evaluating rule _ @210 [;]
+                                            Evaluating rule WS @210 [;]
+                                            Abandoning rule WS @210 []
+                                          Matched rule _ @210 []
+                                          Evaluating rule MemberAccessOp @205 [false;]
+                                            Evaluating rule Primary @205 [false;]
+                                              Evaluating rule Struct @205 [false;]
+                                              Abandoning rule Struct @205 []
+                                              Evaluating rule If @205 [false;]
+                                              Abandoning rule If @205 []
+                                              Evaluating rule Switch @205 [false;]
+                                              Abandoning rule Switch @205 []
+                                              Evaluating rule Match @205 [false;]
+                                              Abandoning rule Match @205 []
+                                              Evaluating rule Receive @205 [false;]
+                                              Abandoning rule Receive @205 []
+                                              Evaluating rule Block @205 [false;
+]
+                                              Abandoning rule Block @205 []
+                                              Evaluating rule ParanthesizedExpr @205 [false;
+]
+                                              Abandoning rule ParanthesizedExpr @205 []
+                                              Evaluating rule Function @205 [false;
+]
+                                              Abandoning rule Function @205 []
+                                              Evaluating rule Tuple @205 [false;
+]
+                                              Abandoning rule Tuple @205 []
+                                              Evaluating rule Map @205 [false;
+]
+                                              Abandoning rule Map @205 []
+                                              Evaluating rule Array @205 [false;
+]
+                                              Abandoning rule Array @205 []
+                                              Evaluating rule String @205 [false;
+]
+                                                Evaluating rule RegularString @205 [false;
+]
+                                                Abandoning rule RegularString @205 []
+                                                Evaluating rule RawString @205 [false;
+]
+                                                Abandoning rule RawString @205 []
+                                              Abandoning rule String @205 []
+                                              Evaluating rule Character @205 [false;
+]
+                                              Abandoning rule Character @205 []
+                                              Evaluating rule Number @205 [false;
+]
+                                                Evaluating rule Integral @205 [false;
+]
+                                                  Evaluating rule OctalIntegral @205 [false;
+]
+                                                  Abandoning rule OctalIntegral @205 []
+                                                  Evaluating rule HexIntegral @205 [false;
+]
+                                                  Abandoning rule HexIntegral @205 []
+                                                  Evaluating rule BinaryIntegral @205 [false;
+]
+                                                  Abandoning rule BinaryIntegral @205 []
+                                                  Evaluating rule DecimalIntegral @205 [false;
+]
+                                                  Abandoning rule DecimalIntegral @205 []
+                                                Abandoning rule Integral @205 []
+                                                Evaluating rule FloatingPoint @205 [false;
+]
+                                                Abandoning rule FloatingPoint @205 []
+                                              Abandoning rule Number @205 []
+                                              Evaluating rule Boolean @205 [false;
+]
+                                              Matched rule Boolean @205 [false]
+                                            Matched rule Primary @205 [false]
+                                          Matched rule MemberAccessOp @205 [false]
+                                        Matched rule FunctionCall @205 [false]
+                                      Matched rule Unary @205 [false]
+                                    Matched rule Not @205 [false]
+                                  Matched rule Multiplicate @205 [false]
+                                Matched rule Add @205 [false]
+                              Matched rule And @205 [false]
+                            Matched rule Or @205 [false]
+                          Matched rule Rebinding @188 [this.completed = false]
+                        Matched rule Expr @188 [this.completed = false]
+                      Matched rule TopLevelStatement @188 [this.completed = false]
+                      Evaluating rule _ @211 [
+]
+                        Evaluating rule WS @211 [
+]
+                        Matched rule WS @211 [
+]
+                        Evaluating rule WS @212 []
+                        Matched rule WS @212 [ ]
+                        Evaluating rule WS @213 []
+                        Matched rule WS @213 [ ]
+                        Evaluating rule WS @214 []
+                        Matched rule WS @214 [ ]
+                        Evaluating rule WS @215 []
+                        Matched rule WS @215 [ ]
+                        Evaluating rule WS @216 []
+                        Abandoning rule WS @216 []
+                      Matched rule _ @211 [
+    ]
+                      Evaluating rule StatementSequence @216 [}]
+                        Evaluating rule TopLevelStatement @216 [}]
+                          Evaluating rule Binding @216 [}]
+                            Evaluating rule BindingType @216 [}]
+                            Abandoning rule BindingType @216 []
+                          Abandoning rule Binding @216 []
+                          Evaluating rule SimpleMatch @216 [};
+
+ ]
+                          Abandoning rule SimpleMatch @216 []
+                          Evaluating rule FunctionDef @216 [};
+
+ ]
+                          Abandoning rule FunctionDef @216 []
+                          Evaluating rule Expr @216 [};
+
+ ]
+                            Evaluating rule Rebinding @216 [};
+
+ ]
+                              Evaluating rule Or @216 [};
+
+ ]
+                                Evaluating rule And @216 [};
+
+ ]
+                                  Evaluating rule Add @216 [};
+
+ ]
+                                    Evaluating rule Multiplicate @216 [};
+
+ ]
+                                      Evaluating rule Not @216 [};
+
+ ]
+                                        Evaluating rule Unary @216 [};
+
+ ]
+                                          Evaluating rule FunctionCall @216 [};
+
+ ]
+                                            Evaluating rule FunctionName @216 [};
+
+ ]
+                                              Evaluating rule Symbol @216 [};
+
+ ]
+                                              Abandoning rule Symbol @216 []
+                                            Abandoning rule FunctionName @216 []
+                                            Evaluating rule MemberAccessOp @216 [};
+
+ ]
+                                              Evaluating rule Primary @216 [};
+
+ ]
+                                                Evaluating rule Struct @216 [};
+
+ ]
+                                                Abandoning rule Struct @216 []
+                                                Evaluating rule If @216 [};
+
+  ]
+                                                Abandoning rule If @216 []
+                                                Evaluating rule Switch @216 [};
+
+  ]
+                                                Abandoning rule Switch @216 []
+                                                Evaluating rule Match @216 [};
+
+  ]
+                                                Abandoning rule Match @216 []
+                                                Evaluating rule Receive @216 [};
+
+  ]
+                                                Abandoning rule Receive @216 []
+                                                Evaluating rule Block @216 [};
+
+   ]
+                                                Abandoning rule Block @216 []
+                                                Evaluating rule ParanthesizedExpr @216 [};
+
+   ]
+                                                Abandoning rule ParanthesizedExpr @216 []
+                                                Evaluating rule Function @216 [};
+
+   ]
+                                                Abandoning rule Function @216 []
+                                                Evaluating rule Tuple @216 [};
+
+   ]
+                                                Abandoning rule Tuple @216 []
+                                                Evaluating rule Map @216 [};
+
+   ]
+                                                Abandoning rule Map @216 []
+                                                Evaluating rule Array @216 [};
+
+   ]
+                                                Abandoning rule Array @216 []
+                                                Evaluating rule String @216 [};
+
+   ]
+                                                  Evaluating rule RegularString @216 [};
+
+   ]
+                                                  Abandoning rule RegularString @216 []
+                                                  Evaluating rule RawString @216 [};
+
+   ]
+                                                  Abandoning rule RawString @216 []
+                                                Abandoning rule String @216 []
+                                                Evaluating rule Character @216 [};
+
+   ]
+                                                Abandoning rule Character @216 []
+                                                Evaluating rule Number @216 [};
+
+   ]
+                                                  Evaluating rule Integral @216 [};
+
+   ]
+                                                    Evaluating rule OctalIntegral @216 [};
+
+   ]
+                                                    Abandoning rule OctalIntegral @216 []
+                                                    Evaluating rule HexIntegral @216 [};
+
+   ]
+                                                    Abandoning rule HexIntegral @216 []
+                                                    Evaluating rule BinaryIntegral @216 [};
+
+   ]
+                                                    Abandoning rule BinaryIntegral @216 []
+                                                    Evaluating rule DecimalIntegral @216 [};
+
+   ]
+                                                    Abandoning rule DecimalIntegral @216 []
+                                                  Abandoning rule Integral @216 []
+                                                  Evaluating rule FloatingPoint @216 [};
+
+   ]
+                                                  Abandoning rule FloatingPoint @216 []
+                                                Abandoning rule Number @216 []
+                                                Evaluating rule Boolean @216 [};
+
+   ]
+                                                Abandoning rule Boolean @216 []
+                                                Evaluating rule EmptyMap @216 [};
+
+   ]
+                                                Abandoning rule EmptyMap @216 []
+                                                Evaluating rule Slice @216 [};
+
+   ]
+                                                Abandoning rule Slice @216 []
+                                                Evaluating rule This @216 [};
+
+   ]
+                                                Abandoning rule This @216 []
+                                                Evaluating rule Self @216 [};
+
+   ]
+                                                Abandoning rule Self @216 []
+                                                Evaluating rule UnboundVariable @216 [};
+
+   ]
+                                                Abandoning rule UnboundVariable @216 []
+                                              Abandoning rule Primary @216 []
+                                            Abandoning rule MemberAccessOp @216 []
+                                          Abandoning rule FunctionCall @216 []
+                                        Abandoning rule Unary @216 []
+                                      Abandoning rule Not @216 []
+                                    Abandoning rule Multiplicate @216 []
+                                  Abandoning rule Add @216 []
+                                Abandoning rule And @216 []
+                              Abandoning rule Or @216 []
+                            Abandoning rule Rebinding @216 []
+                          Abandoning rule Expr @216 []
+                        Abandoning rule TopLevelStatement @216 []
+                      Abandoning rule StatementSequence @216 []
+                    Matched rule StatementSequence @188 [this.completed = false;]
+                  Matched rule StatementSequence @148 [this.description = description;
+        this.completed = false;]
+                Matched rule Block @138 [{
+        this.description = description;
+        this.completed = false;
+    }]
+              Matched rule Constructor @116 [this(val description) {
+        this.description = description;
+        this.completed = false;
+    }]
+            Matched rule StructMember @116 [this(val description) {
+        this.description = description;
+        this.completed = false;
+    }]
+            Evaluating rule _ @217 [;
+
+   ]
+              Evaluating rule WS @217 [;
+
+   ]
+              Abandoning rule WS @217 []
+            Matched rule _ @217 []
+            Evaluating rule _ @218 [
+
+   ]
+              Evaluating rule WS @218 [
+
+   ]
+              Matched rule WS @218 [
+]
+              Evaluating rule WS @219 [
+   ]
+              Matched rule WS @219 [
+]
+              Evaluating rule WS @220 [   ]
+              Matched rule WS @220 [ ]
+              Evaluating rule WS @221 [  ]
+              Matched rule WS @221 [ ]
+              Evaluating rule WS @222 [ ]
+              Matched rule WS @222 [ ]
+              Evaluating rule WS @223 []
+              Matched rule WS @223 [ ]
+              Evaluating rule WS @224 []
+              Abandoning rule WS @224 []
+            Matched rule _ @218 [
+
+    ]
+            Evaluating rule StructMembers @224 [p]
+              Evaluating rule StructMember @224 [p]
+                Evaluating rule Constructor @224 [p]
+                Abandoning rule Constructor @224 []
+                Evaluating rule Deconstructor @224 [publ]
+                Abandoning rule Deconstructor @224 []
+                Evaluating rule MemberVariableDef @224 [publi]
+                  Evaluating rule MemberAccess @224 [publi]
+                  Matched rule MemberAccess @224 [public]
+                  Evaluating rule _ @230 []
+                    Evaluating rule WS @230 []
+                    Matched rule WS @230 [ ]
+                    Evaluating rule WS @231 []
+                    Abandoning rule WS @231 []
+                  Matched rule _ @230 [ ]
+                  Evaluating rule MemberType @231 [f]
+                    Evaluating rule BindingType @231 [f]
+                    Abandoning rule BindingType @231 []
+                  Abandoning rule MemberType @231 []
+                Abandoning rule MemberVariableDef @224 [public ]
+                Evaluating rule MemberFunctionDef @224 [public fn markC]
+                  Evaluating rule FunctionDef @231 [fn markC]
+                    Evaluating rule _ @233 [ markC]
+                      Evaluating rule WS @233 [ markC]
+                      Matched rule WS @233 [ ]
+                      Evaluating rule WS @234 [markC]
+                      Abandoning rule WS @234 []
+                    Matched rule _ @233 [ ]
+                    Evaluating rule FunctionName @234 [markC]
+                      Evaluating rule Symbol @234 [markC]
+                      Matched rule Symbol @234 [markCompleted]
+                    Matched rule FunctionName @234 [markCompleted]
+                    Evaluating rule _ @247 [(]
+                      Evaluating rule WS @247 [(]
+                      Abandoning rule WS @247 []
+                    Matched rule _ @247 []
+                    Evaluating rule _ @248 []
+                      Evaluating rule WS @248 []
+                      Abandoning rule WS @248 []
+                    Matched rule _ @248 []
+                    Evaluating rule Params @248 [)]
+                      Evaluating rule NonDefaultParams @248 [)]
+                        Evaluating rule NonDefaultParam @248 [)]
+                          Evaluating rule Param @248 [)]
+                            Evaluating rule By @248 [)]
+                            Abandoning rule By @248 []
+                          Abandoning rule Param @248 []
+                        Abandoning rule NonDefaultParam @248 []
+                      Abandoning rule NonDefaultParams @248 []
+                      Evaluating rule DefaultParams @248 [) {]
+                        Evaluating rule DefaultParam @248 [) {]
+                        Abandoning rule DefaultParam @248 []
+                      Abandoning rule DefaultParams @248 []
+                    Abandoning rule Params @248 []
+                    Evaluating rule _ @249 [ {]
+                      Evaluating rule WS @249 [ {]
+                      Matched rule WS @249 [ ]
+                      Evaluating rule WS @250 [{]
+                      Abandoning rule WS @250 []
+                    Matched rule _ @249 [ ]
+                    Evaluating rule Block @250 [{]
+                      Evaluating rule _ @251 []
+                        Evaluating rule WS @251 []
+                        Matched rule WS @251 [
+]
+                        Evaluating rule WS @252 []
+                        Matched rule WS @252 [ ]
+                        Evaluating rule WS @253 []
+                        Matched rule WS @253 [ ]
+                        Evaluating rule WS @254 []
+                        Matched rule WS @254 [ ]
+                        Evaluating rule WS @255 []
+                        Matched rule WS @255 [ ]
+                        Evaluating rule WS @256 []
+                        Matched rule WS @256 [ ]
+                        Evaluating rule WS @257 []
+                        Matched rule WS @257 [ ]
+                        Evaluating rule WS @258 []
+                        Matched rule WS @258 [ ]
+                        Evaluating rule WS @259 []
+                        Matched rule WS @259 [ ]
+                        Evaluating rule WS @260 []
+                        Abandoning rule WS @260 []
+                      Matched rule _ @251 [
+        ]
+                      Evaluating rule StatementSequence @260 [c]
+                        Evaluating rule TopLevelStatement @260 [c]
+                          Evaluating rule Binding @260 [c]
+                            Evaluating rule BindingType @260 [c]
+                            Abandoning rule BindingType @260 []
+                          Abandoning rule Binding @260 []
+                          Evaluating rule SimpleMatch @260 [compl]
+                          Abandoning rule SimpleMatch @260 []
+                          Evaluating rule FunctionDef @260 [compl]
+                          Abandoning rule FunctionDef @260 []
+                          Evaluating rule Expr @260 [compl]
+                            Evaluating rule Rebinding @260 [compl]
+                              Evaluating rule Or @260 [compl]
+                                Evaluating rule And @260 [compl]
+                                  Evaluating rule Add @260 [compl]
+                                    Evaluating rule Multiplicate @260 [compl]
+                                      Evaluating rule Not @260 [compl]
+                                        Evaluating rule Unary @260 [compl]
+                                          Evaluating rule FunctionCall @260 [compl]
+                                            Evaluating rule FunctionName @260 [compl]
+                                              Evaluating rule Symbol @260 [compl]
+                                              Matched rule Symbol @260 [completed]
+                                            Matched rule FunctionName @260 [completed]
+                                            Evaluating rule _ @269 [ ]
+                                              Evaluating rule WS @269 [ ]
+                                              Matched rule WS @269 [ ]
+                                              Evaluating rule WS @270 []
+                                              Abandoning rule WS @270 []
+                                            Matched rule _ @269 [ ]
+                                            Evaluating rule MemberAccessOp @260 [completed =]
+                                              Evaluating rule Primary @260 [completed =]
+                                                Evaluating rule Struct @260 [completed =]
+                                                Abandoning rule Struct @260 []
+                                                Evaluating rule If @260 [completed =]
+                                                Abandoning rule If @260 []
+                                                Evaluating rule Switch @260 [completed =]
+                                                Abandoning rule Switch @260 []
+                                                Evaluating rule Match @260 [completed =]
+                                                Abandoning rule Match @260 []
+                                                Evaluating rule Receive @260 [completed =]
+                                                Abandoning rule Receive @260 []
+                                                Evaluating rule Block @260 [completed =]
+                                                Abandoning rule Block @260 []
+                                                Evaluating rule ParanthesizedExpr @260 [completed =]
+                                                Abandoning rule ParanthesizedExpr @260 []
+                                                Evaluating rule Function @260 [completed =]
+                                                Abandoning rule Function @260 []
+                                                Evaluating rule Tuple @260 [completed =]
+                                                Abandoning rule Tuple @260 []
+                                                Evaluating rule Map @260 [completed =]
+                                                Abandoning rule Map @260 []
+                                                Evaluating rule Array @260 [completed =]
+                                                Abandoning rule Array @260 []
+                                                Evaluating rule String @260 [completed =]
+                                                  Evaluating rule RegularString @260 [completed =]
+                                                  Abandoning rule RegularString @260 []
+                                                  Evaluating rule RawString @260 [completed =]
+                                                  Abandoning rule RawString @260 []
+                                                Abandoning rule String @260 []
+                                                Evaluating rule Character @260 [completed =]
+                                                Abandoning rule Character @260 []
+                                                Evaluating rule Number @260 [completed =]
+                                                  Evaluating rule Integral @260 [completed =]
+                                                    Evaluating rule OctalIntegral @260 [completed =]
+                                                    Abandoning rule OctalIntegral @260 []
+                                                    Evaluating rule HexIntegral @260 [completed =]
+                                                    Abandoning rule HexIntegral @260 []
+                                                    Evaluating rule BinaryIntegral @260 [completed =]
+                                                    Abandoning rule BinaryIntegral @260 []
+                                                    Evaluating rule DecimalIntegral @260 [completed =]
+                                                    Abandoning rule DecimalIntegral @260 []
+                                                  Abandoning rule Integral @260 []
+                                                  Evaluating rule FloatingPoint @260 [completed =]
+                                                  Abandoning rule FloatingPoint @260 []
+                                                Abandoning rule Number @260 []
+                                                Evaluating rule Boolean @260 [completed =]
+                                                Abandoning rule Boolean @260 []
+                                                Evaluating rule EmptyMap @260 [completed =]
+                                                Abandoning rule EmptyMap @260 []
+                                                Evaluating rule Slice @260 [completed =]
+                                                Abandoning rule Slice @260 []
+                                                Evaluating rule This @260 [completed =]
+                                                Abandoning rule This @260 []
+                                                Evaluating rule Self @260 [completed =]
+                                                Abandoning rule Self @260 []
+                                                Evaluating rule UnboundVariable @260 [completed =]
+                                                Abandoning rule UnboundVariable @260 []
+                                              Matched rule Primary @260 [completed]
+                                            Matched rule MemberAccessOp @260 [completed]
+                                          Matched rule FunctionCall @260 [completed]
+                                        Matched rule Unary @260 [completed]
+                                      Matched rule Not @260 [completed]
+                                    Matched rule Multiplicate @260 [completed]
+                                  Matched rule Add @260 [completed]
+                                Matched rule And @260 [completed]
+                              Matched rule Or @260 [completed]
+                              Evaluating rule _ @271 [ ]
+                                Evaluating rule WS @271 [ ]
+                                Matched rule WS @271 [ ]
+                                Evaluating rule WS @272 []
+                                Abandoning rule WS @272 []
+                              Matched rule _ @271 [ ]
+                              Evaluating rule Or @272 [t]
+                                Evaluating rule And @272 [t]
+                                  Evaluating rule Add @272 [t]
+                                    Evaluating rule Multiplicate @272 [t]
+                                      Evaluating rule Not @272 [t]
+                                        Evaluating rule Unary @272 [t]
+                                          Evaluating rule FunctionCall @272 [t]
+                                            Evaluating rule FunctionName @272 [t]
+                                              Evaluating rule Symbol @272 [t]
+                                              Matched rule Symbol @272 [true]
+                                            Matched rule FunctionName @272 [true]
+                                            Evaluating rule _ @276 [;]
+                                              Evaluating rule WS @276 [;]
+                                              Abandoning rule WS @276 []
+                                            Matched rule _ @276 []
+                                            Evaluating rule MemberAccessOp @272 [true;]
+                                              Evaluating rule Primary @272 [true;]
+                                                Evaluating rule Struct @272 [true;]
+                                                Abandoning rule Struct @272 []
+                                                Evaluating rule If @272 [true;
+]
+                                                Abandoning rule If @272 []
+                                                Evaluating rule Switch @272 [true;
+]
+                                                Abandoning rule Switch @272 []
+                                                Evaluating rule Match @272 [true;
+]
+                                                Abandoning rule Match @272 []
+                                                Evaluating rule Receive @272 [true;
+]
+                                                Abandoning rule Receive @272 []
+                                                Evaluating rule Block @272 [true;
+ ]
+                                                Abandoning rule Block @272 []
+                                                Evaluating rule ParanthesizedExpr @272 [true;
+ ]
+                                                Abandoning rule ParanthesizedExpr @272 []
+                                                Evaluating rule Function @272 [true;
+ ]
+                                                Abandoning rule Function @272 []
+                                                Evaluating rule Tuple @272 [true;
+ ]
+                                                Abandoning rule Tuple @272 []
+                                                Evaluating rule Map @272 [true;
+ ]
+                                                Abandoning rule Map @272 []
+                                                Evaluating rule Array @272 [true;
+ ]
+                                                Abandoning rule Array @272 []
+                                                Evaluating rule String @272 [true;
+ ]
+                                                  Evaluating rule RegularString @272 [true;
+ ]
+                                                  Abandoning rule RegularString @272 []
+                                                  Evaluating rule RawString @272 [true;
+ ]
+                                                  Abandoning rule RawString @272 []
+                                                Abandoning rule String @272 []
+                                                Evaluating rule Character @272 [true;
+ ]
+                                                Abandoning rule Character @272 []
+                                                Evaluating rule Number @272 [true;
+ ]
+                                                  Evaluating rule Integral @272 [true;
+ ]
+                                                    Evaluating rule OctalIntegral @272 [true;
+ ]
+                                                    Abandoning rule OctalIntegral @272 []
+                                                    Evaluating rule HexIntegral @272 [true;
+ ]
+                                                    Abandoning rule HexIntegral @272 []
+                                                    Evaluating rule BinaryIntegral @272 [true;
+ ]
+                                                    Abandoning rule BinaryIntegral @272 []
+                                                    Evaluating rule DecimalIntegral @272 [true;
+ ]
+                                                    Abandoning rule DecimalIntegral @272 []
+                                                  Abandoning rule Integral @272 []
+                                                  Evaluating rule FloatingPoint @272 [true;
+ ]
+                                                  Abandoning rule FloatingPoint @272 []
+                                                Abandoning rule Number @272 []
+                                                Evaluating rule Boolean @272 [true;
+ ]
+                                                Matched rule Boolean @272 [true]
+                                              Matched rule Primary @272 [true]
+                                            Matched rule MemberAccessOp @272 [true]
+                                          Matched rule FunctionCall @272 [true]
+                                        Matched rule Unary @272 [true]
+                                      Matched rule Not @272 [true]
+                                    Matched rule Multiplicate @272 [true]
+                                  Matched rule Add @272 [true]
+                                Matched rule And @272 [true]
+                              Matched rule Or @272 [true]
+                            Matched rule Rebinding @260 [completed = true]
+                          Matched rule Expr @260 [completed = true]
+                        Matched rule TopLevelStatement @260 [completed = true]
+                        Evaluating rule _ @277 [
+ ]
+                          Evaluating rule WS @277 [
+ ]
+                          Matched rule WS @277 [
+]
+                          Evaluating rule WS @278 [ ]
+                          Matched rule WS @278 [ ]
+                          Evaluating rule WS @279 []
+                          Matched rule WS @279 [ ]
+                          Evaluating rule WS @280 []
+                          Matched rule WS @280 [ ]
+                          Evaluating rule WS @281 []
+                          Matched rule WS @281 [ ]
+                          Evaluating rule WS @282 []
+                          Abandoning rule WS @282 []
+                        Matched rule _ @277 [
+    ]
+                        Evaluating rule StatementSequence @282 [}]
+                          Evaluating rule TopLevelStatement @282 [}]
+                            Evaluating rule Binding @282 [}]
+                              Evaluating rule BindingType @282 [}]
+                              Abandoning rule BindingType @282 []
+                            Abandoning rule Binding @282 []
+                            Evaluating rule SimpleMatch @282 [};
+
+ ]
+                            Abandoning rule SimpleMatch @282 []
+                            Evaluating rule FunctionDef @282 [};
+
+ ]
+                            Abandoning rule FunctionDef @282 []
+                            Evaluating rule Expr @282 [};
+
+ ]
+                              Evaluating rule Rebinding @282 [};
+
+ ]
+                                Evaluating rule Or @282 [};
+
+ ]
+                                  Evaluating rule And @282 [};
+
+ ]
+                                    Evaluating rule Add @282 [};
+
+ ]
+                                      Evaluating rule Multiplicate @282 [};
+
+ ]
+                                        Evaluating rule Not @282 [};
+
+ ]
+                                          Evaluating rule Unary @282 [};
+
+ ]
+                                            Evaluating rule FunctionCall @282 [};
+
+ ]
+                                              Evaluating rule FunctionName @282 [};
+
+ ]
+                                                Evaluating rule Symbol @282 [};
+
+ ]
+                                                Abandoning rule Symbol @282 []
+                                              Abandoning rule FunctionName @282 []
+                                              Evaluating rule MemberAccessOp @282 [};
+
+ ]
+                                                Evaluating rule Primary @282 [};
+
+ ]
+                                                  Evaluating rule Struct @282 [};
+
+ ]
+                                                  Abandoning rule Struct @282 []
+                                                  Evaluating rule If @282 [};
+
+  ]
+                                                  Abandoning rule If @282 []
+                                                  Evaluating rule Switch @282 [};
+
+  ]
+                                                  Abandoning rule Switch @282 []
+                                                  Evaluating rule Match @282 [};
+
+  ]
+                                                  Abandoning rule Match @282 []
+                                                  Evaluating rule Receive @282 [};
+
+  ]
+                                                  Abandoning rule Receive @282 []
+                                                  Evaluating rule Block @282 [};
+
+   ]
+                                                  Abandoning rule Block @282 []
+                                                  Evaluating rule ParanthesizedExpr @282 [};
+
+   ]
+                                                  Abandoning rule ParanthesizedExpr @282 []
+                                                  Evaluating rule Function @282 [};
+
+   ]
+                                                  Abandoning rule Function @282 []
+                                                  Evaluating rule Tuple @282 [};
+
+   ]
+                                                  Abandoning rule Tuple @282 []
+                                                  Evaluating rule Map @282 [};
+
+   ]
+                                                  Abandoning rule Map @282 []
+                                                  Evaluating rule Array @282 [};
+
+   ]
+                                                  Abandoning rule Array @282 []
+                                                  Evaluating rule String @282 [};
+
+   ]
+                                                    Evaluating rule RegularString @282 [};
+
+   ]
+                                                    Abandoning rule RegularString @282 []
+                                                    Evaluating rule RawString @282 [};
+
+   ]
+                                                    Abandoning rule RawString @282 []
+                                                  Abandoning rule String @282 []
+                                                  Evaluating rule Character @282 [};
+
+   ]
+                                                  Abandoning rule Character @282 []
+                                                  Evaluating rule Number @282 [};
+
+   ]
+                                                    Evaluating rule Integral @282 [};
+
+   ]
+                                                      Evaluating rule OctalIntegral @282 [};
+
+   ]
+                                                      Abandoning rule OctalIntegral @282 []
+                                                      Evaluating rule HexIntegral @282 [};
+
+   ]
+                                                      Abandoning rule HexIntegral @282 []
+                                                      Evaluating rule BinaryIntegral @282 [};
+
+   ]
+                                                      Abandoning rule BinaryIntegral @282 []
+                                                      Evaluating rule DecimalIntegral @282 [};
+
+   ]
+                                                      Abandoning rule DecimalIntegral @282 []
+                                                    Abandoning rule Integral @282 []
+                                                    Evaluating rule FloatingPoint @282 [};
+
+   ]
+                                                    Abandoning rule FloatingPoint @282 []
+                                                  Abandoning rule Number @282 []
+                                                  Evaluating rule Boolean @282 [};
+
+   ]
+                                                  Abandoning rule Boolean @282 []
+                                                  Evaluating rule EmptyMap @282 [};
+
+   ]
+                                                  Abandoning rule EmptyMap @282 []
+                                                  Evaluating rule Slice @282 [};
+
+   ]
+                                                  Abandoning rule Slice @282 []
+                                                  Evaluating rule This @282 [};
+
+   ]
+                                                  Abandoning rule This @282 []
+                                                  Evaluating rule Self @282 [};
+
+   ]
+                                                  Abandoning rule Self @282 []
+                                                  Evaluating rule UnboundVariable @282 [};
+
+   ]
+                                                  Abandoning rule UnboundVariable @282 []
+                                                Abandoning rule Primary @282 []
+                                              Abandoning rule MemberAccessOp @282 []
+                                            Abandoning rule FunctionCall @282 []
+                                          Abandoning rule Unary @282 []
+                                        Abandoning rule Not @282 []
+                                      Abandoning rule Multiplicate @282 []
+                                    Abandoning rule Add @282 []
+                                  Abandoning rule And @282 []
+                                Abandoning rule Or @282 []
+                              Abandoning rule Rebinding @282 []
+                            Abandoning rule Expr @282 []
+                          Abandoning rule TopLevelStatement @282 []
+                        Abandoning rule StatementSequence @282 []
+                      Matched rule StatementSequence @260 [completed = true;]
+                    Matched rule Block @250 [{
+        completed = true;
+    }]
+                  Matched rule FunctionDef @231 [fn markCompleted() {
+        completed = true;
+    }]
+                Matched rule MemberFunctionDef @224 [public fn markCompleted() {
+        completed = true;
+    }]
+              Matched rule StructMember @224 [public fn markCompleted() {
+        completed = true;
+    }]
+              Evaluating rule _ @283 [;
+
+   ]
+                Evaluating rule WS @283 [;
+
+   ]
+                Abandoning rule WS @283 []
+              Matched rule _ @283 []
+              Evaluating rule _ @284 [
+
+   ]
+                Evaluating rule WS @284 [
+
+   ]
+                Matched rule WS @284 [
+]
+                Evaluating rule WS @285 [
+   ]
+                Matched rule WS @285 [
+]
+                Evaluating rule WS @286 [   ]
+                Matched rule WS @286 [ ]
+                Evaluating rule WS @287 [  ]
+                Matched rule WS @287 [ ]
+                Evaluating rule WS @288 [ ]
+                Matched rule WS @288 [ ]
+                Evaluating rule WS @289 []
+                Matched rule WS @289 [ ]
+                Evaluating rule WS @290 []
+                Abandoning rule WS @290 []
+              Matched rule _ @284 [
+
+    ]
+              Evaluating rule StructMembers @290 [p]
+                Evaluating rule StructMember @290 [p]
+                  Evaluating rule Constructor @290 [p]
+                  Abandoning rule Constructor @290 []
+                  Evaluating rule Deconstructor @290 [publ]
+                  Abandoning rule Deconstructor @290 []
+                  Evaluating rule MemberVariableDef @290 [publi]
+                    Evaluating rule MemberAccess @290 [publi]
+                    Matched rule MemberAccess @290 [public]
+                    Evaluating rule _ @296 []
+                      Evaluating rule WS @296 []
+                      Matched rule WS @296 [ ]
+                      Evaluating rule WS @297 []
+                      Abandoning rule WS @297 []
+                    Matched rule _ @296 [ ]
+                    Evaluating rule MemberType @297 [f]
+                      Evaluating rule BindingType @297 [f]
+                      Abandoning rule BindingType @297 []
+                    Abandoning rule MemberType @297 []
+                  Abandoning rule MemberVariableDef @290 [public ]
+                  Evaluating rule MemberFunctionDef @290 [public fn toStr]
+                    Evaluating rule FunctionDef @297 [fn toStr]
+                      Evaluating rule _ @299 [ toStr]
+                        Evaluating rule WS @299 [ toStr]
+                        Matched rule WS @299 [ ]
+                        Evaluating rule WS @300 [toStr]
+                        Abandoning rule WS @300 []
+                      Matched rule _ @299 [ ]
+                      Evaluating rule FunctionName @300 [toStr]
+                        Evaluating rule Symbol @300 [toStr]
+                        Matched rule Symbol @300 [toString]
+                      Matched rule FunctionName @300 [toString]
+                      Evaluating rule _ @308 [(]
+                        Evaluating rule WS @308 [(]
+                        Abandoning rule WS @308 []
+                      Matched rule _ @308 []
+                      Evaluating rule _ @309 []
+                        Evaluating rule WS @309 []
+                        Abandoning rule WS @309 []
+                      Matched rule _ @309 []
+                      Evaluating rule Params @309 [)]
+                        Evaluating rule NonDefaultParams @309 [)]
+                          Evaluating rule NonDefaultParam @309 [)]
+                            Evaluating rule Param @309 [)]
+                              Evaluating rule By @309 [)]
+                              Abandoning rule By @309 []
+                            Abandoning rule Param @309 []
+                          Abandoning rule NonDefaultParam @309 []
+                        Abandoning rule NonDefaultParams @309 []
+                        Evaluating rule DefaultParams @309 [) {]
+                          Evaluating rule DefaultParam @309 [) {]
+                          Abandoning rule DefaultParam @309 []
+                        Abandoning rule DefaultParams @309 []
+                      Abandoning rule Params @309 []
+                      Evaluating rule _ @310 [ {]
+                        Evaluating rule WS @310 [ {]
+                        Matched rule WS @310 [ ]
+                        Evaluating rule WS @311 [{]
+                        Abandoning rule WS @311 []
+                      Matched rule _ @310 [ ]
+                      Evaluating rule Block @311 [{]
+                        Evaluating rule _ @312 []
+                          Evaluating rule WS @312 []
+                          Matched rule WS @312 [
+]
+                          Evaluating rule WS @313 []
+                          Matched rule WS @313 [ ]
+                          Evaluating rule WS @314 []
+                          Matched rule WS @314 [ ]
+                          Evaluating rule WS @315 []
+                          Matched rule WS @315 [ ]
+                          Evaluating rule WS @316 []
+                          Matched rule WS @316 [ ]
+                          Evaluating rule WS @317 []
+                          Matched rule WS @317 [ ]
+                          Evaluating rule WS @318 []
+                          Matched rule WS @318 [ ]
+                          Evaluating rule WS @319 []
+                          Matched rule WS @319 [ ]
+                          Evaluating rule WS @320 []
+                          Abandoning rule WS @320 []
+                        Matched rule _ @312 [
+       ]
+                        Evaluating rule StatementSequence @320 [i]
+                          Evaluating rule TopLevelStatement @320 [i]
+                            Evaluating rule Binding @320 [i]
+                              Evaluating rule BindingType @320 [i]
+                              Abandoning rule BindingType @320 []
+                            Abandoning rule Binding @320 []
+                            Evaluating rule SimpleMatch @320 [if co]
+                            Abandoning rule SimpleMatch @320 []
+                            Evaluating rule FunctionDef @320 [if co]
+                            Abandoning rule FunctionDef @320 []
+                            Evaluating rule Expr @320 [if co]
+                              Evaluating rule Rebinding @320 [if co]
+                                Evaluating rule Or @320 [if co]
+                                  Evaluating rule And @320 [if co]
+                                    Evaluating rule Add @320 [if co]
+                                      Evaluating rule Multiplicate @320 [if co]
+                                        Evaluating rule Not @320 [if co]
+                                          Evaluating rule Unary @320 [if co]
+                                            Evaluating rule FunctionCall @320 [if co]
+                                              Evaluating rule FunctionName @320 [if co]
+                                                Evaluating rule Symbol @320 [if co]
+                                                Matched rule Symbol @320 [if]
+                                              Matched rule FunctionName @320 [if]
+                                              Evaluating rule _ @322 [ co]
+                                                Evaluating rule WS @322 [ co]
+                                                Matched rule WS @322 [ ]
+                                                Evaluating rule WS @323 [co]
+                                                Abandoning rule WS @323 []
+                                              Matched rule _ @322 [ ]
+                                              Evaluating rule MemberAccessOp @320 [if co]
+                                                Evaluating rule Primary @320 [if co]
+                                                  Evaluating rule Struct @320 [if co]
+                                                  Abandoning rule Struct @320 []
+                                                  Evaluating rule If @320 [if com]
+                                                    Evaluating rule __ @322 [ com]
+                                                    Matched rule __ @322 [ ]
+                                                    Evaluating rule Expr @323 [com]
+                                                      Evaluating rule Rebinding @323 [com]
+                                                        Evaluating rule Or @323 [com]
+                                                          Evaluating rule And @323 [com]
+                                                            Evaluating rule Add @323 [com]
+                                                              Evaluating rule Multiplicate @323 [com]
+                                                                Evaluating rule Not @323 [com]
+                                                                  Evaluating rule Unary @323 [com]
+                                                                    Evaluating rule FunctionCall @323 [com]
+                                                                      Evaluating rule FunctionName @323 [com]
+                                                                        Evaluating rule Symbol @323 [com]
+                                                                        Matched rule Symbol @323 [completed]
+                                                                      Matched rule FunctionName @323 [completed]
+                                                                      Evaluating rule _ @332 [ ]
+                                                                        Evaluating rule WS @332 [ ]
+                                                                        Matched rule WS @332 [ ]
+                                                                        Evaluating rule WS @333 []
+                                                                        Abandoning rule WS @333 []
+                                                                      Matched rule _ @332 [ ]
+                                                                      Evaluating rule MemberAccessOp @323 [completed {]
+                                                                        Evaluating rule Primary @323 [completed {]
+                                                                          Evaluating rule Struct @323 [completed {]
+                                                                          Abandoning rule Struct @323 []
+                                                                          Evaluating rule If @323 [completed {]
+                                                                          Abandoning rule If @323 []
+                                                                          Evaluating rule Switch @323 [completed {]
+                                                                          Abandoning rule Switch @323 []
+                                                                          Evaluating rule Match @323 [completed {]
+                                                                          Abandoning rule Match @323 []
+                                                                          Evaluating rule Receive @323 [completed {]
+                                                                          Abandoning rule Receive @323 []
+                                                                          Evaluating rule Block @323 [completed {]
+                                                                          Abandoning rule Block @323 []
+                                                                          Evaluating rule ParanthesizedExpr @323 [completed {]
+                                                                          Abandoning rule ParanthesizedExpr @323 []
+                                                                          Evaluating rule Function @323 [completed {]
+                                                                          Abandoning rule Function @323 []
+                                                                          Evaluating rule Tuple @323 [completed {]
+                                                                          Abandoning rule Tuple @323 []
+                                                                          Evaluating rule Map @323 [completed {]
+                                                                          Abandoning rule Map @323 []
+                                                                          Evaluating rule Array @323 [completed {]
+                                                                          Abandoning rule Array @323 []
+                                                                          Evaluating rule String @323 [completed {]
+                                                                            Evaluating rule RegularString @323 [completed {]
+                                                                            Abandoning rule RegularString @323 []
+                                                                            Evaluating rule RawString @323 [completed {]
+                                                                            Abandoning rule RawString @323 []
+                                                                          Abandoning rule String @323 []
+                                                                          Evaluating rule Character @323 [completed {]
+                                                                          Abandoning rule Character @323 []
+                                                                          Evaluating rule Number @323 [completed {]
+                                                                            Evaluating rule Integral @323 [completed {]
+                                                                              Evaluating rule OctalIntegral @323 [completed {]
+                                                                              Abandoning rule OctalIntegral @323 []
+                                                                              Evaluating rule HexIntegral @323 [completed {]
+                                                                              Abandoning rule HexIntegral @323 []
+                                                                              Evaluating rule BinaryIntegral @323 [completed {]
+                                                                              Abandoning rule BinaryIntegral @323 []
+                                                                              Evaluating rule DecimalIntegral @323 [completed {]
+                                                                              Abandoning rule DecimalIntegral @323 []
+                                                                            Abandoning rule Integral @323 []
+                                                                            Evaluating rule FloatingPoint @323 [completed {]
+                                                                            Abandoning rule FloatingPoint @323 []
+                                                                          Abandoning rule Number @323 []
+                                                                          Evaluating rule Boolean @323 [completed {]
+                                                                          Abandoning rule Boolean @323 []
+                                                                          Evaluating rule EmptyMap @323 [completed {]
+                                                                          Abandoning rule EmptyMap @323 []
+                                                                          Evaluating rule Slice @323 [completed {]
+                                                                          Abandoning rule Slice @323 []
+                                                                          Evaluating rule This @323 [completed {]
+                                                                          Abandoning rule This @323 []
+                                                                          Evaluating rule Self @323 [completed {]
+                                                                          Abandoning rule Self @323 []
+                                                                          Evaluating rule UnboundVariable @323 [completed {]
+                                                                          Abandoning rule UnboundVariable @323 []
+                                                                        Matched rule Primary @323 [completed]
+                                                                      Matched rule MemberAccessOp @323 [completed]
+                                                                    Matched rule FunctionCall @323 [completed]
+                                                                  Matched rule Unary @323 [completed]
+                                                                Matched rule Not @323 [completed]
+                                                              Matched rule Multiplicate @323 [completed]
+                                                            Matched rule Add @323 [completed]
+                                                          Matched rule And @323 [completed]
+                                                        Matched rule Or @323 [completed]
+                                                      Matched rule Rebinding @323 [completed]
+                                                    Matched rule Expr @323 [completed]
+                                                    Evaluating rule Block @333 [{
+]
+                                                      Evaluating rule _ @334 [
+]
+                                                        Evaluating rule WS @334 [
+]
+                                                        Matched rule WS @334 [
+]
+                                                        Evaluating rule WS @335 []
+                                                        Matched rule WS @335 [ ]
+                                                        Evaluating rule WS @336 []
+                                                        Matched rule WS @336 [ ]
+                                                        Evaluating rule WS @337 []
+                                                        Matched rule WS @337 [ ]
+                                                        Evaluating rule WS @338 []
+                                                        Matched rule WS @338 [ ]
+                                                        Evaluating rule WS @339 []
+                                                        Matched rule WS @339 [ ]
+                                                        Evaluating rule WS @340 []
+                                                        Matched rule WS @340 [ ]
+                                                        Evaluating rule WS @341 []
+                                                        Matched rule WS @341 [ ]
+                                                        Evaluating rule WS @342 []
+                                                        Matched rule WS @342 [ ]
+                                                        Evaluating rule WS @343 []
+                                                        Matched rule WS @343 [ ]
+                                                        Evaluating rule WS @344 []
+                                                        Matched rule WS @344 [ ]
+                                                        Evaluating rule WS @345 []
+                                                        Matched rule WS @345 [ ]
+                                                        Evaluating rule WS @346 []
+                                                        Abandoning rule WS @346 []
+                                                      Matched rule _ @334 [
+           ]
+                                                      Evaluating rule StatementSequence @346 ["]
+                                                        Evaluating rule TopLevelStatement @346 ["]
+                                                          Evaluating rule Binding @346 ["]
+                                                            Evaluating rule BindingType @346 ["]
+                                                            Abandoning rule BindingType @346 []
+                                                          Abandoning rule Binding @346 []
+                                                          Evaluating rule SimpleMatch @346 ["[x] ]
+                                                          Abandoning rule SimpleMatch @346 []
+                                                          Evaluating rule FunctionDef @346 ["[x] ]
+                                                          Abandoning rule FunctionDef @346 []
+                                                          Evaluating rule Expr @346 ["[x] ]
+                                                            Evaluating rule Rebinding @346 ["[x] ]
+                                                              Evaluating rule Or @346 ["[x] ]
+                                                                Evaluating rule And @346 ["[x] ]
+                                                                  Evaluating rule Add @346 ["[x] ]
+                                                                    Evaluating rule Multiplicate @346 ["[x] ]
+                                                                      Evaluating rule Not @346 ["[x] ]
+                                                                        Evaluating rule Unary @346 ["[x] ]
+                                                                          Evaluating rule FunctionCall @346 ["[x] ]
+                                                                            Evaluating rule FunctionName @346 ["[x] ]
+                                                                              Evaluating rule Symbol @346 ["[x] ]
+                                                                              Abandoning rule Symbol @346 []
+                                                                            Abandoning rule FunctionName @346 []
+                                                                            Evaluating rule MemberAccessOp @346 ["[x] ]
+                                                                              Evaluating rule Primary @346 ["[x] ]
+                                                                                Evaluating rule Struct @346 ["[x] ]
+                                                                                Abandoning rule Struct @346 []
+                                                                                Evaluating rule If @346 ["[x] "]
+                                                                                Abandoning rule If @346 []
+                                                                                Evaluating rule Switch @346 ["[x] "]
+                                                                                Abandoning rule Switch @346 []
+                                                                                Evaluating rule Match @346 ["[x] "]
+                                                                                Abandoning rule Match @346 []
+                                                                                Evaluating rule Receive @346 ["[x] "]
+                                                                                Abandoning rule Receive @346 []
+                                                                                Evaluating rule Block @346 ["[x] ";]
+                                                                                Abandoning rule Block @346 []
+                                                                                Evaluating rule ParanthesizedExpr @346 ["[x] ";]
+                                                                                Abandoning rule ParanthesizedExpr @346 []
+                                                                                Evaluating rule Function @346 ["[x] ";]
+                                                                                Abandoning rule Function @346 []
+                                                                                Evaluating rule Tuple @346 ["[x] ";]
+                                                                                Abandoning rule Tuple @346 []
+                                                                                Evaluating rule Map @346 ["[x] ";]
+                                                                                Abandoning rule Map @346 []
+                                                                                Evaluating rule Array @346 ["[x] ";]
+                                                                                Abandoning rule Array @346 []
+                                                                                Evaluating rule String @346 ["[x] ";]
+                                                                                  Evaluating rule RegularString @346 ["[x] ";]
+                                                                                    Evaluating rule EscapeSequence @347 [[x] ";]
+                                                                                    Abandoning rule EscapeSequence @347 []
+                                                                                    Evaluating rule EscapeSequence @348 [x] ";]
+                                                                                    Abandoning rule EscapeSequence @348 []
+                                                                                    Evaluating rule EscapeSequence @349 [] ";]
+                                                                                    Abandoning rule EscapeSequence @349 []
+                                                                                    Evaluating rule EscapeSequence @350 [ ";]
+                                                                                    Abandoning rule EscapeSequence @350 []
+                                                                                    Evaluating rule EscapeSequence @351 [";]
+                                                                                    Abandoning rule EscapeSequence @351 []
+                                                                                  Matched rule RegularString @346 ["[x] "]
+                                                                                Matched rule String @346 ["[x] "]
+                                                                              Matched rule Primary @346 ["[x] "]
+                                                                              Evaluating rule _ @352 [;]
+                                                                                Evaluating rule WS @352 [;]
+                                                                                Abandoning rule WS @352 []
+                                                                              Matched rule _ @352 []
+                                                                            Matched rule MemberAccessOp @346 ["[x] "]
+                                                                          Matched rule FunctionCall @346 ["[x] "]
+                                                                        Matched rule Unary @346 ["[x] "]
+                                                                      Matched rule Not @346 ["[x] "]
+                                                                    Matched rule Multiplicate @346 ["[x] "]
+                                                                  Matched rule Add @346 ["[x] "]
+                                                                Matched rule And @346 ["[x] "]
+                                                              Matched rule Or @346 ["[x] "]
+                                                            Matched rule Rebinding @346 ["[x] "]
+                                                          Matched rule Expr @346 ["[x] "]
+                                                        Matched rule TopLevelStatement @346 ["[x] "]
+                                                        Evaluating rule _ @353 [
+]
+                                                          Evaluating rule WS @353 [
+]
+                                                          Matched rule WS @353 [
+]
+                                                          Evaluating rule WS @354 []
+                                                          Matched rule WS @354 [ ]
+                                                          Evaluating rule WS @355 []
+                                                          Matched rule WS @355 [ ]
+                                                          Evaluating rule WS @356 []
+                                                          Matched rule WS @356 [ ]
+                                                          Evaluating rule WS @357 []
+                                                          Matched rule WS @357 [ ]
+                                                          Evaluating rule WS @358 []
+                                                          Matched rule WS @358 [ ]
+                                                          Evaluating rule WS @359 []
+                                                          Matched rule WS @359 [ ]
+                                                          Evaluating rule WS @360 []
+                                                          Matched rule WS @360 [ ]
+                                                          Evaluating rule WS @361 []
+                                                          Abandoning rule WS @361 []
+                                                        Matched rule _ @353 [
+       ]
+                                                        Evaluating rule StatementSequence @361 [}]
+                                                          Evaluating rule TopLevelStatement @361 [}]
+                                                            Evaluating rule Binding @361 [}]
+                                                              Evaluating rule BindingType @361 [}]
+                                                              Abandoning rule BindingType @361 []
+                                                            Abandoning rule Binding @361 []
+                                                            Evaluating rule SimpleMatch @361 [} els]
+                                                            Abandoning rule SimpleMatch @361 []
+                                                            Evaluating rule FunctionDef @361 [} els]
+                                                            Abandoning rule FunctionDef @361 []
+                                                            Evaluating rule Expr @361 [} els]
+                                                              Evaluating rule Rebinding @361 [} els]
+                                                                Evaluating rule Or @361 [} els]
+                                                                  Evaluating rule And @361 [} els]
+                                                                    Evaluating rule Add @361 [} els]
+                                                                      Evaluating rule Multiplicate @361 [} els]
+                                                                        Evaluating rule Not @361 [} els]
+                                                                          Evaluating rule Unary @361 [} els]
+                                                                            Evaluating rule FunctionCall @361 [} els]
+                                                                              Evaluating rule FunctionName @361 [} els]
+                                                                                Evaluating rule Symbol @361 [} els]
+                                                                                Abandoning rule Symbol @361 []
+                                                                              Abandoning rule FunctionName @361 []
+                                                                              Evaluating rule MemberAccessOp @361 [} els]
+                                                                                Evaluating rule Primary @361 [} els]
+                                                                                  Evaluating rule Struct @361 [} els]
+                                                                                  Abandoning rule Struct @361 []
+                                                                                  Evaluating rule If @361 [} else]
+                                                                                  Abandoning rule If @361 []
+                                                                                  Evaluating rule Switch @361 [} else]
+                                                                                  Abandoning rule Switch @361 []
+                                                                                  Evaluating rule Match @361 [} else]
+                                                                                  Abandoning rule Match @361 []
+                                                                                  Evaluating rule Receive @361 [} else]
+                                                                                  Abandoning rule Receive @361 []
+                                                                                  Evaluating rule Block @361 [} else ]
+                                                                                  Abandoning rule Block @361 []
+                                                                                  Evaluating rule ParanthesizedExpr @361 [} else ]
+                                                                                  Abandoning rule ParanthesizedExpr @361 []
+                                                                                  Evaluating rule Function @361 [} else ]
+                                                                                  Abandoning rule Function @361 []
+                                                                                  Evaluating rule Tuple @361 [} else ]
+                                                                                  Abandoning rule Tuple @361 []
+                                                                                  Evaluating rule Map @361 [} else ]
+                                                                                  Abandoning rule Map @361 []
+                                                                                  Evaluating rule Array @361 [} else ]
+                                                                                  Abandoning rule Array @361 []
+                                                                                  Evaluating rule String @361 [} else ]
+                                                                                    Evaluating rule RegularString @361 [} else ]
+                                                                                    Abandoning rule RegularString @361 []
+                                                                                    Evaluating rule RawString @361 [} else ]
+                                                                                    Abandoning rule RawString @361 []
+                                                                                  Abandoning rule String @361 []
+                                                                                  Evaluating rule Character @361 [} else ]
+                                                                                  Abandoning rule Character @361 []
+                                                                                  Evaluating rule Number @361 [} else ]
+                                                                                    Evaluating rule Integral @361 [} else ]
+                                                                                      Evaluating rule OctalIntegral @361 [} else ]
+                                                                                      Abandoning rule OctalIntegral @361 []
+                                                                                      Evaluating rule HexIntegral @361 [} else ]
+                                                                                      Abandoning rule HexIntegral @361 []
+                                                                                      Evaluating rule BinaryIntegral @361 [} else ]
+                                                                                      Abandoning rule BinaryIntegral @361 []
+                                                                                      Evaluating rule DecimalIntegral @361 [} else ]
+                                                                                      Abandoning rule DecimalIntegral @361 []
+                                                                                    Abandoning rule Integral @361 []
+                                                                                    Evaluating rule FloatingPoint @361 [} else ]
+                                                                                    Abandoning rule FloatingPoint @361 []
+                                                                                  Abandoning rule Number @361 []
+                                                                                  Evaluating rule Boolean @361 [} else ]
+                                                                                  Abandoning rule Boolean @361 []
+                                                                                  Evaluating rule EmptyMap @361 [} else ]
+                                                                                  Abandoning rule EmptyMap @361 []
+                                                                                  Evaluating rule Slice @361 [} else ]
+                                                                                  Abandoning rule Slice @361 []
+                                                                                  Evaluating rule This @361 [} else ]
+                                                                                  Abandoning rule This @361 []
+                                                                                  Evaluating rule Self @361 [} else ]
+                                                                                  Abandoning rule Self @361 []
+                                                                                  Evaluating rule UnboundVariable @361 [} else ]
+                                                                                  Abandoning rule UnboundVariable @361 []
+                                                                                Abandoning rule Primary @361 []
+                                                                              Abandoning rule MemberAccessOp @361 []
+                                                                            Abandoning rule FunctionCall @361 []
+                                                                          Abandoning rule Unary @361 []
+                                                                        Abandoning rule Not @361 []
+                                                                      Abandoning rule Multiplicate @361 []
+                                                                    Abandoning rule Add @361 []
+                                                                  Abandoning rule And @361 []
+                                                                Abandoning rule Or @361 []
+                                                              Abandoning rule Rebinding @361 []
+                                                            Abandoning rule Expr @361 []
+                                                          Abandoning rule TopLevelStatement @361 []
+                                                        Abandoning rule StatementSequence @361 []
+                                                      Matched rule StatementSequence @346 ["[x] ";]
+                                                    Matched rule Block @333 [{
+           "[x] ";
+       }]
+                                                    Evaluating rule _ @362 [ else ]
+                                                      Evaluating rule WS @362 [ else ]
+                                                      Matched rule WS @362 [ ]
+                                                      Evaluating rule WS @363 [else ]
+                                                      Abandoning rule WS @363 []
+                                                    Matched rule _ @362 [ ]
+                                                    Evaluating rule _ @367 [ ]
+                                                      Evaluating rule WS @367 [ ]
+                                                      Matched rule WS @367 [ ]
+                                                      Evaluating rule WS @368 []
+                                                      Abandoning rule WS @368 []
+                                                    Matched rule _ @367 [ ]
+                                                    Evaluating rule Block @368 [{]
+                                                      Evaluating rule _ @369 []
+                                                        Evaluating rule WS @369 []
+                                                        Matched rule WS @369 [
+]
+                                                        Evaluating rule WS @370 []
+                                                        Matched rule WS @370 [ ]
+                                                        Evaluating rule WS @371 []
+                                                        Matched rule WS @371 [ ]
+                                                        Evaluating rule WS @372 []
+                                                        Matched rule WS @372 [ ]
+                                                        Evaluating rule WS @373 []
+                                                        Matched rule WS @373 [ ]
+                                                        Evaluating rule WS @374 []
+                                                        Matched rule WS @374 [ ]
+                                                        Evaluating rule WS @375 []
+                                                        Matched rule WS @375 [ ]
+                                                        Evaluating rule WS @376 []
+                                                        Matched rule WS @376 [ ]
+                                                        Evaluating rule WS @377 []
+                                                        Matched rule WS @377 [ ]
+                                                        Evaluating rule WS @378 []
+                                                        Matched rule WS @378 [ ]
+                                                        Evaluating rule WS @379 []
+                                                        Matched rule WS @379 [ ]
+                                                        Evaluating rule WS @380 []
+                                                        Matched rule WS @380 [ ]
+                                                        Evaluating rule WS @381 []
+                                                        Abandoning rule WS @381 []
+                                                      Matched rule _ @369 [
+           ]
+                                                      Evaluating rule StatementSequence @381 ["]
+                                                        Evaluating rule TopLevelStatement @381 ["]
+                                                          Evaluating rule Binding @381 ["]
+                                                            Evaluating rule BindingType @381 ["]
+                                                            Abandoning rule BindingType @381 []
+                                                          Abandoning rule Binding @381 []
+                                                          Evaluating rule SimpleMatch @381 ["[ ] ]
+                                                          Abandoning rule SimpleMatch @381 []
+                                                          Evaluating rule FunctionDef @381 ["[ ] ]
+                                                          Abandoning rule FunctionDef @381 []
+                                                          Evaluating rule Expr @381 ["[ ] ]
+                                                            Evaluating rule Rebinding @381 ["[ ] ]
+                                                              Evaluating rule Or @381 ["[ ] ]
+                                                                Evaluating rule And @381 ["[ ] ]
+                                                                  Evaluating rule Add @381 ["[ ] ]
+                                                                    Evaluating rule Multiplicate @381 ["[ ] ]
+                                                                      Evaluating rule Not @381 ["[ ] ]
+                                                                        Evaluating rule Unary @381 ["[ ] ]
+                                                                          Evaluating rule FunctionCall @381 ["[ ] ]
+                                                                            Evaluating rule FunctionName @381 ["[ ] ]
+                                                                              Evaluating rule Symbol @381 ["[ ] ]
+                                                                              Abandoning rule Symbol @381 []
+                                                                            Abandoning rule FunctionName @381 []
+                                                                            Evaluating rule MemberAccessOp @381 ["[ ] ]
+                                                                              Evaluating rule Primary @381 ["[ ] ]
+                                                                                Evaluating rule Struct @381 ["[ ] ]
+                                                                                Abandoning rule Struct @381 []
+                                                                                Evaluating rule If @381 ["[ ] "]
+                                                                                Abandoning rule If @381 []
+                                                                                Evaluating rule Switch @381 ["[ ] "]
+                                                                                Abandoning rule Switch @381 []
+                                                                                Evaluating rule Match @381 ["[ ] "]
+                                                                                Abandoning rule Match @381 []
+                                                                                Evaluating rule Receive @381 ["[ ] "]
+                                                                                Abandoning rule Receive @381 []
+                                                                                Evaluating rule Block @381 ["[ ] ";]
+                                                                                Abandoning rule Block @381 []
+                                                                                Evaluating rule ParanthesizedExpr @381 ["[ ] ";]
+                                                                                Abandoning rule ParanthesizedExpr @381 []
+                                                                                Evaluating rule Function @381 ["[ ] ";]
+                                                                                Abandoning rule Function @381 []
+                                                                                Evaluating rule Tuple @381 ["[ ] ";]
+                                                                                Abandoning rule Tuple @381 []
+                                                                                Evaluating rule Map @381 ["[ ] ";]
+                                                                                Abandoning rule Map @381 []
+                                                                                Evaluating rule Array @381 ["[ ] ";]
+                                                                                Abandoning rule Array @381 []
+                                                                                Evaluating rule String @381 ["[ ] ";]
+                                                                                  Evaluating rule RegularString @381 ["[ ] ";]
+                                                                                    Evaluating rule EscapeSequence @382 [[ ] ";]
+                                                                                    Abandoning rule EscapeSequence @382 []
+                                                                                    Evaluating rule EscapeSequence @383 [ ] ";]
+                                                                                    Abandoning rule EscapeSequence @383 []
+                                                                                    Evaluating rule EscapeSequence @384 [] ";]
+                                                                                    Abandoning rule EscapeSequence @384 []
+                                                                                    Evaluating rule EscapeSequence @385 [ ";]
+                                                                                    Abandoning rule EscapeSequence @385 []
+                                                                                    Evaluating rule EscapeSequence @386 [";]
+                                                                                    Abandoning rule EscapeSequence @386 []
+                                                                                  Matched rule RegularString @381 ["[ ] "]
+                                                                                Matched rule String @381 ["[ ] "]
+                                                                              Matched rule Primary @381 ["[ ] "]
+                                                                              Evaluating rule _ @387 [;]
+                                                                                Evaluating rule WS @387 [;]
+                                                                                Abandoning rule WS @387 []
+                                                                              Matched rule _ @387 []
+                                                                            Matched rule MemberAccessOp @381 ["[ ] "]
+                                                                          Matched rule FunctionCall @381 ["[ ] "]
+                                                                        Matched rule Unary @381 ["[ ] "]
+                                                                      Matched rule Not @381 ["[ ] "]
+                                                                    Matched rule Multiplicate @381 ["[ ] "]
+                                                                  Matched rule Add @381 ["[ ] "]
+                                                                Matched rule And @381 ["[ ] "]
+                                                              Matched rule Or @381 ["[ ] "]
+                                                            Matched rule Rebinding @381 ["[ ] "]
+                                                          Matched rule Expr @381 ["[ ] "]
+                                                        Matched rule TopLevelStatement @381 ["[ ] "]
+                                                        Evaluating rule _ @388 [
+]
+                                                          Evaluating rule WS @388 [
+]
+                                                          Matched rule WS @388 [
+]
+                                                          Evaluating rule WS @389 []
+                                                          Matched rule WS @389 [ ]
+                                                          Evaluating rule WS @390 []
+                                                          Matched rule WS @390 [ ]
+                                                          Evaluating rule WS @391 []
+                                                          Matched rule WS @391 [ ]
+                                                          Evaluating rule WS @392 []
+                                                          Matched rule WS @392 [ ]
+                                                          Evaluating rule WS @393 []
+                                                          Matched rule WS @393 [ ]
+                                                          Evaluating rule WS @394 []
+                                                          Matched rule WS @394 [ ]
+                                                          Evaluating rule WS @395 []
+                                                          Matched rule WS @395 [ ]
+                                                          Evaluating rule WS @396 []
+                                                          Abandoning rule WS @396 []
+                                                        Matched rule _ @388 [
+       ]
+                                                        Evaluating rule StatementSequence @396 [}]
+                                                          Evaluating rule TopLevelStatement @396 [}]
+                                                            Evaluating rule Binding @396 [}]
+                                                              Evaluating rule BindingType @396 [}]
+                                                              Abandoning rule BindingType @396 []
+                                                            Abandoning rule Binding @396 []
+                                                            Evaluating rule SimpleMatch @396 [}
+   ]
+                                                            Abandoning rule SimpleMatch @396 []
+                                                            Evaluating rule FunctionDef @396 [}
+   ]
+                                                            Abandoning rule FunctionDef @396 []
+                                                            Evaluating rule Expr @396 [}
+   ]
+                                                              Evaluating rule Rebinding @396 [}
+   ]
+                                                                Evaluating rule Or @396 [}
+   ]
+                                                                  Evaluating rule And @396 [}
+   ]
+                                                                    Evaluating rule Add @396 [}
+   ]
+                                                                      Evaluating rule Multiplicate @396 [}
+   ]
+                                                                        Evaluating rule Not @396 [}
+   ]
+                                                                          Evaluating rule Unary @396 [}
+   ]
+                                                                            Evaluating rule FunctionCall @396 [}
+   ]
+                                                                              Evaluating rule FunctionName @396 [}
+   ]
+                                                                                Evaluating rule Symbol @396 [}
+   ]
+                                                                                Abandoning rule Symbol @396 []
+                                                                              Abandoning rule FunctionName @396 []
+                                                                              Evaluating rule MemberAccessOp @396 [}
+   ]
+                                                                                Evaluating rule Primary @396 [}
+   ]
+                                                                                  Evaluating rule Struct @396 [}
+   ]
+                                                                                  Abandoning rule Struct @396 []
+                                                                                  Evaluating rule If @396 [}
+    ]
+                                                                                  Abandoning rule If @396 []
+                                                                                  Evaluating rule Switch @396 [}
+    ]
+                                                                                  Abandoning rule Switch @396 []
+                                                                                  Evaluating rule Match @396 [}
+    ]
+                                                                                  Abandoning rule Match @396 []
+                                                                                  Evaluating rule Receive @396 [}
+    ]
+                                                                                  Abandoning rule Receive @396 []
+                                                                                  Evaluating rule Block @396 [}
+    }]
+                                                                                  Abandoning rule Block @396 []
+                                                                                  Evaluating rule ParanthesizedExpr @396 [}
+    }]
+                                                                                  Abandoning rule ParanthesizedExpr @396 []
+                                                                                  Evaluating rule Function @396 [}
+    }]
+                                                                                  Abandoning rule Function @396 []
+                                                                                  Evaluating rule Tuple @396 [}
+    }]
+                                                                                  Abandoning rule Tuple @396 []
+                                                                                  Evaluating rule Map @396 [}
+    }]
+                                                                                  Abandoning rule Map @396 []
+                                                                                  Evaluating rule Array @396 [}
+    }]
+                                                                                  Abandoning rule Array @396 []
+                                                                                  Evaluating rule String @396 [}
+    }]
+                                                                                    Evaluating rule RegularString @396 [}
+    }]
+                                                                                    Abandoning rule RegularString @396 []
+                                                                                    Evaluating rule RawString @396 [}
+    }]
+                                                                                    Abandoning rule RawString @396 []
+                                                                                  Abandoning rule String @396 []
+                                                                                  Evaluating rule Character @396 [}
+    }]
+                                                                                  Abandoning rule Character @396 []
+                                                                                  Evaluating rule Number @396 [}
+    }]
+                                                                                    Evaluating rule Integral @396 [}
+    }]
+                                                                                      Evaluating rule OctalIntegral @396 [}
+    }]
+                                                                                      Abandoning rule OctalIntegral @396 []
+                                                                                      Evaluating rule HexIntegral @396 [}
+    }]
+                                                                                      Abandoning rule HexIntegral @396 []
+                                                                                      Evaluating rule BinaryIntegral @396 [}
+    }]
+                                                                                      Abandoning rule BinaryIntegral @396 []
+                                                                                      Evaluating rule DecimalIntegral @396 [}
+    }]
+                                                                                      Abandoning rule DecimalIntegral @396 []
+                                                                                    Abandoning rule Integral @396 []
+                                                                                    Evaluating rule FloatingPoint @396 [}
+    }]
+                                                                                    Abandoning rule FloatingPoint @396 []
+                                                                                  Abandoning rule Number @396 []
+                                                                                  Evaluating rule Boolean @396 [}
+    }]
+                                                                                  Abandoning rule Boolean @396 []
+                                                                                  Evaluating rule EmptyMap @396 [}
+    }]
+                                                                                  Abandoning rule EmptyMap @396 []
+                                                                                  Evaluating rule Slice @396 [}
+    }]
+                                                                                  Abandoning rule Slice @396 []
+                                                                                  Evaluating rule This @396 [}
+    }]
+                                                                                  Abandoning rule This @396 []
+                                                                                  Evaluating rule Self @396 [}
+    }]
+                                                                                  Abandoning rule Self @396 []
+                                                                                  Evaluating rule UnboundVariable @396 [}
+    }]
+                                                                                  Abandoning rule UnboundVariable @396 []
+                                                                                Abandoning rule Primary @396 []
+                                                                              Abandoning rule MemberAccessOp @396 []
+                                                                            Abandoning rule FunctionCall @396 []
+                                                                          Abandoning rule Unary @396 []
+                                                                        Abandoning rule Not @396 []
+                                                                      Abandoning rule Multiplicate @396 []
+                                                                    Abandoning rule Add @396 []
+                                                                  Abandoning rule And @396 []
+                                                                Abandoning rule Or @396 []
+                                                              Abandoning rule Rebinding @396 []
+                                                            Abandoning rule Expr @396 []
+                                                          Abandoning rule TopLevelStatement @396 []
+                                                        Abandoning rule StatementSequence @396 []
+                                                      Matched rule StatementSequence @381 ["[ ] ";]
+                                                    Matched rule Block @368 [{
+           "[ ] ";
+       }]
+                                                  Matched rule If @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                                                Matched rule Primary @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                                                Evaluating rule _ @397 [
+    }]
+                                                  Evaluating rule WS @397 [
+    }]
+                                                  Matched rule WS @397 [
+]
+                                                  Evaluating rule WS @398 [    }]
+                                                  Matched rule WS @398 [ ]
+                                                  Evaluating rule WS @399 [   }]
+                                                  Matched rule WS @399 [ ]
+                                                  Evaluating rule WS @400 [  }]
+                                                  Matched rule WS @400 [ ]
+                                                  Evaluating rule WS @401 [ }]
+                                                  Matched rule WS @401 [ ]
+                                                  Evaluating rule WS @402 [}]
+                                                  Abandoning rule WS @402 []
+                                                Matched rule _ @397 [
+    ]
+                                              Matched rule MemberAccessOp @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                                            Matched rule FunctionCall @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                                          Matched rule Unary @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                                        Matched rule Not @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                                      Matched rule Multiplicate @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                                    Matched rule Add @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                                  Matched rule And @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                                Matched rule Or @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                              Matched rule Rebinding @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                            Matched rule Expr @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                          Matched rule TopLevelStatement @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }]
+                        Abandoning rule StatementSequence @320 [if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }
+    ]
+                      Abandoning rule Block @311 [{
+       if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }
+    ]
+                    Abandoning rule FunctionDef @297 [fn toString() {
+       if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }
+    ]
+                  Abandoning rule MemberFunctionDef @290 [public fn toString() {
+       if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }
+    ]
+                Abandoning rule StructMember @290 []
+              Abandoning rule StructMembers @290 []
+            Matched rule StructMembers @224 [public fn markCompleted() {
+        completed = true;
+    };]
+          Matched rule StructMembers @116 [this(val description) {
+        this.description = description;
+        this.completed = false;
+    };
+
+    public fn markCompleted() {
+        completed = true;
+    };]
+        Matched rule StructMembers @88 [private var completed;
+
+    this(val description) {
+        this.description = description;
+        this.completed = false;
+    };
+
+    public fn markCompleted() {
+        completed = true;
+    };]
+      Matched rule StructMembers @59 [private var description;
+    private var completed;
+
+    this(val description) {
+        this.description = description;
+        this.completed = false;
+    };
+
+    public fn markCompleted() {
+        completed = true;
+    };]
+    Abandoning rule StructDef @37 [struct TodoItem {
+    private var description;
+    private var completed;
+
+    this(val description) {
+        this.description = description;
+        this.completed = false;
+    };
+
+    public fn markCompleted() {
+        completed = true;
+    };
+
+    ]
+    Evaluating rule InterfaceDef @37 [struct TodoItem {
+    private var description;
+    private var completed;
+
+    this(val description) {
+        this.description = description;
+        this.completed = false;
+    };
+
+    public fn markCompleted() {
+        completed = true;
+    };
+
+    public fn toString() {
+       if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }
+    }
+]
+    Abandoning rule InterfaceDef @37 []
+    Evaluating rule EnumDef @37 [struct TodoItem {
+    private var description;
+    private var completed;
+
+    this(val description) {
+        this.description = description;
+        this.completed = false;
+    };
+
+    public fn markCompleted() {
+        completed = true;
+    };
+
+    public fn toString() {
+       if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }
+    }
+]
+    Abandoning rule EnumDef @37 []
+    Evaluating rule FunctionDef @37 [struct TodoItem {
+    private var description;
+    private var completed;
+
+    this(val description) {
+        this.description = description;
+        this.completed = false;
+    };
+
+    public fn markCompleted() {
+        completed = true;
+    };
+
+    public fn toString() {
+       if completed {
+           "[x] ";
+       } else {
+           "[ ] ";
+       }
+    }
+]
+    Abandoning rule FunctionDef @37 []
+  Abandoning rule TopLevelConstructs @37 []
+Abandoning rule Program @0 [import std.stdio;
+import std.lists;
+
+]
+Syntax error

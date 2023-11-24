@@ -1,0 +1,349 @@
+Evaluating rule Program @0 []
+  Evaluating rule _ @0 []
+    Evaluating rule WS @0 []
+    Abandoning rule WS @0 []
+  Matched rule _ @0 []
+  Evaluating rule Imports @0 [f]
+    Evaluating rule Import @0 [f]
+    Abandoning rule Import @0 []
+  Abandoning rule Imports @0 []
+  Evaluating rule TopLevelConstructs @0 [fn mai]
+    Evaluating rule TopLevelConstruct @0 [fn mai]
+      Evaluating rule StructDef @0 [fn mai]
+      Abandoning rule StructDef @0 []
+      Evaluating rule InterfaceDef @0 [fn main()]
+      Abandoning rule InterfaceDef @0 []
+      Evaluating rule EnumDef @0 [fn main()]
+      Abandoning rule EnumDef @0 []
+      Evaluating rule FunctionDef @0 [fn main()]
+        Evaluating rule __ @2 [ main()]
+          Evaluating rule WS @2 [ main()]
+          Matched rule WS @2 [ ]
+          Evaluating rule WS @3 [main()]
+          Abandoning rule WS @3 []
+        Matched rule __ @2 [ ]
+        Evaluating rule FunctionName @3 [main()]
+          Evaluating rule Symbol @3 [main()]
+          Matched rule Symbol @3 [main]
+        Matched rule FunctionName @3 [main]
+        Evaluating rule _ @7 [()]
+          Evaluating rule WS @7 [()]
+          Abandoning rule WS @7 []
+        Matched rule _ @7 []
+        Evaluating rule _ @8 [)]
+          Evaluating rule WS @8 [)]
+          Abandoning rule WS @8 []
+        Matched rule _ @8 []
+        Evaluating rule Params @8 [)]
+          Evaluating rule NonDefaultParams @8 [)]
+            Evaluating rule NonDefaultParam @8 [)]
+              Evaluating rule Symbol @8 [)]
+              Abandoning rule Symbol @8 []
+            Abandoning rule NonDefaultParam @8 []
+          Abandoning rule NonDefaultParams @8 []
+          Evaluating rule DefaultParams @8 [)]
+            Evaluating rule DefaultParam @8 [)]
+            Abandoning rule DefaultParam @8 []
+          Abandoning rule DefaultParams @8 []
+        Abandoning rule Params @8 []
+        Evaluating rule _ @9 []
+          Evaluating rule WS @9 []
+          Matched rule WS @9 [ ]
+          Evaluating rule WS @10 []
+          Abandoning rule WS @10 []
+        Matched rule _ @9 [ ]
+        Evaluating rule BlockExpr @10 [{]
+          Evaluating rule _ @11 []
+            Evaluating rule WS @11 []
+            Matched rule WS @11 [
+]
+            Evaluating rule WS @12 []
+            Matched rule WS @12 [ ]
+            Evaluating rule WS @13 []
+            Matched rule WS @13 [ ]
+            Evaluating rule WS @14 []
+            Matched rule WS @14 [ ]
+            Evaluating rule WS @15 []
+            Matched rule WS @15 [ ]
+            Evaluating rule WS @16 []
+            Abandoning rule WS @16 []
+          Matched rule _ @11 [
+    ]
+          Evaluating rule BlockSequence @16 [a]
+            Evaluating rule TopLevelExpr @16 [a]
+              Evaluating rule Binding @16 [a]
+                Evaluating rule MatchPattern @16 [a]
+                  Evaluating rule Literal @16 [a]
+                    Evaluating rule FunctionLiteral @16 [a]
+                    Abandoning rule FunctionLiteral @16 []
+                    Evaluating rule ListLiteral @16 [a.]
+                    Abandoning rule ListLiteral @16 []
+                    Evaluating rule StringLiteral @16 [a.]
+                      Evaluating rule RegularString @16 [a.]
+                      Abandoning rule RegularString @16 []
+                      Evaluating rule RawString @16 [a.]
+                      Abandoning rule RawString @16 []
+                    Abandoning rule StringLiteral @16 []
+                    Evaluating rule CharacterLiteral @16 [a.]
+                    Abandoning rule CharacterLiteral @16 []
+                    Evaluating rule NumberLiteral @16 [a.]
+                      Evaluating rule Integral @16 [a.]
+                        Evaluating rule OctalIntegral @16 [a.]
+                        Abandoning rule OctalIntegral @16 []
+                        Evaluating rule HexIntegral @16 [a.]
+                        Abandoning rule HexIntegral @16 []
+                        Evaluating rule BinaryIntegral @16 [a.]
+                        Abandoning rule BinaryIntegral @16 []
+                        Evaluating rule DecimalIntegral @16 [a.]
+                        Abandoning rule DecimalIntegral @16 []
+                      Abandoning rule Integral @16 []
+                      Evaluating rule FloatingPoint @16 [a.]
+                      Abandoning rule FloatingPoint @16 []
+                    Abandoning rule NumberLiteral @16 []
+                    Evaluating rule BooleanLiteral @16 [a.]
+                    Abandoning rule BooleanLiteral @16 []
+                    Evaluating rule EmptyMapLiteral @16 [a.b
+}]
+                    Abandoning rule EmptyMapLiteral @16 []
+                    Evaluating rule SliceLiteral @16 [a.b
+}]
+                    Abandoning rule SliceLiteral @16 []
+                    Evaluating rule TupleLiteral @16 [a.b
+}]
+                    Abandoning rule TupleLiteral @16 []
+                    Evaluating rule MapLiteral @16 [a.b
+}]
+                    Abandoning rule MapLiteral @16 []
+                    Evaluating rule StructLiteral @16 [a.b
+}]
+                    Abandoning rule StructLiteral @16 []
+                  Abandoning rule Literal @16 []
+                  Evaluating rule FieldAccess @16 [a.b
+}]
+                    Evaluating rule Symbol @16 [a.b
+}]
+                    Matched rule Symbol @16 [a]
+                    Evaluating rule _ @17 [.b
+}]
+                      Evaluating rule WS @17 [.b
+}]
+                      Abandoning rule WS @17 []
+                    Matched rule _ @17 []
+                    Evaluating rule HasField @16 [a.b
+}]
+                      Evaluating rule FunctionCall @16 [a.b
+}]
+                      Abandoning rule FunctionCall @16 []
+                      Evaluating rule Indexing @16 [a.b
+}]
+                      Abandoning rule Indexing @16 []
+                    Matched rule HasField @16 [a]
+                    Evaluating rule _ @18 [b
+}]
+                      Evaluating rule WS @18 [b
+}]
+                      Abandoning rule WS @18 []
+                    Matched rule _ @18 []
+                    Evaluating rule HasField @18 [b
+}]
+                      Evaluating rule FunctionCall @18 [b
+}]
+                        Evaluating rule Symbol @18 [b
+}]
+                        Matched rule Symbol @18 [b]
+                        Evaluating rule _ @19 [
+}]
+                          Evaluating rule WS @19 [
+}]
+                          Matched rule WS @19 [
+]
+                          Evaluating rule WS @20 [}]
+                          Abandoning rule WS @20 []
+                        Matched rule _ @19 [
+]
+                        Evaluating rule FieldAccess @18 [b
+}]
+                          Evaluating rule ParenthesizedExpr @18 [b
+}]
+                            Evaluating rule Primary @18 [b
+}]
+                              Evaluating rule Literal @18 [b
+}]
+                                Evaluating rule FunctionLiteral @18 [b
+}]
+                                Abandoning rule FunctionLiteral @18 []
+                                Evaluating rule ListLiteral @18 [b
+}]
+                                Abandoning rule ListLiteral @18 []
+                                Evaluating rule StringLiteral @18 [b
+}]
+                                  Evaluating rule RegularString @18 [b
+}]
+                                  Abandoning rule RegularString @18 []
+                                  Evaluating rule RawString @18 [b
+}]
+                                  Abandoning rule RawString @18 []
+                                Abandoning rule StringLiteral @18 []
+                                Evaluating rule CharacterLiteral @18 [b
+}]
+                                Abandoning rule CharacterLiteral @18 []
+                                Evaluating rule NumberLiteral @18 [b
+}]
+                                  Evaluating rule Integral @18 [b
+}]
+                                    Evaluating rule OctalIntegral @18 [b
+}]
+                                    Abandoning rule OctalIntegral @18 []
+                                    Evaluating rule HexIntegral @18 [b
+}]
+                                    Abandoning rule HexIntegral @18 []
+                                    Evaluating rule BinaryIntegral @18 [b
+}]
+                                    Abandoning rule BinaryIntegral @18 []
+                                    Evaluating rule DecimalIntegral @18 [b
+}]
+                                    Abandoning rule DecimalIntegral @18 []
+                                  Abandoning rule Integral @18 []
+                                  Evaluating rule FloatingPoint @18 [b
+}]
+                                  Abandoning rule FloatingPoint @18 []
+                                Abandoning rule NumberLiteral @18 []
+                                Evaluating rule BooleanLiteral @18 [b
+}]
+                                Abandoning rule BooleanLiteral @18 []
+                                Evaluating rule EmptyMapLiteral @18 [b
+}
+]
+                                Abandoning rule EmptyMapLiteral @18 []
+                                Evaluating rule SliceLiteral @18 [b
+}
+]
+                                Abandoning rule SliceLiteral @18 []
+                                Evaluating rule TupleLiteral @18 [b
+}
+]
+                                Abandoning rule TupleLiteral @18 []
+                                Evaluating rule MapLiteral @18 [b
+}
+]
+                                Abandoning rule MapLiteral @18 []
+                                Evaluating rule StructLiteral @18 [b
+}
+]
+                                Abandoning rule StructLiteral @18 []
+                              Abandoning rule Literal @18 []
+                              Evaluating rule PrimaryExpr @18 [b
+}
+]
+                                Evaluating rule NewStructExpr @18 [b
+}
+]
+                                Abandoning rule NewStructExpr @18 []
+                                Evaluating rule IfExpr @18 [b
+}
+]
+                                Abandoning rule IfExpr @18 []
+                                Evaluating rule SwitchExpr @18 [b
+}
+]
+                                Abandoning rule SwitchExpr @18 []
+                                Evaluating rule MatchExpr @18 [b
+}
+]
+                                Abandoning rule MatchExpr @18 []
+                                Evaluating rule ReceiveExpr @18 [b
+}
+]
+                                Abandoning rule ReceiveExpr @18 []
+                                Evaluating rule BlockExpr @18 [b
+}
+]
+                                Abandoning rule BlockExpr @18 []
+                                Evaluating rule ThisExpr @18 [b
+}
+]
+                                Abandoning rule ThisExpr @18 []
+                                Evaluating rule SelfExpr @18 [b
+}
+]
+                                Abandoning rule SelfExpr @18 []
+                              Abandoning rule PrimaryExpr @18 []
+                              Evaluating rule UnboundVariable @18 [b
+}
+]
+                              Abandoning rule UnboundVariable @18 []
+                            Matched rule Primary @18 [b]
+                          Matched rule ParenthesizedExpr @18 [b]
+                        Matched rule FieldAccess @18 [b]
+                      Matched rule FunctionCall @18 [b]
+                    Matched rule HasField @18 [b]
+                  Matched rule FieldAccess @16 [a.b]
+                  Evaluating rule FieldAccess @16 [a.b
+}
+]
+                    Evaluating rule HasField @16 [a.b
+}
+]
+                      Evaluating rule FunctionCall @16 [a.b
+}
+]
+                      Matched rule FunctionCall @16 [a.b]
+                    Matched rule HasField @16 [a.b]
+                  Matched rule FieldAccess @16 [a.b]
+                Matched rule MatchPattern @16 [a.b]
+              Abandoning rule Binding @16 [a.b
+]
+              Evaluating rule FunctionDef @16 [a.b
+}
+]
+              Abandoning rule FunctionDef @16 []
+              Evaluating rule Expr @16 [a.b
+}
+]
+                Evaluating rule Or @16 [a.b
+}
+]
+                  Evaluating rule And @16 [a.b
+}
+]
+                    Evaluating rule Equality @16 [a.b
+}
+]
+                      Evaluating rule Concatenate @16 [a.b
+}
+]
+                        Evaluating rule Add @16 [a.b
+}
+]
+                          Evaluating rule Multiplicate @16 [a.b
+}
+]
+                            Evaluating rule Not @16 [a.b
+}
+]
+                              Evaluating rule Unary @16 [a.b
+}
+]
+                                Evaluating rule _ @16 [a.b
+}
+]
+                                Matched rule _ @16 []
+                              Abandoning rule Unary @16 []
+                            Abandoning rule Not @16 []
+                          Abandoning rule Multiplicate @16 []
+                        Abandoning rule Add @16 []
+                      Abandoning rule Concatenate @16 []
+                    Abandoning rule Equality @16 []
+                  Abandoning rule And @16 []
+                Abandoning rule Or @16 []
+              Abandoning rule Expr @16 []
+            Abandoning rule TopLevelExpr @16 []
+          Abandoning rule BlockSequence @16 []
+        Abandoning rule BlockExpr @10 [{
+    ]
+      Abandoning rule FunctionDef @0 [fn main() {
+    ]
+    Abandoning rule TopLevelConstruct @0 []
+  Abandoning rule TopLevelConstructs @0 []
+Abandoning rule Program @0 []
+Syntax error

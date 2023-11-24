@@ -1,0 +1,5 @@
+struct TodoItem {
+    this(description) {
+        this.description = description
+    }
+}

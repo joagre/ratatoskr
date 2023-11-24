@@ -1,0 +1,1943 @@
+\hypertarget{the-satie-programming-language}{%
+\section{The Satie programming
+language}\label{the-satie-programming-language}}
+
+\hypertarget{introduction}{%
+\subsection{Introduction}\label{introduction}}
+
+Satie is envisioned as a forward-thinking programming language, suited
+for developing the programming editors of tomorrow. Its capabilities
+extend beyond just constructing editors; Satie also excels as a
+scripting language for creating editor plugins and customizations.
+However, the true essence of Satie lies in its versatility. It is a
+purpose-built language and Virtual Machine (VM) that boasts a high
+degree of generality, making it adaptable to a wide array of
+applications.
+
+Satie owes a great deal to the individuals behind the
+\href{https://www.erlang.org/}{Erlang} and \href{https://dlang.org/}{D}
+programming languages, as well as all those who stand with them and
+support their efforts.
+
+All rise. Here is a tribute and a crash course:
+
+\begin{verbatim}
+$ cat tribute.sa
+import std.stdio : writeln
+import std.lists
+
+export fn main(args) {
+    ?numberOfTributes = args[1],
+    ?jobs = startTributes(numberOfTributes),
+    lists.foreach(fn (job) {
+        job <| "Standing on the shoulders of giants"
+    }, jobs)
+}
+
+fn startTributes(numberOfTributes, n = 0, jobs = []) {
+    if n < numberOfTributes {
+        ?job = spawn fn () {
+            receive {
+                case ?message {
+                   writeln("$n: $message")
+                }
+            }
+        },
+        startTributes(numberOfTributes, n + 1, job ~ jobs)
+    } else {
+        jobs
+    }
+}
+$ sac tribute.sa
+$ sa build/tribute 100000
+0: Standing on the shoulders of giants
+1: Standing on the shoulders of giants
+2: Standing on the shoulders of giants
+3: Standing on the shoulders of giants
+...
+99999: Standing on the shoulders of giants
+\end{verbatim}
+
+\emph{Source: \href{../grammar/tribute.sa}{tribute.sa}}
+
+That said.
+
+The following design choices have been made (in some sort of order):
+
+\hypertarget{concurrent-oriented-programming-cop}{%
+\subsubsection{Concurrent Oriented Programming
+(COP)}\label{concurrent-oriented-programming-cop}}
+
+\begin{itemize}
+\item
+  Satie is built on a custom multi-core virtual machine (VM) that offers
+  robust support for time-sliced green threads, here after referred to
+  as \emph{jobs}. These jobs adhere to a "share-nothing" semantics and
+  depend exclusively on message passing for communication. This
+  architecture simplifies the process of designing and implementing
+  highly concurrent, massively scalable soft real-time systems. It
+  emphasizes fault tolerance and high availability, making it easier to
+  reason about such systems.
+\item
+  Jobs have the capability to establish \emph{monitors} and \emph{links}
+  (which are bidirectional monitors) with one another. This feature
+  enables the creation of supervisor jobs, which can start and restart
+  children jobs should they unexpectedly fail.
+\end{itemize}
+
+\hypertarget{functional-and-immutable}{%
+\subsubsection{Functional and
+immutable}\label{functional-and-immutable}}
+
+\begin{itemize}
+\tightlist
+\item
+  Satie is a pure functional programming language featuring native
+  persistent datatypes at its core. All data within Satie is immutable,
+  and the persistent datatypes are custom-built to handle large amounts
+  of data efficiently. However, there are limits to Satie's purity; no
+  monads.
+\end{itemize}
+
+\hypertarget{a-fushion-of-application-and-scripting-language}{%
+\subsubsection{A fushion of application and scripting
+language}\label{a-fushion-of-application-and-scripting-language}}
+
+\begin{itemize}
+\tightlist
+\item
+  Satie aims to strike a balance between a fully-fledged application
+  language and a scripting language, as highlighted by the reasons
+  mentioned above. This is evident in its choice of semantics, syntax,
+  type system, support for object-orientation, and other aspects.
+\end{itemize}
+
+\hypertarget{dynamically-typed-with-type-inference}{%
+\subsubsection{Dynamically typed with type
+inference}\label{dynamically-typed-with-type-inference}}
+
+\begin{itemize}
+\item
+  Satie is dynamically typed and offers a concise set of basic and
+  composite types. Its compiler employs Hindley-Milner type inference to
+  deduce the types of variables, expressions, and functions.
+\item
+  Semantic and syntactic considerations have been made to facilitate the
+  future addition of a gradual type system.
+\item
+  Satie's dynamic type system utilizes a Garbage Collection (GC)
+  mechanism that is carefully designed to perform garbage collection on
+  a job basis. This approach is intended to prevent the GC process from
+  becoming a "stop-the-world" activity.
+\end{itemize}
+
+\hypertarget{a-streamlined-syntax-using-curly-braces}{%
+\subsubsection{A streamlined syntax using curly
+braces}\label{a-streamlined-syntax-using-curly-braces}}
+
+\begin{itemize}
+\item
+  Satie, as a compact language, features a clean, regular, and
+  minimalist syntax that aligns with the tradition of curly braces
+  languages. This includes the use of well-known reserved words, syntax
+  conventions, and scoping rules.
+\item
+  The principle of least surprise has been a guiding factor in Satie's
+  development. However, in Satie, everything is an expression; there are
+  no statements (and consequently, no semicolons). Due to this design
+  choice, certain syntactic constructs might appear unorthodox, yet they
+  embody a regular and consistent syntax.
+\item
+  The syntax of the D and Erlang programming languages has heavily
+  influenced Satie's design where applicable. Another key principle has
+  been to create a syntax that is both familiar and visually appealing,
+  though ultimately, you'll be the judge of that. Satie uses only a few
+  keywords and has an even smaller set of operators. The complete syntax
+  is formally defined as a Parsing Expression Grammar (PEG) in Appendix
+  B.
+\end{itemize}
+
+\hypertarget{pattern-matching-in-its-core}{%
+\subsubsection{Pattern matching in its
+core}\label{pattern-matching-in-its-core}}
+
+\begin{itemize}
+\item
+  Satie incorporates pattern matching as a fundamental feature, with the
+  \texttt{=} operator primarily serving pattern matching rather than
+  traditional assignment (emphasizing the absence of mutable updates).
+  Essentially, everything can be matched and deconstructed using pattern
+  matching in conjunction with the \texttt{=} operator.
+\item
+  Pattern matching is also employed by the \texttt{switch} expression in
+  Satie. Furthermore, the \texttt{receive} expression utilizes pattern
+  matching to perform selective reception of messages in a job's
+  mailbox.
+\end{itemize}
+
+\hypertarget{a-custom-built-virtual-machine-vm}{%
+\subsubsection{A custom-built Virtual Machine
+(VM)}\label{a-custom-built-virtual-machine-vm}}
+
+\begin{itemize}
+\item
+  Satie operates on a custom-built virtual machine (VM), which includes
+  a multi-core and time-slicing job scheduler. This scheduler runs
+  multiple instances, one for each job, of a custom-built register
+  machine.
+\item
+  The Virtual Machine (VM) and its scheduler are designed to have a
+  small memory footprint. Each job, when initially started, allocates
+  1KB for its heap and stack (excluding the program code).
+\item
+  The VM is standalone and has minimal dependencies, making it easily
+  portable to systems with restricted capabilities.
+\end{itemize}
+
+\hypertarget{functional-encapsulation}{%
+\subsubsection{Functional
+encapsulation}\label{functional-encapsulation}}
+
+\begin{itemize}
+\tightlist
+\item
+  Considerable effort has been invested in introducing a purely
+  functional and encapsulating \texttt{struct} definition. This allows
+  for the grouping of member variables and functions using familiar
+  C++/Java member modifiers such as \texttt{public}, \texttt{private},
+  and \texttt{const}, as well as \texttt{this} references and more.
+\end{itemize}
+
+Many features are intentionally excluded from Satie by design,
+including:
+
+\begin{itemize}
+\tightlist
+\item
+  Pointers
+\item
+  Type specifications
+\item
+  Exceptions
+\item
+  Pre-processor and macros
+\item
+  Variadic function parameters
+\item
+  Mutexes (not needed)
+\item
+  Mutability
+\item
+  Currying
+\item
+  Inheritance
+\item
+  Monads
+\end{itemize}
+
+There are most likely other elements that you might miss as well.
+
+\hypertarget{overall-structure}{%
+\subsection{Overall structure}\label{overall-structure}}
+
+A Satie file is identified by a \texttt{.sa} suffix and constitutes a
+Satie \emph{module} named after the basename of its filename. Why
+complicate things? A Satie file begins with a series of import
+defintions, followed by a mix of \texttt{enum}, \texttt{interface},
+\texttt{struct}, and \texttt{fn} (function) definitions, which can be
+arranged in any order.
+
+\texttt{struct}, \texttt{enum}, and \texttt{interface} definitions are
+\textbf{only} permitted at the top level of a module. However, function
+definitions can be nested within other function definitions freely.
+
+In a Satie application, exactly one of the Satie modules must define a
+single exported main function.
+
+\begin{verbatim}
+import std.stdio : writeln
+
+enum Color {
+    red
+    green
+    blue
+}
+
+interface Iterator {
+    public fn next()
+    public fn hasNext()
+}
+
+struct ColorIterator : Iterator {
+    private colors
+    private graffiti
+
+    this(colors) {
+        this(colors: colors, graffiti: "Kilroy was here")
+    }
+
+    public fn next() {
+        if (!hasNext()) {
+            false
+        } else {
+            #(this(colors: colors.rest()), colors.first())
+        }
+    }
+
+    public fn hasNext() {
+        !colors.isEmpty()
+    }
+}
+
+export fn main() {
+    ?colors = [Color.red, Color.red, Color.blue, Color.green],
+    ?iterator = struct ColorIterator(colors),
+    fn iterate(iterator) {
+        if (iterator.hasNext()) {
+            #(?iterator, ?color) = iterator.next(),
+            writeln("Color: $color"),
+            iterate(iterator)
+        }
+    },
+    iterate(iterator)
+}
+\end{verbatim}
+
+\emph{Source: \href{../grammar/color.sa}{color.sa}}
+
+That was boring but hopefully informative. A module can define as many
+top-level functions as needed, whether exported or not. However, it's
+advisable to define functions as member functions within structs to
+prevent cluttering of the global function namespace.
+
+Only functions marked with the \texttt{export} keyword can be imported
+by other modules.
+
+\texttt{struct}, \texttt{enum}, and \texttt{interface} definitions can
+be imported by other modules without any restrictions though.
+
+\texttt{\#(} ... \texttt{)} defines a tuple, and placing a question mark
+before a variable informs the compiler that the variable should be
+treated as unbound, regardless of its previous state. Omitting the
+question mark prompts the compiler to ensure that the variable is
+already bound. At runtime, a check is conducted to verify that the bound
+variable matches the rvalue.
+
+The use of the \texttt{this} constructor calling itself might initially
+seem confusing. However, this is the final step a constructor must
+perform to actually initialize its member variables. The \texttt{:}
+notation in Satie is a method to call a function with named parameters,
+and a constructor can call itself using its member variables as named
+parameters. This self-referential mechanism is an integral part of
+Satie's approach to object construction and initialization.
+
+That covers the basics, but naturally, many aspects are left unexplained
+at this stage. The rest is in the gory details.
+
+\hypertarget{building-and-executing}{%
+\subsection{Building and executing}\label{building-and-executing}}
+
+The compiler for Satie is named \texttt{sac}, and the bytecode it
+generates is executed using the \texttt{sa} runner. This process was
+outlined in the introduction chapter above and is reiterated here for
+clarity:
+
+\begin{verbatim}
+$ sac tribute.sa
+$ find .
+.
+./tribute.sa
+./build
+./build/tribute.sab
+$ sa build/tribute 100000
+0: Standing on the shoulders of giants
+1: Standing on the shoulders of giants
+2: Standing on the shoulders of giants
+3: Standing on the shoulders of giants
+...
+99999: Standing on the shoulders of giants
+\end{verbatim}
+
+That is it.
+
+A Satie application can composed of multiple modules within a directory
+hierarchy, the process remains the same. For instance, consider an
+application named \texttt{zarah} with the following directory hierarchy:
+
+\begin{verbatim}
+$ cd zarah
+$ find .
+.
+./src
+./src/main.sa
+./src/utils
+./src/utils/httpclient.sa
+./src/database
+./src/database/backup.sa
+./src/database/utils
+./src/database/tablestore.sa
+\end{verbatim}
+
+Here is how the application can be compiled and executed:
+
+\begin{verbatim}
+$ sac src/main.sa
+$ find .
+.
+
+./build
+./build/main.sab
+./build/utils
+./build/utils/httpclient.sab
+./build/database
+./build/database/utils
+./build/database/backup.sab
+./build/database/tablestore.sab
+./src
+./src/main.sa
+./src/utils
+./src/utils/httpclient.sa
+./src/database
+./src/database/backup.sa
+./src/database/utils
+./src/database/tablestore.sa
+$ sa build/main
+\end{verbatim}
+
+\begin{quote}
+{[}!NOTE{]} The \texttt{sac} compiler can be configured to use
+alternative directories for \texttt{src/} and \texttt{build/}
+\end{quote}
+
+By default, the \texttt{sac} compiler follows module dependencies
+starting from \texttt{main.sa} and automatically compiles those modules
+as well. However, it can be configured not to follow these dependencies,
+to ignore missing modules, or to skip modules that cannot be compiled.
+For more detailed information about the \texttt{sac} compiler and the
+\texttt{sa} runner, refer to their respective manual pages.
+
+\hypertarget{the-interactive-shell}{%
+\subsection{The interactive shell}\label{the-interactive-shell}}
+
+The \texttt{sa} runner is also capable of launching an interactive Satie
+shell:
+
+\begin{verbatim}
+$ sa --shell
+Satie <0.3.1> (press ctrl-c to abort)
+0> _
+\end{verbatim}
+
+In the shell Satie expressions can be evaulated and the status of an
+already executing application can be inspected, i.e a shell can be made
+to connect to an already executing \texttt{sa} runner instance. Read
+more about this and more in the \texttt{sa} runner's manual page.
+
+\hypertarget{the-gory-details}{%
+\section{The gory details}\label{the-gory-details}}
+
+\hypertarget{comments}{%
+\subsection{Comments}\label{comments}}
+
+Everything after \texttt{//} and to end of line and within
+\texttt{/*\ ...\ */} are considered comments.
+
+\hypertarget{types}{%
+\subsection{Types}\label{types}}
+
+\hypertarget{basic-types}{%
+\subsubsection{Basic types}\label{basic-types}}
+
+\texttt{bool} : A boolean value
+
+\texttt{int} : On a 64-bit machine, a signed integer values is handled
+natively if it fit within 61 bits. If it exceed this limit, it is
+transparently represented as an arbitrary-precision bignum. Similarly,
+on a 32-bit machine, an integer must fit within 29 bits, and so on,
+adapting to the architecture's capabilities.
+
+\texttt{float} : A floating-point value in Satie must conform to the
+machine's bit capacity. On a 64-bit machine, floats must fit within 61
+bits, while on a 32-bit machine, they must fit within 29 bits, and so
+on, aligning with the specific architecture.
+
+\texttt{char} : A 32-bits Unicode code point value
+
+\texttt{function} : A function reference
+
+\texttt{job} : A job reference
+
+\texttt{enum}: An enumeration value
+
+\hypertarget{composite-types}{%
+\subsubsection{Composite types}\label{composite-types}}
+
+\texttt{string} : An immutable sequence of UTF-8 encoded characters
+
+\texttt{tuple} : A fixed sized sequence of values of any type
+
+\texttt{list}: A list of values of any type
+
+\texttt{map}: A mapping between a key of any type and a value of any
+type
+
+\texttt{struct} : A unit of encapsulation for member variables and
+member functions
+
+\texttt{buf} : A buffer to efficiently manipulate large amount of
+characters
+
+\hypertarget{type-management}{%
+\subsubsection{Type management}\label{type-management}}
+
+All values can be type checked in run-time using the functions
+\texttt{isBool}, \texttt{isInt}, \texttt{isFloat}, \texttt{isChar},
+\texttt{isFunction}, \texttt{isJob}, \texttt{isEnum}, \texttt{isString},
+\texttt{isList}, \texttt{isMap}, \texttt{isStruct}, \texttt{isBuf} and
+\texttt{typeof}.
+
+\begin{verbatim}
+?a = 3.14,
+a.isInt(),      // false
+a.isFloat(),    // true
+a.typeof()      // "float"
+\end{verbatim}
+
+Operators that operate on \texttt{int} and \texttt{float} values require
+the operands to be of the same type. No implicit numeric conversion is
+performed. However, a cast operator is available to facilitate casting
+between int and float values.
+
+\begin{verbatim}
+?a = 3,
+?b = 93326215443944152681,
+?c = 3.0,
+?d = b / cast(int)c + a,     // 31108738481314713603
+d + c                        // Compiler error!
+\end{verbatim}
+
+The \texttt{inspect} function offers more run-time type information.
+
+\begin{verbatim}
+enum Foo {          //  Defined in bar.sa
+  a = 3.14
+  b
+}
+
+?c = Foo.a,
+?d = [1, "foo"],
+c.inspect(),        // [ "type" : "enum",
+                    //   "name": "a",
+                    //   "value": 3.14,
+                    //   "owner" : #("bar", "Foo") ]
+d.inspect()         // [ "type" : "list", "length": 2 ]
+\end{verbatim}
+
+\begin{quote}
+{[}!NOTE{]} In the above example the value attached to the enumeration
+constant would typically be accessed using \texttt{c.value}, and the
+list length would be referred to as \texttt{d.length}.
+\end{quote}
+
+All values can be converted to string representation using the
+\texttt{toString} function.
+
+\begin{verbatim}
+?a = 3.14,
+?b = [Foo.a : 42, "bar": #(fn () { x + x}, [1, 2,3])],
+a.toString(),       // "3.14"
+b.toString()        // "[Foo.a : 42, "bar": fn/0]"
+\end{verbatim}
+
+\hypertarget{identifiers}{%
+\subsection{Identifiers}\label{identifiers}}
+
+An identifier is a case-sensitive sequence of characters that begins
+with an ASCII letter or an underscore, followed by any number of ASCII
+letters, underscores, or digits. This is denoted by the regular
+expression \texttt{\^{}{[}{[}:alpha:{]}\_{]}{[}{[}:alnum:{]}\_{]}*\$}.
+Identifiers are used for various elements such as keywords, variables,
+function names, struct names, and enum names.
+
+\begin{quote}
+{[}!NOTE{]} By design, only strings in Satie may contain Unicode
+characters. However, this restriction could be reconsidered and
+potentially lifted if compelling reasons arise.
+\end{quote}
+
+\hypertarget{keywords}{%
+\subsubsection{Keywords}\label{keywords}}
+
+Satie reserves 24 special identifiers that cannot be used in user code.
+These reserved identifiers are exclusive to the language's internal
+syntax and functionality.
+
+\begin{verbatim}
+import
+true
+false
+enum
+in
+fn
+export
+if
+else
+switch
+default
+struct
+interface
+public
+private
+readonly
+const
+this
+spawn
+monitor
+link
+receive
+timeout
+self
+\end{verbatim}
+
+\hypertarget{literals}{%
+\subsection{Literals}\label{literals}}
+
+\hypertarget{boolean-literal}{%
+\subsubsection{Boolean literal}\label{boolean-literal}}
+
+\texttt{true} or \texttt{false}
+
+\hypertarget{integral-literal}{%
+\subsubsection{Integral literal}\label{integral-literal}}
+
+An integral literal can be represented as decimal, octal and hexadecimal
+format
+
+\begin{verbatim}
+4,             // Decimal format
+017,           // Octal format
+0xffff,        // Hexadecimal format
+0b101010100    // Binary format
+\end{verbatim}
+
+\hypertarget{floating-point-literal}{%
+\subsubsection{Floating-point literal}\label{floating-point-literal}}
+
+A floating point literal represents a real number that includes a
+fractional part. Its notation is similar to that used in other languages
+like C or Java.
+
+\begin{verbatim}
+1.0,
+.666e2
+\end{verbatim}
+
+\hypertarget{character-literal}{%
+\subsubsection{Character literal}\label{character-literal}}
+
+A character literal is a Unicode code point value enclosed within single
+quotation marks. Internally, it consists of foure bytes.
+
+\begin{verbatim}
+'A',
+'ω',
+'\u03c9'    // ω
+\end{verbatim}
+
+\hypertarget{function-literal}{%
+\subsubsection{Function literal}\label{function-literal}}
+
+A function literal follows the same syntax as regular
+\href{function}{function definitions}, but without a function name.
+
+\begin{verbatim}
+?sum = fn (x, y) { x + y },
+sum(1, 2)                   // 3
+\end{verbatim}
+
+\hypertarget{job-literal}{%
+\subsubsection{Job literal}\label{job-literal}}
+
+Job literals are opaque.
+
+\hypertarget{enumeration-literal}{%
+\subsubsection{Enumeration literal}\label{enumeration-literal}}
+
+An enumeration is a named constant, and it's always defined within a
+\href{enumeration}{enumeration definition}. An enumeration literal is
+represented as a dot-separated sequence, consisting of the enumeration
+name followed by the constant name.
+
+\begin{verbatim}
+enum Color {
+    red
+    green
+    blue
+}
+
+Color.red                   // An enumeration literal
+\end{verbatim}
+
+\hypertarget{string-literal}{%
+\subsubsection{String literal}\label{string-literal}}
+
+A string literal is represented as an immutable UTF-8 encoded sequence
+of Unicode characters, enclosed within double quotation marks. Escape
+sequences are interpreted in these double quoted strings. Additionally,
+raw strings, which are also enclosed within double quotation marks but
+prefixed with the letter \texttt{r}. In raw strings, escape sequences
+have no meaning, and all characters are parsed verbatim.
+
+\begin{verbatim}
+?a = "fooω",
+a[3],               // 'ω'
+?b = r"foo\nbar"    // b.length == 8
+\end{verbatim}
+
+\hypertarget{tuple-literal}{%
+\subsubsection{Tuple literal}\label{tuple-literal}}
+
+A tuple literal is represented as comma separated, fixed size sequence
+of values of any type. This sequence is enclosed between a leading
+\texttt{\#(} and a trailing \texttt{)}.
+
+\texttt{\#("foo",\ 3.14,\ \#("bar",\ fn\ (x)\ \{\ x\ +\ 1\}))}
+
+\hypertarget{list-literal}{%
+\subsubsection{List literal}\label{list-literal}}
+
+A list literal is represented as comma-separated sequence of values,
+which can be if any type enclosed within square brackets.
+
+\begin{verbatim}
+?a = [3.14, "foo", 1816381],
+?b = a[1 = 42, 2 = "bar"]      // b == [3.14, 42, "bar"]
+\end{verbatim}
+
+\begin{quote}
+{[}!NOTE{]} Only existing list entries can be updated this way
+\end{quote}
+
+\hypertarget{map-literal}{%
+\subsubsection{Map literal}\label{map-literal}}
+
+A map literal is represented as comma-separated sequence of key-value
+pairs, where the key an value can be of any type and are separated by a
+\texttt{:} character. Thus sequence is enclosed within square brackets.
+
+\begin{verbatim}
+?a = ["foo" : 12, 3.14 : 981237198192378 ],
+a[3.14: 4711, 2 : 4]                         // ["foo" : 12, 3.14: 4711, 2 : 4],
+\end{verbatim}
+
+\hypertarget{struct-literal}{%
+\subsubsection{Struct literal}\label{struct-literal}}
+
+A struct literal is represented as a semicolon-separated sequence of
+member-value pairs. Each pair consists of a member (which is an
+identifier) and a a value of any type, separated by a \texttt{=}
+character. This sequence is enclosed within square brackets.
+
+\begin{verbatim}
+struct Foo P {
+    public foo = 4711
+    public bar = "foo"
+    public zonk = #(42, 3.14)
+}
+
+?a = struct Foo(),
+[foo ; ?b, bar ; ?c] = a,
+b,                          // 4711
+c                           // "foo"
+\end{verbatim}
+
+\hypertarget{expressions}{%
+\subsection{Expressions}\label{expressions}}
+
+Everything is an expression in Satie except for the top level
+definitions, i.e. \texttt{import}, \texttt{struct}, \texttt{interface},
+and \texttt{enum}.
+
+Out of all expressions the \emph{bind} expression, and its \texttt{=}
+operator, stands out for its ability to bind variables to values. There
+is no notion of variable assignment in Satie but instead unbound
+variables are bound to values. An unbound variable starts with a
+\texttt{?} character and a naked variable (without a \texttt{?}
+character) is required to be bind before use.
+
+\begin{verbatim}
+?a = 42,
+a = 42,
+a = "foo"     // Compiler or runtime error!
+\end{verbatim}
+
+In the above example \texttt{a\ =\ "foo"} leads to a compile time error
+at best or at least a catastrophic runtime error, i.e. \texttt{a} is
+\texttt{42} not \texttt{"foo"}. This kind of mismatch is most often used
+as an assertment or it may be a software bug. A catastrophic runtime
+error stops the execution of \emph{job} in which the mismatch occured.
+Read more about concurrency and jobs in the "Concurrency" chapter.
+
+The following code snippet is rejected by the compiler if variable
+\texttt{a} is unbound:
+
+\texttt{a\ =\ 42}
+
+The pattern matching performed by bind expressions can be useed to
+deconstruct composite values into its primitive values:
+
+\begin{verbatim}
+fn foo(x) {
+  #(4711, x + x, "bar")
+},
+?a = 1,
+#(a, ?b, 1) = #(1, 2, 1),     // b == 2
+#(?a, b, ?c) = foo(1),        // a == 4711 && c == "bar"
+#(a, a, a) = c                // A catastrophic mismatch!
+\end{verbatim}
+
+\begin{quote}
+{[}!NOTE{]} Above we used expressions not yet explained but it suffices
+to say that \#(1, 2, 1) is a fixed size tuple.
+\end{quote}
+
+Pretty nifty.
+
+The \texttt{switch} and \texttt{receive} expressions also use pattern
+matching able to deconstruct and select. Read more about them below.
+
+Furthermore, the \texttt{=} operator is only allowed as a standalone
+expression and cannot be used deep within expressions. For your sanity's
+sake. Don't kill me. 😇
+
+\begin{verbatim}
+main() {
+    ?a = 42,
+    a + (?c = 42 + a) + a    // Compiler error!
+}
+\end{verbatim}
+
+\hypertarget{control-flow-expressions}{%
+\subsubsection{Control flow
+expressions}\label{control-flow-expressions}}
+
+\hypertarget{block-expression-----a-b-c--}{%
+\paragraph{\texorpdfstring{Block expression -\/- \texttt{\{} a, b, c,
+...
+\texttt{\}}}{Block expression -\/- \{ a, b, c, ... \}}}\label{block-expression-----a-b-c--}}
+
+A block expression is a comma-separated sequence of expressions enclosed
+in curly braces. Expressions are evaluated in a sequence and introduces
+a lexical scope. An variable bound in a scope is visible to all the
+following expressions in the scope. The variable is not visible outside
+of the scope and it shadows an identifier with the same name introduced
+outside of the scope. The value of the last expression in the sequence
+is returned from the block.
+
+\begin{verbatim}
+main() {                  // A function block starts here
+    ?a = 42,
+    ?d = {                // Local block starts here
+        ?b = a + 1,
+        ?a = b
+     }
+    // b is not defined
+    // a = 42
+    // d = 43
+}
+\end{verbatim}
+
+\hypertarget{if-expression----if-elif-else}{%
+\paragraph{\texorpdfstring{If expression -\/- \texttt{if},
+\texttt{elif},
+\texttt{else}}{If expression -\/- if, elif, else}}\label{if-expression----if-elif-else}}
+
+No surprises here.
+
+\begin{verbatim}
+?a = 4,
+?b = if a == 4 {
+         42
+     } elif {
+         c,
+         d
+     },
+b         // 42
+\end{verbatim}
+
+\hypertarget{switch-expression----switch-case-default}{%
+\paragraph{\texorpdfstring{Switch expression -\/- \texttt{switch},
+\texttt{case},
+\texttt{default}}{Switch expression -\/- switch, case, default}}\label{switch-expression----switch-case-default}}
+
+A switch expression uses pattern matching to dispatch between its case
+paths but also to do deconstruction as introduced in the
+\protect\hyperlink{expressions}{Expressions} chapter.
+
+In the first example things are kept simple:
+
+\begin{verbatim}
+?a = 42,
+switch a {
+    case "foo" {
+        "No!"
+    }
+    case 42 {
+        "Yes!"
+    }
+}
+\end{verbatim}
+
+In the second example a tuple is matched
+
+\begin{verbatim}
+?a = #("bar", 4711),
+switch a {
+    case "foo" {
+        "Darn!"
+    }
+    case #("bar", ?c) {
+        c
+    }
+    default {
+        "No one picks me!"
+    }
+}
+\end{verbatim}
+
+No more no less.
+
+\begin{quote}
+{[}!NOTE{]} There is no fall through mechanism and the \texttt{default}
+keyword is optional. Switch fall through must be next most expensive
+mistake not counting Hoare's null pointer. YMMV.
+\end{quote}
+
+\hypertarget{value-expressions}{%
+\subsubsection{Value expressions}\label{value-expressions}}
+
+\hypertarget{enumeration}{%
+\paragraph{Enumeration}\label{enumeration}}
+
+Enumeration introduces named constans and can enhance code readability
+and maintainability. An named constant can have an optional constant
+value, of any type, attached to it.
+
+\begin{verbatim}
+enum Color {
+    red = #(255, 0, 0)
+    green = #(0, 255, 0)
+    blue = #(0, 0, 255)
+}
+
+Foo.red,              // An enumeration literal
+Foo.red.value         // #(255, 0, 0)
+\end{verbatim}
+
+\hypertarget{function}{%
+\paragraph{Function}\label{function}}
+
+\texttt{foo(a,\ b)} invokes the function \texttt{foo} with a comma
+separated list of expression arguments. Arguments are evaluated left to
+right before the function is invoked and \texttt{foo} may refer to a
+named function definition or to a variable bound to a function literal.
+
+Functions can be overloaded and function parameters have default values:
+
+\begin{verbatim}
+fn foo(a, b, c = 0) {
+  c;
+  d;
+}
+
+fn foo(a = 1) {
+  a;
+}
+\end{verbatim}
+
+Default values can only be given to trailing parameters and these
+parameters can be omitted in function calls. A function call can either
+be called with positional parameters \textbf{only} or with named
+parameters \textbf{only}. The following function calls are equivalent:
+
+\begin{verbatim}
+foo(2, 6),
+foo(2, 6, 0),
+foo(a: 2, b: 6),
+foo(b: 6, a: 2)
+\end{verbatim}
+
+Named functions can be defined within functions:
+
+\begin{verbatim}
+fn foo(a, b, c = 0) {
+    fn bar(d) {
+        d
+    },
+    bar(a)
+}
+\end{verbatim}
+
+Functions are first class citizens:
+
+\begin{verbatim}
+import stdio.lists
+
+export fn main() {
+    ?l = [1, 3, 2],
+    ?f = fn (x, y) { x > y },
+    lists.sort(l, f)
+}
+\end{verbatim}
+
+\hypertarget{string}{%
+\paragraph{String}\label{string}}
+
+A string is an immutable sequence of UTF-8 encoded characters. String
+interpolation is supported as well as random access to individual
+charcters in a string even though the string is UTF-8 encoded.
+
+\begin{verbatim}
+?a = 3.0,
+?b = "foo $a is not ${a + 1.0}"  // b == "foo 3.0 is not 4.0" (interpolation)
+?a = "foo",
+?b = "bar",
+?c = a ~ b,                     // c == "foobar"
+?c = a ~ '\u03c9'               // c == "fooω"
+c[3] == 'ω'                     // true
+r"foo\nbar"                     // A raw string
+r.length == 9                   // true
+\end{verbatim}
+
+\hypertarget{tuple-----a-b-c--}{%
+\paragraph{\texorpdfstring{Tuple -\/- \texttt{\#(} a, b, c, ...
+\texttt{)}}{Tuple -\/- \#( a, b, c, ... )}}\label{tuple-----a-b-c--}}
+
+A no-brainer.
+
+\begin{verbatim}
+?a = 42,
+?b = #(4711, #(a, [1, 2])),
+#(_, #(?a, [_, c])) = b,
+a,                           // 4711
+c                            // 2
+\end{verbatim}
+
+\hypertarget{list-----a-b-c--}{%
+\paragraph{\texorpdfstring{List -\/- \texttt{{[}} a, b, c, ...
+\texttt{{]}}}{List -\/- {[} a, b, c, ... {]}}}\label{list-----a-b-c--}}
+
+A list contains elements of any type and list slicing makes it easy to
+work with portions of a list. \texttt{a{[}i\ ..\ j{]}} returns a list
+slice starting at index \texttt{i} and ending with index
+\texttt{j\ -\ 1}. \texttt{i} and \texttt{j} can be any valid expression
+and the keyword \texttt{\$} is the length of the list.
+
+\texttt{a{[}i{]}} returns the i:th element.
+
+\texttt{a{[}2\ =\ "foo"{]}} evaluates to a new list with element 2 set
+to "foo".
+
+\begin{verbatim}
+?a = [],                 // An empty list
+?a = [1, 2, 3, 4, 5],    // A rebind of variable a
+a.first(),               // 1
+a.rest(),                // [2, 3, 4, 5]
+?b = a[1 .. 3],          // b == [2, 3, 4]
+b.length == 3,           // true
+?c = a[2 .. $ - 1],      // c == [3, 4, 5]
+?d = b ~ c,              // d == [2, 3, 4, 3, 4, 5]
+d[1 = 42],               // [2, 42, 4, 3, 4, 5]
+a[2 = 23],               // [1, 2, 23, 4, 5],
+?b = 4711 ~ b,           // b == [4711, 2, 3, 4]
+?f = a[$ / 2 .. $ - 1]   // f == [3, 4, 5],
+f.delete(2),             // [3, 4]
+?g = a,
+g == a                   // true
+\end{verbatim}
+
+\hypertarget{map-----a--b--}{%
+\paragraph{\texorpdfstring{Map -\/- \texttt{{[}} a \texttt{:} b, ...
+\texttt{{]}}}{Map -\/- {[} a : b, ... {]}}}\label{map-----a--b--}}
+
+A map can be seen as a function mapping between keys of any type and
+values of any type.
+
+\begin{verbatim}
+?a = [:],                      // En empty map
+?a = ["a": 1.0, "b": "foo"],
+a["a": "bar"],                 // ["a": "bar", "b": "foo"],
+a[42 : 4711],                  // ["a": "bar", "b": "foo", 42: 4711],
+?c = a ~ ["pi": 3.14]          // c == [ "a" : 1.0, "b" : "foo", "pi" : 3.14 ]
+c.length == 3,                 // true
+a.delete("a"),                 // [ "b" : "foo" ]
+a.keys,                        // ["a", b] || ["b", "a"]
+a["a"],                        // 1.0
+a.values                       // [1.0, "foo"] || ["foo", 1.0]
+?d = ["a": 1.0, "b": "foo"],   //
+a == d                         // true
+\end{verbatim}
+
+\hypertarget{encapsulation----struct}{%
+\paragraph{\texorpdfstring{Encapsulation -\/-
+\texttt{struct}}{Encapsulation -\/- struct}}\label{encapsulation----struct}}
+
+A struct in Satie is more that a struct in C. It is immutable and
+functional in its nature and it a unit of encapsulation for member
+variables and functions.
+
+Lets dive right in:
+
+\begin{verbatim}
+struct Foo {
+    public a = 1
+    private b = 2
+    readonly c = 3
+    public const d = 4
+    private const e = 5
+
+    this(a, g) {          // Optional constructor
+        this(a: a, b: g)
+    }
+
+    ~this() {             // Optional destructor
+        // Do nothing for now
+    }
+
+    public fn foo(a) {
+        this.a + b;
+    }
+
+    private fn bar(b) {
+        b + d
+    }
+}
+\end{verbatim}
+
+A struct Foo can be instantiated like this:
+
+\begin{verbatim}
+?a = struct Foo(2, 1)
+\end{verbatim}
+
+A struct may choose to implement mandatory interfaces. An interface
+defines which member variables and functions that must be provided by
+the struct. An interface definition looks like this:
+
+\begin{verbatim}
+interface Bar {
+    public zippo
+    public fn bonk()
+}
+\end{verbatim}
+
+A struct which decides to implement this interface looks looks like
+this:
+
+\begin{verbatim}
+struct Foo : Bar {
+    public zippo = 8
+    public fn bonk() {
+        // Delve into the nature of God
+    }
+    ...
+}
+\end{verbatim}
+
+A struct can implement several interfaces using a comma separated
+sequence of interfaces:
+
+\begin{verbatim}
+struct Foo : Bar, Bonk {
+    ...
+}
+\end{verbatim}
+
+If you need to define a bunch of constants this is how it is done:
+
+\begin{verbatim}
+struct Math {
+    public const PI = 3.1;
+    public const SQUARE2 = math.sqrt(2);
+}
+\end{verbatim}
+
+And yes, this struct has to be instantiated somewhere. No static.
+
+\hypertarget{buffer----buf}{%
+\paragraph{\texorpdfstring{Buf(fer) -\/-
+\texttt{buf}}{Buf(fer) -\/- buf}}\label{buffer----buf}}
+
+A buffer is an opaque persistent datatype which can be used to
+efficiently manipulate large amount characters. It fits well in a
+programming language intending make it easy to implement programming
+editors (and more).
+
+\begin{quote}
+{[}!NOTE{]} This part is very much under consideration nothing is set in
+stone
+\end{quote}
+
+API overview:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Creation and Initialization
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{create()}: Initializes an empty buf.
+  \item
+    \texttt{fromString(string)}: Creates a buf from a given string.
+  \item
+    \texttt{fromFile(filePath,\ lazyLoad)}: Initializes a buf from a
+    file, with optional lazy loading for large files.
+  \end{itemize}
+\item
+  Reading and Access
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{charAt(index)}: Returns the character at a specified index.
+  \item
+    \texttt{substring(startIndex,\ endIndex)}: Retrieves a substring
+    from the buffer.
+  \item
+    \texttt{length()}: Provides the length of the text in the buffer.
+  \end{itemize}
+\item
+  Text Modification
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{insert(index,\ string)}: Inserts a string at the specified
+    index.
+  \item
+    \texttt{delete(startIndex,\ endIndex)}: Deletes text between given
+    indices.
+  \item
+    \texttt{replace(startIndex,\ endIndex,\ string)}: Replaces a segment
+    of text with a new string.
+  \end{itemize}
+\item
+  Text Selection and Clipboard Operations
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{select(startIndex,\ endIndex)}: Selects text between given
+    indices.
+  \item
+    \texttt{cut(startIndex,\ endIndex)}: Cuts (removes and copies) the
+    selected text.
+  \item
+    \texttt{copy(startIndex,\ endIndex)}: Copies the selected text.
+  \item
+    \texttt{paste(index,\ string)}: Pastes the copied text at the
+    specified index.
+  \end{itemize}
+\item
+  Search and Navigation
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{indexOf(substring,\ startIndex)}: Finds the index of the
+    first occurrence of a substring.
+  \item
+    \texttt{lastIndexOf(substring,\ startIndex)}: Locates the last
+    occurrence of a substring.
+  \item
+    \texttt{moveCursorTo(index)}: Moves the cursor to a specified index
+    for navigation purposes.
+  \end{itemize}
+\item
+  Text Transformation
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{toUpperCase()}: Converts all text in the buffer to
+    uppercase.
+  \item
+    \texttt{toLowerCase()}: Converts all text in the buffer to
+    lowercase.
+  \item
+    \texttt{map(function)}: Applies a specified function to each
+    character in the buffer.
+  \end{itemize}
+\item
+  Undo Mechanism
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{undo()}: Reverts the buffer to its previous state, utilizing
+    a history of operations or states.
+  \end{itemize}
+\item
+  Concurrency
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{asyncInsert(index,\ string)}: Asynchronously inserts a
+    string at a specified index.
+  \item
+    \texttt{asyncDelete(startIndex,\ endIndex)}: Asynchronously deletes
+    text between given indices.
+  \item
+    \texttt{asyncReplace(startIndex,\ endIndex,\ string)}:
+    Asynchronously replaces text in a specified range.
+  \end{itemize}
+\item
+  Utility Functions
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{toString()}: Converts the buf to a standard string for
+    output or display.
+  \item
+    \texttt{serialize()}: Serializes the buf for storage or
+    transmission.
+  \item
+    \texttt{deserialize(serializedData)}: Constructs a buf from
+    serialized data.
+  \end{itemize}
+\item
+  Advanced Editing
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{batch(operations)}: Performs multiple operations in a single
+    step for efficiency.
+  \end{itemize}
+\item
+  File Handling and Lazy Loading
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{loadMore()}: Incrementally loads more content from the file
+    if lazy loading is enabled.
+  \end{itemize}
+\item
+  Pending additions
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \texttt{isEmpty()}: Checks if the buffer is empty.
+  \item
+    \texttt{trim()}: Removes whitespace from the beginning and end of
+    the text.
+  \item
+    \texttt{split(separator)}: Splits the buffer into a list of bufs
+    based on a separator.
+  \item
+    \texttt{merge(buffers)}: Combines multiple buf instances into one.
+  \end{itemize}
+\end{enumerate}
+
+Design Considerations:
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{Immutability}: Each operation creates a new buf instance,
+  preserving the original and adhering to the principles of functional
+  programming.
+\item
+  \emph{Efficiency and Scalability}: The design is optimized for common
+  text editing operations, with considerations for handling large files
+  through lazy loading.
+\item
+  \emph{Clipboard Operations}: The addition of select, cut, copy, and
+  paste functionalities provides essential editing capabilities.
+\item
+  \emph{Extensibility}: The design allows for future extensions, such as
+  language-specific features or plugins.
+\item
+  \emph{Undo Mechanism}: The undo functionality is natural and integral,
+  implemented via a history of states or operations.
+\item
+  \emph{Concurrency Support}: Concurrency support is vital for
+  collaborative editing scenarios, requiring thread-safe operations and
+  potential conflict resolution strategies.
+\item
+  \emph{Lazy Loading}: This feature enables efficient handling of large
+  files, loading content as needed rather than all at once.
+\end{itemize}
+
+With these functionalities and considerations, the \texttt{buf} datatype
+becomes a comprehensive and robust tool for building a programming
+editor, offering a wide range of functionalities required for text
+editing and manipulation in a functional programming environment.
+
+\hypertarget{concurrency}{%
+\section{Concurrency}\label{concurrency}}
+
+Any function can be spawned to run as a concurrent job with the
+\texttt{spawn} keyword:
+
+\begin{verbatim}
+fn sum(l) { l.first() + sum(l.rest() },
+?a = [1, 2, 3],
+job = spawn sum(a)
+\end{verbatim}
+
+\texttt{spawn} returns a job reference which can be used to send
+messages to the job using the \texttt{\textless{}\textbar{}} operator:
+
+\texttt{job\ \textless{}\textbar{}\ }\#(timeout, 1000)`
+
+A message sent to a job ends up in its mailbox and can be retrieved with
+the \texttt{receive} keyword:
+
+\begin{verbatim}
+receive {
+    case #(?job, ?result) {
+        stdio.writeln("Job $job sent result $result")
+        result
+    }
+    timeout 1000 {
+        42
+    }
+}
+\end{verbatim}
+
+(the \texttt{timeout} keyword is optional)
+
+The mailbox is unbounded in size but can be restricted using the
+\texttt{setMaxMailboxSize} function provided by the
+\texttt{std.concurrency} library:
+
+\texttt{setMaxMailboxSize(job,\ 64,\ OnCrowding.block)}
+
+Above a job's mailbox is restricted to contain at most 64 messages, and
+if a sending job hits this threshold it is automatically blocked in
+\texttt{\textless{}\textbar{}} waiting for the mailbox to shrink.
+
+\texttt{OnCrowding.ignore} can be used instead \texttt{OnCrowding.block}
+to specify that overflowing messages should be ignored. The
+\texttt{OnCrowding} enum can alternatively be replaced with a function
+that returns \texttt{false} if overflowing messages should be ignored or
+\texttt{true} if the sending job should be blocked in
+\texttt{\textless{}\textbar{}}.
+
+The last concurrency keyword is \texttt{self} and it refers to the job
+which user code currently runs in.
+
+The \texttt{std.concurrency} module also provides these functions:
+
+\texttt{monitor(job)} : Send a message
+\texttt{\#(JobMonitor.died,\ job,\ reason)} to me if a job dies
+
+\texttt{link(job)} : Send a message
+\texttt{\#(JobMonitor.died,\ job,\ reason)} to me if a job dies. Do the
+same to the linked job if I die.
+
+The \texttt{spawn} expression may also take an extra \texttt{monitor} or
+\texttt{link} specifier to spawn jobs and create a monitor or link at
+tyhe same time. (See ackermann example below).
+
+\texttt{kill(job)}: Just like that
+
+\hypertarget{a-concurrency-example}{%
+\subsection{A concurrency example}\label{a-concurrency-example}}
+
+A small concurrent example may clear things up. Below jobs are spawned
+which compute Ackermann function values for the parameters
+\texttt{m\ =\ 3,\ n\ =\ 1\ ..\ 10}. The \texttt{main} function uses an
+Ackermann singleton to start 10 jobs and then waits for all jobs to send
+a result back as a message.
+
+\begin{verbatim}
+import std.jobs : OnCrowding, Job
+import std.stdio
+import std.lists
+
+export fn main() {
+  ?ackermann = struct Ackermann(),
+  ?ackermann = ackermann.startJobs(3, 10),
+  ackermann.waitForJobs()
+}
+
+struct Ackermann {
+    private jobs = []
+
+    public fn startJobs(m, n, i = 0, startedJobs = []) {
+        if i < n {
+            fn computeAckermann(parentJob, m, n) {
+                ?result = ackermann(m, n),
+                parentJob <| #(self, m, n, result)
+            },
+            ?job = spawn monitor computeAckermann(self, m, i),
+            job.setMaxMailboxSize(job, 4, OnCrowding.block),
+            startJobs(m, n, i + 1, job ~ startedJobs)
+        } else {
+            this(jobs: startedJobs)
+        }
+    }
+
+    public fn waitForJobs() {
+        fn waitForJobs(jobs) {
+            if jobs.length > 0 {
+                receive {
+                    case #(?job, ?m, ?n, ?result) {
+                        stdio.writeln("ackermann($m, $n) = $result"),
+                        waitForJobs(jobs.delete(job))
+                    }
+                    case #(Job.died, ?job, ?reason) {
+                        stdio.writeln(
+                            "Oh no! Compute job $job died: $reason")
+                    }
+                }
+            } else {
+                this(jobs: [])
+            }
+        },
+        waitForJobs(jobs)
+    }
+
+    private fn ackermann(m, n) {
+        if m == 0 {
+            n + 1
+        } elif n == 0 {
+            ackermann(m - 1, 1)
+        } else {
+            ackermann(m - 1, ackermann(m, n - 1))
+        }
+    }
+}
+\end{verbatim}
+
+\emph{Source: \href{../grammar/ackermann.sa}{ackermann.sa}}
+
+\hypertarget{directory-hierarchy-of-modules}{%
+\section{Directory hierarchy of
+modules}\label{directory-hierarchy-of-modules}}
+
+A directory hierarchy of modules is a nice way to organize code and in
+the example below a module uses the \texttt{foreach} and
+\texttt{\ writeln} functions from the standard libray:
+
+\begin{verbatim}
+import std.stdio
+import std.lists
+
+export fn main(args) {
+  lists.foreach(fn (arg) { stdio.writeln("$arg") }, args)
+}
+\end{verbatim}
+
+The name of the modules in the standard library must be specified when
+in the call to \texttt{foreach} and \texttt{writeln}, i.e. nothing is
+automatically imported into the moduole namespace.
+
+It is possible to import functions and enumerations into a module
+namespace:
+
+\begin{verbatim}
+import std.stdio : writeln
+import std.lists : foreach
+
+export fn main(args) {
+  foreach(fn (arg) { writeln("$arg") }, args)
+}
+\end{verbatim}
+
+In the \href{building-and-executing}{Building and Executing} above the
+\emph{zarah} project was introduced and it had the following directry
+hierarchy of modules:
+
+\begin{verbatim}
+$ cd zarah
+$ find .
+.
+./src
+./src/main.sa
+./src/utils
+./src/utils/httpclient.sa
+./src/database
+./src/database/backup.sa
+./src/database/utils
+./src/database/tablestore.sa
+\end{verbatim}
+
+Note the modules \texttt{std.lists} and \texttt{database.utils.lists}
+has the same module name and to resolve this fact an import aliasing
+must be done:
+
+\begin{verbatim}
+import std.stdio : writeln
+import std.lists
+import dlists = database.utils.lists
+import database
+
+export fn main(args) {
+  lists.foreach(fn (arg) { writeln("$arg") }, args)  // as before
+  dlists.removeReference(fn (staleReference) {
+      database.removeReference(staleReference)
+  }, database.getStaleReferences())
+}
+\end{verbatim}
+
+That is it.
+
+\hypertarget{appendix-a-operator-precedence}{%
+\section{Appendix A: Operator
+precedence}\label{appendix-a-operator-precedence}}
+
+Operators in decreasing order of precedence:
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule
+Expression & Description \\
+\midrule
+\endhead
+a.b & Field access \\
+a(b, c) & Function call \\
+a{[}i{]} & List indexing \\
+a{[}b .. c{]} & List slicing (see "List Literal" above) \\
+a{[}a = b{]} & List setter (see "List Literal" above) \\
+a{[}a : b{]} & Map setter (see "Map Literal" above) \\
+a{[}a ; b{]} & Struct setter (see "Struct Literal") \\
+-a & \\
++a & \\
+!a & \\
+\textasciitilde a & Bitwise complement \\
+\textless\textbar{} & Send message \\
+cast(t)a & Cast expression \\
+a \^{}\^{} b & Exponentiation \\
+a * b & \\
+a / b & \\
+a \% b & Modulus \\
+a + b & \\
+a - b & \\
+a \textasciitilde{} b & Concatenation \\
+a \textless\textless{} b & \\
+a \textgreater\textgreater{} b & \\
+a \textgreater\textgreater\textgreater{} b & Unsigned right shift \\
+a in b & Map membership \\
+a == b & Equality \\
+a \textless{} b & \\
+a \textless= b & \\
+a \textgreater{} b & \\
+a \textgreater= b & \\
+a \textbar{} b & \\
+a \^{} b & Bitwise xor \\
+a \& b & \\
+a \&\& b & Logical and \\
+a \textbar\textbar{} b & \\
+a = b & \\
+\bottomrule
+\end{longtable}
+
+\hypertarget{appendix-b-peg-grammar}{%
+\section{Appendix B: PEG grammar}\label{appendix-b-peg-grammar}}
+
+\begin{verbatim}
+#
+# Top level structure
+#
+
+Program <- _ (Imports __)? TopLevelDefs EOF
+TopLevelDefs <- TopLevelDef (__ TopLevelDef)*
+TopLevelDef <- StructDef / InterfaceDef / EnumDef / FunctionDef
+
+Imports <- Import (__ Import)*
+Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
+ModuleAlias <- Identifier
+ModulePath <- Identifier ("." Identifier)* (_ ":" _ ImportedEntities)?
+ImportedEntities <- Identifier (_ "," _ Identifier)*
+
+#
+# Expression
+#
+
+Expr <- BindExpr
+BindExpr <- (Literal / UnboundVariable / Identifier) (_ "=" _ Expr) / SendExpr
+SendExpr <- ("self" /
+             ControlFlowExpr /
+             SpawnExpr /
+             Identifier /
+             "(" _ Expr _ ")") (_ "<|" _ Expr) / LogicalOrExpr
+LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
+LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
+BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
+BitwiseXorExpr <- BitwiseOrExpr (_ "^" _ BitwiseOrExpr)*
+BitwiseOrExpr <- LargerThanEqualExpr (_ "|" _ LargerThanEqualExpr)*
+LargerThanEqualExpr <- LargerThanExpr (_ ">=" _ LargerThanExpr)*
+LargerThanExpr <- LessThanEqualExpr (_ ">" _ LessThanEqualExpr)*
+LessThanEqualExpr <- LessThanExpr (_ "<=" _ LessThanExpr)*
+LessThanExpr <- IsNotExpr (_ "<" _ IsNotExpr)*
+IsNotExpr <- IsExpr (_ "!is" _ IsExpr)*
+IsExpr <- NotEqualExpr (_ "is" _ NotEqualExpr)*
+NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
+EqualExpr <- InExpr (_ "==" _ InExpr)*
+InExpr <- UnsignedRightShiftExpr (_ "in" _ UnsignedRightShiftExpr)*
+UnsignedRightShiftExpr  <- RightShiftExpr (_ ">>>" _ RightShiftExpr)*
+RightShiftExpr <- LeftShiftExpr (_ ">>" _ LeftShiftExpr)*
+LeftShiftExpr <- ConcatenateExpr (_ "<<" _ ConcatenateExpr)*
+ConcatenateExpr <- MinusExpr (_ "~" _ MinusExpr)*
+MinusExpr <- PlusExpr (_ "-" _ PlusExpr)*
+PlusExpr <- ModulusExpr (_ "+" _ ModulusExpr)*
+ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
+DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
+MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
+ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
+CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ SendMessageExpr /
+            SendMessageExpr
+SendMessageExpr <- BitwiseComplementExpr (_ "*" _ BitwiseComplementExpr)*
+BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
+NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
+UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
+UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
+PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
+                              "(" _ Args? _ ")" /
+                              "[" _ Expr _ "]")*
+
+PrimaryExpr <- "this" /
+               "self" /
+               "$" /
+               Literal /
+               ControlFlowExpr /
+               SpawnExpr /
+               StructExpr /
+               UnboundVariable /
+               Identifier /
+               "(" _ Expr _ ")"
+
+Literal <- BooleanLiteral /
+           NumberLiteral /
+           CharacterLiteral /
+           StringLiteral /
+           FunctionLiteral /
+           TupleLiteral /
+           (Identifier _)? ListLiteral /
+           (Identifier _)? MapLiteral /
+           StructLiteral
+
+BooleanLiteral <- "true" / "false"
+
+NumberLiteral <- FloatingPoint / Integral
+Integral <- HexIntegral / BinaryIntegral / OctalIntegral / DecimalIntegral
+FloatingPoint <- DecimalPointLeading / DecimalPointTrailing
+DecimalPointLeading <- [0-9]* "." [0-9]+ ExponentPart?
+DecimalPointTrailing <- [0-9]+ ExponentPart
+ExponentPart <- [eE] [+-]? [0-9]+
+DecimalIntegral <- [0-9]+
+OctalIntegral <- "0" [0-7]+
+HexIntegral <- "0x" [0-9a-fA-F]+
+BinaryIntegral <- "0b" [01]+
+
+CharacterLiteral <- "'" ( Escape / NonQuoteChar ) "'"
+Escape <- "\\" ( [abfnrtv'"\\] /
+                 "x" HexDigit HexDigit /
+                 "u" HexDigit HexDigit HexDigit HexDigit /
+                 "U" HexDigit HexDigit HexDigit HexDigit
+                     HexDigit HexDigit HexDigit HexDigit /
+                  OctalDigit /
+                  OctalDigit OctalDigit /
+                  OctalDigit OctalDigit OctalDigit )
+HexDigit <- [0-9a-fA-F]
+OctalDigit <- [0-7]
+NonQuoteChar <- [^']
+
+StringLiteral <- RegularString / RawString
+RegularString <- '"' ( EscapeSequence / [^"] )* '"'
+EscapeSequence <- "\\" [btnvfr"\\]
+RawString <- 'r"' [^"]* '"'
+
+FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
+
+TupleLiteral <- "#(" _ Exprs? _ ")"
+Exprs <- Expr (_ "," _ Expr)*
+
+ListLiteral <- "[" _ Exprs? _ "]" /
+               "[" Expr _ ".." _ Expr "]" /
+               "[" _ IndexValues _ "]"
+IndexValues <- IndexValue (_ "," _ IndexValue)*
+IndexValue <- DecimalIntegral _ ":" _ Expr
+
+MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
+KeyValues <- KeyValue (_ "," _ KeyValue)*
+KeyValue <- (Literal / Identifier) _ ":" _ Expr
+
+StructLiteral <- "[" _ MemberValues? _ "]"
+MemberValues <- MemberValue (_ "," _ MemberValue)*
+MemberValue <- Identifier _ ";" _ Expr
+
+ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
+
+IfExpr <- "if" __ Expr _ BlockExpr
+          (_ "elif" __ Expr _ BlockExpr)*
+          (_ "else" _ BlockExpr)?
+
+SwitchExpr <- "match" __ Expr _ "{"
+             (_ "case" __ Expr _ BlockExpr)+ _ "}"
+
+ReceiveExpr <- "receive" _ "{"
+               (_ "case" __ Expr _ BlockExpr)+
+               (_ "timeout" _ DecimalIntegral _ BlockExpr)? _ "}"
+
+SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
+
+StructExpr <- "struct" _ Identifier _ "(" _ Args? _ ")"
+
+UnboundVariable <- "?" _ Identifier
+
+Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
+
+#
+# Struct definition
+#
+
+StructDef <- "struct" __ Identifier _ ( ":" _ Interfaces _)?
+                   "{" _ StructMembers _ "}"
+Interfaces <- Identifier (_ "," _ Identifier)*
+StructMembers <- StructMember (_ StructMember)*
+StructMember <- Constructor / Deconstructor / MemberFunction / MemberVariable
+Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
+Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
+MemberFunction <- MemberAccess _ FunctionDef
+MemberAccess <- "public" / "private"
+MemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+                  (_ "=" _ Expr)?
+
+#
+# Interface definition
+#
+
+InterfaceDef <- "interface" __ Identifier _ "{" _ InterfaceMembers _ "}"
+InterfaceMembers <- InterfaceMember (_ InterfaceMember)*
+InterfaceMember <- InterfaceMemberFunction / InterfaceMemberVariable
+InterfaceMemberFunction <- MemberAccess _ InterfaceFunction
+InterfaceFunction <- "fn" _ Identifier _ "(" _ Params? _ ")"
+InterfaceMemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+
+#
+# Enumeration definition
+#
+
+EnumDef <- "enum" __ Identifier _ "{" _ EnumValues _ "}"
+EnumValues <- EnumValue (__ EnumValue)*
+EnumValue <- Identifier (_ "=" _ Expr)?
+
+#
+# Function definition
+#
+
+FunctionDef <- ("export" _)?
+               "fn" __ Identifier _ "(" _ Params? _ ")" _ BlockExpr
+Params <- NonDefaultParams _ "," _ DefaultParams /
+          NonDefaultParams /
+          DefaultParams
+NonDefaultParams <- NonDefaultParam (_ "," _ NonDefaultParam)*
+NonDefaultParam <- Identifier !(_ "=")
+DefaultParams <- DefaultParam (_ "," _ DefaultParam)*
+DefaultParam <- Identifier _ "=" _ Expr
+
+BlockExpr <- "{" _ BlockLevelExprs _ "}"
+BlockLevelExprs <- BlockLevelExpr (_ "," _ BlockLevelExpr)*
+BlockLevelExpr <- FunctionDef / Expr
+
+Args <- PositionalArgs / NamedArgs
+PositionalArgs <- !NamedArg Expr (_ "," _ Expr)*
+NamedArgs <- NamedArg (_ "," _ NamedArg)*
+NamedArg <- Identifier _ ":" _ Expr
+
+#
+# Misc
+#
+
+#_ <- WS*
+#__ <- WS+
+_ <- (WS / Comments)*
+__ <- (WS / Comments)+
+WS <- [ \t\r\n]
+Comments <- SingleLineComment / BlockComment
+SingleLineComment <- "//" (!EOL .)* EOL?
+EOL <- "\r\n" / "\n" / "\r"
+BlockComment <- "/*" (!"*/" .)* "*/"
+EOF <- _ !.
+\end{verbatim}
+
+\hypertarget{appendix-c-a-todo-list}{%
+\section{Appendix C: A todo list}\label{appendix-c-a-todo-list}}
+
+\begin{verbatim}
+import std.stdio : writeln
+import std.lists
+
+struct TodoItem {
+    private description
+    private completed
+
+    this(description) {
+        this(descriptor: descriptor, completed: false)
+    }
+
+    public fn markCompleted() {
+        this(completed: true)
+    }
+
+    public fn toString() {
+       if completed {
+           "[x] "
+       } else {
+           "[ ] "
+       }
+    }
+}
+
+struct TodoList {
+    private items = [:]
+
+    public fn addItem(tag, description) {
+        ?item = struct TodoItem(tag, description),
+        this(items: [tag : description] ~ items)
+    }
+
+    public fn markItemCompleted(tag) {
+        ?item = items[tag].markCompleted(),
+        this(items: item ~ items.delete(tag))
+    }
+
+    public fn displayItems() {
+        lists.foreach(fn () { writeln(item.toString())}, items)
+    }
+}
+
+export fn main() {
+    fn loopUntilQuit(todoList) {
+        ?input = stdio.readLine(stdio.Stream.stdin),
+        if input.command == "add" {
+            ?todoList = todoList.addItem(input.description),
+            loopUntilQuit(todoList)
+        } elif input.command == "complete" {
+            ?todoList = todoList.markItemCompleted(input.index),
+            loopUntilQuit(todoList)
+        } elif input.command == "show" {
+            todoList.displayItems(),
+            loopUntilQuit(todoList)
+        } elif input.command == "quit" {
+            0
+        } else {
+          stdio.writeln("Unknown command: $input.command"),
+          loopUntilQuit(todoList)
+        }
+    },
+    ?todoList = struct TodoList(),
+    loopUntilQuit(todoList)
+}
+\end{verbatim}
+
+\emph{Source: \href{../grammar/todo.sa}{todo.sa}}

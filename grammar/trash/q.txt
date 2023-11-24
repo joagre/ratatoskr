@@ -1,0 +1,57 @@
+I tried to build a simple PEG grammar that should accept these:
+
+1+1;
+a*1;
+1*a;
+true&&true;
+a&&true;
+
+But fail on these:
+
+1+true;
+2&&1;
+1&&true;
+
+I tried believe me. :-) Can someone give me an hint? Below is my latest approach. It is almost there but fails on, for example, a*1;
+I'm starting to believe that it's impossible and that I just should let my compiler do type analysis in a later state. It would be nice to catch these errors early on though.
+
+Cheers
+/J
+
+%prefix "test"
+Program <- Statement+
+Statement <- Assignment / Expression ';'
+Assignment <- Variable '=' Expression
+
+# Expressions
+Expression <- LogicalExpr / ArithmeticExpr
+
+# Logical expressions
+LogicalExpr <- OrExpr
+OrExpr <- AndExpr ('||' AndExpr)*
+AndExpr <- NotExpr ('&&' NotExpr)*
+NotExpr <- '!' LogicalPrimary / LogicalPrimary
+LogicalPrimary <- BooleanLiteral / NonArithmetic / Variable / FunctionCall
+NonArithmetic <- (Variable / FunctionCall) !NumberLiteral
+
+# Arithmetic expressions
+ArithmeticExpr <- AdditiveExpr
+AdditiveExpr <- MultiplicativeExpr (('+' / '-') MultiplicativeExpr)*
+MultiplicativeExpr <- UnaryExpr (('*' / '/') UnaryExpr)*
+UnaryExpr <- ('+' / '-')? ArithmeticPrimary
+ArithmeticPrimary <- NumberLiteral / NonLogical / Variable/ FunctionCall
+NonLogical <- (Variable / FunctionCall) !BooleanLiteral
+
+# Handling of literals and variables
+NumberLiteral <- [0-9]+ ('.' [0-9]+)?
+BooleanLiteral <- 'true' / 'false'
+Variable <- [a-zA-Z_][a-zA-Z0-9_]*
+FunctionCall <- Variable '(' (Expression (',' Expression)*)? ')'
+
+%%
+int main() {
+test_context_t *context = test_create(NULL);
+test_parse(context, NULL);
+test_destroy(context);
+return 0;
+}

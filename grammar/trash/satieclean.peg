@@ -1,0 +1,224 @@
+#
+# Top level structure
+#
+
+Program <- _ (Imports __)? TopLevelDefs EOF
+TopLevelDefs <- TopLevelDef (__ TopLevelDef)*
+TopLevelDef <- StructDef / InterfaceDef / EnumDef / FunctionDef
+
+Imports <- Import (__ Import)*
+Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
+ModuleAlias <- Identifier
+ModulePath <- Identifier ("." Identifier)* (_ ":" _ ImportedEntities)?
+ImportedEntities <- Identifier (_ "," _ Identifier)*
+
+#
+# Expression
+#
+
+Expr <- BindExpr
+BindExpr <- (Literal / UnboundVariable / Identifier) (_ "=" _ Expr) / SendExpr
+SendExpr <- ("self" /
+             ControlFlowExpr /
+             SpawnExpr /
+             Identifier /
+             "(" _ Expr _ ")") (_ "<|" _ Expr) / LogicalOrExpr
+LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
+LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
+BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
+BitwiseXorExpr <- BitwiseOrExpr (_ "^" _ BitwiseOrExpr)*
+BitwiseOrExpr <- LargerThanEqualExpr (_ "|" _ LargerThanEqualExpr)*
+LargerThanEqualExpr <- LargerThanExpr (_ ">=" _ LargerThanExpr)*
+LargerThanExpr <- LessThanEqualExpr (_ ">" _ LessThanEqualExpr)*
+LessThanEqualExpr <- LessThanExpr (_ "<=" _ LessThanExpr)*
+LessThanExpr <- IsNotExpr (_ "<" _ IsNotExpr)*
+IsNotExpr <- IsExpr (_ "!is" _ IsExpr)*
+IsExpr <- NotEqualExpr (_ "is" _ NotEqualExpr)*
+NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
+EqualExpr <- InExpr (_ "==" _ InExpr)*
+InExpr <- UnsignedRightShiftExpr (_ "in" _ UnsignedRightShiftExpr)*
+UnsignedRightShiftExpr  <- RightShiftExpr (_ ">>>" _ RightShiftExpr)*
+RightShiftExpr <- LeftShiftExpr (_ ">>" _ LeftShiftExpr)*
+LeftShiftExpr <- ConcatenateExpr (_ "<<" _ ConcatenateExpr)*
+ConcatenateExpr <- MinusExpr (_ "~" _ MinusExpr)*
+MinusExpr <- PlusExpr (_ "-" _ PlusExpr)*
+PlusExpr <- ModulusExpr (_ "+" _ ModulusExpr)*
+ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
+DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
+MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
+ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
+CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ SendMessageExpr /
+            SendMessageExpr
+SendMessageExpr <- BitwiseComplementExpr (_ "*" _ BitwiseComplementExpr)*
+BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
+NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
+UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
+UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
+PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
+                              "(" _ Args? _ ")" /
+                              "[" _ Expr _ "]")*
+
+PrimaryExpr <- "this" /
+               "self" /
+               "$" /
+               Literal /
+               ControlFlowExpr /
+               SpawnExpr /
+               StructExpr /
+               UnboundVariable /
+               Identifier /
+               "(" _ Expr _ ")"
+
+Literal <- BooleanLiteral /
+           NumberLiteral /
+           CharacterLiteral /
+           StringLiteral /
+           FunctionLiteral /
+           TupleLiteral /
+           (Identifier _)? ListLiteral /
+           (Identifier _)? MapLiteral /
+           StructLiteral
+
+BooleanLiteral <- "true" / "false"
+
+NumberLiteral <- FloatingPoint / Integral
+Integral <- HexIntegral / BinaryIntegral / OctalIntegral / DecimalIntegral
+FloatingPoint <- DecimalPointLeading / DecimalPointTrailing
+DecimalPointLeading <- [0-9]* "." [0-9]+ ExponentPart?
+DecimalPointTrailing <- [0-9]+ ExponentPart
+ExponentPart <- [eE] [+-]? [0-9]+
+DecimalIntegral <- [0-9]+
+OctalIntegral <- "0" [0-7]+
+HexIntegral <- "0x" [0-9a-fA-F]+
+BinaryIntegral <- "0b" [01]+
+
+CharacterLiteral <- "'" ( Escape / NonQuoteChar ) "'"
+Escape <- "\\" ( [abfnrtv'"\\] /
+                 "x" HexDigit HexDigit /
+                 "u" HexDigit HexDigit HexDigit HexDigit /
+                 "U" HexDigit HexDigit HexDigit HexDigit
+                     HexDigit HexDigit HexDigit HexDigit /
+                  OctalDigit /
+                  OctalDigit OctalDigit /
+                  OctalDigit OctalDigit OctalDigit )
+HexDigit <- [0-9a-fA-F]
+OctalDigit <- [0-7]
+NonQuoteChar <- [^']
+
+StringLiteral <- RegularString / RawString
+RegularString <- '"' ( EscapeSequence / [^"] )* '"'
+EscapeSequence <- "\\" [btnvfr"\\]
+RawString <- 'r"' [^"]* '"'
+
+FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
+
+TupleLiteral <- "#(" _ Exprs? _ ")"
+Exprs <- Expr (_ "," _ Expr)*
+
+ListLiteral <- "[" _ Exprs? _ "]" /
+               "[" Expr _ ".." _ Expr "]" /
+               "[" _ IndexValues _ "]"
+IndexValues <- IndexValue (_ "," _ IndexValue)*
+IndexValue <- DecimalIntegral _ ":" _ Expr
+
+MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
+KeyValues <- KeyValue (_ "," _ KeyValue)*
+KeyValue <- (Literal / Identifier) _ ":" _ Expr
+
+StructLiteral <- "[" _ MemberValues? _ "]"
+MemberValues <- MemberValue (_ "," _ MemberValue)*
+MemberValue <- Identifier _ ";" _ Expr
+
+ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
+
+IfExpr <- "if" __ Expr _ BlockExpr
+          (_ "elif" __ Expr _ BlockExpr)*
+          (_ "else" _ BlockExpr)?
+
+SwitchExpr <- "match" __ Expr _ "{"
+             (_ "case" __ Expr _ BlockExpr)+ _ "}"
+
+ReceiveExpr <- "receive" _ "{"
+               (_ "case" __ Expr _ BlockExpr)+
+               (_ "timeout" _ DecimalIntegral _ BlockExpr)? _ "}"
+
+SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
+
+StructExpr <- "struct" _ Identifier _ "(" _ Args? _ ")"
+
+UnboundVariable <- "?" _ Identifier
+
+Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
+
+#
+# Struct definition
+#
+
+StructDef <- "struct" __ Identifier _ ( ":" _ Interfaces _)?
+                   "{" _ StructMembers _ "}"
+Interfaces <- Identifier (_ "," _ Identifier)*
+StructMembers <- StructMember (_ StructMember)*
+StructMember <- Constructor / Deconstructor / MemberFunction / MemberVariable
+Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
+Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
+MemberFunction <- MemberAccess _ FunctionDef
+MemberAccess <- "public" / "private"
+MemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+                  (_ "=" _ Expr)?
+
+#
+# Interface definition
+#
+
+InterfaceDef <- "interface" __ Identifier _ "{" _ InterfaceMembers _ "}"
+InterfaceMembers <- InterfaceMember (_ InterfaceMember)*
+InterfaceMember <- InterfaceMemberFunction / InterfaceMemberVariable
+InterfaceMemberFunction <- MemberAccess _ InterfaceFunction
+InterfaceFunction <- "fn" _ Identifier _ "(" _ Params? _ ")"
+InterfaceMemberVariable <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+
+#
+# Enumeration definition
+#
+
+EnumDef <- "enum" __ Identifier _ "{" _ EnumValues _ "}"
+EnumValues <- EnumValue (__ EnumValue)*
+EnumValue <- Identifier (_ "=" _ Expr)?
+
+#
+# Function definition
+#
+
+FunctionDef <- ("export" _)?
+               "fn" __ Identifier _ "(" _ Params? _ ")" _ BlockExpr
+Params <- NonDefaultParams _ "," _ DefaultParams /
+          NonDefaultParams /
+          DefaultParams
+NonDefaultParams <- NonDefaultParam (_ "," _ NonDefaultParam)*
+NonDefaultParam <- Identifier !(_ "=")
+DefaultParams <- DefaultParam (_ "," _ DefaultParam)*
+DefaultParam <- Identifier _ "=" _ Expr
+
+BlockExpr <- "{" _ BlockLevelExprs _ "}"
+BlockLevelExprs <- BlockLevelExpr (_ "," _ BlockLevelExpr)*
+BlockLevelExpr <- FunctionDef / Expr
+
+Args <- PositionalArgs / NamedArgs
+PositionalArgs <- !NamedArg Expr (_ "," _ Expr)*
+NamedArgs <- NamedArg (_ "," _ NamedArg)*
+NamedArg <- Identifier _ ":" _ Expr
+
+#
+# Misc
+#
+
+#_ <- WS*
+#__ <- WS+
+_ <- (WS / Comments)*
+__ <- (WS / Comments)+
+WS <- [ \t\r\n]
+Comments <- SingleLineComment / BlockComment
+SingleLineComment <- "//" (!EOL .)* EOL?
+EOL <- "\r\n" / "\n" / "\r"
+BlockComment <- "/*" (!"*/" .)* "*/"
+EOF <- _ !.

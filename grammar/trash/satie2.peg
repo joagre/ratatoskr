@@ -1,0 +1,24 @@
+%prefix "satie"
+%header {
+#include "ast.h"
+}
+
+Program <- {$$ = ast_add_child("Program", $$);} _ Imports EOF
+Imports <- Import (__ Import)*
+Import <- {$$ = ast_add_child("Import", $$);} "import" __ (ModuleAlias _ "=" _)? _ ModulePath
+ModuleAlias <- {$$ = ast_add_child("ModuleAlias", $$);} Identifier {$$ = ast_add_value("ModuleAlias", $$, $0);}
+ModulePath <- {$$ = ast_add_child("ModulePath", $$);} Identifier ("." Identifier)* (_ ":" _ ImportedEntities)?
+ImportedEntities <- {$$ = ast_add_child("ImportedEntities", $$);} Identifier (_ "," _ Identifier)*
+Identifier <- [a-zA-Z_][a-zA-Z_0-9_]* {$$ = ast_add_value("Identifier", $$, $0);}
+_ <- WS*
+__ <- WS+
+EOF <- _ !.
+
+%%
+int main() {
+    satie_context_t *context = satie_create(NULL);
+    ast_node_t *root_node =  ast_create_node("Root");
+    satie_parse(context, root_node);
+    satie_destroy(context);
+    return 0;
+}

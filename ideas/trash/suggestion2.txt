@@ -1,0 +1,79 @@
+Jobs can be spawned the good old way:
+
+spawn fn () {
+    fn loop(state) {
+        receive {
+            case ?incomingMessage {
+                loop(state[foo: incomingMessage])
+            }
+        }
+    },
+    loop([foo: 42])
+}
+
+But a job can also be spawned with a job specification. A job
+specification is very similar to the class/struct construct but it can have
+a receive statement as well.
+
+job Foo {
+    private foo
+    public bar
+    public const zonk = 42
+    readonly zink
+
+    this(a, b) {
+        this.set(bar: a, zink: b, foo: "basmati")
+    }
+
+    public fn filur() {
+        this.set(bar: bar + zonk)
+        if foo == 42 {
+           bar
+        }
+    }
+
+    private fn hasNext() {
+        !zink
+    }
+
+    receive {                   // Optional
+        case incomingMessage {
+            this.set(zink: incomingMessage)
+        }
+    }
+}
+
+The job specification above has an optional receive statement. The receive
+statement also has access to all member variables and functions and
+can update the member variables with a self referential call to this.set()
+(like it does in its constructor).
+
+A job is spawned with a job specification like this:
+
+?job <- spawn thread Foo(42, true)
+
+or
+
+?job <- spawn fiber Foo(42, true)   // the receive statement in Foo isn't used in this case
+
+A fiber runs in the current job's scheduling context.
+
+What can be done with a job? Maybe this:
+
+job <| #(self, 42, "bar"),              // Send a message to the job which ends
+                                        // up in the receive statement (for a
+                                        // thread only)
+?result <- job.filur()                  // Call a member function
+?value <- job.bar                       // Get member variable
+job.set(filur: "assar")                 // Set member variable
+
+If job is spawned like a thread both `?result <- job.filur()` and
+`job.set(filur: "assar")` is implemented with message passing under the
+hood.
+
+If job is spawned like a fiber `?result <- job.filur()` and
+`job.set(filur: "assar")` is implemented without message passing under
+the hood.
+
+The idea is to formalise and enrich the state in jobs but also let
+classes/structs conceptually be "processes" as well.
