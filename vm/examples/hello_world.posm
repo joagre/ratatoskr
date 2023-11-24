@@ -1,0 +1,9 @@
+; Run: sa -l ./ hello_world 0
+;
+; start() ->
+;     io:format("Hello world!\n").
+
+label 0
+  pushs "Hello world!"
+  sys println
+  ret

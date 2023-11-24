@@ -135,8 +135,8 @@ __hello_world__end__
 
 ```
 __fac__start__
-; File: ./examples/fac.posm
-; Run: ./d/bin/r -l ./examples fac 0 10
+; File: fac.posm
+; Run: sa -l ./ fac 0 10
 ;
 ; fac(1) ->
 ;     1;

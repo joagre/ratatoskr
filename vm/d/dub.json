@@ -8,7 +8,7 @@
 
     "name": "d",
     "targetPath": "./bin",
-    "targetName": "r",
+    "targetName": "sa",
 
     "dflags-ldc": ["-O3", "-release", "-inline", "-noboundscheck", "-mcpu=native"],
 
