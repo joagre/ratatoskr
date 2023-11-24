@@ -41,4 +41,4 @@ clean:
 	(cd d; make clean)
 
 mrproper: clean
-	find . \( -name erl_crash.dump -or -name '*.beam' -or -name "*~" -or -name '#*' -or -name '.#*' \) -exec rm {} \;;
+	find . \( -name "*~" -or -name '#*' -or -name '.#*' \) -exec rm {} \;;

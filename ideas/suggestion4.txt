@@ -1,0 +1,110 @@
+Skälet till att jag bråkar om spawnade objekt är att jag ogillar all boilerplate som krävs för gen_server:call/2 i Erlang och den expicita ad-hoc hanteringen av process-state.
+
+Inte sällan ser man en API module:
+
+foo.erl:
+
+    do_something(A) ->
+        gen_server:call(foo, {do_simething, A).
+
+Själva gen_servern finns i foo_server.erl:
+
+    handle_call(From, {do_something, A}, State) ->
+       {do_something(A, S), State}
+
+    do_somthing(A, S) ->
+        ...
+
+I värsta fall finns den lokala do_something i en tredje modul.
+
+Många steg blir det.
+
+Dessutom är det en trevlig tanke (tycker jag) att börja med att skriva något som är ett objekt och om man kommer på att objekt behöver vara en egen process så kan det spanwas. Fast då får objektet processsemantik. Det går dock att göra den övergången lite snållare.
+
+Så här kanske:
+
+class Zippo {
+    public foo = 0
+    private bar
+
+    this(a) {
+        this(foo: a, bar: 42)
+    }
+
+    public zonk1(b) {
+        // Return the input parameter
+        b
+    }
+
+    public zonk2(b) {
+        // Return an updated copy of the object
+        // The builtin copy method is how Scala does this
+        this.copy(bar: b)
+    }
+
+    public zonk3(b) {
+        // Return and updated object and the input parameter
+        // <> is an operator used to create a new object and a return value
+        this.copy(bar: b) <> b
+    }
+}
+
+export fn main() {
+    ?zippo1 <- new Zippo(4711),         // zippo1 is an object
+    ?zippo2 <- spawn new Zippo(4711),   // zippo2 is pid
+
+    zippo1.foo == zippo2.foo,           // Getters are automatically generated
+                                        // not setters though (for obvuous reasons).
+                                        // This is how Scala does it
+
+    zippo1.foo() == zippo2.foo(),       // Maybe it would be clearer if getters are functions?
+
+    zippo1.zonk1(666),                 // 666
+    zippo2.zonk1(666),                 // 666
+
+    zippo1.zonk2(666),                 // Returns a new object with bar set to 666
+    zippo2.zonk2(666),                 // Returns the pid (zippo2)
+
+    // The above appraoch makes chaining work the same way for zippo1 and zippo2
+    zippo1.zonk2(666).zonk1(777)       // returns a new object as you think
+    zippo2.zonk2(666).zonk1(777)       // returns a pid (zippo2)
+
+    ?zippo1 <> ?result <- zippo1.zonk3("bonk")
+    zippo <> ?resultr <- zippo2.zonk3("bonk")
+}
+
+Inte alls perfekt, men föda för tanken.
+
+The class Zippo also be extended with a receive statement. Like this:
+
+class Zippo {
+    ...
+
+
+    // This construct is only applicable of the struct is spawned
+    receive {
+        case ?whatever {
+            writeln("message: $whatever"),
+            this.copy(bar: whatever)
+        }
+    }
+}
+
+Only applicable of for "spawn new Zippo(4711)`.
+
+Sedan går det förståss alltid att spawna en process på vanlifgt vis:
+
+spawn fn () {
+    fn loop(state) {
+        receive {
+            case ?whatever {
+                loop(state)
+            }
+        }
+    },
+    loop(42)
+}
+
+Håhåjaja
+
+/Joakim
