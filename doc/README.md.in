@@ -2,7 +2,7 @@
 
 ## Introduction
 
-<img src="doc/satie.png" style="width: 3em; height: auto; float: right; margin: 0 0 1em 1em;">
+<img src="doc/satie.png" style="width: 3em; height: auto;" align="right">
 Satie is envisioned as functional programming language especially
 suited for manipulation of large text masses. This is important when,
 for example, implementing text editors. Its capabilities extend beyond
