@@ -2,7 +2,8 @@
 
 ## Introduction
 
-![Erik Satie](doc/satie.png)
+<<<<<<< HEAD
+<img src="doc/satie.png" style="width: 4em; height: auto" align="left">
 Satie is envisioned as functional programming language especially
 suited for manipulation of large text masses. This is important when,
 for example, implementing text editors. Its capabilities extend beyond
