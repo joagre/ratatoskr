@@ -11,9 +11,8 @@ suitable scripting language for end-user plugins and customization to
 these text manipulating applications.
 
 However, the true essence of Satie lies in its versatility. It is a
-purpose-built language and Virtual Machine (VM) that boasts a high
-degree of generality, making it adaptable to a wide array of
-applications.
+purpose-built language and VM that boasts a high degree of generality,
+making it adaptable to a wide array of applications.
 
 Satie owes much to the [Erlang](https://www.erlang.org/),
 [D](https://dlang.org/) and [Scala](https://www.scala-lang.org/)
