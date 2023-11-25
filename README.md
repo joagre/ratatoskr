@@ -2,7 +2,7 @@
 
 ## Introduction
 
-<img src="doc/satie.png" style="width: 3em; height: auto" align="left">
+![Erik Satie](doc/satie.png)
 Satie is envisioned as functional programming language especially
 suited for manipulation of large text masses. This is important when,
 for example, implementing text editors. Its capabilities extend beyond
@@ -1454,6 +1454,21 @@ Operators in decreasing order of precedence:
 ```
 %prefix "satie"
 
+%header {
+    #include <stdarg.h>
+    #include "satie_auxil.h"
+}
+
+%auxil "satie_auxil_t*"
+
+%source {
+#define PCC_ERROR(auxil) pcc_error(auxil)
+static void pcc_error(satie_auxil_t* auxil) {
+    panic("Bailing out near line %d (very funny)\n", auxil->line);
+    exit(1);
+}
+}
+
 #%earlysource {
 #    static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
 #    #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
@@ -1465,8 +1480,12 @@ Operators in decreasing order of precedence:
 #
 
 Program <- _ (Imports __)? TopLevelDefs EOF
-TopLevelDefs <- TopLevelDef (__ TopLevelDef)*
+TopLevelDefs <- TopLevelDef (__ TopLevelDef / TopLevelDefError)*
 TopLevelDef <- ClassDef / InterfaceDef / EnumDef / FunctionDef
+TopLevelDefError <- ("," / ";") {
+    panic("Unexpected %s between top level definitions on line %d",
+          $0, auxil->line);
+}
 
 Imports <- Import (__ Import)*
 Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
@@ -1616,7 +1635,7 @@ Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 ClassDef <- "class" __ Identifier _ ( ":" _ Interfaces _)?
                    "{" _ ClassMembers _ "}"
 Interfaces <- Identifier (_ "," _ Identifier)*
-ClassMembers <- ClassMember (_ ClassMember)*
+ClassMembers <- ClassMember (_ ClassMember / ClassMemberError)*
 ClassMember <- Constructor / Deconstructor / MemberMethod / MemberProperty
 Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
 Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
@@ -1624,25 +1643,34 @@ MemberMethod <- MemberAccess _ FunctionDef
 MemberAccess <- "public" / "private"
 MemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
                   (_ "=" _ Expr)?
+ClassMemberError <- ("," / ";") {
+    panic("Unexpected %s between members on line %d", $0, auxil->line);
+}
 
 #
 # Interface definition
 #
 
 InterfaceDef <- "interface" __ Identifier _ "{" _ InterfaceMembers _ "}"
-InterfaceMembers <- InterfaceMember (_ InterfaceMember)*
+InterfaceMembers <- InterfaceMember (_ InterfaceMember / InterfaceMemberError)*
 InterfaceMember <- InterfaceMemberMethod / InterfaceMemberProperty
 InterfaceMemberMethod <- MemberAccess _ InterfaceMethod
 InterfaceMethod <- "fn" _ Identifier _ "(" _ Params? _ ")"
 InterfaceMemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+InterfaceMemberError <- ("," / ";") {
+    panic("Unexpected %s between members on line %d", $0, auxil->line);
+}
 
 #
 # Enumeration definition
 #
 
 EnumDef <- "enum" __ Identifier _ "{" _ EnumValues _ "}"
-EnumValues <- EnumValue (__ EnumValue)*
+EnumValues <- EnumValue (__ EnumValue / EnumValueError)*
 EnumValue <- Identifier (_ "=" _ Expr)?
+EnumValueError <- ("," / ";") {
+    panic("Unexpected %s between enum values on line %d", $0, auxil->line);
+}
 
 #
 # Function definition
@@ -1659,8 +1687,20 @@ DefaultParams <- DefaultParam (_ "," _ DefaultParam)*
 DefaultParam <- Identifier _ "=" _ Expr
 
 BlockExpr <- "{" _ BlockLevelExprs _ "}"
-BlockLevelExprs <- BlockLevelExpr (_ "," _ BlockLevelExpr)*
+BlockLevelExprs <- BlockLevelExpr
+                   (_ Comma _ BlockLevelExpr / _ MissingComma)* _
+                   ExtraSemicolon?
 BlockLevelExpr <- FunctionDef / Expr
+Comma <- "," / ";" {
+    panic("Unexpected ';' on line %d (use ',' as a separator between expressions)",
+          auxil->line);
+}
+MissingComma <- BlockLevelExpr {
+    panic("Missing ',' separator between expressions on line %d", auxil->line);
+}
+ExtraSemicolon <- ";" {
+    panic("Unexpected ';' on line %d", auxil->line);
+}
 
 Args <- PositionalArgs / NamedArgs
 PositionalArgs <- !NamedArg Expr (_ "," _ Expr)*
@@ -1675,16 +1715,24 @@ NamedArg <- Identifier _ ":" _ Expr
 #__ <- WS+
 _ <- (WS / Comments)*
 __ <- (WS / Comments)+
-WS <- [ \t\r\n]
+WS <- [ \t\r\n] {
+    if (strcmp($0, "\n") == 0) {
+        auxil->line++;
+    }
+}
 Comments <- SingleLineComment / BlockComment
 SingleLineComment <- "//" (!EOL .)* EOL?
-EOL <- "\r\n" / "\n" / "\r"
-BlockComment <- "/*" (!"*/" .)* "*/"
+EOL <- "\r\n" / "\n" / "\r" {
+    auxil->line++;
+}
+BlockComment <- "/*" (BlockCommentContent / EOL)* "*/"
+BlockCommentContent <- (!("*/" / EOL) .)
 EOF <- _ !.
 
 %%
 int main() {
-    satie_context_t *context = satie_create(NULL);
+    satie_auxil_t satie_auxil = { 1 };
+    satie_context_t *context = satie_create(&satie_auxil);
     satie_parse(context, NULL);
     satie_destroy(context);
     return 0;

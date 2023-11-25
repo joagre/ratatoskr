@@ -3,7 +3,7 @@ FRAGMENTS = ../grammar/examples/tribute.sa ../grammar/examples/color.sa ../gramm
 all: ../README.md satie.pdf
 
 satie.pdf: ../README.md
-	pandoc --toc --pdf-engine=xelatex -f gfm -o $@ $^
+	(cd ..; pandoc --toc --pdf-engine=xelatex -f gfm -o doc/$@ README.md)
 
 ../README.md: README.md.in $(FRAGMENTS)
 	cp README.md.in ../README.md
