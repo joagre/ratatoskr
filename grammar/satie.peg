@@ -76,7 +76,7 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                               "(" _ Args? _ ")" /
                               "[" _ Expr _ "]")*
 
-MatchExpr <- Literal / UnboundName / Identifier
+MatchExpr <- Literal / UnboundName / MemberMethodResult / Identifier
 
 PrimaryExpr <- "this" /
                "self" /
@@ -95,6 +95,7 @@ Literal <- BooleanLiteral /
            StringLiteral /
            FunctionLiteral /
            TupleLiteral /
+           MemberMethodResult /
            (Identifier _)? ListLiteral /
            (Identifier _)? MapLiteral
 
@@ -133,6 +134,8 @@ FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 
 TupleLiteral <- "#(" _ Exprs? _ ")"
 Exprs <- Expr (_ "," _ Expr)*
+
+MemberMethodResult <- "@(" _ (UnboundName / Identifier) _ "," _ MatchExpr _ ")"
 
 ListLiteral <- "[" _ Exprs? _ "]" /
                "[" Expr _ ".." _ Expr "]" /

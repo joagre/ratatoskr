@@ -1,6 +1,6 @@
 import std.stdio : writeln
 
-enum  Color {
+enum Color {
     red
     green
     blue

@@ -18,7 +18,7 @@ static void panic(const char *fmt, ...) {
 }
 
 static void satie_error(satie_auxil_t* auxil) {
-    panic("Bailing out near line %d\n", LINE);
+    panic("Bailing out near line %d", LINE);
     exit(1);
 }
 
