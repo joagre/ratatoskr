@@ -12,7 +12,7 @@ interface Iterator {
 }
 
 class ColorIterator : Iterator {
-    private colors
+    private colors;
     private graffiti
 
     this(colors) {
