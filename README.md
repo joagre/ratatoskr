@@ -205,7 +205,8 @@ class ColorIterator : Iterator {
         if !hasNext() {
             false
         } else {
-            #(this.copy(colors: colors.rest()), colors.first())
+            @(this.copy(colors: colors.rest()),
+              colors.first())
         }
     }
 
@@ -219,7 +220,7 @@ export fn main() {
     ?iterator <- new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
-            #(?iterator, ?color) <- iterator.next(),
+            @(?iterator, ?color) <- iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
         }
