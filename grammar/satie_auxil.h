@@ -22,7 +22,16 @@ static void satie_error(satie_auxil_t* auxil) {
     exit(1);
 }
 
-static int satie_getchar(satie_auxil_t* _auxil) {
+static void satie_error(satie_auxil_t* auxil) {
+    panic("Bailing out near line %d", LINE);
+    exit(1);
+}
+
+// satie_rand return a random number between 0 and 10
+static int satie_rand(satie_auxil_t* auxil) {
+
+
+int satie_getchar(satie_auxil_t* _auxil) {
     int c = getchar();
     if (c == '\n') {
         LINE++;

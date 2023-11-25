@@ -47,7 +47,7 @@ class Zippo {
         // The literal @(<updated object>, <return value>) can be
         // used  to return a new object *and* a return value from a
         // member function. This kind of literal can be deconstructed
-        // as all other composite lietrals, e.g. tuple and list.
+        // as all other composite literals, e.g. tuple and list.
         @(this.copy(bar: b), b)
     }
 }
@@ -56,26 +56,23 @@ export fn main() {
     ?zippo1 <- new Zippo(4711),       // zippo1 is an object
     ?zippo2 <- spawn new Zippo(4711), // zippo2 is a <pid>
 
-    zippo1.foo == zippo2.foo,         // Getters are auto-generated.
-                                      // Setters are *not* auto-generated
+    ?a <- zippo1.foo,                 // Getters are auto-generated.
+    a <- zippo2.foo,                  // Setters are *not* auto-generated
                                       // for obvious reasons. This is how
                                       // Scala does it.
 
-    zippo1.foo() == zippo2.foo(),     // Maybe it would be better to
-                                      // auto-generate function getters?
+    ?a <- zippo1.zonk1(666)           // 666
+    a <- zippo2.zonk1(666),           // 666
 
-    zippo1.zonk1(666),                // 666
-    zippo2.zonk1(666),                // 666
-
-    zippo1.zonk2(666),                // Returns a new object with bar
+    ?zippo1 <- zippo1.zonk2(666),     // Returns a new object with bar
                                       // set to 666
-    zippo2.zonk2(666),                // Returns a <pid> (zippo2)
+    zippo2 <- zippo2.zonk2(666),      // Returns a <pid> (zippo2 again)
 
     // This approach makes chaining look the same for zippo1 and zippo2
-    zippo1.zonk2(666).zonk1(777)      // Returns a new object as you think
-    zippo2.zonk2(666).zonk1(777)      // Returns a <pid> (zippo2)
+    ?zippo1 <- zippo1.zonk2(666).zonk2(777)    // Returns a new object as you think
+    zippo2 <- zippo2.zonk2(666).zonk2(777)     // Returns a <pid> (zippo2 again)
 
-    // Returns a new object and a return value
+    // Returns a new object *and* a return value
     @(?zippo1, ?returnValue) <- zippo1.zonk3("bonk")
     // Returns the origin <pid> and a return value
     @(zippo2, returnValue) <- zippo2.zonk3("bonk")

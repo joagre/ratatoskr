@@ -2,7 +2,7 @@
 
 ## Introduction
 
-![Erik Satie](doc/satie.png)
+<img src="doc/satie.png" style="width: 3em; height: auto; float: right; margin: 0 0 1em 1em;">
 Satie is envisioned as functional programming language especially
 suited for manipulation of large text masses. This is important when,
 for example, implementing text editors. Its capabilities extend beyond
@@ -199,7 +199,7 @@ and an explanation will follow:
 ```
 import std.stdio : writeln
 
-enum  Color {
+enum Color {
     red
     green
     blue
@@ -1530,7 +1530,7 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                               "(" _ Args? _ ")" /
                               "[" _ Expr _ "]")*
 
-MatchExpr <- Literal / UnboundName / Identifier
+MatchExpr <- Literal / UnboundName / MemberMethodResult / Identifier
 
 PrimaryExpr <- "this" /
                "self" /
@@ -1549,6 +1549,7 @@ Literal <- BooleanLiteral /
            StringLiteral /
            FunctionLiteral /
            TupleLiteral /
+           MemberMethodResult /
            (Identifier _)? ListLiteral /
            (Identifier _)? MapLiteral
 
@@ -1587,6 +1588,8 @@ FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 
 TupleLiteral <- "#(" _ Exprs? _ ")"
 Exprs <- Expr (_ "," _ Expr)*
+
+MemberMethodResult <- "@(" _ (UnboundName / Identifier _ "," _ MatchExpr _ ")"
 
 ListLiteral <- "[" _ Exprs? _ "]" /
                "[" Expr _ ".." _ Expr "]" /
@@ -1779,7 +1782,7 @@ export fn main() {
     fn loopUntilQuit(todoList) {
         ?input <- readInput(), // implemented elsewhere
         if input.command == "add" {
-            ?todoList <- todoList.addItem(input.tag, input.description),
+            @(?todoList, ?a) <- todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
         } elif input.command == "complete" {
             ?todoList <- todoList.markItemCompleted(input.tag),

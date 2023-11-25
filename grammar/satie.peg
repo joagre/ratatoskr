@@ -135,7 +135,7 @@ FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 TupleLiteral <- "#(" _ Exprs? _ ")"
 Exprs <- Expr (_ "," _ Expr)*
 
-MemberMethodResult <- "@(" _ (UnboundName / Identifier) _ "," _ MatchExpr _ ")"
+MemberMethodResult <- "@(" _ (UnboundName / Identifier _ "," _ MatchExpr _ ")"
 
 ListLiteral <- "[" _ Exprs? _ "]" /
                "[" Expr _ ".." _ Expr "]" /
