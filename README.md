@@ -66,34 +66,35 @@ The following design choices have been made (in some sort of order):
 
 ### Concurrent Oriented Programming (COP)
 
-* Satie is built on a custom multi-core virtual machine (VM) that
-  offers robust support for time-sliced green threads, here after
-  referred to as *jobs*. These jobs adhere to a *share-nothing*
-  semantics and depend exclusively on message passing for
-  communication. This architecture simplifies the process of designing
-  and implementing highly concurrent, massively scalable soft
-  real-time systems. It emphasizes fault tolerance and high
-  availability, making it easier to reason about such systems.
+* Satie is built on a custom multi-core enabled VM that offers robust
+  support for time-sliced green threads, here after referred to as
+  *jobs*. Jobs adhere to a *share-nothing* semantics and depend
+  exclusively on message passing for inter-job communication. This
+  architecture simplifies the process of designing and implementing
+  concurrent, scalable soft real-time applications. It emphasizes
+  fault tolerance and high availability, making it easier to reason
+  about such systems.
 
-* Jobs have the capability to establish *monitors* and *links*
-  (bidirectional monitors) with one another. This feature enables the
-  creation of supervisor jobs, which can start and restart children
-  jobs should they unexpectedly fail.
+* Jobs can establish *monitors* and *links* (bidirectional monitors)
+  with one another. This enables the creation of jobs supervises other
+  jobs, i.e. starting and restarting jobs if they unexpectedly
+  fail. Supervisor jobs can also supervise other supervisor jobs, and
+  so on. This makes it possible to create a tree of supervisor jobs,
+  where the root supervisor job is the ultimate supervisor.
 
 ### Functional and immutable
 
-* Satie is a pure functional language featuring native persistent
-  datatypes at its core. All data within Satie is immutable, and the
-  persistent datatypes are custom-built to handle large amounts of
-  data efficiently. However, there are limits to Satie's purity; no
-  monads.
+* Satie is a functional language featuring native persistent datatypes
+  at its core. All data within Satie is immutable, and the persistent
+  datatypes are custom-built to handle large amounts of data
+  efficiently.
 
 ### A fusion of application and scripting language
 
 * Satie aims to strike a balance between an application and a
   scripting language. This may be evident considering the choice of
-  semantics, syntax, type system, support for object-orientation (from
-  now on called *encapsulation*), and other aspects.
+  semantics, syntax, type system, support for object-orientation and
+  more.
 
 ### Dynamically typed and type inference
 
@@ -107,65 +108,49 @@ The following design choices have been made (in some sort of order):
   the future addition of a gradual type system.
 
 * Satie's dynamic type system utilizes a Garbage Collection (GC)
-  mechanism that is carefully designed to perform garbage collection
-  on a job basis. This approach is intended to prevent the GC process
-  from becoming a "stop-the-world" activity.
+  mechanism that performs garbage collection on a job basis. This
+  prevent the GC process from becoming a "stop-the-world" activity.
 
 ### A streamlined syntax using curly braces
 
 * Satie, as a compact language, features a clean, regular, and
   minimalist syntax that aligns with the tradition of curly braces
   languages. This includes the use of well-known reserved words,
-  syntax conventions, and scoping rules.
-
-* The principle of least surprise has been a guiding factor in Satie's
-  development. However, in Satie, everything is an expression; there
-  are no statements (and consequently, no semicolons). Due to this
-  design choice, certain syntactic constructs might appear unorthodox,
-  yet they embody a regular and consistent syntax.
-
-* The syntax of the D and Erlang programming languages has heavily
-  influenced Satie's design where applicable. Another key principle
-  has been to create a syntax that is both familiar and visually
-  appealing, though ultimately, you'll be the judge of that. Satie
-  uses only a few keywords and has an even smaller set of
-  operators. The complete syntax is formally defined as a Parsing
-  Expression Grammar (PEG) in
+  syntax conventions, and scoping rules. The complete syntax is
+  formally defined as a Parsing Expression Grammar (PEG) in
   [Appendix B: PEG grammar](appendix-b:-peg-grammar).
 
 ### Pattern matching in its core
 
 Satie incorporates pattern matching as a fundamental feature.
 
-* The `<-` match operator can be used to deconstruct an expression
-  and bind it's components to new names.
+* The `<-` match operator is used to deconstruct any expression and
+  bind its components to new names.
 
 * The `switch` and `receive` expressions also rely on pattern matching
-  to pick case paths and deconstruction.
+  to pick case paths and to perform deconstruction.
 
-### A custom-built Virtual Machine (VM)
+### A custom-built VM
 
-* Satie operates on a custom-built virtual machine (VM), which
-  includes a multi-core and time-slicing job scheduler. This scheduler
-  runs multiple instances, one for each job, of a custom-built
-  register machine.
+* Satie operates on a custom-built VM, which includes a multi-core and
+  time-slicing job scheduler. This scheduler runs multiple instances,
+  one for each job, of a custom-built register machine.
 
-* The Virtual Machine (VM) and its scheduler are designed to have a
-  small memory footprint. Each job, when initially started, allocates
-  1KB for its heap and stack (excluding the program code).
+* The VM and its scheduler are designed to have a small memory
+  footprint. Each job, when initially started, allocates 1KB for its
+  heap and stack (excluding the program code).
 
 * The VM is standalone and has minimal dependencies, making it easily
   portable to systems with restricted capabilities.
 
-### Functional encapsulation
+### Object-orientation
 
-* Effort has been invested in introducing a purely
-  functional and encapsulating `struct` definition. This allows for
-  the grouping of member properties and methods using familiar
-  C++/Java member modifiers such as `public`, `private`, `const`,
-  `this` references and more.
+* Satie has support for functional and immutable
+  object-orientation. This allows for grouping of member properties
+  and methods using familiar  C++/Java member modifiers such as
+  `public`, `private`, `const`,  `this` references and more.
 
-Many features are are by design excluded from Satie, including:
+Many features are by design excluded from Satie:
 
 * Pointers
 * Type specifications
@@ -178,7 +163,7 @@ Many features are are by design excluded from Satie, including:
 * Inheritance
 * Monads
 
-There are most likely other features you will miss as well.
+To mention a few.
 
 ## Overall structure
 
