@@ -32,50 +32,58 @@ class Zippo {
     }
 
     public zonk1(b) {
-        // Return the input parameter
+        // Returns the input parameter
         b
     }
 
     public zonk2(b) {
-        // Return an updated copy of the object
-        // The builtin copy method is how Scala does this
+        // Returns an updated copy of the object.
+        // The builtin copy method is how Scala does it.
         this.copy(bar: b)
     }
 
     public zonk3(b) {
-        // Return and updated object and the input parameter
-        // <> is an operator used to create a new object and a return value
+        // Returns and updated object *and* the input parameter.
+        // The literal @(<updated object>, <return value>) can be
+        // used  to return a new object *and* a return value from a
+        // member function. This kind of literal can be deconstructed
+        // as all other composite lietrals, e.g. tuple and list.
         @(this.copy(bar: b), b)
     }
 }
 
 export fn main() {
-    ?zippo1 <- new Zippo(4711),         // zippo1 is an object
-    ?zippo2 <- spawn new Zippo(4711),   // zippo2 is pid
+    ?zippo1 <- new Zippo(4711),       // zippo1 is an object
+    ?zippo2 <- spawn new Zippo(4711), // zippo2 is a <pid>
 
-    zippo1.foo == zippo2.foo,           // Getters are automatically generated
-                                        // not setters though (for obvuous reasons).
-                                        // This is how Scala does it
+    zippo1.foo == zippo2.foo,         // Getters are auto-generated.
+                                      // Setters are *not* auto-generated
+                                      // for obvious reasons. This is how
+                                      // Scala does it.
 
-    zippo1.foo() == zippo2.foo(),       // Maybe it would be clearer if getters are functions?
+    zippo1.foo() == zippo2.foo(),     // Maybe it would be better to
+                                      // auto-generate function getters?
 
-    zippo1.zonk1(666),                 // 666
-    zippo2.zonk1(666),                 // 666
+    zippo1.zonk1(666),                // 666
+    zippo2.zonk1(666),                // 666
 
-    zippo1.zonk2(666),                 // Returns a new object with bar set to 666
-    zippo2.zonk2(666),                 // Returns the pid (zippo2)
+    zippo1.zonk2(666),                // Returns a new object with bar
+                                      // set to 666
+    zippo2.zonk2(666),                // Returns a <pid> (zippo2)
 
-    // The above appraoch makes chaining work the same way for zippo1 and zippo2
-    zippo1.zonk2(666).zonk1(777)       // returns a new object as you think
-    zippo2.zonk2(666).zonk1(777)       // returns a pid (zippo2)
+    // This approach makes chaining look the same for zippo1 and zippo2
+    zippo1.zonk2(666).zonk1(777)      // Returns a new object as you think
+    zippo2.zonk2(666).zonk1(777)      // Returns a <pid> (zippo2)
 
-    @(?zippo1, ?result) <- zippo1.zonk3("bonk")
-    @(zippo2, ?result) <- zippo2.zonk3("bonk")
+    // Returns a new object and a return value
+    @(?zippo1, ?returnValue) <- zippo1.zonk3("bonk")
+    // Returns the origin <pid> and a return value
+    @(zippo2, returnValue) <- zippo2.zonk3("bonk")
 }
 
 Inte alls perfekt, men föda för tanken.
 
-The class Zippo also be extended with a receive statement. Like this:
+The class Zippo can also be extended with a receive statement. Like this:
 
 class Zippo {
     ...
@@ -90,7 +98,7 @@ class Zippo {
     }
 }
 
-Only applicable of for "spawn new Zippo(4711)`.
+Only applicable for "spawn new Zippo(4711)`.
 
 Sedan går det förståss alltid att spawna en process på vanligt vis:
 
@@ -104,7 +112,3 @@ spawn fn () {
     },
     loop(42)
 }
-
-Håhåjaja
-
-/Joakim
