@@ -79,9 +79,6 @@ The following design choices have been made (in some sort of order):
   type inference to deduce the types of names, expressions, and
   functions.
 
-* Semantic and syntactic considerations have been made to facilitate
-  the future addition of a gradual type system.
-
 * Satie's dynamic type system utilizes a Garbage Collection (GC)
   mechanism that performs garbage collection on a job basis. This
   prevent the GC process from becoming a "stop-the-world" activity.
