@@ -2,8 +2,7 @@
 
 ## Introduction
 
-<<<<<<< HEAD
-<img src="doc/satie.png" style="width: 4em; height: auto" align="left">
+![Erik Satie](doc/satie.png)
 Satie is envisioned as functional programming language especially
 suited for manipulation of large text masses. This is important when,
 for example, implementing text editors. Its capabilities extend beyond
@@ -200,7 +199,7 @@ and an explanation will follow:
 ```
 import std.stdio : writeln
 
-enum Color {
+enum  Color {
     red
     green
     blue
@@ -220,7 +219,7 @@ class ColorIterator : Iterator {
     }
 
     public fn next() {
-        if (!hasNext()) {
+        if !hasNext() {
             false
         } else {
             #(this.copy(colors: colors.rest()), colors.first())
@@ -236,7 +235,7 @@ export fn main() {
     ?colors <- [Color.red, Color.red, Color.blue, Color.green],
     ?iterator <- new ColorIterator(colors),
     fn iterate(iterator) {
-        if (iterator.hasNext()) {
+        if iterator.hasNext() {
             #(?iterator, ?color) <- iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
@@ -1463,18 +1462,9 @@ Operators in decreasing order of precedence:
 %auxil "satie_auxil_t*"
 
 %source {
-#define PCC_ERROR(auxil) pcc_error(auxil)
-static void pcc_error(satie_auxil_t* auxil) {
-    panic("Bailing out near line %d (very funny)\n", auxil->line);
-    exit(1);
+#define PCC_GETCHAR(auxil) satie_getchar(auxil)
+#define PCC_ERROR(auxil) satie_error(auxil)
 }
-}
-
-#%earlysource {
-#    static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
-#    #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
-#        fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
-#}
 
 #
 # Top level structure

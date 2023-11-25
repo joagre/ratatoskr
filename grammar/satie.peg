@@ -8,18 +8,9 @@
 %auxil "satie_auxil_t*"
 
 %source {
-#define PCC_ERROR(auxil) pcc_error(auxil)
-static void pcc_error(satie_auxil_t* auxil) {
-    panic("Bailing out near line %d (very funny)\n", auxil->line);
-    exit(1);
+#define PCC_GETCHAR(auxil) satie_getchar(auxil)
+#define PCC_ERROR(auxil) satie_error(auxil)
 }
-}
-
-#%earlysource {
-#    static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
-#    #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
-#        fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
-#}
 
 #
 # Top level structure
