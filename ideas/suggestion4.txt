@@ -45,7 +45,7 @@ class Zippo {
     public zonk3(b) {
         // Return and updated object and the input parameter
         // <> is an operator used to create a new object and a return value
-        this.copy(bar: b) <> b
+        @(this.copy(bar: b), b)
     }
 }
 
@@ -69,8 +69,8 @@ export fn main() {
     zippo1.zonk2(666).zonk1(777)       // returns a new object as you think
     zippo2.zonk2(666).zonk1(777)       // returns a pid (zippo2)
 
-    ?zippo1 <> ?result <- zippo1.zonk3("bonk")
-    zippo <> ?resultr <- zippo2.zonk3("bonk")
+    @(?zippo1, ?result) <- zippo1.zonk3("bonk")
+    @(zippo2, ?result) <- zippo2.zonk3("bonk")
 }
 
 Inte alls perfekt, men föda för tanken.
@@ -92,7 +92,7 @@ class Zippo {
 
 Only applicable of for "spawn new Zippo(4711)`.
 
-Sedan går det förståss alltid att spawna en process på vanlifgt vis:
+Sedan går det förståss alltid att spawna en process på vanligt vis:
 
 spawn fn () {
     fn loop(state) {
