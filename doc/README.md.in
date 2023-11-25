@@ -123,7 +123,7 @@ Satie incorporates pattern matching as a fundamental feature.
 * Satie has support for functional and immutable
   object-orientation. This allows for grouping of member properties
   and methods using familiar  C++/Java member modifiers such as
-  `public`, `private`, `const`,  `this` references and more.
+  `public`, `private`, `const`,  and `this` (for self-referencing).
 
 Many features are by design excluded from Satie:
 
