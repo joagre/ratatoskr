@@ -4,20 +4,21 @@
 
 <img src="doc/satie.png" style="width: 3em; height: auto;" align="left">
 Satie is envisioned as functional programming language especially
-suited for manipulation of large text masses. This is important when,
-for example, implementing text editors. Its capabilities extend beyond
-just constructing these kind of applications though; it also strives
+suited for manipulation of text masses. This is important when,
+for example, implementing text editors. Satie's capabilities extend
+beyond just constructing these kind of applications; it also strives
 to be a suitable scripting language for end-user plugins and
-customization to these text manipulating applications. However, the
-true essence of Satie lies in its versatility. It is a purpose-built
-language and Virtual Machine (VM) that boasts a high degree of
-generality, making it adaptable to a wide array of applications.
+customization to these text manipulating applications.
+
+However, the true essence of Satie lies in its versatility. It is a
+purpose-built language and Virtual Machine (VM) that boasts a high
+degree of generality, making it adaptable to a wide array of
+applications.
 
 Satie owes much to the [Erlang](https://www.erlang.org/),
 [D](https://dlang.org/) and [Scala](https://www.scala-lang.org/)
-programming languages.
-
-All rise. Here is a tribute and a premature Satie example:
+programming languages. All rise. Here is a tribute and a premature
+Satie example:
 
 ```
 import std.stdio : writeln
