@@ -1,0 +1,115 @@
+export reverse(list, reversedList) {
+    if list.isEmpty() {
+        reversedList
+    } else {
+        reverse(list, list.first() ~ reversedList)
+    }
+}
+
+export find(function, list) {
+    if list.isEmpty() {
+        false
+    } else {
+        ?element <- list.first(),
+        if function(element) {
+            element
+        } else {
+            find(function, list.rest())
+        }
+    }
+}
+
+export forAll(function, list) {
+    if list.isEmpty() {
+        true
+    } else {
+        ?element <- list.first(),
+        if function(element) {
+            forAll(function, list.rest())
+        } else {
+            false
+        }
+    }
+}
+
+export exists(function, list) {
+    if list.isEmpty() {
+        true
+    } else {
+        ?element <- list.first(),
+        if function(element) {
+            true
+        } else {
+            exists(function, list.rest())
+        }
+    }
+}
+
+export filter(function, list, passed = []) {
+    if list.isEmpty() {
+        reverse(passed)
+    } else {
+        ?element <- list.first(),
+        if function(element) {
+            filter(function, list.rest(), element ~ passed)
+        } else {
+            filter(function, list.rest(), passed)
+        }
+    }
+}
+
+export partition(function, list, passed = [], notPassed = []) {
+    if list.isEmpty() {
+        #(reverse(passed), reverse(notPassed))
+    } else {
+        ?element <- list.first(),
+        if function(element) {
+            partition(function, list.rest(), element ~ passed, notPassed)
+        } else {
+            partition(function, list.rest(), passed, element ~ notPassed)
+        }
+    }
+}
+
+export foldLeft(function, acc, list) {
+    if list.isEmpty() {
+        acc
+    } else {
+        foldLeft(function, function(acc, list.first()), list.rest())
+    }
+}
+
+export foldRight(function, acc, list) {
+    if list.isEmpty() {
+        acc
+    } else {
+        function(list.first(), foldRight(function, acc, list.rest()))
+    }
+}
+
+export member(element, list) {
+    if list.isEmpty() {
+        false
+    } else {
+        if list.first() == element {
+            true
+        } else {
+            member(function, list.rest())
+        }
+    }
+}
+
+export assoc(key, list) {
+    if list.isEmpty() {
+        false
+    } else {
+        switch list.first() {
+            case #(key, _) is ?keyValue {
+                keyValue
+            }
+            case _ {
+                assoc(key, list.rest())
+            }
+        }
+    }
+}

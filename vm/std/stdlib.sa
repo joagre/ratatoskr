@@ -1,0 +1,4 @@
+enum What {
+    ok
+    error
+}
