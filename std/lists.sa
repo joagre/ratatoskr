@@ -58,6 +58,14 @@ export filter(function, list, passed = []) {
     }
 }
 
+export map(function, list, result = []) {
+    if list.isEmpty() {
+        reverse(passed)
+    } else {
+        map(function, list.rest(), function(list.first()))
+    }
+}
+
 export partition(function, list, passed = [], notPassed = []) {
     if list.isEmpty() {
         #(reverse(passed), reverse(notPassed))

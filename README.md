@@ -205,7 +205,7 @@ class ColorIterator : Iterator {
         if !hasNext() {
             false
         } else {
-            @(this.copy(colors: colors.rest()),
+            #(this.copy(colors: colors.rest()),
               colors.first())
         }
     }
@@ -220,7 +220,7 @@ export fn main() {
     ?iterator <- new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
-            @(?iterator, ?color) <- iterator.next(),
+            #(?iterator, ?color) <- iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
         }
@@ -1487,9 +1487,7 @@ BitwiseOrExpr <- LargerThanEqualExpr (_ "|" _ LargerThanEqualExpr)*
 LargerThanEqualExpr <- LargerThanExpr (_ ">=" _ LargerThanExpr)*
 LargerThanExpr <- LessThanEqualExpr (_ ">" _ LessThanEqualExpr)*
 LessThanEqualExpr <- LessThanExpr (_ "<=" _ LessThanExpr)*
-LessThanExpr <- IsNotExpr (_ "<" _ IsNotExpr)*
-IsNotExpr <- IsExpr (_ "!is" _ IsExpr)*
-IsExpr <- NotEqualExpr (_ "is" _ NotEqualExpr)*
+LessThanExpr <- NotEqualExpr (_ "<" _ NotEqualExpr)*
 NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
 EqualExpr <- InExpr (_ "==" _ InExpr)*
 InExpr <- UnsignedRightShiftExpr (_ "in" _ UnsignedRightShiftExpr)*
@@ -1514,7 +1512,8 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                               "(" _ Args? _ ")" /
                               "[" _ Expr _ "]")*
 
-MatchExpr <- Literal / UnboundName / MemberMethodResult / Identifier
+MatchExpr <- (Literal / UnboundName / Identifier)
+             (__ "is" __ (UnboundName / Identifier))?
 
 PrimaryExpr <- "this" /
                "self" /
@@ -1533,7 +1532,6 @@ Literal <- BooleanLiteral /
            StringLiteral /
            FunctionLiteral /
            TupleLiteral /
-           MemberMethodResult /
            (Identifier _)? ListLiteral /
            (Identifier _)? MapLiteral
 
@@ -1572,8 +1570,6 @@ FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 
 TupleLiteral <- "#(" _ Exprs? _ ")"
 Exprs <- Expr (_ "," _ Expr)*
-
-MemberMethodResult <- "@(" _ (UnboundName / Identifier _ "," _ MatchExpr _ ")"
 
 ListLiteral <- "[" _ Exprs? _ "]" /
                "[" Expr _ ".." _ Expr "]" /
@@ -1766,7 +1762,7 @@ export fn main() {
     fn loopUntilQuit(todoList) {
         ?input <- readInput(), // implemented elsewhere
         if input.command == "add" {
-            @(?todoList, ?a) <- todoList.addItem(input.tag, input.description),
+            #(?todoList, ?a) <- todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
         } elif input.command == "complete" {
             ?todoList <- todoList.markItemCompleted(input.tag),
@@ -1775,7 +1771,7 @@ export fn main() {
             todoList.displayItems(),
             loopUntilQuit(todoList)
         } elif input.command == "quit" {
-            0
+            true
         } else {
           stdio.writeln("Unknown command: $input.command"),
           loopUntilQuit(todoList)

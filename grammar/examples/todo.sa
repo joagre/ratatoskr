@@ -44,7 +44,7 @@ export fn main() {
     fn loopUntilQuit(todoList) {
         ?input <- readInput(), // implemented elsewhere
         if input.command == "add" {
-            @(?todoList, ?a) <- todoList.addItem(input.tag, input.description),
+            #(?todoList, ?a) <- todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
         } elif input.command == "complete" {
             ?todoList <- todoList.markItemCompleted(input.tag),
@@ -53,7 +53,7 @@ export fn main() {
             todoList.displayItems(),
             loopUntilQuit(todoList)
         } elif input.command == "quit" {
-            0
+            true
         } else {
           stdio.writeln("Unknown command: $input.command"),
           loopUntilQuit(todoList)
