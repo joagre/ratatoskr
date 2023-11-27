@@ -3,11 +3,15 @@
 ## Introduction
 
 <img src="doc/satie.png" style="width: 3em; height: auto;" align="left">
-Satie is envisioned to be a functional scripting language suited for
-manipulation of text. Satie's capabilities extend beyond just
-constructing these kind of applications though, and also strives to be
-a suitable language for end-user plugins and customization to these
-text manipulating applications.
+Satie is a functional scripting language optimized for text editing
+applications, offering efficient large text buffer management with
+lazy loading capabilities for extensive texts, alongside a suite of
+features for effective handling of any-sized text files.
+
+In addition to powering versatile text editing applications, Satie is
+designed to also facilitate end-user plugin development and
+customization, enriching the user experience with adaptable and
+user-tailored functionalities."
 
 However, the true essence of Satie lies in its versatility. It is a
 purpose-built language and VM that boasts a high degree of generality,
