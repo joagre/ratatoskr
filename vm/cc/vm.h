@@ -95,12 +95,15 @@ typedef enum {
     SYSTEM_CALL_PRINTLN,
     SYSTEM_CALL_DISPLAY,
     SYSTEM_CALL_EXIT,
+    SYSTEM_CALL_INVALID,
     SYSTEM_CALL_ENUM_SIZE
 } system_call_t;
 
 typedef enum {
     RETURN_MODE_VALUE,
-    RETURN_MODE_COPY
+    RETURN_MODE_COPY,
+    RETURN_MODE_INVALID,
+    RETURN_MODE_ENUM_SIZE
 } return_mode_t;
 
 typedef struct {
@@ -110,5 +113,9 @@ typedef struct {
 
 const opcode_info_t* opcode_to_opcode_info(opcode_t opcode);
 const opcode_info_t* string_to_opcode_info(const char* string);
+const char* system_call_to_string(system_call_t system_call);
+system_call_t string_to_system_call(const char* string);
+const char* return_mode_to_string(return_mode_t return_mode);
+return_mode_t string_to_return_mode(const char* string);
 
 #endif
