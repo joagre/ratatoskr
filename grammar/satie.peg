@@ -77,7 +77,8 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
 MatchExpr <- (Literal / UnboundName / Identifier)
              (__ "is" __ (UnboundName / Identifier))?
 
-PrimaryExpr <- "this" /
+PrimaryExpr <- "null" /
+               "this" /
                "self" /
                "$" /
                Literal /

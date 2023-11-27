@@ -169,7 +169,7 @@ things? A module begins with a series of import definitions, followed
 by a mix of `enum`, `interface`, `struct`, and `fn` (function)
 definitions, which can be arranged in any order.
 
-`struct`, `enum`, and `interface` definitions are **only** permitted
+`class`, `enum`, and `interface` definitions are **only** permitted
 at the top level of a module. However, function definitions can be
 nested within other function definitions freely.
 
@@ -238,13 +238,13 @@ The short story without any preamble:
 
 A Satie module can define as many top-level functions as needed,
 whether exported or not. However, it's advisable to define functions
-as member functions within structs to prevent cluttering of the global
+as member functions within classes to prevent cluttering of the global
 function namespace.
 
 Only functions marked with the `export` keyword can be imported by
 other modules.
 
-`struct`, `enum`, and `interface` definitions can be imported by other
+`class`, `enum`, and `interface` definitions can be imported by other
 modules without any restrictions though.
 
 `#(` ... `)` defines a tuple, and placing a question mark before a
@@ -469,7 +469,7 @@ An identifier is a case-sensitive sequence of characters that begins
 with an ASCII letter or an underscore, followed by any number of ASCII
 letters, underscores, or digits. This is denoted by the regular
 expression `^[[:alpha:]_][[:alnum:]_]*$`. Identifiers are used for
-various elements such as keywords, names, function names, struct
+various elements such as keywords, names, function names, class
 names, and enum names.
 
 **Note:** By design, only strings may contain Unicode
@@ -478,7 +478,7 @@ potentially lifted if compelling reasons arise.
 
 ### Keywords
 
-25 special identifiers cannot be used in user code. These reserved
+26 special identifiers cannot be used in user code. These reserved
 identifiers are exclusive to the language's internal syntax and
 functionality.
 
@@ -494,7 +494,7 @@ if
 else
 switch
 default
-struct
+class
 new
 interface
 public
@@ -508,6 +508,7 @@ link
 receive
 timeout
 self
+null
 ```
 
 ## Literals
@@ -630,31 +631,10 @@ a `:` character. This sequence is enclosed within square brackets:
 a[3.14: 4711, 2 : 4]                         // ["foo" : 12, 3.14: 4711, 2 : 4],
 ```
 
-### Struct literal
-
-A struct literal is represented as a semicolon-separated sequence of
-member-value pairs. Each pair consists of a member (which is an
-identifier) and a value of any type, separated by a `;`
-character. This sequence is enclosed within square brackets.
-
-```
-struct Foo P {
-    public foo = 4711
-    public bar = "foo"
-    public zonk = #(42, 3.14)
-}
-
-?a = new Foo(),
-[foo ; ?b,
- bar ; ?c] = a,
-b,                          // 4711
-c                           // "foo"
-```
-
 ## Expressions
 
 In Satie every element is treated as an expression, with the exception
-of top-level definitions. These include `import`, `struct`,
+of top-level definitions. These include `import`, `class`,
 `interface`, and `enum`.
 
 Among all expressions, the match expression, marked by the `<-`
@@ -973,16 +953,16 @@ a.values                       // [1.0, "foo"] || ["foo", 1.0]
 a == d                         // true
 ```
 
-### Encapsulation -- `struct` a `{` ... `}`
+### Encapsulation -- `class` a `{` ... `}`
 
-A struct in Satie goes beyond a traditional C struct. It is immutable
+A class in Satie goes beyond a traditional C++ class. It is immutable
 and inherently functional, serving as a unit of encapsulation for
 member properties and methods.
 
 Lets dive into an example right away:
 
 ```
-struct Foo {
+class Foo {
     public a = 1
     private b = 2
     readonly c = 3
@@ -1017,13 +997,13 @@ final initialization of its member properties. It's noteworthy how the
 constructor can use its member properties as named parameters in this
 self-referential call.
 
-To instantiate a struct `Foo` do this:
+To instantiate a class `Foo` do this:
 
 `?a = new Foo(2, 1)`
 
-A struct can opt to implement certain mandatory interfaces. An
+A class can opt to implement certain mandatory interfaces. An
 *interface* specifies the member properties and functions that the
-struct must provide. The structure of an interface definition is as
+class must provide. The structure of an interface definition is as
 follows:
 
 ```
@@ -1033,11 +1013,11 @@ interface Bar {
 }
 ```
 
-A struct that opts to implement this interface is structured as
+A class that opts to implement this interface is structured as
 follows:
 
 ```
-struct Foo : Bar {
+class Foo : Bar {
     public zippo = 8
     public fn bonk() {
         // Delve into the nature of God
@@ -1046,11 +1026,11 @@ struct Foo : Bar {
 }
 ```
 
-A struct can implement several interfaces using a comma separated
+A class can implement several interfaces using a comma separated
 sequence of interfaces:
 
 ```
-struct Foo : Bar, Bonk {
+class Foo : Bar, Bonk {
     ...
 }
 ```
@@ -1058,13 +1038,13 @@ struct Foo : Bar, Bonk {
 Do the following to define a set of constants:
 
 ```
-struct Math {
+class Math {
     public const PI = 3.1;
     public const SQUARE2 = math.sqrt(2);
 }
 ```
 
-**Note:** This struct must be instantiated somewhere in the code as
+**Note:** This class must be instantiated somewhere in the code as
 there is no `static` modifier in Satie.
 
 ### Buf(fer) -- `buf`
@@ -1255,7 +1235,7 @@ done in the upcoming example.
 Here follows a small concurrent example that spawn jobs to compute
 Ackermann function values for the parameters `m = 3, n = 1 .. 10`.
 
-The `main` function uses member functions in an Ackermann struct to
+The `main` function uses member functions in an Ackermann class to
 start 10 jobs and then waits for all jobs to send a result back as a
 message.
 
@@ -1340,7 +1320,7 @@ Note how the module names must be specified in the call to  the call
 to `foreach` and `writeln`, i.e. nothing is automatically imported
 into the module namespace.
 
-It is possible to import enumerations, interfaces, structs and
+It is possible to import enumerations, interfaces, classes and
 functions into a module namespace:
 
 ```
@@ -1403,7 +1383,6 @@ Operators in decreasing order of precedence:
 | a[b .. c]    | List slicing  (see "List Literal" above) |
 | a[a = b]     | List setter (see "List Literal" above)   |
 | a[a : b]     | Map setter (see "Map Literal" above)     |
-| a[a ; b]     | Struct setter (see "Struct Literal")     |
 | -a           |                                          |
 | +a           |                                          |
 | !a           |                                          |
@@ -1431,7 +1410,7 @@ Operators in decreasing order of precedence:
 | a & b        |                                          |
 | a && b       | Logical and                              |
 | a \|\| b     |                                          |
-| a = b        |                                          |
+| a <- b       |                                          |
 
 # Appendix B: PEG grammar
 
@@ -1515,7 +1494,8 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
 MatchExpr <- (Literal / UnboundName / Identifier)
              (__ "is" __ (UnboundName / Identifier))?
 
-PrimaryExpr <- "this" /
+PrimaryExpr <- "null" /
+               "this" /
                "self" /
                "$" /
                Literal /
