@@ -3,12 +3,11 @@
 ## Introduction
 
 <img src="doc/satie.png" style="width: 3em; height: auto;" align="left">
-Satie is envisioned to be a functional programming language especially
-suited for manipulation of text masses. This is important when, for
-example, implementing text editors. Satie's capabilities extend beyond
-just constructing these kind of applications though. It also strives to be a
-suitable scripting language for end-user plugins and customization to
-these text manipulating applications.
+Satie is envisioned to be a functional scripting language suited for
+manipulation of text. Satie's capabilities extend beyond just
+constructing these kind of applications though, and also strives to be
+a suitable language for end-user plugins and customization to these
+text manipulating applications.
 
 However, the true essence of Satie lies in its versatility. It is a
 purpose-built language and VM that boasts a high degree of generality,
@@ -51,25 +50,18 @@ The following design choices have been made (in some sort of order):
   about such systems.
 
 * Jobs can establish *monitors* and *links* (bidirectional monitors)
-  with one another. This enables the creation of jobs supervises other
-  jobs, i.e. starting and restarting jobs if they unexpectedly
-  fail. Supervisor jobs can also supervise other supervisor jobs, and
+  with another. This enables the creation of jobs that can supervise
+  other jobs, i.e. starting and restarting them (if they unexpectedly
+  fail). Supervisor jobs can also supervise other supervisor jobs, and
   so on. This makes it possible to create a tree of supervisor jobs,
   where the root supervisor job is the ultimate supervisor.
 
 ### Functional and immutable
 
-* Satie is a functional language featuring native persistent datatypes
-  at its core. All data within Satie is immutable, and the persistent
-  datatypes are custom-built to handle large amounts of data
-  efficiently.
-
-### A fusion of application and scripting language
-
-* Satie aims to strike a balance between an application and a
-  scripting language. This may be evident considering the choice of
-  semantics, syntax, type system, support for object-orientation and
-  more.
+* Satie is a pure functional and language (YMMV) featuring native
+  persistent datatypes at its core. All data in Satie is immutable,
+  and the persistent datatypes are custom-built to handle large
+  amounts of data efficiently.
 
 ### Dynamically typed and type inference
 
@@ -79,9 +71,9 @@ The following design choices have been made (in some sort of order):
   type inference to deduce the types of names, expressions, and
   functions.
 
-* Satie's dynamic type system utilizes a Garbage Collection (GC)
-  mechanism that performs garbage collection on a job basis. This
-  prevent the GC process from becoming a "stop-the-world" activity.
+* Satie's dynamic type system utilizes a Garbage Collector (GC)
+  mechanism to perform garbage collection on a job basis. This
+  prevents the GC process from becoming a "stop-the-world" activity.
 
 ### A streamlined syntax using curly braces
 
@@ -96,11 +88,13 @@ The following design choices have been made (in some sort of order):
 
 Satie incorporates pattern matching as a fundamental feature.
 
-* The `<-` match operator is used to deconstruct any expression and
-  bind its components to new names.
+* The `<-` match operator is used to bind values to unbound names
+  and/or to deconstruct composite values into their primitive
+  components. There is no mutable variable assigments in Satie.
 
-* The `switch` and `receive` expressions also rely on pattern matching
-  to pick case paths and to perform deconstruction.
+* The `switch` and `receive` expressions rely on pattern matching to
+  pick the correct `case` path but also to deconstruct composite
+  `case` values into their primitive components.
 
 ### A custom-built VM
 
@@ -112,14 +106,14 @@ Satie incorporates pattern matching as a fundamental feature.
   footprint. Each job, when initially started, allocates 1KB for its
   heap and stack (excluding the program code).
 
-* The VM is standalone and has minimal dependencies, making it easily
+* The VM is standalone and has few dependencies, making it easily
   portable to systems with restricted capabilities.
 
 ### Object-orientation
 
 * Satie has support for functional and immutable
   object-orientation. This allows for grouping of member properties
-  and methods using familiar  C++/Java member modifiers such as
+  and methods using familiar C++/Java member modifiers such as
   `public`, `private`, `const`,  and `this` (for self-referencing).
 
 Many features are by design excluded from Satie:
