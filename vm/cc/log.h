@@ -15,6 +15,7 @@ void vm_log(log_level_t log_level, const char* message);
 void vm_abort(const char* message);
 void vm_assert(bool condition, const char* message);
 
+#define DEBUG 1
 #ifdef DEBUG
 #define VM_LOG(log_level, message) ({ \
     vm_log(log_level, message);       \
