@@ -9,9 +9,8 @@ lazy loading capabilities for extensive texts, alongside a suite of
 features for effective handling of any-sized text files.
 
 In addition to powering versatile text editing applications, Satie is
-designed to also facilitate end-user plugin development and
-customization, enriching the user experience with adaptable and
-user-tailored functionalities."
+also suitable as an end-user scripting language, ideal for writing
+plugins and customizations.
 
 However, the true essence of Satie lies in its versatility. It is a
 purpose-built language and VM that boasts a high degree of generality,
