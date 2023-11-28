@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include "log.h"
 
-void vm_log(log_level_t log_level, const char* format, ...) {
+void satie_log(log_level_t log_level, const char* format, ...) {
     va_list args;
     va_start(args, format);
     switch (log_level) {
@@ -28,14 +28,14 @@ void vm_log(log_level_t log_level, const char* format, ...) {
     va_end(args);
 }
 
-void vm_abort(const char* message) {
-    vm_log(LOG_LEVEL_PANIC, message);
+void satie_abort(const char* message) {
+    satie_log(LOG_LEVEL_PANIC, message);
     abort();
 }
 
-void vm_assert(bool condition, const char* message) {
+void satie_assert(bool condition, const char* message) {
     if (!condition) {
-        vm_log(LOG_LEVEL_PANIC, message);
+        satie_log(LOG_LEVEL_PANIC, message);
         abort();
     }
 }

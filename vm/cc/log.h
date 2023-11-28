@@ -11,24 +11,24 @@ typedef enum {
     LOG_LEVEL_PANIC
 } log_level_t;
 
-void vm_log(log_level_t log_level, const char* format, ...);
-void vm_abort(const char* message);
-void vm_assert(bool condition, const char* message);
+void satie_log(log_level_t log_level, const char* format, ...);
+void satie_abort(const char* message);
+void satie_assert(bool condition, const char* message);
 
 #ifdef DEBUG
-#define VM_LOG(log_level, message, ...) ({    \
-   vm_log(log_level, message, ##__VA_ARGS__); \
+#define SATIE_LOG(log_level, message, ...) ({    \
+   satie_log(log_level, message, ##__VA_ARGS__); \
 })
-#define VM_ABORT( message) ({ \
-    vm_abort(message);        \
+#define SATIE_ABORT( message) ({ \
+    satie_abort(message);        \
 })
-#define VM_ASSERT(condition, message) ({ \
-    vm_assert(condition, message);       \
+#define SATIE_ASSERT(condition, message) ({ \
+    satie_assert(condition, message);       \
 })
 #else
-#define VM_LOG(log_level, message, ...) ((void)0)
-#define VM_ABORT(message) ((void)0)
-#define VM_ASSERT(condition, message) ((void)0)
+#define SATIE_LOG(log_level, message, ...) ((void)0)
+#define SATIE_ABORT(message) ((void)0)
+#define SATIE_ASSERT(condition, message) ((void)0)
 #endif
 
 #endif

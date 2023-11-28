@@ -6,7 +6,6 @@
 #include "satie.h"
 #include "log.h"
 #include "loader.h"
-#include "return_types.h"
 
 int main(int argc, char* argv[]) {
     uint16_t check_after = DEFAULT_CHECK_AFTER;
@@ -25,7 +24,7 @@ int main(int argc, char* argv[]) {
                               &option_index)) != -1) {
         switch (opt) {
         case 't': {
-            long_result_t result = string_to_long(optarg);
+            satie_result_t result = string_to_long(optarg);
             if (!result.success) {
                 usage(basename(argv[0]));
             }
@@ -33,7 +32,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case 'c': {
-            long_result_t result = string_to_long(optarg);
+            satie_result_t result = string_to_long(optarg);
             if (!result.success) {
                 usage(basename(argv[0]));
             }
@@ -54,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     const char* module_name = argv[optind];
 
-    long_result_t result = string_to_long(argv[optind + 1]);
+    satie_result_t result = string_to_long(argv[optind + 1]);
     if (!result.success) {
         usage(basename(argv[0]));
     }
@@ -62,27 +61,26 @@ int main(int argc, char* argv[]) {
 
     long parameters[argc - optind];
     for (int j = 0, i = optind + 2; i < argc; i++) {
-        long_result_t result = string_to_long(argv[i]);
+        satie_result_t result = string_to_long(argv[i]);
         if (!result.success) {
             usage(basename(argv[0]));
         }
         parameters[j++] = result.value;
     }
 
-    VM_LOG(LOG_LEVEL_DEBUG, "check_after = %d", check_after);
-    VM_LOG(LOG_LEVEL_DEBUG, "load_path = %s", load_path);
-    VM_LOG(LOG_LEVEL_DEBUG, "time_slice = %d", time_slice);
-    VM_LOG(LOG_LEVEL_DEBUG, "module_name = %s", module_name);
-    VM_LOG(LOG_LEVEL_DEBUG, "label = %d", label);
+    SATIE_LOG(LOG_LEVEL_DEBUG, "check_after = %d", check_after);
+    SATIE_LOG(LOG_LEVEL_DEBUG, "load_path = %s", load_path);
+    SATIE_LOG(LOG_LEVEL_DEBUG, "time_slice = %d", time_slice);
+    SATIE_LOG(LOG_LEVEL_DEBUG, "module_name = %s", module_name);
+    SATIE_LOG(LOG_LEVEL_DEBUG, "label = %d", label);
     for (int i = 0; i < argc - optind - 2; i++) {
-        VM_LOG(LOG_LEVEL_DEBUG, "parameter = %d", parameters[i]);
+        SATIE_LOG(LOG_LEVEL_DEBUG, "parameter = %d", parameters[i]);
     }
 
     loader_t loader;
     loader_init(&loader, load_path);
-
-    //loader_load_module(loader, module_name);
-
+    loader_result_t loader_result = loader_load_module(&loader, module_name);
+    fprintf(stderr, "WHAT: %s\n", strerror(loader_result.errno_value));
 
     return SUCCESS;
 }
@@ -106,13 +104,17 @@ void usage(const char* name) {
     exit(PARAMETER_ERROR);
 }
 
-long_result_t string_to_long(const char* string) {
+satie_result_t string_to_long(const char* string) {
     errno = 0;
     char *endptr;
     long value = strtol(string, &endptr, 10);
     if (errno != 0 || *endptr != '\0' || optarg == endptr) {
-        return (long_result_t){ .success = false };
+        return (satie_result_t){
+            .success = false
+        };
     } else {
-        return (long_result_t){ .success = true, .value = value };
+        return (satie_result_t){
+            .success = true,
+            .value = value };
     }
 }
