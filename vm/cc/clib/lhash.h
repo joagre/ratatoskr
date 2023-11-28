@@ -230,7 +230,8 @@ LHASH_LOCAL int lhash_find(lhash_t* lh, void* key, void** ptr)
 // iterator
 
 // step forward
-LHASH_LOCAL void lhash_iter_step(lhash_iter_t* iter, lhash_t* lh, unsigned int slot)
+LHASH_LOCAL void lhash_iter_step(lhash_iter_t* iter, lhash_t* lh,
+                                 unsigned int slot)
 {
     while ((slot < lh->asize) &&
 	   (slist_length(&lh->tab[slot]) == 0))

@@ -20,7 +20,6 @@
 #include <smmintrin.h>
 #endif
 
-
 #include "vec_undef.h"
 
 #define vec_native_t __m128
@@ -85,6 +84,14 @@
 #if defined(__SSE2__)
 //#warning including SSE2
 #include <emmintrin.h>
+
+#define vecop_cmpeq_int8      _mm_cmpeq_epi8
+#define vecop_cmpeq_int16     _mm_cmpeq_epi16
+#define vecop_cmpeq_int32     _mm_cmpeq_epi32
+#define vecop_cmpeq_int64     MM128_cmpeq_epi64
+#define vecop_cmpeq_float32   MM128_cmpeq_ps
+#define vecop_cmpeq_float64   MM128_cmpeq_pd
+
 #define vecop_cmpgt_int8      _mm_cmpgt_epi8
 #define vecop_cmpgt_int16     _mm_cmpgt_epi16
 #define vecop_cmpgt_int32     _mm_cmpgt_epi32
@@ -114,6 +121,22 @@
 //#warning including SSE4_1
 #include <smmintrin.h>
 #endif
+
+static __m128i MM128_cmpeq_epi64(__m128i a, __m128i b)
+{
+    return (__m128i) ((__v2di)a == (__v2di)b);
+}
+
+static __m128i MM128_cmpeq_ps(__m128 a, __m128 b)
+{
+    return (__m128i) ((__v4sf)a == (__v4sf)b);
+}
+
+static __m128i MM128_cmpeq_pd(__m128d a, __m128d b)
+{
+    return (__m128i) ((__v2df)a == (__v2df)b);
+}
+
 
 static __m128i MM128_cmpgt_epi64(__m128i a, __m128i b)
 {

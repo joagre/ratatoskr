@@ -64,6 +64,13 @@
 #define vecop_max_float32     _mm256_max_ps
 #define vecop_max_float64     _mm256_max_pd
 
+#define vecop_cmpeq_int8      MM256_cmpeq_epi8
+#define vecop_cmpeq_int16     MM256_cmpeq_epi16
+#define vecop_cmpeq_int32     MM256_cmpeq_epi32
+#define vecop_cmpeq_int64     MM256_cmpeq_epi64
+#define vecop_cmpeq_float32   MM256_cmpeq_ps
+#define vecop_cmpeq_float64   MM256_cmpeq_pd
+
 #define vecop_cmpgt_int8      MM256_cmpgt_epi8
 #define vecop_cmpgt_int16     MM256_cmpgt_epi16
 #define vecop_cmpgt_int32     MM256_cmpgt_epi32
@@ -86,6 +93,37 @@
 #if defined(__AVX2__)
 #include <immintrin.h>
 #endif
+
+static __m256i MM256_cmpeq_epi8(__m256i a, __m256i b)
+{
+    return (__m256i) ((__v32qs)a == (__v32qs)b);
+}
+
+static __m256i MM256_cmpeq_epi16(__m256i a, __m256i b)
+{
+    return (__m256i) ((__v16hi)a == (__v16hi)b);
+}
+
+static __m256i MM256_cmpeq_epi32(__m256i a, __m256i b)
+{
+    return (__m256i) ((__v8si)a == (__v8si)b);
+}
+
+static __m256i MM256_cmpeq_epi64(__m256i a, __m256i b)
+{
+    return (__m256i) ((__v4di)a == (__v4di)b);
+}
+
+static __m256i MM256_cmpeq_ps(__m256 a, __m256 b)
+{
+    return (__m256i) ((__v8sf)a == (__v8sf)b);
+}
+
+static __m256i MM256_cmpeq_pd(__m256d a, __m256d b)
+{
+    return (__m256i) ((__v4df)a == (__v4df)b);
+}
+
 
 static __m256i MM256_cmplt_epi8(__m256i a, __m256i b)
 {

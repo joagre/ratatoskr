@@ -3,15 +3,6 @@
 
 #include <stdint.h>
 
-/*
-#include <string.h>
-#include "loader.h"
-#include "instructions.h"
-#include "log.h"
-#include "clib/lhash_kv.h"
-#include <stddef.h>
-*/
-
 #define NUMBER_OF_REGISTERS 64
 #define MAX_OPCODE_STRING_SIZE 8
 #define MAX_OPERAND_TYPES 8
@@ -27,16 +18,16 @@
 #define GET_VALUE(T, bytes) (*(T*)(bytes))
 #define SET_VALUE(T, value, bytes) (*(T*)(bytes) = (value))
 
-typedef int64_t  stack_value_type_t;
-typedef uint8_t  register_type_t;
-typedef uint32_t label_type_t;
-typedef uint32_t address_type_t;
-typedef int64_t  immediate_value_type_t;
-typedef uint32_t stack_offset_type_;
-typedef uint16_t data_length_type_t;
-typedef uint8_t  arity_type_t;
-typedef uint8_t  return_mode_type_t;
-typedef uint16_t system_call_type_t;
+typedef int64_t  vm_stack_value_t;
+typedef uint8_t  vm_register_t;
+typedef uint32_t vm_label_t;
+typedef uint32_t vm_address_t;
+typedef int64_t  vm_immediate_value_t;
+typedef uint32_t vm_stack_offset_t;
+typedef uint16_t vm_data_length_t;
+typedef uint8_t  vm_arity_t;
+typedef uint8_t  vm_return_mode_t;
+typedef uint16_t vm_system_call_t;
 
 typedef enum {
     // Register machine opcodes

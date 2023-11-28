@@ -109,12 +109,8 @@ satie_result_t string_to_long(const char* string) {
     char *endptr;
     long value = strtol(string, &endptr, 10);
     if (errno != 0 || *endptr != '\0' || optarg == endptr) {
-        return (satie_result_t){
-            .success = false
-        };
+        return (satie_result_t){ .success = false };
     } else {
-        return (satie_result_t){
-            .success = true,
-            .value = value };
+        return (satie_result_t){ .success = true, .value = value };
     }
 }

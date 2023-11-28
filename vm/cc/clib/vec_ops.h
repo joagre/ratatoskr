@@ -181,6 +181,20 @@ VEC_BFUNC(VEC_SIMD_TYPE, max, float64);
 VEC_BFUNC_TAB(VEC_SIMD_TYPE, max);
 
 /***************************************************************************
+/ cmpeq element-wise c = (a==b)
+/**************************************************************************/
+
+VEC_CFUNC(VEC_SIMD_TYPE, cmpeq, int8, int8);
+VEC_CFUNC(VEC_SIMD_TYPE, cmpeq, int16, int16);
+VEC_CFUNC(VEC_SIMD_TYPE, cmpeq, int32, int32);
+VEC_CFUNC(VEC_SIMD_TYPE, cmpeq, int64, int64);
+VEC_CFUNC(VEC_SIMD_TYPE, cmpeq, float32, int32);
+VEC_CFUNC(VEC_SIMD_TYPE, cmpeq, float64, int64);
+
+VEC_CFUNC_TAB(VEC_SIMD_TYPE, cmpeq);
+
+
+/***************************************************************************
 / cmpgt element-wise c = (a>b)
 /**************************************************************************/
 
@@ -273,6 +287,7 @@ VEC_LOCAL vec_alg_t VEC_SIMD_ALG =
     .sub = CAT3(vec_,VEC_SIMD_TYPE,sub_ops),
     .min = CAT3(vec_,VEC_SIMD_TYPE,min_ops),
     .max = CAT3(vec_,VEC_SIMD_TYPE,max_ops),
+    .cmpeq = CAT3(vec_,VEC_SIMD_TYPE,cmpeq_ops),
     .cmplt = CAT3(vec_,VEC_SIMD_TYPE,cmplt_ops),
     .cmpgt = CAT3(vec_,VEC_SIMD_TYPE,cmpgt_ops),
     .bnot  = CAT3(vec_,VEC_SIMD_TYPE,bnot_int),

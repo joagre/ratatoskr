@@ -43,18 +43,18 @@ int test()
     lhash_t store;
     int i;
     int expect_size;
-    
+
     generate_unique_samples(key, MAX_SAMPLES);
 
     lhash_kv_init(&store, NULL, hash_func, cmp_func);
-    
+
     // insert each sample and check that all samples inserted are found
     // and that size is correct
     expect_size = 0;
     for (i = 0; i < MAX_SAMPLES; i++) {
 	int j;
 	lhash_iter_t iter;
-	
+
 	// printf("insert key[%d] = %ld, data = %ld\n", i, key[i], -key[i]);
 
 	// check if key[i] is present
@@ -98,9 +98,9 @@ int test()
 	if (lhash_kv_size(&store) != expect_size) {
 	    printf("invalid table size\n");
 	    exit(1);
-	}	
+	}
     }
-    
+
     lhash_kv_clear(&store);
 }
 

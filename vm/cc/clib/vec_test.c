@@ -7,7 +7,7 @@
 
 void test()
 {
-    vec_globals_init();
+    vec_globals_init(VEC_SIMD_AUTO);
 
     printf("vendor: %s\n", vec_globals.cpu_vendor_name);
     printf("cache-line-size: %d\n", vec_globals.cache_line_size);
@@ -125,6 +125,9 @@ void test_iop(vec_type_t type, int width)
 
     vec_cmplt(&a, &b, &c);
     printf("C=A<B\n"); vec_print(&c); printf("\n");
+
+    vec_cmpeq(&a, &b, &c);
+    printf("C=A==B\n"); vec_print(&c); printf("\n");    
 }
 
 

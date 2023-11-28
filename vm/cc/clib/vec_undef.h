@@ -63,6 +63,13 @@
 #undef vecop_bxor_bits
 #undef vecop_bnot_bits
 
+#undef vecop_cmpeq_int8
+#undef vecop_cmpeq_int16
+#undef vecop_cmpeq_int32
+#undef vecop_cmpeq_int64
+#undef vecop_cmpeq_float32
+#undef vecop_cmpeq_float64
+
 #undef vecop_cmpgt_int8
 #undef vecop_cmpgt_int16
 #undef vecop_cmpgt_int32

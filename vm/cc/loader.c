@@ -24,21 +24,16 @@ loader_result_t loader_load_module(loader_t *loader, const char* module_name) {
     FILE* file;
     if ((file = fopen(file_path, "r")) == NULL) {
         free(file_path);
-        return (loader_result_t){
-            .success = false,
-            .errno_value = errno
-        };
+        return (loader_result_t){ .success = false, .errno_value = errno };
     }
-    module_t* module = loader_module_new((address_type_t)loader->byte_code_size);
+    module_t* module = loader_module_new((vm_address_t)loader->byte_code_size);
     loader_result_t result = loader_generate_byte_code(module);
     free(file_path);
     fclose(file);
     if (result.success) {
-        module->stop_address = (address_type_t)loader->byte_code_size - 1;
+        module->stop_address = (vm_address_t)loader->byte_code_size - 1;
         lhash_kv_insert(&loader->modules, (char *)module_name, module);
-        return (loader_result_t){
-            .success = true
-        };
+        return (loader_result_t){ .success = true };
     } else {
         loader_module_free(module);
         return result;
@@ -46,7 +41,5 @@ loader_result_t loader_load_module(loader_t *loader, const char* module_name) {
 }
 
 loader_result_t loader_generate_byte_code(module_t*) {
-    return (loader_result_t){
-        .success = true
-    };
+    return (loader_result_t){ .success = true };
 }

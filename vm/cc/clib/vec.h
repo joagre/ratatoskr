@@ -101,7 +101,7 @@ static vec_bop_t CAT4(vec_,P,F,ops)[] = {		\
 };
 
 
-#if defined(__x86__)
+#if defined(__x86__) || defined(__x86_64__)
 #include <cpuid.h>
 #endif
 
@@ -121,6 +121,17 @@ static vec_bop_t CAT4(vec_,P,F,ops)[] = {		\
 #else
 #define VEC_API __attribute__ ((unused))
 #endif
+
+typedef enum
+{
+    VEC_SIMD_NONE   = 0x01,    // native non-simd
+    VEC_SIMD_MMX    = 0x02,    // 64 bit
+    VEC_SIMD_SSE    = 0x04,    // 128 bit
+    VEC_SIMD_AVX    = 0x08,    // 256 bit
+    VEC_SIMD_AVX512 = 0x10,    // 512 bit
+    VEC_SIMD_NEON   = 0x20,    // 128 bit (64-bit later?)
+    VEC_SIMD_AUTO   = 0x00,    // select best available
+} vec_simd_type_t;
 
 typedef enum
 {
@@ -168,6 +179,7 @@ typedef struct
     vec_bop_t* sub;
     vec_bop_t* min;
     vec_bop_t* max;
+    vec_bop_t* cmpeq;
     vec_bop_t* cmpgt;
     vec_bop_t* cmplt;
     vec_uop_t bnot;
@@ -249,9 +261,14 @@ VEC_LOCAL int vec_resize(vec_t* vp, size_t size) VEC_API;
 VEC_LOCAL void* vec_element(vec_t* vp, int i) VEC_API;
 VEC_LOCAL void vec_setelement(vec_t* vp,int i,void* data) VEC_API;
 
-// #if defined(__MMX__)
-// #include "vec_mmx.h"
-// #endif
+#if defined(__MMX__)
+#include "vec_mmx.h"
+#define VEC_SIMD_TYPE mmx
+#define VEC_SIMD_NAME "mmx"
+#define VEC_SIMD_ALG vec_alg_mmx
+static vec_alg_t vec_alg_mmx;
+#include "vec_ops.h"
+#endif
 
 #if !defined(NOSIMD) && defined(__SSE__)
 #include "vec_sse.h"
@@ -304,6 +321,7 @@ VEC_LOCAL void vec_add(vec_t* a, vec_t* b, vec_t* c);
 VEC_LOCAL void vec_sub(vec_t* a, vec_t* b, vec_t* c);
 VEC_LOCAL void vec_min(vec_t* a, vec_t* b, vec_t* c);
 VEC_LOCAL void vec_max(vec_t* a, vec_t* b, vec_t* c);
+VEC_LOCAL void vec_cmpeq(vec_t* a, vec_t* b, vec_t* c);
 VEC_LOCAL void vec_cmpgt(vec_t* a, vec_t* b, vec_t* c);
 VEC_LOCAL void vec_cmplt(vec_t* a, vec_t* b, vec_t* c);
 VEC_LOCAL void vec_bnot(vec_t* a, vec_t* c);
@@ -311,7 +329,7 @@ VEC_LOCAL void vec_band(vec_t* a, vec_t* b, vec_t* c);
 VEC_LOCAL void vec_bor(vec_t* a, vec_t* b, vec_t* c);
 VEC_LOCAL void vec_bxor(vec_t* a, vec_t* b, vec_t* c);
 
-#if defined(__x86__)
+#if defined(__x86__) || defined(__x86_64__)
 // name must be at least 13 chars long
 VEC_LOCAL char* cpuid_vendor_name(char* name)
 {
@@ -396,9 +414,9 @@ VEC_LOCAL int cpuid_cache_line_size()
 #endif
 
 
-VEC_LOCAL int vec_globals_init()
+VEC_LOCAL int vec_globals_init(vec_simd_type_t sel)
 {
-#if defined(__x86__)  
+#if defined(__x86__) || defined(__x86_64__)
     uint32_t ecx = 0;
     uint32_t edx = 0;
     uint32_t ext0_eax = 0;
@@ -411,11 +429,10 @@ VEC_LOCAL int vec_globals_init()
     uint32_t ext1_edx = 0;
     int maxlevel = 0;    
 #endif
-    vec_alg_t* algp = &vec_alg_scl;
-    
+    vec_alg_t* algp = NULL;
     memset(&vec_globals, 0, sizeof(vec_globals));
 
-#if defined(__x86__)
+#if defined(__x86__) || defined(__x86_64__)
     maxlevel = cpuid_get_highfunsup();
     if (maxlevel == 0)
 	return -1;
@@ -429,21 +446,23 @@ VEC_LOCAL int vec_globals_init()
 		      &ext1_ecx, &ext1_edx);
     if (edx & bit_MMX) {
 	vec_globals.mmx = 1;
-#if !defined(NOSIMD) && defined(__MMX__)	
+#if !defined(NOSIMD) && defined(__MMX__)
 	vec_globals.max_vector_size = sizeof(__m64);
+	if ((sel & VEC_SIMD_MMX) || (sel == VEC_SIMD_AUTO))
+	    algp = &vec_alg_mmx;
 #endif
     }
     if (edx & bit_SSE) {
 	vec_globals.sse = 1;
 #if !defined(NOSIMD) && defined(__SSE__)
-	algp = &vec_alg_sse;
-	vec_globals.max_vector_size = sizeof(__m128);	
+	vec_globals.max_vector_size = sizeof(__m128);
 #endif
     }
-    if (edx & bit_SSE2) {	
+    if (edx & bit_SSE2) {     // fixme: we require SSE4_1 right now
 	vec_globals.sse2 = 1;
 #if !defined(NOSIMD) && defined(__SSE2__)	
 	vec_globals.max_vector_size = sizeof(__m128);
+	
 #endif
     }
     if (ecx & bit_SSE3) {
@@ -454,8 +473,10 @@ VEC_LOCAL int vec_globals_init()
     }
     if (ecx & bit_SSE4_1) {
 	vec_globals.sse4_1 = 1;
-#if !defined(NOSIMD) && defined(__SSE4_1__)			
+#if !defined(NOSIMD) && defined(__SSE4_1__)
 	vec_globals.max_vector_size = sizeof(__m128);
+	if ((sel & VEC_SIMD_SSE) || (sel == VEC_SIMD_AUTO))
+	    algp = &vec_alg_sse;
 #endif
     }
     if (ecx & bit_SSE4_2) {
@@ -467,7 +488,6 @@ VEC_LOCAL int vec_globals_init()
     if (ecx & bit_AVX) {
 	vec_globals.avx = 1;
 #if !defined(NOSIMD) && defined(__AVX__)
-	algp = &vec_alg_avx;
 	vec_globals.max_vector_size = sizeof(__m256);	
 #endif
     }
@@ -475,14 +495,18 @@ VEC_LOCAL int vec_globals_init()
     	vec_globals.avx2 = 1;
 #if !defined(NOSIMD) && defined(__AVX2__)	
 	vec_globals.max_vector_size = sizeof(__m256);
+	if ((sel & VEC_SIMD_AVX) || (sel == VEC_SIMD_AUTO))
+	    algp = &vec_alg_avx;
 #endif
     }
     // avx512 features
     if (ext0_ebx & bit_AVX512F) {
 	vec_globals.avx512.f = 1;
-#ifdef __AVX512F__	
+#ifdef __AVX512F__ 
 	// algp = &vec_alg_avx512;
 	vec_globals.max_vector_size = sizeof(__m512);
+	if ((sel & VEC_SIMD_AVX512) || (sel == VEC_SIMD_AUTO))
+	    algp = &vec_alg_avx512;
 #endif
     }
     if (ext0_ebx & bit_AVX512CD)
@@ -522,8 +546,11 @@ VEC_LOCAL int vec_globals_init()
 #elif defined(__ARM_NEON__)
     vec_globals.neon = 1;
     vec_globals.max_vector_size = sizeof(int8x16_t);
-    algp = &vec_alg_neon;
+    if ((sel & VEC_SIMD_NEON) || (sel == VEC_SIMD_AUTO))
+	algp = &vec_alg_neon;
 #endif
+    if ((algp == NULL) && ((sel & VEC_SIMD_NONE)||(sel == VEC_SIMD_AUTO)))
+	algp = &vec_alg_scl;
     vec_globals.algp = algp;
     return 0;
 }
@@ -790,6 +817,11 @@ VEC_LOCAL void vec_min(vec_t* a, vec_t* b, vec_t* c)
 VEC_LOCAL void vec_max(vec_t* a, vec_t* b, vec_t* c)
 {
     (vec_globals.algp->max[a->type])(a, b, c);
+}
+
+VEC_LOCAL void vec_cmpeq(vec_t* a, vec_t* b, vec_t* c)
+{
+    (vec_globals.algp->cmpeq[a->type])(a, b, c);
 }
 
 VEC_LOCAL void vec_cmpgt(vec_t* a, vec_t* b, vec_t* c)
