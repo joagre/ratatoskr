@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "clib/lhash_kv.h"
 
 #define MAX_OPCODE_STRING_SIZE 8
 #define MAX_OPERAND_TYPES 8
@@ -110,11 +111,19 @@ typedef struct {
     operand_t operands[MAX_OPERAND_TYPES];
 } opcode_info_t;
 
+typedef struct {
+    uint8_t* byte_code;
+    size_t byte_code_size;
+    const char* load_path;
+    lhash_kv_t modules;
+} loader_t;
+
 const opcode_info_t* opcode_to_opcode_info(opcode_t opcode);
 const opcode_info_t* string_to_opcode_info(const char* string);
 const char* system_call_to_string(system_call_t system_call);
 system_call_t string_to_system_call(const char* string);
 const char* return_mode_to_string(return_mode_t return_mode);
 return_mode_t string_to_return_mode(const char* string);
+void loader_init(loader_t* loader, const char* load_path);
 
 #endif

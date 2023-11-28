@@ -81,6 +81,12 @@ int main(int argc, char* argv[]) {
         VM_LOG(LOG_LEVEL_DEBUG, "parameter = %d", parameters[i]);
     }
 
+    loader_t loader;
+    loader_init(&loader, load_path);
+
+    //loader_load_module(loader, module_name);
+
+
     return SUCCESS;
 }
 
