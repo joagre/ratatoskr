@@ -17,6 +17,7 @@ typedef struct {
 typedef struct {
     bool success;
     int errno_value;
+    char *error_message;
 } loader_result_t;
 
 void loader_init(loader_t* loader, const char* load_path);

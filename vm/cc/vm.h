@@ -4,8 +4,10 @@
 #include <stdint.h>
 
 #define NUMBER_OF_REGISTERS 64
-#define MAX_OPCODE_STRING_SIZE 8
+#define MAX_OPCODE_STRING_SIZE 16
+#define MAX_OPERANDS_STRING_SIZE 128
 #define MAX_OPERANDS 8
+#define MAX_OPERAND_STRING_SIZE 32
 
 #define GET_OPERAND(T)              \
     ({                              \
