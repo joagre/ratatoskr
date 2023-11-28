@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define NUMBER_OF_REGISTERS 64
 #define MAX_OPCODE_STRING_SIZE 8
 #define MAX_OPERAND_TYPES 8
 

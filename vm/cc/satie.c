@@ -9,6 +9,7 @@
 #include "loader.h"
 #include "satie.h"
 #include "return_types.h"
+#include "log.h"
 
 int main(int argc, char* argv[]) {
     uint16_t check_after = DEFAULT_CHECK_AFTER;
@@ -19,7 +20,6 @@ int main(int argc, char* argv[]) {
         {"time-slice", required_argument, 0, 't'},
         {"check-after", required_argument, 0, 'c'},
         {"load-path", required_argument, 0, 'l'},
-        {"interpreter-mode", required_argument, 0, 'i'},
         {0, 0, 0, 0}
     };
 
@@ -51,10 +51,35 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    printf("Time Slice: %d\n", time_slice);
-    printf("Check After: %d\n", check_after);
-    printf("Load Path: %s\n", load_path);
-    //printf("Interpreter Mode: %d\n", interpreterMode);
+    if (argc < 3) {
+        usage(basename(argv[0]));
+    }
+
+    const char* module_name = argv[optind];
+
+    long_result_t result = string_to_long(argv[optind + 1]);
+    if (!result.success) {
+        usage(basename(argv[0]));
+    }
+    uint32_t label = result.value;
+
+    long parameters[argc - optind];
+    for (int j = 0, i = optind + 2; i < argc; i++) {
+        long_result_t result = string_to_long(argv[i]);
+        if (!result.success) {
+            usage(basename(argv[0]));
+        }
+        parameters[j++] = result.value;
+    }
+
+    VM_LOG(LOG_LEVEL_DEBUG, "check_after = %d", check_after);
+    VM_LOG(LOG_LEVEL_DEBUG, "load_path = %s", load_path);
+    VM_LOG(LOG_LEVEL_DEBUG, "time_slice = %d", time_slice);
+    VM_LOG(LOG_LEVEL_DEBUG, "module_name = %s", module_name);
+    VM_LOG(LOG_LEVEL_DEBUG, "label = %d", label);
+    for (int i = 0; i < argc - optind - 2; i++) {
+        VM_LOG(LOG_LEVEL_DEBUG, "parameter = %d", parameters[i]);
+    }
 
     return SUCCESS;
 }
