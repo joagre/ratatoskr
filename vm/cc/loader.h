@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "clib/lhash_kv.h"
-#include "module.h"
+#include "loader_module.h"
 
 typedef struct {
     uint8_t* byte_code;

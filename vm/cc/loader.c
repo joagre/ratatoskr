@@ -4,7 +4,7 @@
 #include "clib/lhash_kv.h"
 #include "loader.h"
 #include "vm.h"
-#include "module.h"
+#include "loader_module.h"
 
 void loader_init(loader_t* loader, const char* load_path) {
     loader->byte_code = NULL;
@@ -29,7 +29,7 @@ loader_result_t loader_load_module(loader_t *loader, const char* module_name) {
             .errno_value = errno
         };
     }
-    module_t* module = module_new((address_type_t)loader->byte_code_size);
+    module_t* module = loader_module_new((address_type_t)loader->byte_code_size);
     loader_result_t result = loader_generate_byte_code(module);
     free(file_path);
     fclose(file);
@@ -40,7 +40,7 @@ loader_result_t loader_load_module(loader_t *loader, const char* module_name) {
             .success = true
         };
     } else {
-        module_free(module);
+        loader_module_free(module);
         return result;
     }
 }
