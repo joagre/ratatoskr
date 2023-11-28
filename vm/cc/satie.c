@@ -1,15 +1,12 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <getopt.h>
-#include <stdbool.h>
 #include <libgen.h>
 #include <errno.h>
-#include "loader.h"
 #include "satie.h"
-#include "return_types.h"
 #include "log.h"
+#include "loader.h"
+#include "return_types.h"
 
 int main(int argc, char* argv[]) {
     uint16_t check_after = DEFAULT_CHECK_AFTER;
