@@ -1,7 +1,7 @@
 #ifndef __INSTRUCTIONS_H__
 #define __INSTRUCTIONS_H__
 
-#include "log.h"
+#include "loader.h"
 
 const opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
     [OPCODE_JMPRNZE] = {

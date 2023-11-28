@@ -1,5 +1,5 @@
-#ifndef __VM_H__
-#define __VM_H__
+#ifndef __LOADER_H__
+#define __LOADER_H__
 
 #include <stdint.h>
 #include <stddef.h>

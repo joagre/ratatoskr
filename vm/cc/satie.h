@@ -10,8 +10,7 @@
 #define DEFAULT_LOAD_PATH "./"
 #define DEFAULT_TIME_SLICE 25
 
-void usage(const char* name, uint16_t check_after, const char* load_path,
-           uint32_t time_slice);
+void usage(const char* name);
 long_result_t string_to_long(const char* string);
 
 #endif

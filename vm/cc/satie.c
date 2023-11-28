@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <libgen.h>
 #include <errno.h>
-#include "vm.h"
+#include "loader.h"
 #include "satie.h"
 #include "return_types.h"
 
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
         case 't': {
             long_result_t result = string_to_long(optarg);
             if (!result.success) {
-                usage(basename(argv[0]), check_after, load_path, time_slice);
+                usage(basename(argv[0]));
             }
             time_slice = result.value;
             break;
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
         case 'c': {
             long_result_t result = string_to_long(optarg);
             if (!result.success) {
-                usage(basename(argv[0]), check_after, load_path, time_slice);
+                usage(basename(argv[0]));
             }
             check_after = result.value;
             break;
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
             load_path = optarg;
             break;
         default:
-            usage(basename(argv[0]), check_after, load_path, time_slice);
+            usage(basename(argv[0]));
         }
     }
 
@@ -59,8 +59,7 @@ int main(int argc, char* argv[]) {
     return SUCCESS;
 }
 
-void usage(const char* name, uint16_t check_after, const char* load_path,
-           uint32_t time_slice) {
+void usage(const char* name) {
     fprintf(stderr,
             "Usage: %s [options] <module> <label> [<parameter> ...]\n"
             "Options:\n"
@@ -75,7 +74,7 @@ void usage(const char* name, uint16_t check_after, const char* load_path,
             "  -t <milli-seconds>, --time-slice=<milli-seconds>\n"
             "    <milli-seconds> spent by each job before context switch (%d) "
             "ms)\n",
-            name, check_after, load_path, time_slice);
+            name, DEFAULT_CHECK_AFTER, DEFAULT_LOAD_PATH, DEFAULT_TIME_SLICE);
     exit(PARAMETER_ERROR);
 }
 
