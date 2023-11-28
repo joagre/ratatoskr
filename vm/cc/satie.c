@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     char* load_path = DEFAULT_LOAD_PATH;
     uint32_t time_slice = DEFAULT_TIME_SLICE;
 
-    static struct option long_options[] = {
+    struct option long_options[] = {
         {"time-slice", required_argument, 0, 't'},
         {"check-after", required_argument, 0, 'c'},
         {"load-path", required_argument, 0, 'l'},
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     return SUCCESS;
 }
 
-void usage(char* name, uint16_t check_after, char* load_path,
+void usage(const char* name, uint16_t check_after, const char* load_path,
            uint32_t time_slice) {
     fprintf(stderr,
             "Usage: %s [options] <module> <label> [<parameter> ...]\n"
