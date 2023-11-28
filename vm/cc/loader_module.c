@@ -2,15 +2,17 @@
 #include "log.h"
 #include "loader_module.h"
 
+size_t key_hash(void* key, void*) {
+    return (size_t)key;
+};
+
+int key_cmp(void* key1, void* key2, void*) {
+    return (key1 == key2);
+};
+
 module_t* loader_module_new(vm_address_t start_address) {
     module_t* module = malloc(sizeof(module_t));
     module->start_address = start_address;
-    size_t key_hash(void* key, void*) {
-        return (size_t)key;
-    };
-    int key_cmp(void* key1, void* key2, void*) {
-        return (key1 == key2);
-    };
     lhash_kv_init(&module->jump_table, NULL, key_hash, key_cmp);
     return module;
 }

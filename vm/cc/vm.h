@@ -5,7 +5,7 @@
 
 #define NUMBER_OF_REGISTERS 64
 #define MAX_OPCODE_STRING_SIZE 8
-#define MAX_OPERAND_TYPES 8
+#define MAX_OPERANDS 8
 
 #define GET_OPERAND(T)              \
     ({                              \
@@ -107,7 +107,7 @@ typedef enum {
 
 typedef struct {
     char string[MAX_OPCODE_STRING_SIZE];
-    operand_t operands[MAX_OPERAND_TYPES];
+    operand_t operands[MAX_OPERANDS];
 } opcode_info_t;
 
 const opcode_info_t* opcode_to_opcode_info(opcode_t opcode);

@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "clib/lhash_kv.h"
 #include "loader_module.h"
 
@@ -20,6 +21,7 @@ typedef struct {
 
 void loader_init(loader_t* loader, const char* load_path);
 loader_result_t loader_load_module(loader_t *loader, const char* module_name);
-loader_result_t loader_generate_byte_code(module_t* module);
+loader_result_t loader_generate_byte_code(module_t* module, FILE* file);
+char *purge_line(char *line);
 
 #endif
