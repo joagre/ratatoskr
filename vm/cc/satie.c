@@ -26,26 +26,28 @@ void satie_print_error(const satie_error_t *error) {
 
 static const char* satie_error_type_to_string(satie_error_type_t type) {
     switch (type) {
-        case ERROR_TYPE_NONE:
-            return "None";
-        case ERROR_TYPE_CODE:
-            return "Code";
-        case ERROR_TYPE_MESSAGE:
-            return "Message";
-        default:
-            return "Unknown";
+    case ERROR_TYPE_NONE:
+        return "None";
+    case ERROR_TYPE_CODE:
+        return "Code";
+    case ERROR_TYPE_MESSAGE:
+        return "Message";
+    case ERROR_TYPE_CONVERSION:
+        return "Conversion";
+    default:
+        return "Unknown";
     }
 }
 
 static const char* satie_component_to_string(satie_component_t component) {
     switch (component) {
-        case COMPONENT_GENERAL:
-            return "General";
-        case COMPONENT_LOADER:
-            return "Loader";
-        case COMPONENT_INTERPRETER:
-            return "Interpreter";
-        default:
-            return "Unknown";
+    case COMPONENT_GENERAL:
+        return "General";
+    case COMPONENT_LOADER:
+        return "Loader";
+    case COMPONENT_INTERPRETER:
+        return "Interpreter";
+    default:
+        return "Unknown";
     }
 }
