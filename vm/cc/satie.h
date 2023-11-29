@@ -17,11 +17,11 @@ typedef enum {
     ERROR_TYPE_NONE = 0,
     ERROR_TYPE_CODE,
     ERROR_TYPE_MESSAGE,
-    ERROR_TYPE_CONVERSION
 } satie_error_type_t;
 
 typedef enum {
     COMPONENT_GENERAL = 0,
+    COMPONENT_VM,
     COMPONENT_LOADER,
     COMPONENT_INTERPRETER
 } satie_component_t;
@@ -30,6 +30,16 @@ typedef enum {
     if (error) { \
         (error)->failed = true; \
         (error)->flags = (((uint16_t)(component) << 8) | ((uint16_t)(type) & 0xFF)); \
+    } \
+})
+#define SET_ERROR_TYPE(error, type) ({ \
+    if (error) { \
+        (error)->flags = (((error)->flags & 0xFF00) | ((uint16_t)(type) & 0xFF)); \
+    } \
+})
+#define SET_COMPONENT(error, component) ({ \
+    if (error) { \
+        (error)->flags = (((error)->flags & 0x00FF) | (((uint16_t)(component) << 8) & 0xFF00)); \
     } \
 })
 #define CLEAR_ERROR(error) ({ \

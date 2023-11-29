@@ -2,6 +2,7 @@
 #define __VM_H__
 
 #include <stdint.h>
+#include "satie.h"
 
 #define NUMBER_OF_REGISTERS 64
 #define MAX_OPCODE_STRING_SIZE 16
@@ -9,15 +10,16 @@
 #define MAX_OPERANDS 8
 #define MAX_OPERAND_STRING_SIZE 32
 #define MAX_LINE_LENGTH 256
+#define MAX_OPERANDS_BYTES_SIZE 1024
+#define INITIAL_BYTE_CODE_SIZE 512
 
-#define GET_OPERAND(T)              \
-    ({                              \
+#define GET_OPERAND(T) \
+    ({ \
         T result = *(T*)(operands); \
-        operands += sizeof(T);      \
-        size += sizeof(T);          \
-        result;                     \
+        operands += sizeof(T); \
+        size += sizeof(T); \
+        result; \
     })
-
 #define GET_VALUE(T, bytes) (*(T*)(bytes))
 #define SET_VALUE(T, value, bytes) (*(T*)(bytes) = (value))
 
@@ -34,7 +36,7 @@ typedef uint16_t vm_system_call_t;
 
 typedef enum {
     // Register machine opcodes
-    OPCODE_JMPRNZE,
+    OPCODE_JMPRNZE = 0,
     OPCODE_JMPRINGT,
     OPCODE_SUBRRI,
     OPCODE_SUBRSI,
@@ -79,7 +81,7 @@ typedef enum {
 } opcode_t;
 
 typedef enum {
-    OPERAND_STACK_VALUE,
+    OPERAND_STACK_VALUE = 0,
     OPERAND_REGISTER,
     OPERAND_LABEL,
     OPERAND_IMMEDIATE_VALUE,
@@ -91,7 +93,7 @@ typedef enum {
 } operand_t;
 
 typedef enum {
-    SYSTEM_CALL_SELF,
+    SYSTEM_CALL_SELF = 0,
     SYSTEM_CALL_SEND,
     SYSTEM_CALL_RECV,
     SYSTEM_CALL_PRINTLN,
@@ -102,22 +104,26 @@ typedef enum {
 } system_call_t;
 
 typedef enum {
-    RETURN_MODE_VALUE,
+    RETURN_MODE_VALUE = 0,
     RETURN_MODE_COPY,
     RETURN_MODE_INVALID,
     RETURN_MODE_ENUM_SIZE
 } return_mode_t;
 
 typedef struct {
+    opcode_t opcode;
     char string[MAX_OPCODE_STRING_SIZE];
     operand_t operands[MAX_OPERANDS];
 } opcode_info_t;
 
 const opcode_info_t* opcode_to_opcode_info(opcode_t opcode);
-const opcode_info_t* string_to_opcode_info(const char* string);
+const opcode_info_t* string_to_opcode_info(const char* string,
+                                           satie_error_t* satie_error);
 const char* system_call_to_string(system_call_t system_call);
-system_call_t string_to_system_call(const char* string);
+system_call_t string_to_system_call(const char* string,
+                                    satie_error_t* satie_error);
 const char* return_mode_to_string(return_mode_t return_mode);
-return_mode_t string_to_return_mode(const char* string);
+return_mode_t string_to_return_mode(const char* string,
+                                    satie_error_t* satie_error);
 
 #endif

@@ -32,8 +32,6 @@ static const char* satie_error_type_to_string(satie_error_type_t type) {
         return "Code";
     case ERROR_TYPE_MESSAGE:
         return "Message";
-    case ERROR_TYPE_CONVERSION:
-        return "Conversion";
     default:
         return "Unknown";
     }
@@ -43,6 +41,8 @@ static const char* satie_component_to_string(satie_component_t component) {
     switch (component) {
     case COMPONENT_GENERAL:
         return "General";
+    case COMPONENT_VM:
+        return "VM";
     case COMPONENT_LOADER:
         return "Loader";
     case COMPONENT_INTERPRETER:

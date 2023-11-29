@@ -15,6 +15,7 @@
         */
 
 
+static void append_byte_code(loader_t* loader, size_t n, uint8_t* bytes);
 static void purge_line(char *purged_line,  const char *line);
 static size_t key_hash(void* key, void*);
 static int key_cmp(void* key1, void* key2, void*);
@@ -22,6 +23,7 @@ static int key_cmp(void* key1, void* key2, void*);
 void loader_init(loader_t* loader, const char* load_path) {
     loader->byte_code = NULL;
     loader->byte_code_size = 0;
+    loader->max_byte_code_size = 0;
     loader->load_path = load_path;
     lhash_kv_init(&loader->modules, NULL, key_hash, key_cmp);
 }
@@ -31,8 +33,8 @@ void loader_free(loader_t* loader) {
     lhash_kv_clear(&loader->modules);
 }
 
-static void loader_generate_byte_code(loader_t* loader, module_t* module,
-                                      FILE* file, satie_error_t* satie_error) {
+static void generate_byte_code(loader_t* loader, module_t* module,
+                               FILE* file, satie_error_t* satie_error) {
     char opcode_string[MAX_OPCODE_STRING_SIZE];
     char operands_string[MAX_OPERANDS_STRING_SIZE] = "";
     char operands[MAX_OPERANDS][MAX_OPERAND_STRING_SIZE];
@@ -91,13 +93,45 @@ static void loader_generate_byte_code(loader_t* loader, module_t* module,
                 free(line);
                 return;
             }
-            SATIE_LOG(LOG_LEVEL_DEBUG, "label %s -> %d", label, loader->byte_code_size);
+            SATIE_LOG(LOG_LEVEL_DEBUG, "label %ld -> %d", label,
+                      loader->byte_code_size);
             module_insert_label(module, label, loader->byte_code_size);
             continue;
         }
+
+        // Look for opcode info
+        const opcode_info_t* opcode_info =
+            string_to_opcode_info(opcode_string, satie_error);
+        if (satie_error->failed) {
+            SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
+            satie_error->message = "Invalid opcode";
+            free(line);
+            return;
+        }
+
+        // Add opcode byte to byte code
+        append_byte_code(loader, 1, (uint8_t*)&opcode_info->opcode);
+        
+        // Add operand bytes to byte code
+        //uint8_t bytes[MAX_OPERANDS_BYTES_SIZE];
+        //size_t n = get_operands_as_bytes(opcode_info, operands, line, bytes);
+        //append_byte_code(loader, n, bytes);
     }
     free(line);
     CLEAR_ERROR(satie_error);
+}
+
+static void append_byte_code(loader_t* loader, size_t n, uint8_t* bytes) {
+    if (loader->max_byte_code_size == 0) {
+        loader->byte_code = malloc(INITIAL_BYTE_CODE_SIZE);
+        loader->max_byte_code_size = INITIAL_BYTE_CODE_SIZE;
+    } else if (loader->byte_code_size + n > loader->max_byte_code_size) {
+        loader->max_byte_code_size *= 2;
+        loader->byte_code =
+            realloc(loader->byte_code, loader->max_byte_code_size);
+    }
+    memcpy(loader->byte_code + loader->byte_code_size, bytes, n);
+    loader->byte_code_size += n;
 }
 
 void loader_load_module(loader_t *loader, const char* module_name,
@@ -108,8 +142,7 @@ void loader_load_module(loader_t *loader, const char* module_name,
         strlen(module_name) +
         strlen(".posm");
     char file_path[file_path_length];
-    snprintf(file_path, file_path_length, "%s/%s.posm", loader->load_path,
-             module_name);
+    sprintf(file_path, "%s/%s.posm", loader->load_path, module_name);
     FILE* file;
     if ((file = fopen(file_path, "r")) == NULL) {
         SET_ERROR(satie_error, ERROR_TYPE_CODE, COMPONENT_LOADER);
@@ -120,7 +153,7 @@ void loader_load_module(loader_t *loader, const char* module_name,
     // Generate byte code
     size_t old_byte_code_size = loader->byte_code_size;
     module_t* module = module_new((vm_address_t)loader->byte_code_size);
-    loader_generate_byte_code(loader, module, file, satie_error);
+    generate_byte_code(loader, module, file, satie_error);
     fclose(file);
     if (satie_error->failed) {
         loader->byte_code_size = old_byte_code_size;

@@ -17,7 +17,7 @@ void satie_assert(bool condition, const char* message);
 
 #ifdef DEBUG
 #define SATIE_LOG(log_level, message, ...) ({    \
-   satie_log(log_level, message, ##__VA_ARGS__); \
+    satie_log(log_level, message, ##__VA_ARGS__); \
 })
 #define SATIE_ABORT( message) ({ \
     satie_abort(message);        \
