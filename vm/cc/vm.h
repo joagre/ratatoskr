@@ -8,6 +8,7 @@
 #define MAX_OPERANDS_STRING_SIZE 128
 #define MAX_OPERANDS 8
 #define MAX_OPERAND_STRING_SIZE 32
+#define MAX_LINE_LENGTH 256
 
 #define GET_OPERAND(T)              \
     ({                              \

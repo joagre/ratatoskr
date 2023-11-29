@@ -21,11 +21,12 @@ void loader_free(loader_t* loader) {
 
 loader_result_t loader_load_module(loader_t *loader, const char* module_name) {
     // Open file
-    char* file_path;
-    asprintf(&file_path, "%s/%s.posm", loader->load_path, module_name);
+    char file_path[strlen(loader->load_path) +
+                   strlen(module_name) +
+                   strlen(".posm")];
+    sprintf(file_path, "%s/%s.posm", loader->load_path, module_name);
     FILE* file;
     if ((file = fopen(file_path, "r")) == NULL) {
-        free(file_path);
         return (loader_result_t){ .success = false, .errno_value = errno };
     }
 
@@ -33,7 +34,6 @@ loader_result_t loader_load_module(loader_t *loader, const char* module_name) {
     size_t old_byte_code_size = loader->byte_code_size;
     module_t* module = loader_module_new((vm_address_t)loader->byte_code_size);
     loader_result_t result = loader_generate_byte_code(module, file);
-    free(file_path);
     fclose(file);
     if (result.success) {
         module->stop_address = (vm_address_t)loader->byte_code_size - 1;
@@ -50,33 +50,27 @@ loader_result_t loader_generate_byte_code(module_t*, FILE* file) {
     char opcode_string[MAX_OPCODE_STRING_SIZE];
     char operands_string[MAX_OPERANDS_STRING_SIZE] = "";
     char operands[MAX_OPERANDS][MAX_OPERAND_STRING_SIZE];
+    char *line = NULL;
+    size_t line_size = 0;
+    char purged_line[MAX_LINE_LENGTH];
 
     while (true) {
-        // Reset operands
-        for (int i = 0; i < MAX_OPERANDS; i++) {
-            operands[i][0] = '\0';
-        }
-
         // Read line
-        char *line = NULL;
-        size_t n = 0;
-        ssize_t read = getline(&line, &n, file);
+        ssize_t read = getline(&line, &line_size, file);
         if (read == -1) {
-            free(line);
             break;
         }
 
         // Purge line
-        char* purged_line = purge_line(line);
+        purge_line(purged_line, line);
         SATIE_LOG(LOG_LEVEL_DEBUG, "purged_line: '%s'", purged_line);
         if (strlen(purged_line) == 0) {
-            free(line);
-            free(purged_line);
             continue;
         }
 
         // Parse line
         char *first_blank = strchr(purged_line, ' ');
+        size_t number_of_operands = 0;
         if (first_blank == NULL) {
             strcpy(opcode_string, purged_line);
             SATIE_LOG(LOG_LEVEL_DEBUG, "opcode_string: '%s'", opcode_string);
@@ -93,41 +87,44 @@ loader_result_t loader_generate_byte_code(module_t*, FILE* file) {
                 }
                 strcpy(operands[i], token);
                 SATIE_LOG(LOG_LEVEL_DEBUG, "operands[%d]: %s", i, operands[i]);
+                number_of_operands++;
                 i++;
             }
         }
-        free(line);
-        free(purged_line);
 
-        /*
         // Special treatment of labels
         if (strcmp(opcode_string, "label") == 0) {
-            if (operands[1] != NULL) {
+            if (number_of_operands != 1) {
+                free(line);
                 return (loader_result_t){
                     .success = false,
                     .error_message = "Bad label definition"
-                }
+                };
             }
-            module_.insertLabel(parse!LabelType(operands[0], line),
-                                    cast(AddressType)byteCode.length);
+            //module_.insertLabel(parse!LabelType(operands[0], line),
+            //                        cast(AddressType)byteCode.length);
             continue;
         }
-        */
     }
+    free(line);
 
     return (loader_result_t){ .success = true };
 }
 
-char *purge_line(char *line) {
-    size_t i = 0;
+void purge_line(char *purged_line,  const char *line) {
     // Remove heading whitespaces and comment rows
+    size_t i = 0;
     while (line[i] == '\t' || line[i] == '\r' || line[i] == ' ') {
         i++;
     }
+
+    // Nothing of value
     if (line[i] == '\n' || line[i] == ';') {
-        return "";
+        purged_line[0] = '\0';
+        return;
     }
-    char *purged_line = strdup(line);
+
+    // Whitespace purging
     bool is_space = false;
     size_t j = 0;
     while (line[i] != ';' && line[i] != '\n') {
@@ -143,11 +140,12 @@ char *purge_line(char *line) {
         }
         i++;
     }
-    if (purged_line[j-1] == ' ') {
+
+    // Truncate line
+    if (purged_line[j - 1] == ' ') {
         // Remove trailing space
-        purged_line[j-1] = '\0';
+        purged_line[j - 1] = '\0';
     } else {
         purged_line[j] = '\0';
     }
-    return purged_line;
 }
