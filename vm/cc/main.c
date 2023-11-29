@@ -27,7 +27,8 @@ int main(int argc, char* argv[]) {
         {"load-path", required_argument, 0, 'l'},
         {0, 0, 0, 0}
     };
-    int opt, option_index = 0;
+    int opt;
+    int option_index = 0;
     while ((opt = getopt_long(argc, argv, "t:c:l:i:", long_options,
                               &option_index)) != -1) {
         switch (opt) {
@@ -84,6 +85,7 @@ int main(int argc, char* argv[]) {
     loader_t loader;
     loader_init(&loader, load_path);
     loader_load_module(&loader, module_name, &satie_error);
+
     satie_print_error(&satie_error);
 
     return SUCCESS;

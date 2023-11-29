@@ -7,15 +7,17 @@
 #include "log.h"
 #include "util.h"
 
+
+        /*
+          module_t* ptr;
+          lhash_find(&loader->modules, (char *)module_name, (void**) &ptr);
+          printf("%s -> %d\n", module_name, ptr->start_address);
+        */
+
+
 static void purge_line(char *purged_line,  const char *line);
-
-static size_t key_hash(void* key, void*) {
-    return (size_t)key;
-};
-
-static int key_cmp(void* key1, void* key2, void*) {
-    return (key1 == key2);
-};
+static size_t key_hash(void* key, void*);
+static int key_cmp(void* key1, void* key2, void*);
 
 void loader_init(loader_t* loader, const char* load_path) {
     loader->byte_code = NULL;
@@ -29,46 +31,8 @@ void loader_free(loader_t* loader) {
     lhash_kv_clear(&loader->modules);
 }
 
-void loader_load_module(loader_t *loader, const char* module_name,
-                        satie_error_t* satie_error) {
-    // Open file
-    size_t file_path_length =
-        strlen(loader->load_path) +
-        strlen(module_name) +
-        strlen(".posm");
-    char file_path[file_path_length];
-    snprintf(file_path, file_path_length, "%s/%s.posm", loader->load_path,
-             module_name);
-    FILE* file;
-    if ((file = fopen(file_path, "r")) == NULL) {
-        SET_ERROR(satie_error, ERROR_TYPE_CODE, COMPONENT_LOADER);
-        satie_error->code = errno;
-        return;
-    }
-
-    // Generate byte code
-    size_t old_byte_code_size = loader->byte_code_size;
-    module_t* module = module_new((vm_address_t)loader->byte_code_size);
-    loader_generate_byte_code(loader, module, file, satie_error);
-    fclose(file);
-    if (!satie_error->failed) {
-        module->stop_address = (vm_address_t)loader->byte_code_size - 1;
-        lhash_kv_insert(&loader->modules, (char *)module_name, module);
-        /*
-        module_t* ptr;
-	lhash_find(&loader->modules, (char *)module_name, (void**) &ptr);
-	printf("%s -> %d\n", module_name, ptr->start_address);
-        */
-        CLEAR_ERROR(satie_error);
-    } else {
-        loader->byte_code_size = old_byte_code_size;
-        module_free(module);
-    }
-    CLEAR_ERROR(satie_error);
-}
-
-void loader_generate_byte_code(loader_t* loader, module_t* module, FILE* file,
-                               satie_error_t* satie_error) {
+static void loader_generate_byte_code(loader_t* loader, module_t* module,
+                                      FILE* file, satie_error_t* satie_error) {
     char opcode_string[MAX_OPCODE_STRING_SIZE];
     char operands_string[MAX_OPERANDS_STRING_SIZE] = "";
     char operands[MAX_OPERANDS][MAX_OPERAND_STRING_SIZE];
@@ -89,7 +53,7 @@ void loader_generate_byte_code(loader_t* loader, module_t* module, FILE* file,
         if (strlen(purged_line) == 0) {
             continue;
         }
-
+        
         // Parse line
         char *first_blank = strchr(purged_line, ' ');
         size_t number_of_operands = 0;
@@ -126,13 +90,46 @@ void loader_generate_byte_code(loader_t* loader, module_t* module, FILE* file,
             if (satie_error->failed) {
                 free(line);
                 return;
-            }       
+            }
+            SATIE_LOG(LOG_LEVEL_DEBUG, "label %s -> %d", label, loader->byte_code_size);
             module_insert_label(module, label, loader->byte_code_size);
             continue;
         }
     }
     free(line);
     CLEAR_ERROR(satie_error);
+}
+
+void loader_load_module(loader_t *loader, const char* module_name,
+                        satie_error_t* satie_error) {
+    // Open file
+    size_t file_path_length =
+        strlen(loader->load_path) +
+        strlen(module_name) +
+        strlen(".posm");
+    char file_path[file_path_length];
+    snprintf(file_path, file_path_length, "%s/%s.posm", loader->load_path,
+             module_name);
+    FILE* file;
+    if ((file = fopen(file_path, "r")) == NULL) {
+        SET_ERROR(satie_error, ERROR_TYPE_CODE, COMPONENT_LOADER);
+        satie_error->code = errno;
+        return;
+    }
+
+    // Generate byte code
+    size_t old_byte_code_size = loader->byte_code_size;
+    module_t* module = module_new((vm_address_t)loader->byte_code_size);
+    loader_generate_byte_code(loader, module, file, satie_error);
+    fclose(file);
+    if (satie_error->failed) {
+        loader->byte_code_size = old_byte_code_size;
+        module_free(module);
+    } else {
+        module->stop_address = (vm_address_t)loader->byte_code_size - 1;
+        lhash_kv_insert(&loader->modules, (char *)module_name, module);
+        CLEAR_ERROR(satie_error);
+    }
 }
 
 static void purge_line(char *purged_line,  const char *line) {
@@ -173,3 +170,12 @@ static void purge_line(char *purged_line,  const char *line) {
         purged_line[j] = '\0';
     }
 }
+
+static size_t key_hash(void* key, void*) {
+    return (size_t)key;
+};
+
+static int key_cmp(void* key1, void* key2, void*) {
+    return (key1 == key2);
+};
+

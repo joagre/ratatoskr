@@ -2,13 +2,8 @@
 #include "log.h"
 #include "module.h"
 
-static size_t key_hash(void* key, void*) {
-    return (size_t)key;
-};
-
-static int key_cmp(void* key1, void* key2, void*) {
-    return (key1 == key2);
-};
+static size_t key_hash(void* key, void*);
+static int key_cmp(void* key1, void* key2, void*);
 
 module_t* module_new(vm_address_t start_address) {
     module_t* module = malloc(sizeof(module_t));
@@ -19,6 +14,7 @@ module_t* module_new(vm_address_t start_address) {
 
 void module_free(module_t *module) {
     lhash_kv_clear(&module->jump_table);
+    free(module);        
 }
 
 void module_insert_label(module_t* module, vm_label_t label,
@@ -47,3 +43,11 @@ vm_label_t module_lookup_label(module_t* module, vm_address_t address) {
     SATIE_ABORT("Label address mismatch");
     return 0;
 }
+
+static size_t key_hash(void* key, void*) {
+    return (size_t)key;
+};
+
+static int key_cmp(void* key1, void* key2, void*) {
+    return (key1 == key2);
+};

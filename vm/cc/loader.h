@@ -17,7 +17,5 @@ typedef struct {
 void loader_init(loader_t* loader, const char* load_path);
 void loader_load_module(loader_t *loader, const char* module_name,
                         satie_error_t* satie_error);
-void loader_generate_byte_code(loader_t *loader, module_t* module, FILE* file,
-                               satie_error_t* satie_error);
 
 #endif
