@@ -1,17 +1,27 @@
 #include <stdio.h>
-#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
 #include <libgen.h>
-#include <errno.h>
-#include "satie.h"
 #include "log.h"
 #include "loader.h"
+#include "util.h"
+
+#define SUCCESS 0
+#define PARAMETER_ERROR 1
+
+#define DEFAULT_CHECK_AFTER 100
+#define DEFAULT_LOAD_PATH "./"
+#define DEFAULT_TIME_SLICE 25
+
+void usage(const char* name);
 
 int main(int argc, char* argv[]) {
     uint16_t check_after = DEFAULT_CHECK_AFTER;
     char* load_path = DEFAULT_LOAD_PATH;
     uint32_t time_slice = DEFAULT_TIME_SLICE;
-
+    satie_error_t satie_error;
+    
     // Parse command line options
     struct option long_options[] = {
         {"time-slice", required_argument, 0, 't'},
@@ -24,19 +34,17 @@ int main(int argc, char* argv[]) {
                               &option_index)) != -1) {
         switch (opt) {
         case 't': {
-            satie_result_t result = string_to_long(optarg);
-            if (!result.success) {
+            time_slice = string_to_long(optarg, &satie_error);
+            if (satie_error.failed) {
                 usage(basename(argv[0]));
             }
-            time_slice = result.value;
             break;
         }
         case 'c': {
-            satie_result_t result = string_to_long(optarg);
-            if (!result.success) {
+            check_after = string_to_long(optarg, &satie_error);
+            if (satie_error.failed) {
                 usage(basename(argv[0]));
             }
-            check_after = result.value;
             break;
         }
         case 'l':
@@ -53,18 +61,16 @@ int main(int argc, char* argv[]) {
 
     // Parse positional arguments
     const char* module_name = argv[optind];
-    satie_result_t result = string_to_long(argv[optind + 1]);
-    if (!result.success) {
+    uint32_t label = string_to_long(argv[optind + 1], &satie_error);
+    if (satie_error.failed) {
         usage(basename(argv[0]));
     }
-    uint32_t label = result.value;
     long parameters[argc - optind];
     for (int j = 0, i = optind + 2; i < argc; i++) {
-        satie_result_t result = string_to_long(argv[i]);
-        if (!result.success) {
+        parameters[j++] = string_to_long(argv[i], &satie_error);
+        if (satie_error.failed) {
             usage(basename(argv[0]));
         }
-        parameters[j++] = result.value;
     }
 
     SATIE_LOG(LOG_LEVEL_DEBUG, "check_after = %d", check_after);
@@ -79,8 +85,8 @@ int main(int argc, char* argv[]) {
     // Prepare loader
     loader_t loader;
     loader_init(&loader, load_path);
-    loader_result_t loader_result = loader_load_module(&loader, module_name);
-    fprintf(stderr, "WHAT: %s\n", strerror(loader_result.errno_value));
+    loader_load_module(&loader, module_name, &satie_error);
+    satie_print_error(&satie_error);
 
     return SUCCESS;
 }
@@ -102,15 +108,4 @@ void usage(const char* name) {
             "ms)\n",
             name, DEFAULT_CHECK_AFTER, DEFAULT_LOAD_PATH, DEFAULT_TIME_SLICE);
     exit(PARAMETER_ERROR);
-}
-
-satie_result_t string_to_long(const char* string) {
-    errno = 0;
-    char *endptr;
-    long value = strtol(string, &endptr, 10);
-    if (errno != 0 || *endptr != '\0' || optarg == endptr) {
-        return (satie_result_t){ .success = false };
-    } else {
-        return (satie_result_t){ .success = true, .value = value };
-    }
 }

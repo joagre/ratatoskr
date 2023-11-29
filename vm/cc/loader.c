@@ -1,11 +1,15 @@
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <errno.h>
-#include "clib/lhash_kv.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <libgen.h>
 #include "loader.h"
-#include "vm.h"
+#include "satie.h"
 #include "log.h"
-#include "loader_module.h"
+#include "util.h"
+
+static void purge_line(char *purged_line,  const char *line);
 
 static size_t key_hash(void* key, void*) {
     return (size_t)key;
@@ -27,7 +31,8 @@ void loader_free(loader_t* loader) {
     lhash_kv_clear(&loader->modules);
 }
 
-loader_result_t loader_load_module(loader_t *loader, const char* module_name) {
+void loader_load_module(loader_t *loader, const char* module_name,
+                        satie_error_t* satie_error) {
     // Open file
     char file_path[strlen(loader->load_path) +
                    strlen(module_name) +
@@ -35,15 +40,17 @@ loader_result_t loader_load_module(loader_t *loader, const char* module_name) {
     sprintf(file_path, "%s/%s.posm", loader->load_path, module_name);
     FILE* file;
     if ((file = fopen(file_path, "r")) == NULL) {
-        return (loader_result_t){ .success = false, .errno_value = errno };
+        SET_ERROR(satie_error, ERROR_TYPE_CODE, COMPONENT_LOADER);
+        satie_error->code = errno;
+        return;
     }
 
     // Generate byte code
     size_t old_byte_code_size = loader->byte_code_size;
-    module_t* module = loader_module_new((vm_address_t)loader->byte_code_size);
-    loader_result_t result = loader_generate_byte_code(module, file);
+    module_t* module = module_new((vm_address_t)loader->byte_code_size);
+    loader_generate_byte_code(loader, module, file, satie_error);
     fclose(file);
-    if (result.success) {
+    if (!satie_error->failed) {
         module->stop_address = (vm_address_t)loader->byte_code_size - 1;
         lhash_kv_insert(&loader->modules, (char *)module_name, module);
         /*
@@ -51,15 +58,16 @@ loader_result_t loader_load_module(loader_t *loader, const char* module_name) {
 	lhash_find(&loader->modules, (char *)module_name, (void**) &ptr);
 	printf("%s -> %d\n", module_name, ptr->start_address);
         */
-        return (loader_result_t){ .success = true };
+        CLEAR_ERROR(satie_error);
     } else {
         loader->byte_code_size = old_byte_code_size;
-        loader_module_free(module);
-        return result;
+        module_free(module);
     }
+    CLEAR_ERROR(satie_error);
 }
 
-loader_result_t loader_generate_byte_code(module_t*, FILE* file) {
+void loader_generate_byte_code(loader_t* loader, module_t* module, FILE* file,
+                               satie_error_t* satie_error) {
     char opcode_string[MAX_OPCODE_STRING_SIZE];
     char operands_string[MAX_OPERANDS_STRING_SIZE] = "";
     char operands[MAX_OPERANDS][MAX_OPERAND_STRING_SIZE];
@@ -109,22 +117,24 @@ loader_result_t loader_generate_byte_code(module_t*, FILE* file) {
         if (strcmp(opcode_string, "label") == 0) {
             if (number_of_operands != 1) {
                 free(line);
-                return (loader_result_t){
-                    .success = false,
-                    .error_message = "Bad label definition"
-                };
+                SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
+                satie_error->message = "Invalid label";
+                return;
             }
-            //module_.insertLabel(parse!LabelType(operands[0], line),
-            //                        cast(AddressType)byteCode.length);
+            vm_label_t label = string_to_long(operands[0], satie_error);
+            if (satie_error->failed) {
+                free(line);
+                return;
+            }       
+            module_insert_label(module, label, loader->byte_code_size);
             continue;
         }
     }
     free(line);
-
-    return (loader_result_t){ .success = true };
+    CLEAR_ERROR(satie_error);
 }
 
-void purge_line(char *purged_line,  const char *line) {
+static void purge_line(char *purged_line,  const char *line) {
     // Remove heading whitespaces and comment rows
     size_t i = 0;
     while (line[i] == '\t' || line[i] == '\r' || line[i] == ' ') {
