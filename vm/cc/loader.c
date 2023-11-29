@@ -3,9 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <libgen.h>
 #include "loader.h"
-#include "satie.h"
 #include "log.h"
 #include "util.h"
 
@@ -34,10 +32,13 @@ void loader_free(loader_t* loader) {
 void loader_load_module(loader_t *loader, const char* module_name,
                         satie_error_t* satie_error) {
     // Open file
-    char file_path[strlen(loader->load_path) +
-                   strlen(module_name) +
-                   strlen(".posm")];
-    sprintf(file_path, "%s/%s.posm", loader->load_path, module_name);
+    size_t file_path_length =
+        strlen(loader->load_path) +
+        strlen(module_name) +
+        strlen(".posm");
+    char file_path[file_path_length];
+    snprintf(file_path, file_path_length, "%s/%s.posm", loader->load_path,
+             module_name);
     FILE* file;
     if ((file = fopen(file_path, "r")) == NULL) {
         SET_ERROR(satie_error, ERROR_TYPE_CODE, COMPONENT_LOADER);

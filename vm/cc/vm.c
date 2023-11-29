@@ -1,5 +1,4 @@
 #include <string.h>
-#include "vm.h"
 #include "instructions.h"
 #include "log.h"
 

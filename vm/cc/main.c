@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <getopt.h>
 #include <libgen.h>
 #include "log.h"
@@ -9,7 +8,6 @@
 
 #define SUCCESS 0
 #define PARAMETER_ERROR 1
-
 #define DEFAULT_CHECK_AFTER 100
 #define DEFAULT_LOAD_PATH "./"
 #define DEFAULT_TIME_SLICE 25

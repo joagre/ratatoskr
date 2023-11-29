@@ -1,7 +1,6 @@
 #ifndef __LOADER_H__
 #define __LOADER_H__
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include "clib/lhash_kv.h"

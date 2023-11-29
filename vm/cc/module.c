@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include "vm.h"
 #include "log.h"
 #include "module.h"
 
