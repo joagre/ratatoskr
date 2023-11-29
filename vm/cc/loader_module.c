@@ -2,11 +2,11 @@
 #include "log.h"
 #include "loader_module.h"
 
-size_t key_hash(void* key, void*) {
+static size_t key_hash(void* key, void*) {
     return (size_t)key;
 };
 
-int key_cmp(void* key1, void* key2, void*) {
+static int key_cmp(void* key1, void* key2, void*) {
     return (key1 == key2);
 };
 

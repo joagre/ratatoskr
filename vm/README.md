@@ -101,14 +101,9 @@ On to the examples.
 ## Example: Hello world!
 
 ```
-; Run: sa -l ./ hello_world 0
-;
-; start() ->
-;     io:format("Hello world!\n").
-
 label 0
-  pushs "Hello world!"
-  sys println
+  pushs "Hello world!"        ; snuva
+  sys println            
   ret
 ```
 

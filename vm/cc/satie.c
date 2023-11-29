@@ -12,13 +12,13 @@ int main(int argc, char* argv[]) {
     char* load_path = DEFAULT_LOAD_PATH;
     uint32_t time_slice = DEFAULT_TIME_SLICE;
 
+    // Parse command line options
     struct option long_options[] = {
         {"time-slice", required_argument, 0, 't'},
         {"check-after", required_argument, 0, 'c'},
         {"load-path", required_argument, 0, 'l'},
         {0, 0, 0, 0}
     };
-
     int opt, option_index = 0;
     while ((opt = getopt_long(argc, argv, "t:c:l:i:", long_options,
                               &option_index)) != -1) {
@@ -51,14 +51,13 @@ int main(int argc, char* argv[]) {
         usage(basename(argv[0]));
     }
 
+    // Parse positional arguments
     const char* module_name = argv[optind];
-
     satie_result_t result = string_to_long(argv[optind + 1]);
     if (!result.success) {
         usage(basename(argv[0]));
     }
     uint32_t label = result.value;
-
     long parameters[argc - optind];
     for (int j = 0, i = optind + 2; i < argc; i++) {
         satie_result_t result = string_to_long(argv[i]);
@@ -77,6 +76,7 @@ int main(int argc, char* argv[]) {
         SATIE_LOG(LOG_LEVEL_DEBUG, "parameter = %d", parameters[i]);
     }
 
+    // Prepare loader
     loader_t loader;
     loader_init(&loader, load_path);
     loader_result_t loader_result = loader_load_module(&loader, module_name);

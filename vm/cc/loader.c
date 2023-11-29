@@ -7,11 +7,19 @@
 #include "log.h"
 #include "loader_module.h"
 
+static size_t key_hash(void* key, void*) {
+    return (size_t)key;
+};
+
+static int key_cmp(void* key1, void* key2, void*) {
+    return (key1 == key2);
+};
+
 void loader_init(loader_t* loader, const char* load_path) {
     loader->byte_code = NULL;
     loader->byte_code_size = 0;
     loader->load_path = load_path;
-    lhash_kv_init(&loader->modules, NULL, NULL, NULL);
+    lhash_kv_init(&loader->modules, NULL, key_hash, key_cmp);
 }
 
 void loader_free(loader_t* loader) {
@@ -37,7 +45,12 @@ loader_result_t loader_load_module(loader_t *loader, const char* module_name) {
     fclose(file);
     if (result.success) {
         module->stop_address = (vm_address_t)loader->byte_code_size - 1;
-        //lhash_kv_insert(&loader->modules, (char *)module_name, module);
+        lhash_kv_insert(&loader->modules, (char *)module_name, module);
+        /*
+        module_t* ptr;
+	lhash_find(&loader->modules, (char *)module_name, (void**) &ptr);
+	printf("%s -> %d\n", module_name, ptr->start_address);
+        */
         return (loader_result_t){ .success = true };
     } else {
         loader->byte_code_size = old_byte_code_size;
