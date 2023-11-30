@@ -3,6 +3,6 @@
 
 #include "satie.h"
 
-long string_to_long(const char* string, satie_error_t* satie_error);
+long string_to_long(char* string, satie_error_t* error);
 
 #endif

@@ -11,9 +11,9 @@ typedef enum {
     LOG_LEVEL_PANIC
 } log_level_t;
 
-void satie_log(log_level_t log_level, const char* format, ...);
-void satie_abort(const char* message);
-void satie_assert(bool condition, const char* message);
+void satie_log(log_level_t log_level, char* format, ...);
+void satie_abort(char* message);
+void satie_assert(bool condition, char* message);
 
 #ifdef DEBUG
 #define SATIE_LOG(log_level, message, ...) ({    \

@@ -12,13 +12,17 @@
 #define DEFAULT_LOAD_PATH "./"
 #define DEFAULT_TIME_SLICE 25
 
-void usage(const char* name);
+void usage(char* name);
 
 int main(int argc, char* argv[]) {
+    #ifdef DEBUG
+    module_unit_test();
+    #endif
+
     uint16_t check_after = DEFAULT_CHECK_AFTER;
     char* load_path = DEFAULT_LOAD_PATH;
     uint32_t time_slice = DEFAULT_TIME_SLICE;
-    satie_error_t satie_error;
+    satie_error_t error;
 
     // Parse command line options
     struct option long_options[] = {
@@ -33,15 +37,15 @@ int main(int argc, char* argv[]) {
                               &option_index)) != -1) {
         switch (opt) {
         case 't': {
-            time_slice = string_to_long(optarg, &satie_error);
-            if (satie_error.failed) {
+            time_slice = string_to_long(optarg, &error);
+            if (error.failed) {
                 usage(basename(argv[0]));
             }
             break;
         }
         case 'c': {
-            check_after = string_to_long(optarg, &satie_error);
-            if (satie_error.failed) {
+            check_after = string_to_long(optarg, &error);
+            if (error.failed) {
                 usage(basename(argv[0]));
             }
             break;
@@ -59,15 +63,15 @@ int main(int argc, char* argv[]) {
     }
 
     // Parse positional arguments
-    const char* module_name = argv[optind];
-    uint32_t label = string_to_long(argv[optind + 1], &satie_error);
-    if (satie_error.failed) {
+    char* module_name = argv[optind];
+    uint32_t label = string_to_long(argv[optind + 1], &error);
+    if (error.failed) {
         usage(basename(argv[0]));
     }
     long parameters[argc - optind];
     for (int j = 0, i = optind + 2; i < argc; i++) {
-        parameters[j++] = string_to_long(argv[i], &satie_error);
-        if (satie_error.failed) {
+        parameters[j++] = string_to_long(argv[i], &error);
+        if (error.failed) {
             usage(basename(argv[0]));
         }
     }
@@ -84,15 +88,15 @@ int main(int argc, char* argv[]) {
     // Prepare loader
     loader_t loader;
     loader_init(&loader, load_path);
-    loader_load_module(&loader, module_name, &satie_error);
-    loader_load_module(&loader, "ackermannr", &satie_error);
+    loader_load_module(&loader, module_name, &error);
 
-    satie_print_error(&satie_error);
+
+    satie_print_error(&error);
 
     return SUCCESS;
 }
 
-void usage(const char* name) {
+void usage(char* name) {
     fprintf(stderr,
             "Usage: %s [options] <module> <label> [<parameter> ...]\n"
             "Options:\n"

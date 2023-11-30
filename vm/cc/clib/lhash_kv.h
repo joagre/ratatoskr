@@ -49,7 +49,7 @@ LHASH_KV_LOCAL size_t lhash_kv_size(lhash_kv_t* lhk)
 {
     return lhash_size((lhash_t*)lhk);
 }
-
+    
 LHASH_KV_LOCAL int lhash_kv_is_empty(lhash_kv_t* lhk)
 {
     return lhash_is_empty((lhash_t*)lhk);
@@ -87,14 +87,12 @@ LHASH_KV_LOCAL void lhash_kv_clear(lhash_kv_t* lhk)
 }
 
 // clear table and shrink table to zero
-/*
 LHASH_KV_LOCAL void lhash_kv_reset(lhash_kv_t* lhk)
 {
     lhash_kv_clear(lhk);
     lhash_reset((lhash_t*)lhk);
 }
-*/
-
+    
 LHASH_LOCAL int lhash_kv_find(lhash_kv_t* lhk, void* key, void** data)
 {
     hlink_kv_t* p;

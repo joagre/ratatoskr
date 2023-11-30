@@ -22,16 +22,16 @@ typedef struct _lhash_t
     slist_t*   tab;
     size_t     size;  // number of elements
     size_t     asize; // allocated size of tab
-    allocator_t* alloc;
+    allocator_t* alloc;    
     lhash_hash_t hash;
     lhash_cmp_t  cmp;
 } lhash_t;
 
 typedef struct _lhash_iter_t
 {
-    lhash_t* lh;       // current table
-    unsigned int slot; // current slot
-    slist_iter_t si;   // slot iterator
+    lhash_t* lh;      // current table
+    int slot;         // current slot
+    slist_iter_t si;  // slot iterator
 } lhash_iter_t;
 
 #define LHASH_LOCAL static
@@ -74,7 +74,7 @@ LHASH_LOCAL int lhash_is_empty(lhash_t* lh)
 LHASH_LOCAL void lhash_init(lhash_t* lh, allocator_t* alloc,
 			    lhash_hash_t hash, lhash_cmp_t cmp)
 {
-    if (alloc == NULL) alloc = allocator_std();
+    if (alloc == NULL) alloc = allocator_std();    
     lh->tab = NULL;
     lh->size = 0;
     lh->asize = 0;
@@ -133,7 +133,7 @@ LHASH_LOCAL int lhash_grow(lhash_t* lh)
     memset(ptr, 0, (size-size0)*sizeof(slist_t));
     lh->tab = tab;
     lh->asize = size;
-
+    
     // move elements that rehash to the upper part
     for (slot = 0; slot < (int)size0; slot++) {
 	slist_iter_t iter;
@@ -153,7 +153,7 @@ LHASH_LOCAL int lhash_grow(lhash_t* lh)
     return 0;
 }
 
-// internal - advance iterator to element
+// internal - advance iterator to element 
 LHASH_LOCAL int lhash_iter_find(slist_iter_t* iter,
 				lhash_cmp_t cmp,
 				lhash_value_t hvalue,
@@ -166,7 +166,7 @@ LHASH_LOCAL int lhash_iter_find(slist_iter_t* iter,
 	    if ((*cmp)(key, hp, arg) == 0)
 		return 1;  // found
 	}
-	slist_iter_next(iter);
+	slist_iter_next(iter);	
     }
     return 0;
 }
@@ -216,7 +216,7 @@ LHASH_LOCAL int lhash_find(lhash_t* lh, void* key, void** ptr)
 	int slot = lhash_islot(lh, hvalue);
 	hlink_t* hp;
 	slist_iter_t iter;
-
+	
 	slist_iter_init(&iter, &lh->tab[slot]);
 	if (!lhash_iter_find(&iter, lh->cmp, hvalue, key, lh))
 	    return 0;  // not found
@@ -230,8 +230,7 @@ LHASH_LOCAL int lhash_find(lhash_t* lh, void* key, void** ptr)
 // iterator
 
 // step forward
-LHASH_LOCAL void lhash_iter_step(lhash_iter_t* iter, lhash_t* lh,
-                                 unsigned int slot)
+LHASH_LOCAL void lhash_iter_step(lhash_iter_t* iter, lhash_t* lh, int slot)
 {
     while ((slot < lh->asize) &&
 	   (slist_length(&lh->tab[slot]) == 0))
@@ -264,16 +263,16 @@ LHASH_LOCAL int lhash_iter_end(lhash_iter_t* iter)
 
 LHASH_LOCAL int lhash_iter_next(lhash_iter_t* iter)
 {
-    unsigned int slot;
+    int slot;
     lhash_t* lh = iter->lh;
-
+    
     if ((slot = iter->slot) >= lh->asize)
 	return 0;
     if (!slist_iter_next(&iter->si)) {
 	lhash_iter_step(iter, lh, slot+1);
 	return (iter->slot < lh->asize);
     }
-    return 1;
+    return 1;	
 }
 
 LHASH_LOCAL int lhash_iter_remove(lhash_iter_t* iter)

@@ -3,7 +3,7 @@
 
 #include "loader.h"
 
-const opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
+opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
     //
     // Register machine opcodes
     //
@@ -264,7 +264,7 @@ const opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
     }
 };
 
-const char* system_call_map[SYSTEM_CALL_ENUM_SIZE] = {
+char* system_call_map[SYSTEM_CALL_ENUM_SIZE] = {
     [SYSTEM_CALL_SELF] = "self",
     [SYSTEM_CALL_SEND] = "send",
     [SYSTEM_CALL_RECV] = "recv",
@@ -273,7 +273,7 @@ const char* system_call_map[SYSTEM_CALL_ENUM_SIZE] = {
     [SYSTEM_CALL_EXIT] = "exit"
 };
 
-const char* return_mode_map[RETURN_MODE_ENUM_SIZE] = {
+char* return_mode_map[RETURN_MODE_ENUM_SIZE] = {
     [RETURN_MODE_VALUE] = "value",
     [RETURN_MODE_COPY] = "copy"
 };

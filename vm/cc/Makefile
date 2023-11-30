@@ -1,5 +1,6 @@
 CC := gcc
-CFLAGS := -Wall -Werror -Wextra -std=c17 -g -DDEBUG -D_GNU_SOURCE
+CFLAGS := -Wall -Werror -Wextra -std=c17 -g -DDEBUG -D_GNU_SOURCE -Wno-sign-compare -Wno-unused-function
+
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
 DEPS := $(SRCS:.c=.d)

@@ -17,12 +17,12 @@ typedef struct {
     uint8_t* byte_code;
     uint32_t byte_code_size;
     uint32_t max_byte_code_size;
-    const char* load_path;
+    char* load_path;
     lhash_kv_t modules;
 } loader_t;
 
-void loader_init(loader_t* loader, const char* load_path);
-void loader_load_module(loader_t *loader, const char* module_name,
-                        satie_error_t* satie_error);
+void loader_init(loader_t* loader, char* load_path);
+void loader_load_module(loader_t *loader, char* module_name,
+                        satie_error_t* error);
 
 #endif

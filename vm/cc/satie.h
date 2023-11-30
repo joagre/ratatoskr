@@ -2,20 +2,28 @@
 #define __SATIE_H__
 
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 #include <stdint.h>
+
+#define MAX_ERROR_MESSAGE_SIZE 1024
+
+// Used by the SET_ERROR to store an error message
+extern char satie_error_message[MAX_ERROR_MESSAGE_SIZE];
 
 typedef struct {
     bool failed;
     uint16_t flags;
     union {
         int code;
-        const char *message;
+        int errno_value;
     };
 } satie_error_t;
 
 typedef enum {
     ERROR_TYPE_NONE = 0,
     ERROR_TYPE_CODE,
+    ERROR_TYPE_ERRNO,
     ERROR_TYPE_MESSAGE,
 } satie_error_type_t;
 
@@ -26,20 +34,31 @@ typedef enum {
     COMPONENT_INTERPRETER
 } satie_component_t;
 
-#define SET_ERROR(error, type, component) ({ \
+#define SET_ERROR_NONE(error, component) ({ \
     if (error) { \
         (error)->failed = true; \
-        (error)->flags = (((uint16_t)(component) << 8) | ((uint16_t)(type) & 0xFF)); \
+        (error)->flags = (((uint16_t)(component) << 8) | ERROR_TYPE_NONE); \
     } \
 })
-#define SET_ERROR_TYPE(error, type) ({ \
+#define SET_ERROR_CODE(error, component, code) ({    \
     if (error) { \
-        (error)->flags = (((error)->flags & 0xFF00) | ((uint16_t)(type) & 0xFF)); \
+        (error)->failed = true; \
+        (error)->flags = (((uint16_t)(component) << 8) | ERROR_TYPE_CODE); \
+        (error)->code = (code); \
     } \
 })
-#define SET_COMPONENT(error, component) ({ \
+#define SET_ERROR_ERRNO(error, component) ({   \
     if (error) { \
-        (error)->flags = (((error)->flags & 0x00FF) | (((uint16_t)(component) << 8) & 0xFF00)); \
+        (error)->failed = true; \
+        (error)->flags = (((uint16_t)(component) << 8) | ERROR_TYPE_ERRNO); \
+        (error)->errno_value = errno; \
+    } \
+})
+#define SET_ERROR_MESSAGE(error, component, format, ...) ({ \
+    if (error) { \
+        (error)->failed = true; \
+        (error)->flags = (((uint16_t)(component) << 8) | ERROR_TYPE_MESSAGE); \
+        snprintf(satie_error_message, MAX_ERROR_MESSAGE_SIZE, format, ##__VA_ARGS__); \
     } \
 })
 #define CLEAR_ERROR(error) ({ \
@@ -53,6 +72,6 @@ typedef enum {
 #define GET_COMPONENT(error) ((error)->flags >> 8)
 #define GET_ERROR_TYPE(error) ((error)->flags & 0xFF)
 
-void satie_print_error(const satie_error_t *error);
+void satie_print_error(satie_error_t *error);
 
 #endif

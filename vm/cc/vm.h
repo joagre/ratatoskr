@@ -117,14 +117,11 @@ typedef struct {
     size_t number_of_operands;
 } opcode_info_t;
 
-const opcode_info_t* opcode_to_opcode_info(opcode_t opcode);
-const opcode_info_t* string_to_opcode_info(const char* string,
-                                           satie_error_t* satie_error);
-const char* system_call_to_string(system_call_t system_call);
-system_call_t string_to_system_call(const char* string,
-                                    satie_error_t* satie_error);
-const char* return_mode_to_string(return_mode_t return_mode);
-return_mode_t string_to_return_mode(const char* string,
-                                    satie_error_t* satie_error);
+opcode_info_t* opcode_to_opcode_info(opcode_t opcode);
+opcode_info_t* string_to_opcode_info(char* string, satie_error_t* error);
+char* system_call_to_string(system_call_t system_call);
+system_call_t string_to_system_call(char* string, satie_error_t* error);
+char* return_mode_to_string(return_mode_t return_mode);
+return_mode_t string_to_return_mode(char* string, satie_error_t* error);
 
 #endif
