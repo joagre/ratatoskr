@@ -7,6 +7,12 @@
 #include "module.h"
 #include "satie.h"
 
+#define APPEND_VALUE(loader, T, value) ({    \
+    uint8_t bytes[sizeof(T)]; \
+    memcpy(bytes, &(value), sizeof(T)); \
+    append_bytes(loader, sizeof(T), bytes); \
+})
+
 typedef struct {
     uint8_t* byte_code;
     size_t byte_code_size;

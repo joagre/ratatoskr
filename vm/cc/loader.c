@@ -16,11 +16,11 @@
 
 
 static void append_bytes(loader_t* loader, size_t n, const uint8_t* bytes);
-static size_t append_operands(loader_t* loader,
-                              const opcode_info_t *opcode_info,
-                              char operands[][MAX_OPERAND_STRING_SIZE],
-                              size_t number_of_operands,
-                              satie_error_t* satie_error);
+static void append_operands(loader_t* loader,
+                            const opcode_info_t *opcode_info,
+                            char operands[][MAX_OPERAND_STRING_SIZE],
+                            size_t number_of_operands,
+                            satie_error_t* satie_error);
 static void purge_line(char *purged_line,  const char *line);
 static size_t key_hash(void* key, void*);
 static int key_cmp(void* key1, void* key2, void*);
@@ -140,7 +140,7 @@ static void append_bytes(loader_t* loader, size_t n, const uint8_t* bytes) {
     loader->byte_code_size += n;
 }
 
-static size_t append_operands(loader_t* loader,
+static void append_operands(loader_t* loader,
                               const opcode_info_t *opcode_info,
                               char operands[][MAX_OPERAND_STRING_SIZE],
                               size_t number_of_operands,
@@ -150,113 +150,85 @@ static size_t append_operands(loader_t* loader,
           number_of_operands == opcode_info->number_of_operands)) {
         SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
         satie_error->message = "Wrong number of operands";
-        return 0;
+        return;
     }
     
-    size_t n = 0;
     for (size_t i = 0; i < opcode_info->number_of_operands; i++) {
         switch (opcode_info->operands[i]) {
         case OPERAND_STACK_VALUE: {
             vm_stack_value_t stack_value =
                 string_to_long(operands[i], satie_error);
             if (satie_error->failed) {
-                return 0;
+                return;
             }
-            uint8_t bytes[sizeof(vm_stack_value_t)];
-            memcpy(bytes, &stack_value, sizeof(vm_stack_value_t));
-            append_bytes(loader, sizeof(vm_stack_value_t), bytes);
-            n += sizeof(vm_stack_value_t);
+            APPEND_VALUE(loader, vm_stack_value_t, stack_value);
             break;
         }
         case OPERAND_REGISTER: {
             if (operands[i][0] != 'r') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
                 satie_error->message = "Invalid register";
-                return 0;
+                return;
             }
             vm_register_t register_ =
                 string_to_long(operands[i] + 1, satie_error);
             if (satie_error->failed) {
-                return 0;
+                return;
             }
-            
-            uint8_t bytes[sizeof(vm_register_t)];
-            memcpy(bytes, &register_, sizeof(vm_register_t));
-            append_bytes(loader, sizeof(vm_register_t), bytes);
-            n += sizeof(vm_register_t);
-
-
+            APPEND_VALUE(loader, vm_register_t, register_);
             break;
         }
         case OPERAND_LABEL: {
             vm_label_t label = string_to_long(operands[i], satie_error);
             if (satie_error->failed) {
-                return 0;
+                return;
             }
-            uint8_t bytes[sizeof(vm_label_t)];
-            memcpy(bytes, &label, sizeof(vm_label_t));
-            append_bytes(loader, sizeof(vm_label_t), bytes);
-            n += sizeof(vm_label_t);
+            APPEND_VALUE(loader, vm_label_t, label);
             break;
         }
         case OPERAND_IMMEDIATE_VALUE: {
             if (operands[i][0] != '#') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
                 satie_error->message = "Invalid immediate value";
-                return 0;
+                return;
             }
             vm_immediate_value_t immediate_value =
                 string_to_long(operands[i] + 1, satie_error);
             if (satie_error->failed) {
-                return 0;
+                return;
             }
-            uint8_t bytes[sizeof(vm_immediate_value_t)];
-            memcpy(bytes, &immediate_value, sizeof(vm_immediate_value_t));
-            append_bytes(loader, sizeof(vm_immediate_value_t), bytes);
-            n += sizeof(vm_immediate_value_t);
+            APPEND_VALUE(loader, vm_immediate_value_t, immediate_value);
             break;
         }
         case OPERAND_STACK_OFFSET: {
             if (operands[i][0] != '@') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
                 satie_error->message = "Invalid stack offset";
-                return 0;
+                return;
             }
             vm_stack_offset_t stack_offset =
                 string_to_long(operands[i] + 1, satie_error);
             if (satie_error->failed) {
-                return 0;
+                return;
             }
-            uint8_t bytes[sizeof(vm_stack_offset_t)];
-            memcpy(bytes, &stack_offset, sizeof(vm_stack_offset_t));
-            append_bytes(loader, sizeof(vm_stack_offset_t), bytes);
-            n += sizeof(vm_stack_offset_t);
+            APPEND_VALUE(loader, vm_stack_offset_t, stack_offset);
             break;
         }
         case OPERAND_ARITY: {
             vm_arity_t arity = string_to_long(operands[i], satie_error);
             if (satie_error->failed) {
-                return 0;
+                return;
             }
-            uint8_t bytes[sizeof(vm_arity_t)];
-            memcpy(bytes, &arity, sizeof(vm_arity_t));
-            append_bytes(loader, sizeof(vm_arity_t), bytes);
-            n += sizeof(vm_arity_t);
+            APPEND_VALUE(loader, vm_arity_t, arity);
             break;
         }
         case OPERAND_RETURN_MODE: {
             if (number_of_operands == 0) {
-                uint8_t bytes[sizeof(vm_return_mode_t)];
                 vm_return_mode_t return_mode = RETURN_MODE_VALUE;
-                memcpy(bytes, &return_mode, sizeof(vm_return_mode_t));
-                append_bytes(loader, sizeof(vm_return_mode_t), bytes);
-                n += sizeof(vm_return_mode_t);
+                APPEND_VALUE(loader, vm_return_mode_t, return_mode);
             } else if (strcmp(operands[0], "copy") == 0) {
-                uint8_t bytes[sizeof(vm_return_mode_t)];
                 vm_return_mode_t return_mode = RETURN_MODE_COPY;
-                memcpy(bytes, &return_mode, sizeof(vm_return_mode_t));
-                append_bytes(loader, sizeof(vm_return_mode_t), bytes);
-                n += sizeof(vm_return_mode_t);
+                APPEND_VALUE(loader, vm_return_mode_t, return_mode);
             }
             break;
         }
@@ -264,12 +236,9 @@ static size_t append_operands(loader_t* loader,
             system_call_t system_call =
                 string_to_system_call(operands[i], satie_error);
             if (satie_error->failed) {
-                return 0;
+                return;
             }
-            uint8_t bytes[sizeof(system_call_t)];
-            memcpy(bytes, &system_call, sizeof(system_call_t));
-            append_bytes(loader, sizeof(system_call_t), bytes);
-            n += sizeof(system_call_t);
+            APPEND_VALUE(loader, system_call_t, system_call);
             break;
         }
         case OPERAND_STRING: {
@@ -277,23 +246,18 @@ static size_t append_operands(loader_t* loader,
                 operands[i][strlen(operands[i]) - 1] != '"') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
                 satie_error->message = "Invalid string";
-                return 0;
+                return;
             }
             char* naked_string = operands[i] + 1;
             naked_string[strlen(naked_string) - 1] = '\0';
             size_t string_length = strlen(naked_string);
-            uint8_t bytes[sizeof(vm_data_length_t)];
-            memcpy(bytes, &string_length, sizeof(vm_data_length_t));
-            append_bytes(loader, sizeof(vm_data_length_t), bytes);
-            n += sizeof(vm_data_length_t);
+            APPEND_VALUE(loader, vm_data_length_t, string_length);
             append_bytes(loader, string_length, (uint8_t*)naked_string);
-            n += string_length;
             break;
         }
         }
     }
     CLEAR_ERROR(satie_error);
-    return n;
 }
 
 void loader_load_module(loader_t *loader, const char* module_name,
