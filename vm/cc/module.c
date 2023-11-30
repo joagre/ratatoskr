@@ -48,6 +48,20 @@ vm_label_t module_lookup_label(module_t* module, vm_address_t address) {
     return 0;
 }
 
+void module_print_jump_table(module_t* module) {
+    lhash_kv_iter_t iter;
+    lhash_kv_iter_init(&iter, &module->jump_table);
+    while(!lhash_kv_iter_end(&iter)) {
+        vm_label_t current_label;
+        vm_address_t current_address;
+        lhash_kv_iter_current(&iter, (void**)(uintptr_t*)&current_label,
+                              (void**)(uintptr_t*)&current_address);
+        fprintf(stderr, "Label %d at address %d\n", current_label,
+                current_address);
+        lhash_kv_iter_next(&iter);
+    }
+}
+
 //
 // Local functions (alphabetical order)
 //

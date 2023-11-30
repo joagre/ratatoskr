@@ -262,7 +262,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
                 free(line);
                 return;
             }
-            SATIE_LOG(LOG_LEVEL_DEBUG, "label %ld -> %u", label,
+            SATIE_LOG(LOG_LEVEL_DEBUG, "INSERT LABEL %u -> %u", label,
                       loader->byte_code_size);
             module_insert_label(module, label, loader->byte_code_size);
             continue;
@@ -409,7 +409,12 @@ static void resolve_label(uint8_t* byte_code, module_t* module,
     vm_label_t label = GET_VALUE(vm_label_t, &byte_code[label_address]);
     SATIE_LOG(LOG_LEVEL_DEBUG, "**** LABEL to resolve %u", label);
 
+    module_print_jump_table(module);
+
+
     vm_address_t address = module_lookup_address(module, label);
+
+
     SATIE_LOG(LOG_LEVEL_DEBUG, "**** label %u -> %u", label, address);
     SET_VALUE(vm_address_t, address, &byte_code[label_address]);
 }
