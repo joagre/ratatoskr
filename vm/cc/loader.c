@@ -18,7 +18,8 @@
 static void append_bytes(loader_t* loader, size_t n, const uint8_t* bytes);
 static size_t append_operands(loader_t* loader,
                               const opcode_info_t *opcode_info,
-                              char** operands, size_t number_of_operands,
+                              char operands[][MAX_OPERAND_STRING_SIZE],
+                              size_t number_of_operands,
                               satie_error_t* satie_error);
 static void purge_line(char *purged_line,  const char *line);
 static size_t key_hash(void* key, void*);
@@ -110,13 +111,13 @@ static void generate_byte_code(loader_t* loader, module_t* module,
             free(line);
             return;
         }
-
+        
         // Add opcode byte to byte code
         append_bytes(loader, 1, (uint8_t*)&opcode_info->opcode);
         
         // Add operand bytes to byte code
-        append_operands(loader, opcode_info, (char **)operands,
-                        number_of_operands, satie_error);
+        append_operands(loader, opcode_info, operands, number_of_operands,
+                        satie_error);
         if (satie_error->failed) {
             free(line);
             return;
@@ -141,7 +142,8 @@ static void append_bytes(loader_t* loader, size_t n, const uint8_t* bytes) {
 
 static size_t append_operands(loader_t* loader,
                               const opcode_info_t *opcode_info,
-                              char** operands, size_t number_of_operands,
+                              char operands[][MAX_OPERAND_STRING_SIZE],
+                              size_t number_of_operands,
                               satie_error_t* satie_error) {
     if (!(opcode_info->opcode == OPCODE_PUSHS || 
           opcode_info->opcode == OPCODE_RET || 
@@ -172,15 +174,18 @@ static size_t append_operands(loader_t* loader,
                 satie_error->message = "Invalid register";
                 return 0;
             }
-            vm_register_t register_ = string_to_long(operands[i] + 1,
-                                                     satie_error);
+            vm_register_t register_ =
+                string_to_long(operands[i] + 1, satie_error);
             if (satie_error->failed) {
                 return 0;
             }
+            
             uint8_t bytes[sizeof(vm_register_t)];
             memcpy(bytes, &register_, sizeof(vm_register_t));
             append_bytes(loader, sizeof(vm_register_t), bytes);
             n += sizeof(vm_register_t);
+
+
             break;
         }
         case OPERAND_LABEL: {
