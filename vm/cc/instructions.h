@@ -49,7 +49,8 @@ const opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
         .opcode = OPCODE_LOADRI,
         .string = "loadri",
         .operands = {OPERAND_REGISTER,
-                     OPERAND_IMMEDIATE_VALUE}
+                     OPERAND_IMMEDIATE_VALUE},
+        .number_of_operands = 2
     },
     [OPCODE_PUSHR] = {
         .opcode = OPCODE_PUSHR,
@@ -97,7 +98,7 @@ const opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
         .string = "push",
         .operands = {OPERAND_STACK_VALUE},
         .number_of_operands = 1
-        
+
     },
     [OPCODE_PUSHS] = {
         .opcode = OPCODE_PUSHS,

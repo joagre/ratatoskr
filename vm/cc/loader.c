@@ -60,7 +60,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
         if (strlen(purged_line) == 0) {
             continue;
         }
-        
+
         // Parse line
         char *first_blank = strchr(purged_line, ' ');
         size_t number_of_operands = 0;
@@ -71,7 +71,8 @@ static void generate_byte_code(loader_t* loader, module_t* module,
             strcpy(operands_string, first_blank + 1);
             strcpy(opcode_string, strtok(purged_line, " "));
             SATIE_LOG(LOG_LEVEL_DEBUG, "opcode_string: '%s'", opcode_string);
-            SATIE_LOG(LOG_LEVEL_DEBUG, "operands_string: '%s'", operands_string);
+            SATIE_LOG(LOG_LEVEL_DEBUG, "operands_string: '%s'",
+                      operands_string);
             size_t i = 0;
             while (i < MAX_OPERANDS) {
                 char *token = strtok(NULL, " ");
@@ -111,10 +112,10 @@ static void generate_byte_code(loader_t* loader, module_t* module,
             free(line);
             return;
         }
-        
+
         // Add opcode byte to byte code
         append_bytes(loader, 1, (uint8_t*)&opcode_info->opcode);
-        
+
         // Add operand bytes to byte code
         append_operands(loader, opcode_info, operands, number_of_operands,
                         satie_error);
@@ -129,13 +130,16 @@ static void generate_byte_code(loader_t* loader, module_t* module,
 
 static void append_bytes(loader_t* loader, size_t n, const uint8_t* bytes) {
     if (loader->max_byte_code_size == 0) {
+        // First allocation
         loader->byte_code = malloc(INITIAL_BYTE_CODE_SIZE);
         loader->max_byte_code_size = INITIAL_BYTE_CODE_SIZE;
     } else if (loader->byte_code_size + n > loader->max_byte_code_size) {
+        // Reallocate
         loader->max_byte_code_size *= 2;
         loader->byte_code =
             realloc(loader->byte_code, loader->max_byte_code_size);
     }
+    // Append bytes
     memcpy(loader->byte_code + loader->byte_code_size, bytes, n);
     loader->byte_code_size += n;
 }
@@ -145,14 +149,16 @@ static void append_operands(loader_t* loader,
                               char operands[][MAX_OPERAND_STRING_SIZE],
                               size_t number_of_operands,
                               satie_error_t* satie_error) {
-    if (!(opcode_info->opcode == OPCODE_PUSHS || 
-          opcode_info->opcode == OPCODE_RET || 
+    // Special handling of pushs and ret
+    if (!(opcode_info->opcode == OPCODE_PUSHS ||
+          opcode_info->opcode == OPCODE_RET ||
           number_of_operands == opcode_info->number_of_operands)) {
         SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
         satie_error->message = "Wrong number of operands";
         return;
     }
-    
+
+    // Append operands
     for (size_t i = 0; i < opcode_info->number_of_operands; i++) {
         switch (opcode_info->operands[i]) {
         case OPERAND_STACK_VALUE: {
@@ -165,6 +171,7 @@ static void append_operands(loader_t* loader,
             break;
         }
         case OPERAND_REGISTER: {
+            // Register values are prefixed with 'r'
             if (operands[i][0] != 'r') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
                 satie_error->message = "Invalid register";
@@ -187,6 +194,7 @@ static void append_operands(loader_t* loader,
             break;
         }
         case OPERAND_IMMEDIATE_VALUE: {
+            // Immediate values are prefixed with '#'
             if (operands[i][0] != '#') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
                 satie_error->message = "Invalid immediate value";
@@ -201,6 +209,7 @@ static void append_operands(loader_t* loader,
             break;
         }
         case OPERAND_STACK_OFFSET: {
+            // Stack offsets are prefixed with '@'
             if (operands[i][0] != '@') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
                 satie_error->message = "Invalid stack offset";
@@ -224,6 +233,7 @@ static void append_operands(loader_t* loader,
         }
         case OPERAND_RETURN_MODE: {
             if (number_of_operands == 0) {
+                // Default return mode is value
                 vm_return_mode_t return_mode = RETURN_MODE_VALUE;
                 APPEND_VALUE(loader, vm_return_mode_t, return_mode);
             } else if (strcmp(operands[0], "copy") == 0) {
@@ -242,12 +252,14 @@ static void append_operands(loader_t* loader,
             break;
         }
         case OPERAND_STRING: {
+            // Strings are prefixed and suffixed with '"'
             if (operands[i][0] != '"' ||
                 operands[i][strlen(operands[i]) - 1] != '"') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
                 satie_error->message = "Invalid string";
                 return;
             }
+            // Remove quotes
             char* naked_string = operands[i] + 1;
             naked_string[strlen(naked_string) - 1] = '\0';
             size_t string_length = strlen(naked_string);
@@ -337,4 +349,3 @@ static size_t key_hash(void* key, void*) {
 static int key_cmp(void* key1, void* key2, void*) {
     return (key1 == key2);
 };
-

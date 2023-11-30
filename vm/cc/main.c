@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     char* load_path = DEFAULT_LOAD_PATH;
     uint32_t time_slice = DEFAULT_TIME_SLICE;
     satie_error_t satie_error;
-    
+
     // Parse command line options
     struct option long_options[] = {
         {"time-slice", required_argument, 0, 't'},
@@ -85,6 +85,7 @@ int main(int argc, char* argv[]) {
     loader_t loader;
     loader_init(&loader, load_path);
     loader_load_module(&loader, module_name, &satie_error);
+    loader_load_module(&loader, "ackermannr", &satie_error);
 
     satie_print_error(&satie_error);
 
