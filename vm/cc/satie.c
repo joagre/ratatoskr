@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "satie.h"
 
-// Used by the macros below to store an error message (see satie.h)
+// Used to store error messages (see satie.h)
 char satie_error_message[MAX_ERROR_MESSAGE_SIZE];
 
 char* satie_error_type_to_string(satie_error_type_t type) {

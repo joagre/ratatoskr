@@ -47,7 +47,6 @@ vm_label_t module_lookup_label(module_t* module, vm_address_t address) {
     SATIE_ABORT("Label address mismatch");
     return 0;
 }
-
 void module_print_jump_table(module_t* module) {
     lhash_kv_iter_t iter;
     lhash_kv_iter_init(&iter, &module->jump_table);
@@ -87,5 +86,6 @@ void module_unit_test(void) {
     SATIE_ASSERT(address == address2, "Address mismatch");
     vm_label_t label2 = module_lookup_label(module, address);
     SATIE_ASSERT(label == label2, "Label mismatch");
+    module_print_jump_table(module);
     SATIE_LOG(LOG_LEVEL_INFO, "module_unit_test passed");
 }

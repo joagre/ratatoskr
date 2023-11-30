@@ -8,7 +8,7 @@
 
 #define MAX_ERROR_MESSAGE_SIZE 1024
 
-// Used by the SET_ERROR to store an error message
+// Used to store error messages
 extern char satie_error_message[MAX_ERROR_MESSAGE_SIZE];
 
 typedef struct {
