@@ -16,14 +16,16 @@
 
 
 static void append_bytes(loader_t* loader, uint16_t n, const uint8_t* bytes);
-static void append_operands(loader_t* loader,
-                            const opcode_info_t *opcode_info,
+static void append_operands(loader_t* loader, const opcode_info_t *opcode_info,
                             char operands[][MAX_OPERAND_STRING_SIZE],
                             uint8_t number_of_operands,
                             satie_error_t* satie_error);
 static void purge_line(char *purged_line,  const char *line);
 static size_t key_hash(void* key, void*);
 static int key_cmp(void* key1, void* key2, void*);
+static void resolve_label(uint8_t* byte_code, module_t* module,
+                          vm_address_t first_operand, uint16_t operand_offset);
+static uint16_t size_of_operands(opcode_t opcode);
 
 void loader_init(loader_t* loader, const char* load_path) {
     loader->byte_code = NULL;
@@ -125,7 +127,96 @@ static void generate_byte_code(loader_t* loader, module_t* module,
         }
     }
     free(line);
+
+    // Resolve labels to addresses
+    vm_address_t address = module->start_address;
+    while (address < loader->byte_code_size) {
+        opcode_t opcode = loader->byte_code[address];
+        vm_address_t operand_address = address + (vm_address_t)OPCODE_SIZE;
+        // Resolve register machine labels
+        if (opcode == OPCODE_JMPRNZE) {
+            resolve_label(loader->byte_code, module, operand_address,
+                          sizeof(vm_register_t));
+            address += size_of_operands(OPCODE_JMPRNZE);
+        } else if (opcode == OPCODE_JMPRINGT) {
+            resolve_label(loader->byte_code, module, operand_address,
+                          sizeof(vm_register_t) + sizeof(vm_immediate_value_t));
+            address += size_of_operands(OPCODE_JMPRINGT);
+        } else if (opcode == OPCODE_RCALL) {
+            resolve_label(loader->byte_code, module, operand_address, 0);
+            address += size_of_operands(OPCODE_RCALL);
+        } else if (opcode == OPCODE_JMP) {
+            resolve_label(loader->byte_code, module, operand_address, 0);
+            address += size_of_operands(OPCODE_JMP);
+            // Resolve stack machine labels
+        } else if (opcode == OPCODE_PUSHS) {
+            vm_data_length_t length =
+                GET_VALUE(vm_data_length_t, &loader->byte_code[operand_address]);
+            address += sizeof(vm_data_length_t) + length;
+        } else if (opcode == OPCODE_JUMP) {
+            resolve_label(loader->byte_code, module, operand_address, 0);
+            address += size_of_operands(OPCODE_JUMP);
+        } else if (opcode == OPCODE_CJUMP) {
+            resolve_label(loader->byte_code, module, operand_address, 0);
+            address += size_of_operands(OPCODE_CJUMP);
+        } else if (opcode == OPCODE_CALL) {
+            resolve_label(loader->byte_code, module, operand_address, 0);
+            address += size_of_operands(OPCODE_CALL);
+        } else if (opcode == OPCODE_SPAWN) {
+            resolve_label(loader->byte_code, module, operand_address, 0);
+            address += size_of_operands(OPCODE_SPAWN);
+        } else {
+            address += size_of_operands((opcode_t)opcode);
+        }
+        address++;
+    }
+
     CLEAR_ERROR(satie_error);
+}
+
+static void resolve_label(uint8_t* byte_code, module_t* module,
+                          vm_address_t first_operand, uint16_t operand_offset) {
+    vm_address_t label_address = first_operand + operand_offset;
+    vm_label_t label = GET_VALUE(vm_label_t, &byte_code[label_address]);
+    vm_address_t address = module_lookup_address(module, label);
+    SET_VALUE(vm_address_t, address, &byte_code[label_address]);
+}
+
+static uint16_t size_of_operands(opcode_t opcode) {
+    const opcode_info_t* opcode_info = opcode_to_opcode_info(opcode);
+    uint16_t size = 0;
+    for (uint8_t i = 0; i < opcode_info->number_of_operands; i++) {
+        operand_t operand_type = opcode_info->operands[i];
+        switch (operand_type) {
+        case OPERAND_STACK_VALUE:
+            size += sizeof(vm_stack_value_t);
+            break;
+        case OPERAND_REGISTER:
+            size += sizeof(vm_register_t);
+            break;
+        case OPERAND_LABEL:
+            size += sizeof(vm_label_t);
+            break;
+        case OPERAND_IMMEDIATE_VALUE:
+            size += sizeof(vm_immediate_value_t);
+            break;
+        case OPERAND_STACK_OFFSET:
+            size += sizeof(vm_stack_offset_t);
+            break;
+        case OPERAND_ARITY:
+            size += sizeof(vm_arity_t);
+            break;
+        case OPERAND_RETURN_MODE:
+            size += sizeof(vm_return_mode_t);
+            break;
+        case OPERAND_SYSTEM_CALL:
+            size += sizeof(system_call_t);
+            break;
+        case OPERAND_STRING:
+            // String length calculation is taken care of elsewhere
+        }
+    }
+    return size;
 }
 
 static void append_bytes(loader_t* loader, uint16_t n, const uint8_t* bytes) {
@@ -144,11 +235,10 @@ static void append_bytes(loader_t* loader, uint16_t n, const uint8_t* bytes) {
     loader->byte_code_size += n;
 }
 
-static void append_operands(loader_t* loader,
-                              const opcode_info_t *opcode_info,
-                              char operands[][MAX_OPERAND_STRING_SIZE],
-                              uint8_t number_of_operands,
-                              satie_error_t* satie_error) {
+static void append_operands(loader_t* loader, const opcode_info_t *opcode_info,
+                            char operands[][MAX_OPERAND_STRING_SIZE],
+                            uint8_t number_of_operands,
+                            satie_error_t* satie_error) {
     // Check number of operands (special handling of pushs and ret)
     if (!(opcode_info->opcode == OPCODE_PUSHS ||
           opcode_info->opcode == OPCODE_RET ||

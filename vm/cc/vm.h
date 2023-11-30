@@ -11,8 +11,9 @@
 #define MAX_OPERAND_STRING_SIZE 32
 #define MAX_LINE_LENGTH 256
 #define INITIAL_BYTE_CODE_SIZE 512
+#define OPCODE_SIZE sizeof(uint8_t)
 
-#define GET_OPERAND(T) \
+#define GET_OPERAND(T)                          \
     ({ \
         T result = *(T*)(operands); \
         operands += sizeof(T); \
