@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "satie.h"
 
 // Used to store error messages (see satie.h)
