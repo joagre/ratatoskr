@@ -73,5 +73,5 @@ void module_unit_test(void) {
     SATIE_ASSERT(address == address2, "Address mismatch");
     vm_label_t label2 = module_lookup_label(module, address);
     SATIE_ASSERT(label == label2, "Label mismatch");
-    SATIE_LOG(LOG_LEVEL_INFO, "module_unit_test passed...");
+    SATIE_LOG(LOG_LEVEL_INFO, "module_unit_test passed");
 }

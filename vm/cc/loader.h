@@ -22,7 +22,9 @@ typedef struct {
 } loader_t;
 
 void loader_init(loader_t* loader, char* load_path);
+void loader_free(loader_t* loader);
 void loader_load_module(loader_t *loader, char* module_name,
                         satie_error_t* error);
+void loader_unit_test(void);
 
 #endif

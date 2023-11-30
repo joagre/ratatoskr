@@ -243,7 +243,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
                     break;
                 }
                 strcpy(operands[i], token);
-                //SATIE_LOG(LOG_LEVEL_DEBUG, "operands[%d]: %s", i, operands[i]);
+                //SATIE_LOG(LOG_LEVEL_DEBUG, "operands[%u]: %s", i, operands[i]);
                 number_of_operands++;
                 i++;
             }
@@ -262,7 +262,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
                 free(line);
                 return;
             }
-            SATIE_LOG(LOG_LEVEL_DEBUG, "label %ld -> %d", label,
+            SATIE_LOG(LOG_LEVEL_DEBUG, "label %ld -> %u", label,
                       loader->byte_code_size);
             module_insert_label(module, label, loader->byte_code_size);
             continue;
@@ -291,7 +291,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
 
     // Resolve labels to addresses
     vm_address_t address = module->start_address;
-    fprintf(stderr, "== start_address = %d\n", address);
+    fprintf(stderr, "== start_address = %u\n", address);
     while (address < loader->byte_code_size) {
         opcode_t opcode = loader->byte_code[address];
 
@@ -407,10 +407,10 @@ static void resolve_label(uint8_t* byte_code, module_t* module,
                           vm_address_t first_operand, uint16_t operand_offset) {
     vm_address_t label_address = first_operand + operand_offset;
     vm_label_t label = GET_VALUE(vm_label_t, &byte_code[label_address]);
-    SATIE_LOG(LOG_LEVEL_DEBUG, "**** LABEL to resolve %d", label);
+    SATIE_LOG(LOG_LEVEL_DEBUG, "**** LABEL to resolve %u", label);
 
     vm_address_t address = module_lookup_address(module, label);
-    SATIE_LOG(LOG_LEVEL_DEBUG, "**** label %d -> %d", label, address);
+    SATIE_LOG(LOG_LEVEL_DEBUG, "**** label %u -> %u", label, address);
     SET_VALUE(vm_address_t, address, &byte_code[label_address]);
 }
 
@@ -454,3 +454,21 @@ static uint16_t size_of_operands(opcode_t opcode) {
 //
 // Unit test
 //
+
+void loader_unit_test(void) {
+    loader_t loader;
+    loader_init(&loader, "../examples");
+
+    // Verify that loader->modules works
+    module_t* module = module_new(42);
+    lhash_kv_insert(&loader.modules, "foo", module);
+    module_t* module2;
+    lhash_kv_find(&loader.modules, "foo", (void**)&module2);
+    SATIE_ASSERT(module2->start_address == 42, "Wrong start address");
+
+    // Verify that loader_load_module works
+    satie_error_t error;
+    loader_load_module(&loader, "ackermannr", &error);
+    SATIE_ASSERT(!error.failed, "Failed to load module");
+    SATIE_LOG(LOG_LEVEL_INFO, "loader_unit_test passed");
+}

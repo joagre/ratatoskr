@@ -17,6 +17,7 @@ void usage(char* name);
 int main(int argc, char* argv[]) {
     #ifdef DEBUG
     module_unit_test();
+    loader_unit_test();
     #endif
 
     uint16_t check_after = DEFAULT_CHECK_AFTER;
