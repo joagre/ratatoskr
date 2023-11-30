@@ -15,7 +15,11 @@
         */
 
 
-static void append_byte_code(loader_t* loader, size_t n, uint8_t* bytes);
+static void append_bytes(loader_t* loader, size_t n, const uint8_t* bytes);
+static size_t append_operands(loader_t* loader,
+                              const opcode_info_t *opcode_info,
+                              char** operands, size_t number_of_operands,
+                              satie_error_t* satie_error);
 static void purge_line(char *purged_line,  const char *line);
 static size_t key_hash(void* key, void*);
 static int key_cmp(void* key1, void* key2, void*);
@@ -103,25 +107,26 @@ static void generate_byte_code(loader_t* loader, module_t* module,
         const opcode_info_t* opcode_info =
             string_to_opcode_info(opcode_string, satie_error);
         if (satie_error->failed) {
-            SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
-            satie_error->message = "Invalid opcode";
             free(line);
             return;
         }
 
         // Add opcode byte to byte code
-        append_byte_code(loader, 1, (uint8_t*)&opcode_info->opcode);
+        append_bytes(loader, 1, (uint8_t*)&opcode_info->opcode);
         
         // Add operand bytes to byte code
-        //uint8_t bytes[MAX_OPERANDS_BYTES_SIZE];
-        //size_t n = get_operands_as_bytes(opcode_info, operands, line, bytes);
-        //append_byte_code(loader, n, bytes);
+        append_operands(loader, opcode_info, (char **)operands,
+                        number_of_operands, satie_error);
+        if (satie_error->failed) {
+            free(line);
+            return;
+        }
     }
     free(line);
     CLEAR_ERROR(satie_error);
 }
 
-static void append_byte_code(loader_t* loader, size_t n, uint8_t* bytes) {
+static void append_bytes(loader_t* loader, size_t n, const uint8_t* bytes) {
     if (loader->max_byte_code_size == 0) {
         loader->byte_code = malloc(INITIAL_BYTE_CODE_SIZE);
         loader->max_byte_code_size = INITIAL_BYTE_CODE_SIZE;
@@ -132,6 +137,158 @@ static void append_byte_code(loader_t* loader, size_t n, uint8_t* bytes) {
     }
     memcpy(loader->byte_code + loader->byte_code_size, bytes, n);
     loader->byte_code_size += n;
+}
+
+static size_t append_operands(loader_t* loader,
+                              const opcode_info_t *opcode_info,
+                              char** operands, size_t number_of_operands,
+                              satie_error_t* satie_error) {
+    if (!(opcode_info->opcode == OPCODE_PUSHS || 
+          opcode_info->opcode == OPCODE_RET || 
+          number_of_operands == opcode_info->number_of_operands)) {
+        SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
+        satie_error->message = "Wrong number of operands";
+        return 0;
+    }
+    
+    size_t n = 0;
+    for (size_t i = 0; i < opcode_info->number_of_operands; i++) {
+        switch (opcode_info->operands[i]) {
+        case OPERAND_STACK_VALUE: {
+            vm_stack_value_t stack_value =
+                string_to_long(operands[i], satie_error);
+            if (satie_error->failed) {
+                return 0;
+            }
+            uint8_t bytes[sizeof(vm_stack_value_t)];
+            memcpy(bytes, &stack_value, sizeof(vm_stack_value_t));
+            append_bytes(loader, sizeof(vm_stack_value_t), bytes);
+            n += sizeof(vm_stack_value_t);
+            break;
+        }
+        case OPERAND_REGISTER: {
+            if (operands[i][0] != 'r') {
+                SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
+                satie_error->message = "Invalid register";
+                return 0;
+            }
+            vm_register_t register_ = string_to_long(operands[i] + 1,
+                                                     satie_error);
+            if (satie_error->failed) {
+                return 0;
+            }
+            uint8_t bytes[sizeof(vm_register_t)];
+            memcpy(bytes, &register_, sizeof(vm_register_t));
+            append_bytes(loader, sizeof(vm_register_t), bytes);
+            n += sizeof(vm_register_t);
+            break;
+        }
+        case OPERAND_LABEL: {
+            vm_label_t label = string_to_long(operands[i], satie_error);
+            if (satie_error->failed) {
+                return 0;
+            }
+            uint8_t bytes[sizeof(vm_label_t)];
+            memcpy(bytes, &label, sizeof(vm_label_t));
+            append_bytes(loader, sizeof(vm_label_t), bytes);
+            n += sizeof(vm_label_t);
+            break;
+        }
+        case OPERAND_IMMEDIATE_VALUE: {
+            if (operands[i][0] != '#') {
+                SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
+                satie_error->message = "Invalid immediate value";
+                return 0;
+            }
+            vm_immediate_value_t immediate_value =
+                string_to_long(operands[i] + 1, satie_error);
+            if (satie_error->failed) {
+                return 0;
+            }
+            uint8_t bytes[sizeof(vm_immediate_value_t)];
+            memcpy(bytes, &immediate_value, sizeof(vm_immediate_value_t));
+            append_bytes(loader, sizeof(vm_immediate_value_t), bytes);
+            n += sizeof(vm_immediate_value_t);
+            break;
+        }
+        case OPERAND_STACK_OFFSET: {
+            if (operands[i][0] != '@') {
+                SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
+                satie_error->message = "Invalid stack offset";
+                return 0;
+            }
+            vm_stack_offset_t stack_offset =
+                string_to_long(operands[i] + 1, satie_error);
+            if (satie_error->failed) {
+                return 0;
+            }
+            uint8_t bytes[sizeof(vm_stack_offset_t)];
+            memcpy(bytes, &stack_offset, sizeof(vm_stack_offset_t));
+            append_bytes(loader, sizeof(vm_stack_offset_t), bytes);
+            n += sizeof(vm_stack_offset_t);
+            break;
+        }
+        case OPERAND_ARITY: {
+            vm_arity_t arity = string_to_long(operands[i], satie_error);
+            if (satie_error->failed) {
+                return 0;
+            }
+            uint8_t bytes[sizeof(vm_arity_t)];
+            memcpy(bytes, &arity, sizeof(vm_arity_t));
+            append_bytes(loader, sizeof(vm_arity_t), bytes);
+            n += sizeof(vm_arity_t);
+            break;
+        }
+        case OPERAND_RETURN_MODE: {
+            if (number_of_operands == 0) {
+                uint8_t bytes[sizeof(vm_return_mode_t)];
+                vm_return_mode_t return_mode = RETURN_MODE_VALUE;
+                memcpy(bytes, &return_mode, sizeof(vm_return_mode_t));
+                append_bytes(loader, sizeof(vm_return_mode_t), bytes);
+                n += sizeof(vm_return_mode_t);
+            } else if (strcmp(operands[0], "copy") == 0) {
+                uint8_t bytes[sizeof(vm_return_mode_t)];
+                vm_return_mode_t return_mode = RETURN_MODE_COPY;
+                memcpy(bytes, &return_mode, sizeof(vm_return_mode_t));
+                append_bytes(loader, sizeof(vm_return_mode_t), bytes);
+                n += sizeof(vm_return_mode_t);
+            }
+            break;
+        }
+        case OPERAND_SYSTEM_CALL: {
+            system_call_t system_call =
+                string_to_system_call(operands[i], satie_error);
+            if (satie_error->failed) {
+                return 0;
+            }
+            uint8_t bytes[sizeof(system_call_t)];
+            memcpy(bytes, &system_call, sizeof(system_call_t));
+            append_bytes(loader, sizeof(system_call_t), bytes);
+            n += sizeof(system_call_t);
+            break;
+        }
+        case OPERAND_STRING: {
+            if (operands[i][0] != '"' ||
+                operands[i][strlen(operands[i]) - 1] != '"') {
+                SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
+                satie_error->message = "Invalid string";
+                return 0;
+            }
+            char* naked_string = operands[i] + 1;
+            naked_string[strlen(naked_string) - 1] = '\0';
+            size_t string_length = strlen(naked_string);
+            uint8_t bytes[sizeof(vm_data_length_t)];
+            memcpy(bytes, &string_length, sizeof(vm_data_length_t));
+            append_bytes(loader, sizeof(vm_data_length_t), bytes);
+            n += sizeof(vm_data_length_t);
+            append_bytes(loader, string_length, (uint8_t*)naked_string);
+            n += string_length;
+            break;
+        }
+        }
+    }
+    CLEAR_ERROR(satie_error);
+    return n;
 }
 
 void loader_load_module(loader_t *loader, const char* module_name,

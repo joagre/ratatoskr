@@ -8,7 +8,7 @@ long string_to_long(const char* string, satie_error_t* satie_error) {
     long value = strtol(string, &endptr, 10);
     if (string == endptr || *endptr != '\0' || errno != 0) {
         SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_GENERAL);
-        satie_error->message = "Invalid number";
+        satie_error->message = "Not a number";
     } else {
         CLEAR_ERROR(satie_error);
     }

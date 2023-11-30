@@ -10,7 +10,6 @@
 #define MAX_OPERANDS 8
 #define MAX_OPERAND_STRING_SIZE 32
 #define MAX_LINE_LENGTH 256
-#define MAX_OPERANDS_BYTES_SIZE 1024
 #define INITIAL_BYTE_CODE_SIZE 512
 
 #define GET_OPERAND(T) \
@@ -114,6 +113,7 @@ typedef struct {
     opcode_t opcode;
     char string[MAX_OPCODE_STRING_SIZE];
     operand_t operands[MAX_OPERANDS];
+    size_t number_of_operands;
 } opcode_info_t;
 
 const opcode_info_t* opcode_to_opcode_info(opcode_t opcode);
