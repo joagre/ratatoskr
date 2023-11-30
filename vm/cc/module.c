@@ -14,7 +14,7 @@ module_t* module_new(vm_address_t start_address) {
 
 void module_free(module_t *module) {
     lhash_kv_clear(&module->jump_table);
-    free(module);        
+    free(module);
 }
 
 void module_insert_label(module_t* module, vm_label_t label,

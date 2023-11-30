@@ -15,8 +15,8 @@
 
 typedef struct {
     uint8_t* byte_code;
-    size_t byte_code_size;
-    size_t max_byte_code_size;
+    uint32_t byte_code_size;
+    uint32_t max_byte_code_size;
     const char* load_path;
     lhash_kv_t modules;
 } loader_t;

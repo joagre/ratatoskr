@@ -15,11 +15,11 @@
         */
 
 
-static void append_bytes(loader_t* loader, size_t n, const uint8_t* bytes);
+static void append_bytes(loader_t* loader, uint16_t n, const uint8_t* bytes);
 static void append_operands(loader_t* loader,
                             const opcode_info_t *opcode_info,
                             char operands[][MAX_OPERAND_STRING_SIZE],
-                            size_t number_of_operands,
+                            uint8_t number_of_operands,
                             satie_error_t* satie_error);
 static void purge_line(char *purged_line,  const char *line);
 static size_t key_hash(void* key, void*);
@@ -63,7 +63,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
 
         // Parse line
         char *first_blank = strchr(purged_line, ' ');
-        size_t number_of_operands = 0;
+        uint8_t number_of_operands = 0;
         if (first_blank == NULL) {
             strcpy(opcode_string, purged_line);
             SATIE_LOG(LOG_LEVEL_DEBUG, "opcode_string: '%s'", opcode_string);
@@ -73,7 +73,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
             SATIE_LOG(LOG_LEVEL_DEBUG, "opcode_string: '%s'", opcode_string);
             SATIE_LOG(LOG_LEVEL_DEBUG, "operands_string: '%s'",
                       operands_string);
-            size_t i = 0;
+            uint8_t i = 0;
             while (i < MAX_OPERANDS) {
                 char *token = strtok(NULL, " ");
                 if (token == NULL) {
@@ -128,7 +128,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
     CLEAR_ERROR(satie_error);
 }
 
-static void append_bytes(loader_t* loader, size_t n, const uint8_t* bytes) {
+static void append_bytes(loader_t* loader, uint16_t n, const uint8_t* bytes) {
     if (loader->max_byte_code_size == 0) {
         // First allocation
         loader->byte_code = malloc(INITIAL_BYTE_CODE_SIZE);
@@ -147,7 +147,7 @@ static void append_bytes(loader_t* loader, size_t n, const uint8_t* bytes) {
 static void append_operands(loader_t* loader,
                               const opcode_info_t *opcode_info,
                               char operands[][MAX_OPERAND_STRING_SIZE],
-                              size_t number_of_operands,
+                              uint8_t number_of_operands,
                               satie_error_t* satie_error) {
     // Check number of operands (special handling of pushs and ret)
     if (!(opcode_info->opcode == OPCODE_PUSHS ||
@@ -159,7 +159,7 @@ static void append_operands(loader_t* loader,
     }
 
     // Append operands
-    for (size_t i = 0; i < opcode_info->number_of_operands; i++) {
+    for (uint8_t i = 0; i < opcode_info->number_of_operands; i++) {
         switch (opcode_info->operands[i]) {
         case OPERAND_STACK_VALUE: {
             vm_stack_value_t stack_value =
@@ -263,7 +263,7 @@ static void append_operands(loader_t* loader,
             char* naked_string = operands[i] + 1;
             naked_string[strlen(naked_string) - 1] = '\0';
             // Append string length and string
-            size_t string_length = strlen(naked_string);
+            uint16_t string_length = strlen(naked_string);
             APPEND_VALUE(loader, vm_data_length_t, string_length);
             append_bytes(loader, string_length, (uint8_t*)naked_string);
             break;
@@ -276,7 +276,7 @@ static void append_operands(loader_t* loader,
 void loader_load_module(loader_t *loader, const char* module_name,
                         satie_error_t* satie_error) {
     // Open file
-    size_t file_path_length =
+    uint16_t file_path_length =
         strlen(loader->load_path) +
         strlen(module_name) +
         strlen(".posm");
@@ -290,7 +290,7 @@ void loader_load_module(loader_t *loader, const char* module_name,
     }
 
     // Generate byte code
-    size_t old_byte_code_size = loader->byte_code_size;
+    uint32_t old_byte_code_size = loader->byte_code_size;
     module_t* module = module_new((vm_address_t)loader->byte_code_size);
     generate_byte_code(loader, module, file, satie_error);
     fclose(file);
@@ -306,7 +306,7 @@ void loader_load_module(loader_t *loader, const char* module_name,
 
 static void purge_line(char *purged_line,  const char *line) {
     // Remove heading whitespaces and comment rows
-    size_t i = 0;
+    uint16_t i = 0;
     while (line[i] == '\t' || line[i] == '\r' || line[i] == ' ') {
         i++;
     }
@@ -319,7 +319,7 @@ static void purge_line(char *purged_line,  const char *line) {
 
     // Whitespace purging
     bool is_space = false;
-    size_t j = 0;
+    uint16_t j = 0;
     while (line[i] != ';' && line[i] != '\n') {
         // Replace \t and \r with spaces and remove multiple spaces
         if (line[i] == '\t' || line[i] == '\r' || line[i] == ' ') {
