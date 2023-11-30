@@ -170,7 +170,7 @@ static void append_operands(loader_t* loader,
             APPEND_VALUE(loader, vm_stack_value_t, stack_value);
             break;
         }
-        case OPERAND_REGISTER: {
+        case OPERAND_REGISTER:
             // Register values are prefixed with 'r'
             if (operands[i][0] != 'r') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
@@ -184,16 +184,14 @@ static void append_operands(loader_t* loader,
             }
             APPEND_VALUE(loader, vm_register_t, register_);
             break;
-        }
-        case OPERAND_LABEL: {
+        case OPERAND_LABEL:
             vm_label_t label = string_to_long(operands[i], satie_error);
             if (satie_error->failed) {
                 return;
             }
             APPEND_VALUE(loader, vm_label_t, label);
             break;
-        }
-        case OPERAND_IMMEDIATE_VALUE: {
+        case OPERAND_IMMEDIATE_VALUE:
             // Immediate values are prefixed with '#'
             if (operands[i][0] != '#') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
@@ -207,8 +205,7 @@ static void append_operands(loader_t* loader,
             }
             APPEND_VALUE(loader, vm_immediate_value_t, immediate_value);
             break;
-        }
-        case OPERAND_STACK_OFFSET: {
+        case OPERAND_STACK_OFFSET:
             // Stack offsets are prefixed with '@'
             if (operands[i][0] != '@') {
                 SET_ERROR(satie_error, ERROR_TYPE_MESSAGE, COMPONENT_LOADER);
@@ -222,16 +219,14 @@ static void append_operands(loader_t* loader,
             }
             APPEND_VALUE(loader, vm_stack_offset_t, stack_offset);
             break;
-        }
-        case OPERAND_ARITY: {
+        case OPERAND_ARITY:
             vm_arity_t arity = string_to_long(operands[i], satie_error);
             if (satie_error->failed) {
                 return;
             }
             APPEND_VALUE(loader, vm_arity_t, arity);
             break;
-        }
-        case OPERAND_RETURN_MODE: {
+        case OPERAND_RETURN_MODE:
             if (number_of_operands == 0) {
                 // Default return mode is value
                 vm_return_mode_t return_mode = RETURN_MODE_VALUE;
@@ -241,8 +236,7 @@ static void append_operands(loader_t* loader,
                 APPEND_VALUE(loader, vm_return_mode_t, return_mode);
             }
             break;
-        }
-        case OPERAND_SYSTEM_CALL: {
+        case OPERAND_SYSTEM_CALL:
             system_call_t system_call =
                 string_to_system_call(operands[i], satie_error);
             if (satie_error->failed) {
@@ -250,8 +244,7 @@ static void append_operands(loader_t* loader,
             }
             APPEND_VALUE(loader, system_call_t, system_call);
             break;
-        }
-        case OPERAND_STRING: {
+        case OPERAND_STRING:
             // Strings are prefixed and suffixed with '"'
             if (operands[i][0] != '"' ||
                 operands[i][strlen(operands[i]) - 1] != '"') {
@@ -262,12 +255,12 @@ static void append_operands(loader_t* loader,
             // Remove quotes
             char* naked_string = operands[i] + 1;
             naked_string[strlen(naked_string) - 1] = '\0';
-            // Append string length and string
+            // Append string length
             uint16_t string_length = strlen(naked_string);
             APPEND_VALUE(loader, vm_data_length_t, string_length);
+            // Append string
             append_bytes(loader, string_length, (uint8_t*)naked_string);
             break;
-        }
         }
     }
     CLEAR_ERROR(satie_error);
