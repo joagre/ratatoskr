@@ -149,7 +149,7 @@ static void append_operands(loader_t* loader,
                               char operands[][MAX_OPERAND_STRING_SIZE],
                               size_t number_of_operands,
                               satie_error_t* satie_error) {
-    // Special handling of pushs and ret
+    // Check number of operands (special handling of pushs and ret)
     if (!(opcode_info->opcode == OPCODE_PUSHS ||
           opcode_info->opcode == OPCODE_RET ||
           number_of_operands == opcode_info->number_of_operands)) {
@@ -262,6 +262,7 @@ static void append_operands(loader_t* loader,
             // Remove quotes
             char* naked_string = operands[i] + 1;
             naked_string[strlen(naked_string) - 1] = '\0';
+            // Append string length and string
             size_t string_length = strlen(naked_string);
             APPEND_VALUE(loader, vm_data_length_t, string_length);
             append_bytes(loader, string_length, (uint8_t*)naked_string);
