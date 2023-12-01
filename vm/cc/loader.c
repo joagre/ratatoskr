@@ -7,6 +7,7 @@
 #include "loader.h"
 #include "log.h"
 #include "util.h"
+#include "pretty_print.h"
 
 // Forward declarations of local functions (alphabetical order)
 static void append_bytes(loader_t* loader, uint16_t n, uint8_t* bytes);
@@ -35,8 +36,19 @@ void loader_free(loader_t* loader) {
     lhash_kv_clear(&loader->modules);
 }
 
-void loader_load_module(loader_t *loader, char* module_name,
-                        satie_error_t* error) {
+bool loader_is_module_loaded(loader_t* loader, char *module_name) {
+    module_t* module;
+    return lhash_kv_find(&loader->modules, module_name, (void**)&module) != 0;
+}
+
+vm_address_t loader_lookup_address(loader_t* loader, char *module_name,
+                                   vm_label_t label) {
+    module_t* module;
+    lhash_kv_find(&loader->modules, module_name, (void**)&module);
+    return module_lookup_address(module, label);
+}
+
+void load_module(loader_t *loader, char* module_name, satie_error_t* error) {
     // Open file
     uint16_t file_path_length =
         strlen(loader->load_path) +
@@ -62,6 +74,24 @@ void loader_load_module(loader_t *loader, char* module_name,
         module->stop_address = loader->byte_code_size - 1;
         lhash_kv_insert(&loader->modules, (char *)module_name, module);
         CLEAR_ERROR(error);
+    }
+}
+
+void pretty_print(loader_t* loader) {
+    vm_address_t address = 0;
+    while (address < loader->byte_code_size) {
+        fprintf(stderr, "%d: ", address);
+        address += 1 + print_instruction(&loader->byte_code[address]);
+    }
+}
+
+void pretty_print_module(loader_t* loader, char* module_name) {
+    module_t* module;
+    lhash_kv_find(&loader->modules, module_name, (void**)&module);
+    vm_address_t address = module->start_address;
+    while (address <= module->stop_address) {
+        fprintf(stderr, "%d: ", address);
+        address += 1 + print_instruction(&loader->byte_code[address]);
     }
 }
 
