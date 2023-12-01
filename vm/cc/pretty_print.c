@@ -16,16 +16,18 @@ uint32_t print_instruction(uint8_t* bytes) {
     }
     case OPCODE_JMPRINGT: {
         vm_register_t register_value = GET_OPERAND(vm_register_t);
-        vm_immediate_value_t immediate_value = GET_OPERAND(vm_immediate_value_t);
+        vm_immediate_value_t immediate_value =
+            GET_OPERAND(vm_immediate_value_t);
         vm_address_t address = GET_OPERAND(vm_address_t);
-        fprintf(stdout, "jmpringt r%d #%ld %d", register_value, immediate_value,
-                address);
+        fprintf(stdout, "jmpringt r%d #%ld %d", register_value,
+                immediate_value, address);
         return size;
     }
     case OPCODE_SUBRRI: {
         vm_register_t first_register = GET_OPERAND(vm_register_t);
         vm_register_t second_register = GET_OPERAND(vm_register_t);
-        vm_immediate_value_t immediate_value = GET_OPERAND(vm_immediate_value_t);
+        vm_immediate_value_t immediate_value =
+            GET_OPERAND(vm_immediate_value_t);
         fprintf(stdout, "subrri r%d r%d #%ld", first_register, second_register,
                 immediate_value);
         return size;
@@ -33,7 +35,8 @@ uint32_t print_instruction(uint8_t* bytes) {
     case OPCODE_SUBRSI: {
         vm_register_t register_value = GET_OPERAND(vm_register_t);
         vm_stack_offset_t stack_offset = GET_OPERAND(vm_stack_offset_t);
-        vm_immediate_value_t immediate_value = GET_OPERAND(vm_immediate_value_t);
+        vm_immediate_value_t immediate_value =
+            GET_OPERAND(vm_immediate_value_t);
         fprintf(stdout, "subrsi r%d @%d #%ld", register_value, stack_offset,
                 immediate_value);
         return size;
@@ -41,14 +44,16 @@ uint32_t print_instruction(uint8_t* bytes) {
     case OPCODE_ADDRRI: {
         vm_register_t first_register = GET_OPERAND(vm_register_t);
         vm_register_t second_register = GET_OPERAND(vm_register_t);
-        vm_immediate_value_t immediate_value = GET_OPERAND(vm_immediate_value_t);
+        vm_immediate_value_t immediate_value =
+            GET_OPERAND(vm_immediate_value_t);
         fprintf(stdout, "addrri r%d r%d #%ld", first_register, second_register,
                 immediate_value);
         return size;
     }
     case OPCODE_LOADRI: {
         vm_register_t register_ = GET_OPERAND(vm_register_t);
-        vm_immediate_value_t immediate_value = GET_OPERAND(vm_immediate_value_t);
+        vm_immediate_value_t immediate_value =
+            GET_OPERAND(vm_immediate_value_t);
         fprintf(stdout, "loadri r%d #%ld", register_, immediate_value);
         return size;
     }
@@ -78,8 +83,8 @@ uint32_t print_instruction(uint8_t* bytes) {
         vm_address_t address = GET_OPERAND(vm_address_t);
         fprintf(stdout, "jmp %d", address);
         return size;
-    // Stack machine instructions
     }
+    // Stack machine instructions
     case OPCODE_PUSH: {
         vm_stack_value_t stack_value = GET_OPERAND(vm_stack_value_t);
         fprintf(stdout, "push %ld", stack_value);

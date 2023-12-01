@@ -1,0 +1,26 @@
+import std.file: File
+import std.char: Char, CharError
+import std.string
+
+fn main(args) {
+    #(File.ok, ?string) <- file.readFile(args[1]),
+    combine(string.toList(string))
+}
+
+fn combine(list, first = nil, last = nil) {
+    if list.isEmpty() {
+        "$first$last"
+    } else {
+        switch #(char.toInt(list.first()), first, last) {
+            case #(#(Char.ok, ?number), nil, _) {
+                combine(list.rest(), number, last)
+            }
+            case #(#(Char.ok, ?number), _, nil) {
+                combine(list.rest(), first, number)
+            }
+            case #(#(Char.error, CharError.notInt), _, _) {
+                combine(list.rest(), first, last)
+            }
+        }
+    }
+}
