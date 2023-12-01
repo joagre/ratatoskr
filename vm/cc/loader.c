@@ -48,7 +48,8 @@ vm_address_t loader_lookup_address(loader_t* loader, char *module_name,
     return module_lookup_address(module, label);
 }
 
-void load_module(loader_t *loader, char* module_name, satie_error_t* error) {
+void loader_load_module(loader_t *loader, char* module_name,
+                        satie_error_t* error) {
     // Open file
     uint16_t file_path_length =
         strlen(loader->load_path) +

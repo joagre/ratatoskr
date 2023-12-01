@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <stdint.h>
-#include "pretty_print.h"
 #include "vm.h"
 
 uint32_t print_instruction(uint8_t* bytes) {

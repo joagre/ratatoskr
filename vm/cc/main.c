@@ -4,6 +4,7 @@
 #include <libgen.h>
 #include "log.h"
 #include "loader.h"
+#include "pretty_print.h"
 #include "util.h"
 
 #define SUCCESS 0
@@ -90,9 +91,11 @@ int main(int argc, char* argv[]) {
     loader_t loader;
     loader_init(&loader, load_path);
     loader_load_module(&loader, module_name, &error);
-
-
-    satie_print_error(&error);
+    if (error.failed) {
+        satie_print_error(&error);
+        return SUCCESS;
+    }
+    pretty_print(&loader);
 
     return SUCCESS;
 }
