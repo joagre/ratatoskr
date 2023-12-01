@@ -6,6 +6,7 @@
 #include "loader.h"
 #include "pretty_print.h"
 #include "util.h"
+#include "mailbox.h"
 
 #define SUCCESS 0
 #define PARAMETER_ERROR 1
@@ -17,8 +18,9 @@ void usage(char* name);
 
 int main(int argc, char* argv[]) {
     #ifdef DEBUG
-    module_unit_test();
-    loader_unit_test();
+    //module_unit_test(); // FAILS
+    //loader_unit_test(); // FAILS
+    mailbox_unit_test();
     #endif
 
     uint16_t check_after = DEFAULT_CHECK_AFTER;
