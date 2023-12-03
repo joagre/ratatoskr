@@ -65,7 +65,6 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
     log_assert(__FILE__, __LINE__, condition, message, ##__VA_ARGS__); \
 })
 #else
-#define LOG_DEBUG(message, ...) ((void)0)
 #define LOG_INFO(message, ...) ((void)0)
 #define LOG_WARNING(message, ...) ((void)0)
 #define LOG_ERROR(message, ...) ((void)0)
