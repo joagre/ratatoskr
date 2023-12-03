@@ -1,4 +1,4 @@
-#define MUTE_LOG_DEBUG 1
+//#define MUTE_LOG_DEBUG 1
 
 #include <stdio.h>
 #include <errno.h>
@@ -296,7 +296,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
                 return;
             }
             LOG_DEBUG("INSERT LABEL %u -> %u", label, loader->byte_code_size);
-            module_insert_label(module, label, loader->byte_code_size);
+            module_insert(module, label, loader->byte_code_size);
             continue;
         }
 
@@ -308,8 +308,16 @@ static void generate_byte_code(loader_t* loader, module_t* module,
             return;
         }
 
+        LOG_DEBUG("FOUND opcode = %s", opcode_info->string);
+
         // Add opcode byte to byte code
         append_bytes(loader, 1, (uint8_t*)&opcode_info->opcode);
+
+
+
+        vm_address_t najs = loader->byte_code_size - 1;
+
+
 
         // Add operand bytes to byte code
         append_operands(loader, opcode_info, operands, number_of_operands,
@@ -318,6 +326,16 @@ static void generate_byte_code(loader_t* loader, module_t* module,
             free(line);
             return;
         }
+
+
+
+        fprintf(stderr, "parsed instruction: ");
+        print_instruction(&loader->byte_code[najs]);
+
+
+
+
+        LOG_DEBUG("FOUND opcode = %s", opcode_info->string);
     }
     free(line);
 
@@ -326,7 +344,16 @@ static void generate_byte_code(loader_t* loader, module_t* module,
     LOG_DEBUG("start_address = %u\n", address);
     while (address < loader->byte_code_size) {
         opcode_t opcode = loader->byte_code[address];
+
+
+        opcode_info_t *oo = opcode_to_opcode_info(opcode);
+        LOG_DEBUG("TP RESOLVE opcode = %s", oo->string);
+
+
         vm_address_t operand_address = address + (vm_address_t)OPCODE_SIZE;
+        LOG_DEBUG("TP RESOLVE operand_address = %u", operand_address);
+
+
         // Resolve register machine labels
         if (opcode == OPCODE_JMPRNZE) {
             resolve_label(loader->byte_code, module, operand_address,
@@ -420,7 +447,16 @@ static void resolve_label(uint8_t* byte_code, module_t* module,
     vm_address_t label_address = first_operand + operand_offset;
     vm_label_t label = GET_VALUE(vm_label_t, &byte_code[label_address]);
     LOG_DEBUG("**** LABEL to resolve %u", label);
+
+
+    module_print_jump_table(module);
+
     vm_address_t address = module_lookup_address(module, label);
+
+
+
+
+
     LOG_DEBUG("**** label %u -> %u", label, address);
     SET_VALUE(vm_address_t, address, &byte_code[label_address]);
 }

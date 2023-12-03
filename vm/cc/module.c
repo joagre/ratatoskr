@@ -21,15 +21,24 @@ void module_free(module_t *module) {
     free(module);
 }
 
-void module_insert_label(module_t* module, vm_label_t label,
-                         vm_address_t address) {
+void module_insert(module_t* module, vm_label_t label, vm_address_t address) {
     lhash_kv_insert(&module->jump_table, (void*)(uintptr_t)label,
                     (void*)(uintptr_t)address);
 }
 
 vm_address_t module_lookup_address(module_t* module, vm_label_t label) {
     uintptr_t address;
-    lhash_kv_find(&module->jump_table, &label, (void **)&address);
+
+    fprintf(stderr, "PRINT:\n");
+    module_print_jump_table(module);
+
+    lhash_kv_find(&module->jump_table, &label, (void**)&address);
+
+    /*
+    vm_address_t address;
+    lhash_kv_find(&module->jump_table, (void*)(uintptr_t)&label,
+                  (void**)(uintptr_t*)&address);
+    */
     return address;
 }
 
@@ -40,7 +49,7 @@ vm_label_t module_lookup_label(module_t* module, vm_address_t address) {
         uintptr_t current_label;
         uintptr_t current_address;
         lhash_kv_iter_current(&iter, (void**)(uintptr_t*)&current_label,
-                              (void**)(uintptr_t*)&current_address);
+                              (void**)(uintptr_t*) &current_address);
         if (address == current_address) {
             return current_label;
         }
@@ -85,7 +94,7 @@ void module_unit_test(void) {
 
     // insert
     vm_address_t address = 8;
-    module_insert_label(module, label, address);
+    module_insert(module, label, address);
 
     // lookup
     vm_address_t address2 = module_lookup_address(module, label);

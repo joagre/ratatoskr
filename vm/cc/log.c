@@ -28,14 +28,20 @@ void log_entry(log_level_t log_level, char* file, uint32_t line, char* format, .
     va_end(args);
 }
 
-void log_abort(char* file, uint32_t line, char* message) {
-    log_entry(LOG_LEVEL_PANIC, file, line, message);
+void log_abort(char* file, uint32_t line, char* message, ...) {
+    va_list args;
+    va_start(args, message);
+    log_entry(LOG_LEVEL_PANIC, file, line, message, args);
+    va_end(args);
     abort();
 }
 
-void log_assert(char* file, uint32_t line, bool condition, char* message) {
+void log_assert(char* file, uint32_t line, bool condition, char* message, ...) {
     if (!condition) {
-        log_entry(LOG_LEVEL_PANIC, file, line, message);
+        va_list args;
+        va_start(args, message);
+        log_entry(LOG_LEVEL_PANIC, file, line, message, args);
+        va_end(args);
         abort();
     }
 }

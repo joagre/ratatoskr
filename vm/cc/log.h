@@ -12,9 +12,10 @@ typedef enum {
     LOG_LEVEL_PANIC
 } log_level_t;
 
-void log_entry(log_level_t log_level, char* file, uint32_t line, char* format, ...);
-void log_abort(char* file, uint32_t line, char* message);
-void log_assert(char* file, uint32_t line, bool condition, char* message);
+void log_entry(log_level_t log_level, char* file, uint32_t line, char* format,
+               ...);
+void log_abort(char* file, uint32_t line, char* message, ...);
+void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 
 #ifdef DEBUG
 // LOG_DEBUG
@@ -50,18 +51,18 @@ void log_assert(char* file, uint32_t line, bool condition, char* message);
 })
 
 // LOG_PANIC
-#define LOG_PANIC(message, ...) ({     \
+#define LOG_PANIC(message, ...) ({ \
     log_entry(LOG_LEVEL_PANIC, __FILE__, __LINE__, message, ##__VA_ARGS__); \
 })
 
 // LOG_ABORT
-#define LOG_ABORT(message) ({ \
-    log_abort(__FILE__, __LINE__, message);     \
+#define LOG_ABORT(message, ...) ({ \
+    log_abort(__FILE__, __LINE__, message, ##__VA_ARGS__); \
 })
 
 // LOG_ASSERT
-#define LOG_ASSERT(condition, message) ({ \
-    log_assert(__FILE__, __LINE__, condition, message); \
+#define LOG_ASSERT(condition, message, ...) ({ \
+    log_assert(__FILE__, __LINE__, condition, message, ##__VA_ARGS__); \
 })
 #else
 #define LOG_DEBUG(message, ...) ((void)0)

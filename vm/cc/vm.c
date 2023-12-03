@@ -1,7 +1,9 @@
 #include <string.h>
 #include "instructions.h"
+#include "log.h"
 
 opcode_info_t* opcode_to_opcode_info(opcode_t opcode) {
+    LOG_ASSERT(opcode < OPCODE_ENUM_SIZE, "Invalid opcode: %d", opcode);
     return &opcode_info_map[opcode];
 }
 
