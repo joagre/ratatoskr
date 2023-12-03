@@ -21,7 +21,7 @@ typedef struct _dynarray_t
     size_t capacity;   // max number of elements
     size_t size;       // assigned size <= capacity
     size_t width;      // element size
-    allocator_t* alloc;    
+    allocator_t* alloc;
     void*  base;       // array base address
 } dynarray_t;
 
@@ -128,7 +128,7 @@ DYNARR_LOCAL size_t dynarray_size(dynarray_t* dp)
 DYNARR_LOCAL int dynarray_set_capacity(dynarray_t* dp, size_t capacity)
 {
     void* base;
-    
+
     if ((base = allocator_realloc(dp->alloc,dp->base,capacity*dp->width))==NULL)
 	return -1;
     dp->base = base;
@@ -188,7 +188,7 @@ DYNARR_LOCAL void* dynarray_unordered_delete(dynarray_t* dp, int i)
 {
     uint8_t* src;
     uint8_t* dst;
-    size_t len;
+    //    size_t len;
 
     if ((i<0) || (dp == NULL) || (i >= (int)dp->size))
 	return NULL;

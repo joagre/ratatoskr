@@ -1,3 +1,5 @@
+#define MUTE_LOG_DEBUG 1
+
 #include "mailbox.h"
 #include "log.h"
 
@@ -40,8 +42,8 @@ void mailbox_unit_test(void) {
     mailbox_t mailbox;
     mailbox_init(&mailbox);
     mailbox_enqueue(&mailbox, 1);
-    SATIE_ASSERT(mailbox_dequeue(&mailbox) == 1, "mailbox_dequeue failed");
-    SATIE_ASSERT(mailbox_is_empty(&mailbox), "mailbox_is_empty failed");
+    LOG_ASSERT(mailbox_dequeue(&mailbox) == 1, "mailbox_dequeue failed");
+    LOG_ASSERT(mailbox_is_empty(&mailbox), "mailbox_is_empty failed");
     mailbox_free(&mailbox);
-    SATIE_LOG(LOG_LEVEL_INFO, "module_unit_test passed");
+    LOG_INFO("Unit test passed");
 }

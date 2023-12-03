@@ -1,3 +1,6 @@
+
+#define MUTE_LOG_DEBUG 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -7,6 +10,7 @@
 #include "pretty_print.h"
 #include "util.h"
 #include "mailbox.h"
+#include "call_stack.h"
 
 #define SUCCESS 0
 #define PARAMETER_ERROR 1
@@ -17,10 +21,11 @@
 void usage(char* name);
 
 int main(int argc, char* argv[]) {
-    #ifdef DEBUG
-    //module_unit_test(); // FAILS
-    //loader_unit_test(); // FAILS
+    #ifdef UNITTEST
+    module_unit_test();
+    loader_unit_test();
     mailbox_unit_test();
+    //call_stack_unit_test();
     #endif
 
     uint16_t check_after = DEFAULT_CHECK_AFTER;
@@ -80,13 +85,13 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    SATIE_LOG(LOG_LEVEL_DEBUG, "check_after = %d", check_after);
-    SATIE_LOG(LOG_LEVEL_DEBUG, "load_path = %s", load_path);
-    SATIE_LOG(LOG_LEVEL_DEBUG, "time_slice = %d", time_slice);
-    SATIE_LOG(LOG_LEVEL_DEBUG, "module_name = %s", module_name);
-    SATIE_LOG(LOG_LEVEL_DEBUG, "label = %d", label);
+    LOG_DEBUG("check_after = %d", check_after);
+    LOG_DEBUG("load_path = %s", load_path);
+    LOG_DEBUG("time_slice = %d", time_slice);
+    LOG_DEBUG("module_name = %s", module_name);
+    LOG_DEBUG("label = %d", label);
     for (int i = 0; i < argc - optind - 2; i++) {
-        SATIE_LOG(LOG_LEVEL_DEBUG, "parameter = %d", parameters[i]);
+        LOG_DEBUG("parameter = %d", parameters[i]);
     }
 
     // Prepare loader

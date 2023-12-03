@@ -1,3 +1,5 @@
+#define MUTE_LOG_DEBUG 1
+
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -256,18 +258,17 @@ static void generate_byte_code(loader_t* loader, module_t* module,
         }
 
         // Parse line
-        SATIE_LOG(LOG_LEVEL_DEBUG, "Instruction: '%s'", purged_line);
+        LOG_DEBUG("Instruction: '%s'", purged_line);
         char *first_blank = strchr(purged_line, ' ');
         uint8_t number_of_operands = 0;
         if (first_blank == NULL) {
             strcpy(opcode_string, purged_line);
-            //SATIE_LOG(LOG_LEVEL_DEBUG, "opcode_string: '%s'", opcode_string);
+            //LOG_DEBUG("opcode_string: '%s'", opcode_string);
         } else {
             strcpy(operands_string, first_blank + 1);
             strcpy(opcode_string, strtok(purged_line, " "));
-            //SATIE_LOG(LOG_LEVEL_DEBUG, "opcode_string: '%s'", opcode_string);
-            //SATIE_LOG(LOG_LEVEL_DEBUG, "operands_string: '%s'",
-            //          operands_string);
+            //LOG_DEBUG("opcode_string: '%s'", opcode_string);
+            //LOG_DEBUG("operands_string: '%s'", operands_string);
             uint8_t i = 0;
             while (i < MAX_OPERANDS) {
                 char *token = strtok(NULL, " ");
@@ -275,7 +276,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
                     break;
                 }
                 strcpy(operands[i], token);
-                //SATIE_LOG(LOG_LEVEL_DEBUG, "operands[%u]: %s", i, operands[i]);
+                //LOG_DEBUG("operands[%u]: %s", i, operands[i]);
                 number_of_operands++;
                 i++;
             }
@@ -294,8 +295,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
                 free(line);
                 return;
             }
-            SATIE_LOG(LOG_LEVEL_DEBUG, "INSERT LABEL %u -> %u", label,
-                      loader->byte_code_size);
+            LOG_DEBUG("INSERT LABEL %u -> %u", label, loader->byte_code_size);
             module_insert_label(module, label, loader->byte_code_size);
             continue;
         }
@@ -323,60 +323,40 @@ static void generate_byte_code(loader_t* loader, module_t* module,
 
     // Resolve labels to addresses
     vm_address_t address = module->start_address;
-    fprintf(stderr, "== start_address = %u\n", address);
+    LOG_DEBUG("start_address = %u\n", address);
     while (address < loader->byte_code_size) {
         opcode_t opcode = loader->byte_code[address];
-
-        opcode_info_t* bajs = opcode_to_opcode_info(opcode);
-        fprintf(stderr, "== OPCODE = %s\n", bajs->string);
-
-
-
         vm_address_t operand_address = address + (vm_address_t)OPCODE_SIZE;
         // Resolve register machine labels
         if (opcode == OPCODE_JMPRNZE) {
-            fprintf(stderr, "----------- RESOLVE: JMPRNZE\n");
-
             resolve_label(loader->byte_code, module, operand_address,
                           sizeof(vm_register_t));
             address += size_of_operands(OPCODE_JMPRNZE);
         } else if (opcode == OPCODE_JMPRINGT) {
-            fprintf(stderr, "----------- RESOLVE: JMPRINGT\n");
             resolve_label(loader->byte_code, module, operand_address,
                           sizeof(vm_register_t) + sizeof(vm_immediate_value_t));
             address += size_of_operands(OPCODE_JMPRINGT);
         } else if (opcode == OPCODE_RCALL) {
-            fprintf(stderr, "----------- RESOLVE: RCALL\n");
             resolve_label(loader->byte_code, module, operand_address, 0);
-
-
-
-
             address += size_of_operands(OPCODE_RCALL);
         } else if (opcode == OPCODE_JMP) {
-            fprintf(stderr, "----------- RESOLVE: JMP\n");
             resolve_label(loader->byte_code, module, operand_address, 0);
             address += size_of_operands(OPCODE_JMP);
             // Resolve stack machine labels
         } else if (opcode == OPCODE_PUSHS) {
-            fprintf(stderr, "----------- RESOLVE: PUSHS\n");
             vm_data_length_t length =
                 GET_VALUE(vm_data_length_t, &loader->byte_code[operand_address]);
             address += sizeof(vm_data_length_t) + length;
         } else if (opcode == OPCODE_JUMP) {
-            fprintf(stderr, "----------- RESOLVE: JUMP\n");
             resolve_label(loader->byte_code, module, operand_address, 0);
             address += size_of_operands(OPCODE_JUMP);
         } else if (opcode == OPCODE_CJUMP) {
-            fprintf(stderr, "----------- RESOLVE: CJUMP\n");
             resolve_label(loader->byte_code, module, operand_address, 0);
             address += size_of_operands(OPCODE_CJUMP);
         } else if (opcode == OPCODE_CALL) {
-            fprintf(stderr, "----------- RESOLVE: CALL\n");
             resolve_label(loader->byte_code, module, operand_address, 0);
             address += size_of_operands(OPCODE_CALL);
         } else if (opcode == OPCODE_SPAWN) {
-            fprintf(stderr, "----------- RESOLVE: SPAWN\n");
             resolve_label(loader->byte_code, module, operand_address, 0);
             address += size_of_operands(OPCODE_SPAWN);
         } else {
@@ -439,15 +419,9 @@ static void resolve_label(uint8_t* byte_code, module_t* module,
                           vm_address_t first_operand, uint16_t operand_offset) {
     vm_address_t label_address = first_operand + operand_offset;
     vm_label_t label = GET_VALUE(vm_label_t, &byte_code[label_address]);
-    SATIE_LOG(LOG_LEVEL_DEBUG, "**** LABEL to resolve %u", label);
-
-    module_print_jump_table(module);
-
-
+    LOG_DEBUG("**** LABEL to resolve %u", label);
     vm_address_t address = module_lookup_address(module, label);
-
-
-    SATIE_LOG(LOG_LEVEL_DEBUG, "**** label %u -> %u", label, address);
+    LOG_DEBUG("**** label %u -> %u", label, address);
     SET_VALUE(vm_address_t, address, &byte_code[label_address]);
 }
 
@@ -501,11 +475,11 @@ void loader_unit_test(void) {
     lhash_kv_insert(&loader.modules, "foo", module);
     module_t* module2;
     lhash_kv_find(&loader.modules, "foo", (void**)&module2);
-    SATIE_ASSERT(module2->start_address == 42, "Wrong start address");
+    LOG_ASSERT(module2->start_address == 42, "Wrong start address");
 
     // Verify that loader_load_module works
     satie_error_t error;
     loader_load_module(&loader, "ackermannr", &error);
-    SATIE_ASSERT(!error.failed, "Failed to load module");
-    SATIE_LOG(LOG_LEVEL_INFO, "loader_unit_test passed");
+    LOG_ASSERT(!error.failed, "Failed to load module");
+    LOG_INFO("Unit test passed");
 }
