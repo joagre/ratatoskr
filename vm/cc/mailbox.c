@@ -1,5 +1,6 @@
 #define MUTE_LOG_DEBUG 1
 
+#include <stdlib.h>
 #include "mailbox.h"
 #include "log.h"
 

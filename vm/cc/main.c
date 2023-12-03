@@ -7,7 +7,6 @@
 #include <libgen.h>
 #include "log.h"
 #include "loader.h"
-#include "pretty_print.h"
 #include "util.h"
 #include "mailbox.h"
 #include "call_stack.h"
@@ -25,7 +24,7 @@ int main(int argc, char* argv[]) {
     module_unit_test();
     loader_unit_test();
     mailbox_unit_test();
-    //call_stack_unit_test();
+    call_stack_unit_test();
     #endif
 
     uint16_t check_after = DEFAULT_CHECK_AFTER;

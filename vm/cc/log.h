@@ -2,6 +2,7 @@
 #define __LOG_H__
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef enum {
     LOG_LEVEL_DEBUG,
@@ -11,15 +12,15 @@ typedef enum {
     LOG_LEVEL_PANIC
 } log_level_t;
 
-void satie_log(log_level_t log_level, char*file_path, char* format, ...);
-void satie_abort(char*file_path, char* message);
-void satie_assert(char *file_path, bool condition, char* message);
+void log_entry(log_level_t log_level, char* file, uint32_t line, char* format, ...);
+void log_abort(char* file, uint32_t line, char* message);
+void log_assert(char* file, uint32_t line, bool condition, char* message);
 
 #ifdef DEBUG
 // LOG_DEBUG
 #ifndef MUTE_LOG_DEBUG
 #define LOG_DEBUG(message, ...) ({           \
-    satie_log(LOG_LEVEL_DEBUG, __FILE__ , message, ##__VA_ARGS__); \
+  log_entry(LOG_LEVEL_DEBUG, __FILE__ , __LINE__, message, ##__VA_ARGS__); \
 })
 #else
 #define LOG_DEBUG(message, ...) ((void)0)
@@ -28,7 +29,7 @@ void satie_assert(char *file_path, bool condition, char* message);
 // LOG_INFO
 #ifndef MUTE_LOG_INFO
 #define LOG_INFO(message, ...) ({           \
-    satie_log(LOG_LEVEL_INFO, __FILE__ , message, ##__VA_ARGS__); \
+    log_entry(LOG_LEVEL_INFO, __FILE__ , __LINE__, message, ##__VA_ARGS__); \
 })
 #else
 #define LOG_INFO(message, ...) ((void)0)
@@ -37,7 +38,7 @@ void satie_assert(char *file_path, bool condition, char* message);
 // LOG_WARNING
 #ifndef MUTE_LOG_WARNING
 #define LOG_WARNING(message, ...) ({           \
-    satie_log(LOG_LEVEL_WARNING, __FILE__ , message, ##__VA_ARGS__); \
+    log_entry(LOG_LEVEL_WARNING, __FILE__, __LINE__, message, ##__VA_ARGS__); \
 })
 #else
 #define LOG_WARNING(message, ...) ((void)0)
@@ -45,22 +46,22 @@ void satie_assert(char *file_path, bool condition, char* message);
 
 // LOG_ERROR
 #define LOG_ERROR(message, ...) ({     \
-    satie_log(LOG_LEVEL_ERROR, __FILE__, message, ##__VA_ARGS__); \
+    log_entry(LOG_LEVEL_ERROR, __FILE__, __LINE__, message, ##__VA_ARGS__); \
 })
 
 // LOG_PANIC
 #define LOG_PANIC(message, ...) ({     \
-    satie_log(LOG_LEVEL_PANIC, __FILE__, message, ##__VA_ARGS__); \
+    log_entry(LOG_LEVEL_PANIC, __FILE__, __LINE__, message, ##__VA_ARGS__); \
 })
 
 // LOG_ABORT
 #define LOG_ABORT(message) ({ \
-    satie_abort(__FILE__, message); \
+    log_abort(__FILE__, __LINE__, message);     \
 })
 
 // LOG_ASSERT
 #define LOG_ASSERT(condition, message) ({ \
-    satie_assert(__FILE__, condition, message); \
+    log_assert(__FILE__, __LINE__, condition, message); \
 })
 #else
 #define LOG_DEBUG(message, ...) ((void)0)
