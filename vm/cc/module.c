@@ -6,8 +6,8 @@
 #include "module.h"
 
 // Forward declarations of local functions (alphabetical order)
-static int key_cmp(void* key1, void* key2, void*);
-static size_t key_hash(void* key, void*);
+static int key_cmp(void* key1, void* key2, void* arg);
+static size_t key_hash(void* key, void* arg);
 
 module_t* module_new(vm_address_t start_address) {
     module_t* module = malloc(sizeof(module_t));
@@ -76,11 +76,13 @@ void module_print_jump_table(module_t* module) {
 // Local functions (alphabetical order)
 //
 
-static int key_cmp(void* key1, void* key2, void*) {
+static int key_cmp(void* key1, void* key2, void* arg) {
+    (void*)arg;
     return (uintptr_t)key1 == (uintptr_t)key2;
 };
 
-static size_t key_hash(void* key, void*) {
+static size_t key_hash(void* key, void* arg) {
+    (void*)arg;
     return (size_t)((uintptr_t)key);
 };
 

@@ -13,6 +13,9 @@
     append_bytes(loader, sizeof(T), bytes); \
 })
 
+
+typedef lhash_kv_t module_map_t;
+
 typedef struct {
     uint8_t* byte_code;
     uint32_t byte_code_size;

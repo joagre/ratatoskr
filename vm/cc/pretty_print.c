@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "vm.h"
-#include "log.h"
 
 uint32_t print_instruction(uint8_t* bytes) {
     // These variables are required by the GET_OPERAND macro

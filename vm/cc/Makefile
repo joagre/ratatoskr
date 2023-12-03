@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -Werror -Wextra -std=c17 -g -DDEBUG -DUNITTEST -D_GNU_SOURCE -Wno-sign-compare -Wno-unused-function -Wno-unused-but-set-variable -Wno-unused-variable
+CFLAGS := -Wall -Werror -Wextra -std=c17 -g -DDEBUG -DUNITTEST -D_GNU_SOURCE -Wno-sign-compare -Wno-unused-function -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-value
 
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
