@@ -82,12 +82,17 @@ static size_t key_hash(void* key, void*) {
 void module_unit_test(void) {
     module_t* module = module_new(4711);
     vm_label_t label = 42;
+
+    // insert
     vm_address_t address = 8;
     module_insert_label(module, label, address);
+
+    // lookup
     vm_address_t address2 = module_lookup_address(module, label);
     LOG_ASSERT(address == address2, "Address mismatch");
     vm_label_t label2 = module_lookup_label(module, address);
     LOG_ASSERT(label == label2, "Label mismatch");
-    //module_print_jump_table(module);
+    module_print_jump_table(module);
+
     LOG_INFO("Unit test passed");
 }

@@ -98,34 +98,34 @@ static vm_stack_value_t add(vm_stack_value_t a, vm_stack_value_t b) {
 void call_stack_unit_test(void) {
     call_stack_t call_stack;
 
-    // Initial empty stack
+    // Create initial empty stack
     stack_t stack;
     dynarray_init(&stack, NULL, 512, sizeof(vm_stack_value_t));
 
-    // Push 1
+    // push, pop and length
     call_stack_init(&call_stack, &stack);
     call_stack_push(&call_stack, 1);
     LOG_ASSERT(call_stack_pop(&call_stack) == 1, "call_stack_pop");
     LOG_ASSERT(call_stack_length(&call_stack) == 0, "call_stack_length");
 
-    // Push 1, 2
+    // print
     call_stack_push(&call_stack, 1);
     call_stack_push(&call_stack, 2);
     call_stack_print(&call_stack);
 
-    // Swap
+    // swap
     call_stack_print(&call_stack);
     call_stack_swap(&call_stack);
     call_stack_print(&call_stack);
     LOG_ASSERT(call_stack_pop(&call_stack) == 1, "call_stack_pop");
     LOG_ASSERT(call_stack_pop(&call_stack) == 2, "call_stack_pop");
 
-    // Dup
+    // dup
     call_stack_push(&call_stack, 1);
     call_stack_push(&call_stack, 2);
     call_stack_dup(&call_stack);
 
-    // Binary operation
+    // binary_operation
     LOG_ASSERT(call_stack_pop(&call_stack) == 2, "call_stack_pop");
     LOG_ASSERT(call_stack_pop(&call_stack) == 2, "call_stack_pop");
     call_stack_push(&call_stack, 1);
@@ -133,7 +133,24 @@ void call_stack_unit_test(void) {
     call_stack_binary_operation(&call_stack, add);
     LOG_ASSERT(call_stack_pop(&call_stack) == 3, "call_stack_pop");
     LOG_ASSERT(call_stack_length(&call_stack) == 1, "call_stack_length");
-    call_stack_free(&call_stack);
+    call_stack_pop(&call_stack);
+
+    // load
+    call_stack_push(&call_stack, 5);
+    call_stack_push(&call_stack, 6);
+    call_stack_push(&call_stack, 7);
+    call_stack_push(&call_stack, 8);
+    call_stack_push(&call_stack, 1);
+    call_stack_load(&call_stack);
+    LOG_ASSERT(call_stack_pop(&call_stack) == 6, "call_stack_pop");
+
+    // store
+    call_stack_push(&call_stack, 2);
+    call_stack_push(&call_stack, 42);
+    call_stack_store(&call_stack);
+    vm_stack_value_t* stored_value =
+        dynarray_element(call_stack.stack, call_stack.fp + 2);
+    LOG_ASSERT(*stored_value == 42, "call_stack_pop");
 
     LOG_INFO("call_stack_unit_test passed");
 }

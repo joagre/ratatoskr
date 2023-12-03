@@ -41,10 +41,16 @@ bool mailbox_is_empty(mailbox_t* mailbox) {
 
 void mailbox_unit_test(void) {
     mailbox_t mailbox;
+    // init
     mailbox_init(&mailbox);
+
+    // enqueue and dequeue
     mailbox_enqueue(&mailbox, 1);
     LOG_ASSERT(mailbox_dequeue(&mailbox) == 1, "mailbox_dequeue failed");
+
+    // is_empty
     LOG_ASSERT(mailbox_is_empty(&mailbox), "mailbox_is_empty failed");
     mailbox_free(&mailbox);
+
     LOG_INFO("Unit test passed");
 }
