@@ -481,5 +481,6 @@ void loader_unit_test(void) {
     satie_error_t error;
     loader_load_module(&loader, "ackermannr", &error);
     LOG_ASSERT(!error.failed, "Failed to load module");
+
     LOG_INFO("Unit test passed");
 }

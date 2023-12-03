@@ -33,8 +33,6 @@ class Job {
     }
 }
 
-Please convert this D class to a typedefed C struct. All variables must be in snake case and every type must end in _t. D's dynamic arrays should be converted to the functionality in dynarray.h I provided earlier. Ignore pragma:
-
 class CallStack  {
     public long[] stack;
     public long fp;
@@ -61,9 +59,6 @@ class CallStack  {
         auto bytes = dataStack.peek(dataAddress);
         return cast(string)bytes[ushort.sizeof .. $];
     }
-
-
-
 
     pragma(inline, true)
     public long pop() {
