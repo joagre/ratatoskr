@@ -25,7 +25,7 @@ typedef struct {
 } job_t;
 
 
-job_t* new_job(uint32_t jid, vm_address_t pc, call_stack_array_t* stack_array);
-void free_job(job_t* job);
+job_t* job_new(uint32_t jid, vm_address_t pc, call_stack_array_t* stack_array);
+void job_free(job_t* job);
 
 #endif
