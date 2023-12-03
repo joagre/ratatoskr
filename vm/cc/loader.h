@@ -13,7 +13,6 @@
     append_bytes(loader, sizeof(T), bytes); \
 })
 
-
 typedef lhash_kv_t module_map_t;
 
 typedef struct {
@@ -33,7 +32,6 @@ void loader_load_module(loader_t *loader, char* module_name,
                         satie_error_t* error);
 void pretty_print(loader_t* loader);
 void pretty_print_module(loader_t* loader, char* module_name);
-void prettyPrint(char* module_name);
 void loader_unit_test(void);
 
 #endif
