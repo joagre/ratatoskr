@@ -19,7 +19,7 @@ void call_stack_array_init(call_stack_array_t* stack_array);
 void call_stack_array_free(call_stack_array_t* stack_array);
 size_t call_stack_length(call_stack_t* call_stack);
 void call_stack_push(call_stack_t* call_stack, vm_stack_value_t value);
-vm_stack_value_t call_stack_pop_string(call_stack_t* call_stack);
+char* call_stack_pop_string(call_stack_t* call_stack);
 vm_stack_value_t call_stack_pop(call_stack_t* call_stack);
 void call_stack_dup(call_stack_t* call_stack);
 void call_stack_swap(call_stack_t* call_stack);

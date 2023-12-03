@@ -30,15 +30,10 @@ void call_stack_push(call_stack_t* call_stack, vm_stack_value_t value) {
     dynarray_append(call_stack->stack_array, &value);
 }
 
-vm_stack_value_t call_stack_pop_string(call_stack_t*) {
-    /*
+char* call_stack_pop_string(call_stack_t* call_stack) {
     vm_stack_value_t* data_address = dynarray_pop(call_stack->stack_array);
     uint8_t* bytes = data_stack_peek(call_stack->data_stack, *data_address);
-    vm_stack_value_t value =
-        GET_VALUE(vm_stack_value_t, bytes + sizeof(vm_data_length_t));
-    return value;
-    */
-    return 0;
+    return (char*)(bytes + sizeof(vm_data_length_t));
 }
 
 vm_stack_value_t call_stack_pop(call_stack_t* call_stack) {
