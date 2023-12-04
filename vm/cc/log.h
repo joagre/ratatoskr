@@ -69,8 +69,8 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 #define LOG_WARNING(message, ...) ((void)0)
 #define LOG_ERROR(message, ...) ((void)0)
 #define LOG_PANIC(message, ...) ((void)0)
-#define LOG_ABORT(message) ((void)0)
-#define LOG_ASSERT(condition, message) ((void)0)
+#define LOG_ABORT(message, ...) ((void)0)
+#define LOG_ASSERT(condition, message, ...) ((void)0)
 #endif
 
 #endif
