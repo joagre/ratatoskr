@@ -211,7 +211,7 @@ static void append_operands(loader_t* loader, opcode_info_t *opcode_info,
             if (error->failed) {
                 return;
             }
-            APPEND_VALUE(loader, system_call_t, system_call);
+            APPEND_VALUE(loader, vm_system_call_t, system_call);
             break;
         case OPERAND_STRING:
             // Strings are prefixed and suffixed with '"'
@@ -318,11 +318,6 @@ static void generate_byte_code(loader_t* loader, module_t* module,
             free(line);
             return;
         }
-
-        /*
-        fprintf(stderr, "parsed instruction: ");
-        print_instruction(&loader->byte_code[najs]);
-        */
     }
     free(line);
 

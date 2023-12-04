@@ -6,7 +6,7 @@ CFLAGS := -Wall -Wextra -std=c17 -g -DDEBUG -DUNITTEST -D_GNU_SOURCE \
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
 DEPS := $(SRCS:.c=.d)
-EXEC := satie
+EXEC := sa
 
 all: $(EXEC)
 

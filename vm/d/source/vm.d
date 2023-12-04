@@ -131,6 +131,7 @@ class Vm {
             "subrri" : OpcodeInfo(Opcode.subrri,
                                   [OperandType.register,
                                    OperandType.register,
+
                                    OperandType.immediateValue]),
             "subrsi" : OpcodeInfo(Opcode.subrsi,
                                   [OperandType.register,

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <libgen.h>
+#include <stdint.h>
 #include "log.h"
 #include "loader.h"
 #include "util.h"
@@ -101,6 +102,12 @@ int main(int argc, char* argv[]) {
         satie_print_error(&error);
         return SUCCESS;
     }
+    loader_load_module(&loader, module_name, &error);
+    if (error.failed) {
+        satie_print_error(&error);
+        return SUCCESS;
+    }
+
     pretty_print(&loader);
 
     return SUCCESS;

@@ -85,7 +85,7 @@ void call_stack_print(call_stack_t* call_stack) {
     size_t i;
     for (i = 0; i < dynarray_size(call_stack->stack_array); i++) {
         vm_stack_value_t* value = dynarray_element(call_stack->stack_array, i);
-        fprintf(stderr, "stack[%d] = %ld", i, *value);
+        fprintf(stderr, "stack[%ld] = %ld", i, *value);
     }
 }
 
