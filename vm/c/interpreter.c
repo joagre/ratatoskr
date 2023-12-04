@@ -40,6 +40,15 @@ interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
 #endif
 #endif
 
+
+
+
+
+
+
+
+
+
         if (instructions_executed++ >= check_after) {
             if (ELAPSED_TIME_MS(start_time) > time_slice) {
                 interpreter_result = INTERPRETER_RESULT_TIMEOUT;

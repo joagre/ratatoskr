@@ -20,25 +20,24 @@ class ColorIterator : Iterator {
     }
 
     public fn next() {
-        if !hasNext() {
+        if :not hasNext() {
             false
         } else {
-            #(this.copy(colors: colors.rest()),
-              colors.first())
+            <this(colors: colors.rest()), colors.first()>
         }
     }
 
     public fn hasNext() {
-        !colors.isEmpty()
+        :not colors.isEmpty()
     }
 }
 
 export fn main() {
-    ?colors <- [Color.red, Color.red, Color.blue, Color.green],
-    ?iterator <- new ColorIterator(colors),
+    ?colors <= [Color.red, Color.red, Color.blue, Color.green],
+    ?iterator <= new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
-            #(?iterator, ?color) <- iterator.next(),
+            <?iterator, ?color> <= iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
         }

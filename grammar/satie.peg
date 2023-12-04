@@ -35,39 +35,38 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 #
 
 Expr <- BindExpr
-BindExpr <- MatchExpr _ "<-" _ Expr / SendExpr
+BindExpr <- MatchExpr _ "<=" _ Expr / SendExpr
 SendExpr <- ("self" /
              ControlFlowExpr /
              SpawnExpr /
              Identifier /
              "(" _ Expr _ ")") (_ "<|" _ Expr) / LogicalOrExpr
-LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
-LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
-BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
-BitwiseXorExpr <- BitwiseOrExpr (_ "^" _ BitwiseOrExpr)*
-BitwiseOrExpr <- LargerThanEqualExpr (_ "|" _ LargerThanEqualExpr)*
-LargerThanEqualExpr <- LargerThanExpr (_ ">=" _ LargerThanExpr)*
-LargerThanExpr <- LessThanEqualExpr (_ ">" _ LessThanEqualExpr)*
-LessThanEqualExpr <- LessThanExpr (_ "<=" _ LessThanExpr)*
-LessThanExpr <- NotEqualExpr (_ "<" _ NotEqualExpr)*
-NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
-EqualExpr <- InExpr (_ "==" _ InExpr)*
-InExpr <- UnsignedRightShiftExpr (_ "in" _ UnsignedRightShiftExpr)*
-UnsignedRightShiftExpr  <- RightShiftExpr (_ ">>>" _ RightShiftExpr)*
-RightShiftExpr <- LeftShiftExpr (_ ">>" _ LeftShiftExpr)*
-LeftShiftExpr <- ConcatenateExpr (_ "<<" _ ConcatenateExpr)*
+LogicalOrExpr <- LogicalAndExpr (_ ":or" _ LogicalAndExpr)*
+LogicalAndExpr <- BitwiseAndExpr (_ ":and" _ BitwiseAndExpr)*
+BitwiseAndExpr <- BitwiseXorExpr (_ ":band" _ BitwiseXorExpr)*
+BitwiseXorExpr <- BitwiseOrExpr (_ ":xor" _ BitwiseOrExpr)*
+BitwiseOrExpr <- GreaterThanEqualExpr (_ ":bor" _ GreaterThanEqualExpr)*
+GreaterThanEqualExpr <- GreaterThanExpr (_ ":gte" _ GreaterThanExpr)*
+GreaterThanExpr <- LessThanEqualExpr (_ ":gt" _ LessThanEqualExpr)*
+LessThanEqualExpr <- LessThanExpr (_ ":lte" _ LessThanExpr)*
+LessThanExpr <- NotEqualExpr (_ ":lt" _ NotEqualExpr)*
+NotEqualExpr <- EqualExpr (_ ":neq" _ EqualExpr)*
+EqualExpr <- InExpr (_ ":eq" _ InExpr)*
+InExpr <- RightShiftExpr (_ ":in" _ RightShiftExpr)*
+RightShiftExpr <- LeftShiftExpr (_ ":bsr" _ LeftShiftExpr)*
+LeftShiftExpr <- ConcatenateExpr (_ ":bsl" _ ConcatenateExpr)*
 ConcatenateExpr <- MinusExpr (_ "~" _ MinusExpr)*
 MinusExpr <- PlusExpr (_ "-" _ PlusExpr)*
 PlusExpr <- ModulusExpr (_ "+" _ ModulusExpr)*
 ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
 DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
 MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
-ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
+ExponentiationExpr <- CastExpr (_ ":exp" _ CastExpr)*
 CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ SendMessageExpr /
             SendMessageExpr
 SendMessageExpr <- BitwiseComplementExpr (_ "*" _ BitwiseComplementExpr)*
 BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
-NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
+NotExpr <- ":not" _ UnaryPlusExpr / UnaryPlusExpr
 UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
 UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
 PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
@@ -75,7 +74,7 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                               "[" _ Expr _ "]")*
 
 MatchExpr <- (Literal / UnboundName / Identifier)
-             (__ "is" __ (UnboundName / Identifier))?
+             (_ "is" _ (UnboundName / Identifier))?
 
 PrimaryExpr <- "null" /
                "this" /
@@ -131,7 +130,7 @@ RawString <- 'r"' [^"]* '"'
 
 FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 
-TupleLiteral <- "#(" _ Exprs? _ ")"
+TupleLiteral <- "<" _ Exprs? _ ">"
 Exprs <- Expr (_ "," _ Expr)*
 
 ListLiteral <- "[" _ Exprs? _ "]" /
