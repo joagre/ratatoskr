@@ -18,6 +18,10 @@ void call_stack_array_init(call_stack_array_t* stack_array) {
     dynarray_init(stack_array, NULL, 512, sizeof(vm_stack_value_t));
 }
 
+vm_stack_value_t* call_stack_array_get(call_stack_t* call_stack, uint32_t index) {
+    return dynarray_element(call_stack->stack_array, index);
+}
+
 void call_stack_array_free(call_stack_array_t* stack_array) {
     dynarray_clear(stack_array);
 }

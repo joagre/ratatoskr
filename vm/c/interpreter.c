@@ -1,37 +1,58 @@
-module interpreter;
+#include <stdio.h>
+#include <time.h>
+#include "interpreter.h"
+#include "call_stack.h"
+#include "job.h"
+#include "scheduler.h"
+#include "loader.h"
+#include "pretty_print.h"
 
-import std.conv;
-import std.datetime;
-import std.stdio;
-import std.algorithm.iteration;
-import std.algorithm.mutation;
-import std.array;
-import std.range;
+void interpreter_init(interpreter_t *interpreter, loader_t* loader,
+                      interpreter_mode_t mode) {
+    interpreter->loader = loader;
+    interpreter->mode = mode;
+}
 
-import job;
-import scheduler;
-import loader;
-import prettyprint;
-import vm;
+interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
+                         job_t* job, uint32_t time_slice,
+                         uint16_t check_after) {
+    clock_t start_time = START_TIMER();
+    uint32_t instructions_executed = 0;
+    interpreter_result_t interpreter_result;
 
-class InterpreterError : Exception {
-    this(string msg, string file = __FILE__, size_t line = __LINE__) {
-        super(msg, file, line);
+    while (true) {
+#ifdef DEBUG
+#ifndef MUTE_LOG_DEBUG
+        if (interpreter->mode == INTERPRETER_MODE_REGISTER) {
+            fprintf(stderr, "%d: registers = ", job->jid);
+            for (int i = 0; i < NUMBER_OF_REGISTERS; i++) {
+                fprintf(stderr, "%ld ", job->registers[i]);
+            }
+        }
+        fprintf(stderr, "%d: stack = ", job->jid);
+        for (int i = 0; i < call_stack_length(&job->call_stack); i++) {
+            vm_stack_value_t* value =
+                dynarray_element(job->call_stack.stack_array, i);
+            fprintf(stderr, "%ld ", *value);
+        }
+        fprintf(stderr, "==> %d:%d: ", job->jid, job->pc);
+        print_instruction(&interpreter->loader->byte_code[job->pc]);
+#endif
+#endif
+
+        if (instructions_executed++ >= check_after) {
+            if (ELAPSED_TIME_MS(start_time) > time_slice) {
+                interpreter_result = INTERPRETER_RESULT_TIMEOUT;
+                break;
+            }
+            instructions_executed = 0;
+        }
     }
+
+    return interpreter_result;
 }
 
-enum InterpreterResult : ubyte {
-    halt,
-    timeout,
-    recv,
-    exit
-}
-
-enum InterpreterMode {
-    stack,
-    register
-}
-
+/*
 class Interpreter {
     private Loader loader;
     private InterpreterMode interpreterMode;
@@ -481,3 +502,4 @@ class Interpreter {
         job.pc = address;
     }
 }
+*/
