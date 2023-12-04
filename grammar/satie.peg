@@ -65,7 +65,7 @@ ExponentiationExpr <- CastExpr (_ ":exp" _ CastExpr)*
 CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ SendMessageExpr /
             SendMessageExpr
 SendMessageExpr <- BitwiseComplementExpr (_ "*" _ BitwiseComplementExpr)*
-BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
+BitwiseComplementExpr <- ":bnot" _ NotExpr / NotExpr
 NotExpr <- ":not" _ UnaryPlusExpr / UnaryPlusExpr
 UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
 UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
