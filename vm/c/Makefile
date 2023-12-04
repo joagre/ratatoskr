@@ -1,34 +1,24 @@
-CC = gcc
-PCC = packcc
-CFLAGS = -Wall -Wextra -O3 -std=c17 -g -pedantic -march=native -ffast-math
-LDLIBS = -lm
-#SRCS = $(wildcard *.c)
-#OBJS = $(SRCS:.c=.o)
+CC := gcc
+CFLAGS := -Wall -Wextra -std=c17 -g -DDEBUG -DUNITTEST -D_GNU_SOURCE
+SRCS := $(wildcard *.c)
+OBJS := $(SRCS:.c=.o)
+DEPS := $(SRCS:.c=.d)
+EXEC := satie
 
-SC_SRCS = satie.c ast.c
-SC_OBJS = $(SC_SRCS:.c=.o)
-DEPS = $(SC_SRCS:.c=.d)
+all: $(EXEC)
 
-all: sc
+$(EXEC): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
 -include $(DEPS)
 
-#s: $(OBJS)
-#	$(CC) -o $@ $^ $(LDLIBS)
-
-sc: $(SC_OBJS)
-	$(CC) -o $@ $^ $(LDLIBS)
-
-satie.o: satie.c
-	$(CC) -c $(CFLAGS) -Wno-unused-parameter $< -o $@ -MMD -MF $(@:.o=.d)
-
-satie.c: satie.peg
-	$(PCC) $^
-
 %.o: %.c
-	$(CC) -c $(CFLAGS) $< -o $@ -MMD -MF $(@:.o=.d)
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 clean:
-	rm -f $(SC_OBJS) $(DEPS) r
+	rm -f $(OBJS) $(DEPS) $(EXEC)
+
+mrproper: clean
+	find . \( -name "*~" -or -name '#*' -or -name '.#*' \) -exec rm {} \;;
 
 .PHONY: all clean
