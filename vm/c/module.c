@@ -1,6 +1,7 @@
 #define MUTE_LOG_DEBUG 1
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include "log.h"
 #include "module.h"
@@ -27,19 +28,28 @@ void module_insert(module_t* module, vm_label_t label, vm_address_t address) {
 }
 
 vm_address_t module_lookup_address(module_t* module, vm_label_t label) {
-    uintptr_t address;
+    //uintptr_t address;
+    //fprintf(stderr, "PRINT:\n");
+    //module_print_jump_table(module);
+    // lhash_kv_find(&module->jump_table, &label, (void**)&address);
+    //return address;
 
-    fprintf(stderr, "PRINT:\n");
-    module_print_jump_table(module);
+    // FIXME: This is a workaround
+    lhash_kv_iter_t iter;
+    lhash_kv_iter_init(&iter, &module->jump_table);
+    while(!lhash_kv_iter_end(&iter)) {
+        uintptr_t current_label;
+        uintptr_t current_address;
+        lhash_kv_iter_current(&iter, (void**)(uintptr_t*)&current_label,
+                              (void**)(uintptr_t*)&current_address);
+        if (current_label == label) {
+            return current_address;
+        }
 
-    lhash_kv_find(&module->jump_table, &label, (void**)&address);
-
-    /*
-    vm_address_t address;
-    lhash_kv_find(&module->jump_table, (void*)(uintptr_t)&label,
-                  (void**)(uintptr_t*)&address);
-    */
-    return address;
+        lhash_kv_iter_next(&iter);
+    }
+    LOG_ABORT("Label address mismatch");
+    return 0;
 }
 
 vm_label_t module_lookup_label(module_t* module, vm_address_t address) {

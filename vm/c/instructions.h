@@ -38,7 +38,7 @@ opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
         .number_of_operands = 3
     },
     [OPCODE_ADDRRI] = {
-        .opcode = OPCODE_JMPRINGT,
+        .opcode = OPCODE_ADDRRI,
         .string = "addrri",
         .operands = {OPERAND_REGISTER,
                      OPERAND_REGISTER,
