@@ -406,7 +406,7 @@ potentially lifted if compelling reasons arise.
 
 ### Keywords
 
-25 special identifiers cannot be used in user code. These reserved
+26 special identifiers cannot be used in user code. These reserved
 identifiers are exclusive to the language's internal syntax and
 functionality.
 
@@ -421,6 +421,7 @@ if
 else
 switch
 default
+in
 class
 new
 interface
@@ -1258,30 +1259,30 @@ Operators in decreasing order of precedence:
 | a[a : b]   | Map setter (see "Map Literal" above)     |
 | -a         |                                          |
 | +a         |                                          |
-| :not a     |                                          |
-| :bnot a    | Bitwise complement                       |
+| !a         |                                          |
+| ~a         | Bitwise complement                       |
 | <\|        | Send message                             |
 | cast(t)a   | Cast expression                          |
-| a :exp b   | Exponentiation                           |
+| a ^^ b     | Exponentiation                           |
 | a * b      |                                          |
 | a / b      |                                          |
 | a % b      | Modulus                                  |
 | a + b      |                                          |
 | a - b      |                                          |
 | a ~ b      | Concatenation                            |
-| a :bsl b   |                                          |
-| a :bsr b   |                                          |
-| a :in b    | Map membership                           |
-| a :eq b    | Equality                                 |
-| a :lt b    |                                          |
-| a :lte b   |                                          |
-| a :gt b    |                                          |
-| a :gte b   |                                          |
-| a :bor     |                                          |
-| a :bxor    | Bitwise xor                              |
-| a :band b  |                                          |
-| a :and b   | Logical and                              |
-| a :or b    |                                          |
+| a :<< b    |                                          |
+| a :>> b    |                                          |
+| a in b     | Map membership                           |
+| a == b     | Equality                                 |
+| a :< b     |                                          |
+| a :<= b    |                                          |
+| a :> b     |                                          |
+| a :>= b    |                                          |
+| a \| b     |                                          |
+| a ^ b      | Bitwise xor                              |
+| a & b      |                                          |
+| a && b     | Logical and                              |
+| a \|\| b   |                                          |
 | a <= b     | Match                                    |
 
 # Appendix B: PEG grammar

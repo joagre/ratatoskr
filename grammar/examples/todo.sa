@@ -26,12 +26,12 @@ class TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
-        ?item <= new TodoItem(description),
+        ?item <@ new TodoItem(description),
         this(items: [tag : item] ~ items)
     }
 
     public fn markItemCompleted(tag) {
-        ?item <= items[tag].markCompleted(),
+        ?item <@ items[tag].markCompleted(),
         this(items: item ~ items.delete(tag))
     }
 
@@ -42,23 +42,23 @@ class TodoList {
 
 export fn main() {
     fn loopUntilQuit(todoList) {
-        ?input <= readInput(), // implemented elsewhere
-        if input.command :eq "add" {
-            <?todoList, ?a> <= todoList.addItem(input.tag, input.description),
+        ?input <@ readInput(), // implemented elsewhere
+        if input.command == "add" {
+            <?todoList, ?a> <@ todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
-        } elif input.command :eq "complete" {
-            ?todoList <= todoList.markItemCompleted(input.tag),
+        } elif input.command == "complete" {
+            ?todoList <@ todoList.markItemCompleted(input.tag),
             loopUntilQuit(todoList)
-        } elif input.command :eq "show" {
+        } elif input.command == "show" {
             todoList.displayItems(),
             loopUntilQuit(todoList)
-        } elif input.command :eq "quit" {
+        } elif input.command == "quit" {
             true
         } else {
           stdio.writeln("Unknown command: $input.command"),
           loopUntilQuit(todoList)
         }
     },
-    ?todoList <= new TodoList(),
+    ?todoList <@ new TodoList(),
     loopUntilQuit(todoList)
 }
