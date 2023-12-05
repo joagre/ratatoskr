@@ -1,10 +1,5 @@
 #include <stdio.h>
-#include <time.h>
 #include "interpreter.h"
-#include "call_stack.h"
-#include "job.h"
-#include "scheduler.h"
-#include "loader.h"
 #include "log.h"
 #include "pretty_print.h"
 

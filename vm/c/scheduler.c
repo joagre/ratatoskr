@@ -1,6 +1,6 @@
 #include "scheduler.h"
-#include "util.h"
 #include "log.h"
+#include "util.h"
 
 static uint32_t jid = 0;
 

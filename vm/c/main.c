@@ -5,12 +5,11 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <libgen.h>
-#include <stdint.h>
 #include "log.h"
 #include "loader.h"
-#include "util.h"
 #include "mailbox.h"
 #include "call_stack.h"
+#include "util.h"
 
 #define SUCCESS 0
 #define PARAMETER_ERROR 1

@@ -1,7 +1,6 @@
 #define MUTE_LOG_DEBUG 1
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include "log.h"
 #include "module.h"

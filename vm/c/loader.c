@@ -8,8 +8,8 @@
 #include <unistd.h>
 #include "loader.h"
 #include "log.h"
-#include "util.h"
 #include "pretty_print.h"
+#include "util.h"
 
 // Forward declarations of local functions (alphabetical order)
 static void append_bytes(loader_t* loader, uint16_t n, uint8_t* bytes);
