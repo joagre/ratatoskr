@@ -1,5 +1,4 @@
-
-#define MUTE_LOG_DEBUG 1
+//#define MUTE_LOG_DEBUG 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,22 +18,22 @@
 #define DEFAULT_CHECK_AFTER 100
 #define DEFAULT_LOAD_PATH "./"
 #define DEFAULT_TIME_SLICE 25
+#define DEFAULT_INTERPRETER_MODE INTERPRETER_MODE_STACK
 
 void usage(char* name);
 
 int main(int argc, char* argv[]) {
-    #ifdef UNITTEST
+#ifdef UNITTEST
     module_unit_test();
     loader_unit_test();
     mailbox_unit_test();
     call_stack_unit_test();
-    #endif
+#endif
 
     uint16_t check_after = DEFAULT_CHECK_AFTER;
     char* load_path = DEFAULT_LOAD_PATH;
     uint32_t time_slice = DEFAULT_TIME_SLICE;
-    interpreter_mode_t mode = INTERPRETER_MODE_STACK;
-    satie_error_t error;
+    interpreter_mode_t mode = DEFAULT_INTERPRETER_MODE;
 
     // Parse command line options
     struct option longopts[] =
@@ -73,6 +72,7 @@ int main(int argc, char* argv[]) {
         };
     int longopt;
     int longindex = 0;
+    satie_error_t error;
     while ((longopt = getopt_long(argc, argv, "t:c:l:i:", longopts,
                                   &longindex)) != -1) {
         switch (longopt) {
@@ -187,12 +187,15 @@ void usage(char* name) {
             "  -h, --help\n"
             "    Print this message and exit\n"
             "  -i, interpreter-mode <mode>\n"
-            "    Start interpreter in 'stack' or 'register' <mode>\n"
+            "    Start interpreter in 'stack' or 'register' <mode> (%s)\n"
             "  -l <directory>, --load-path=<directory>\n"
             "    Load POSM files from <directory> (%s)\n"
             "  -t <milli-seconds>, --time-slice=<milli-seconds>\n"
             "    <milli-seconds> spent by each job before context switch (%d) "
             "ms)\n",
-            name, DEFAULT_CHECK_AFTER, DEFAULT_LOAD_PATH, DEFAULT_TIME_SLICE);
+            name, DEFAULT_CHECK_AFTER,
+            DEFAULT_INTERPRETER_MODE ==
+                INTERPRETER_MODE_STACK ? "stack" : "register",
+            DEFAULT_LOAD_PATH, DEFAULT_TIME_SLICE);
     exit(PARAMETER_ERROR);
 }
