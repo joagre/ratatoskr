@@ -26,6 +26,8 @@ void call_stack_init(call_stack_t* call_stack, call_stack_array_t* stack_array,
 void call_stack_free(call_stack_t* call_stack);
 void call_stack_array_init(call_stack_array_t* stack_array);
 void call_stack_array_free(call_stack_array_t* stack_array);
+void call_stack_array_append(call_stack_array_t* stack_array,
+                             vm_stack_value_t value);
 size_t call_stack_length(call_stack_t* call_stack);
 void call_stack_push(call_stack_t* call_stack, vm_stack_value_t value);
 char* call_stack_pop_string(call_stack_t* call_stack);

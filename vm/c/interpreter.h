@@ -30,5 +30,8 @@ struct scheduler; // Forward declaration of circular dependency
 
 void interpreter_init(interpreter_t *interpreter, interpreter_mode_t mode);
 interpreter_result_t interpreter_run(struct scheduler* scheduler);
+uint32_t interpreter_mspawn(struct scheduler* scheduler, char* module_name,
+                            vm_label_t label, long* parameters,
+                            vm_arity_t arity, satie_error_t* error);
 
 #endif

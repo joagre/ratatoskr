@@ -2,6 +2,11 @@
 #include "interpreter.h"
 #include "log.h"
 #include "pretty_print.h"
+#include "scheduler.h"
+
+// Forward declarations of local functions (alphabetical order)
+static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
+                      long* parameters, vm_arity_t arity);
 
 void interpreter_init(interpreter_t *interpreter, interpreter_mode_t mode) {
     interpreter->mode = mode;
@@ -194,4 +199,59 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
     }
 
     return result;
+}
+
+uint32_t interpreter_mspawn(scheduler_t *scheduler, char* module_name,
+                            vm_label_t label, long* parameters,
+                            vm_arity_t arity, satie_error_t* error) {
+    // Ensure that module is loaded
+    if (!loader_is_module_loaded(scheduler->loader, module_name)) {
+        loader_load_module(scheduler->loader, module_name, error);
+        if (error->failed) {
+            return 0;
+        }
+    }
+
+    vm_address_t address = loader_lookup_address(scheduler->loader, module_name, label);
+    return spawn(scheduler, address, parameters, arity);
+}
+
+//
+// Local functions (alphabetical order)
+//
+
+static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
+                      long* parameters, vm_arity_t arity) {
+    vm_stack_value_t return_address = -1;
+    vm_stack_value_t fp = -1;
+
+    // Prepare initial call stack depending on interpreter mode
+    call_stack_array_t stack_array;
+    call_stack_array_init(&stack_array);
+    switch (scheduler->interpreter->mode) {
+    case INTERPRETER_MODE_STACK:
+        for (vm_arity_t i = 0; i < arity; i++) {
+            call_stack_array_append(&stack_array, parameters[i]);
+        }
+        call_stack_array_append(&stack_array, arity);
+        call_stack_array_append(&stack_array, return_address);
+        call_stack_array_append(&stack_array, fp);
+        break;
+    case INTERPRETER_MODE_REGISTER:
+        call_stack_array_append(&stack_array, return_address);
+        call_stack_array_append(&stack_array, fp);
+        break;
+    }
+
+    // Create job
+    uint32_t jid = scheduler_next_jid();
+    job_t* job = job_new(jid, address, &stack_array);
+
+    // Set FP to point to arity
+    job->call_stack.fp = call_stack_length(&job->call_stack) - 3;
+
+    // Add job to scheduler
+    scheduler_spawn(scheduler, job);
+
+    return jid;
 }

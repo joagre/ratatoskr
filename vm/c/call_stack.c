@@ -22,6 +22,11 @@ void call_stack_array_free(call_stack_array_t* stack_array) {
     dynarray_clear(stack_array);
 }
 
+void call_stack_array_append(call_stack_array_t* stack_array,
+                             vm_stack_value_t value) {
+    dynarray_append(stack_array, &value);
+}
+
 size_t call_stack_length(call_stack_t* call_stack) {
     return dynarray_size(call_stack->stack_array);
 }

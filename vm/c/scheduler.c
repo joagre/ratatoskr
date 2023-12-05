@@ -28,7 +28,7 @@ void scheduler_free(scheduler_t* scheduler) {
     }
 }
 
-uint32_t next_jid() {
+uint32_t scheduler_next_jid(void) {
     return jid++;
 }
 

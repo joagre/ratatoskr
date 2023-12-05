@@ -14,6 +14,7 @@
 
 #define SUCCESS 0
 #define PARAMETER_ERROR 1
+#define SPAWN_ERROR 2
 
 #define DEFAULT_CHECK_AFTER 100
 #define DEFAULT_LOAD_PATH "./"
@@ -148,33 +149,15 @@ int main(int argc, char* argv[]) {
     scheduler_t scheduler;
     scheduler_init(&scheduler, time_slice, check_after, &loader, &interpreter);
 
-    // Spawn ...
+    // Spawn job according to command line arguments
     interpreter_mspawn(&scheduler, module_name, label, parameters,
                        argc - optind - 2, &error);
     if (error.failed) {
         satie_print_error(&error);
-
-
-
-
-        usage(basename(argv[0]));
+        return SPAWN_ERROR;
     }
 
-
-
-    job_t* job = scheduler_spawn(&scheduler, module_name, label, parameters,
-                                 argc - optind - 2, &error);
-
-
-
-
-
-
-
-
-
-
-
+    /*
     loader_load_module(&loader, module_name, &error);
     if (error.failed) {
         satie_print_error(&error);
@@ -187,6 +170,7 @@ int main(int argc, char* argv[]) {
     }
 
     pretty_print(&loader);
+    */
 
     return SUCCESS;
 }

@@ -24,7 +24,7 @@ void scheduler_init(scheduler_t* scheduler, uint32_t time_slice,
                     uint16_t check_after, loader_t* loader,
                     struct interpreter* interpreter);
 void scheduler_free(scheduler_t* scheduler);
-uint32_t next_jid();
+uint32_t scheduler_next_jid(void);
 void scheduler_run(scheduler_t *scheduler);
 void scheduler_spawn(scheduler_t* scheduler, job_t* job);
 void scheduler_send_message(scheduler_t* scheduler, uint32_t jid,
