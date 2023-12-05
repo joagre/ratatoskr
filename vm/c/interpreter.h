@@ -26,7 +26,7 @@ typedef struct interpreter {
     interpreter_mode_t mode;
 } interpreter_t;
 
-struct scheduler;  // Forward declaration
+struct scheduler; // Forward declaration of circular dependency
 
 void interpreter_init(interpreter_t *interpreter, interpreter_mode_t mode);
 interpreter_result_t interpreter_run(struct scheduler* scheduler);

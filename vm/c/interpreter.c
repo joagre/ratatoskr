@@ -10,7 +10,7 @@ void interpreter_init(interpreter_t *interpreter, interpreter_mode_t mode) {
 interpreter_result_t interpreter_run(scheduler_t *scheduler) {
     clock_t start_time = START_TIMER();
     uint32_t instructions_executed = 0;
-    interpreter_result_t interpreter_result;
+    interpreter_result_t result;
     job_t* job = scheduler->running_job;
 
     while (true) {
@@ -186,12 +186,12 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
 
         if (instructions_executed++ >= scheduler->check_after) {
             if (ELAPSED_TIME_MS(start_time) > scheduler->time_slice) {
-                interpreter_result = INTERPRETER_RESULT_TIMEOUT;
+                result = INTERPRETER_RESULT_TIMEOUT;
                 break;
             }
             instructions_executed = 0;
         }
     }
 
-    return interpreter_result;
+    return result;
 }

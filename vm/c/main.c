@@ -10,9 +10,11 @@
 #include "mailbox.h"
 #include "call_stack.h"
 #include "util.h"
+#include "interpreter.h"
 
 #define SUCCESS 0
 #define PARAMETER_ERROR 1
+
 #define DEFAULT_CHECK_AFTER 100
 #define DEFAULT_LOAD_PATH "./"
 #define DEFAULT_TIME_SLICE 25
@@ -30,20 +32,49 @@ int main(int argc, char* argv[]) {
     uint16_t check_after = DEFAULT_CHECK_AFTER;
     char* load_path = DEFAULT_LOAD_PATH;
     uint32_t time_slice = DEFAULT_TIME_SLICE;
+    interpreter_mode_t mode = INTERPRETER_MODE_STACK;
     satie_error_t error;
 
     // Parse command line options
-    struct option long_options[] = {
-        {"time-slice", required_argument, 0, 't'},
-        {"check-after", required_argument, 0, 'c'},
-        {"load-path", required_argument, 0, 'l'},
-        {0, 0, 0, 0}
-    };
-    int opt;
-    int option_index = 0;
-    while ((opt = getopt_long(argc, argv, "t:c:l:i:", long_options,
-                              &option_index)) != -1) {
-        switch (opt) {
+    struct option longopts[] =
+        {
+            {
+                .name = "time-slice",
+                .has_arg = required_argument,
+                .flag = 0,
+                .val = 't'
+            },
+            {
+                .name = "check-after",
+                .has_arg = required_argument,
+                .flag = 0,
+                .val = 'c'
+            },
+            {
+                .name = "load-path",
+                .has_arg = required_argument,
+                .flag = 0,
+                .val = 'l'
+            },
+            {
+                .name = "interpreter",
+                .has_arg = required_argument,
+                .flag = 0,
+                .val = 'i'
+            },
+            {
+                .name = "help",
+                .has_arg = no_argument,
+                .flag = 0,
+                .val = 'h'
+            },
+            {0, 0, 0, 0}
+        };
+    int longopt;
+    int longindex = 0;
+    while ((longopt = getopt_long(argc, argv, "t:c:l:i:", longopts,
+                                  &longindex)) != -1) {
+        switch (longopt) {
         case 't': {
             time_slice = string_to_long(optarg, &error);
             if (error.failed) {
@@ -60,6 +91,18 @@ int main(int argc, char* argv[]) {
         }
         case 'l':
             load_path = optarg;
+            break;
+        case 'i':
+            if (strcmp(optarg, "stack") == 0) {
+                mode = INTERPRETER_MODE_STACK;
+            } else if (strcmp(optarg, "register") == 0) {
+                mode = INTERPRETER_MODE_REGISTER;
+            } else {
+                usage(basename(argv[0]));
+            }
+            break;
+        case 'h':
+            usage(basename(argv[0]));
             break;
         default:
             usage(basename(argv[0]));
@@ -96,6 +139,42 @@ int main(int argc, char* argv[]) {
     // Prepare loader
     loader_t loader;
     loader_init(&loader, load_path);
+
+    // Prepare interpreter
+    interpreter_t interpreter;
+    interpreter_init(&interpreter, mode);
+
+    // Prepare scheduler
+    scheduler_t scheduler;
+    scheduler_init(&scheduler, time_slice, check_after, &loader, &interpreter);
+
+    // Spawn ...
+    interpreter_mspawn(&scheduler, module_name, label, parameters,
+                       argc - optind - 2, &error);
+    if (error.failed) {
+        satie_print_error(&error);
+
+
+
+
+        usage(basename(argv[0]));
+    }
+
+
+
+    job_t* job = scheduler_spawn(&scheduler, module_name, label, parameters,
+                                 argc - optind - 2, &error);
+
+
+
+
+
+
+
+
+
+
+
     loader_load_module(&loader, module_name, &error);
     if (error.failed) {
         satie_print_error(&error);

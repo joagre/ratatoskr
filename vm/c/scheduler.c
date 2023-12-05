@@ -5,18 +5,18 @@
 // Used to generate unique job IDs
 static uint32_t jid = 0;
 
-// Forward declarations of local functions (alphabetical order)
+// Forward declaration of local function
 static job_t* find_job(scheduler_t* scheduler, uint32_t jid);
 
 void scheduler_init(scheduler_t* scheduler, uint32_t time_slice,
-                    uint16_t check_after, interpreter_t* interpreter,
-                    loader_t* loader) {
+                    uint16_t check_after, loader_t* loader,
+                    interpreter_t* interpreter) {
     ready_queue_init(&scheduler->ready_queue);
     waiting_queue_init(&scheduler->waiting_queue);
     scheduler->time_slice = time_slice;
     scheduler->check_after = check_after;
-    scheduler->interpreter = interpreter;
     scheduler->loader = loader;
+    scheduler->interpreter = interpreter;
     scheduler->running_job = NULL;
 }
 
@@ -84,7 +84,7 @@ void scheduler_send_message(scheduler_t* scheduler, uint32_t jid,
 }
 
 //
-// Local functions (alphabetical order)
+// Local function
 //
 
 static job_t* find_job(scheduler_t* scheduler, uint32_t jid) {

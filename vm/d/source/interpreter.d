@@ -42,7 +42,7 @@ class Interpreter {
     }
 
     InterpreterResult run(Scheduler scheduler, Job job,
-                          uint64_t time_slice, uint checkAfter) {
+                          Duration timeSlice, uint checkAfter) {
         auto startTime = Clock.currTime();
         uint instructionsExecuted = 0;
         InterpreterResult interpreterResult;
