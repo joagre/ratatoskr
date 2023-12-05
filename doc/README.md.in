@@ -4,20 +4,20 @@
 
 <img src="doc/satie.png" style="width: 3em; height: auto;" align="left">
 Satie is a concurrent oriented pure functional scripting language
-optimized for text editing applications, offering efficient large-text
-buffer management with lazy loading capabilities for extensive text
-masses, alongside a suite of other features for effective handling of
-any-sized text files.
+optimized for text manipulating applications. It offers efficient
+large-text buffer management with lazy loading capabilities, alongside
+a suite of other features for effective handling of any-sized text
+volumes.
 
-In addition to powering versatile text editing applications, Satie is
-also suitable as an end-user scripting language, ideal for writing
-plugins and customizations.
+In addition to powering text manipulating applications, Satie is also
+suitable as an end-user scripting language, for writing plugins and
+customizations.
 
-However, the true essence of Satie lies in its versatility. It is a
+However, the true strength of Satie lies in its versatility. It is a
 purpose-built language and VM that boasts a high degree of generality,
 making it adaptable to a wide array of applications.
 
-Satie owes much to the [Erlang](https://www.erlang.org/),
+Satie owes to the [Erlang](https://www.erlang.org/),
 [D](https://dlang.org/) and [Scala](https://www.scala-lang.org/)
 programming languages.
 
