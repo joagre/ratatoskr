@@ -35,7 +35,7 @@ interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
             vm_stack_value_t* value = DYN_ADDR(job->call_stack.stack_array, i);
             fprintf(stderr, "%ld ", *value);
         }
-        fprintf(stderr, "==> %d:%d: ", job->jid, job->pc);
+        fprintf(stderr, "=> %d:%d: ", job->jid, job->pc);
         print_instruction(&interpreter->loader->byte_code[job->pc]);
 #endif
 #endif
@@ -89,11 +89,106 @@ interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
             vm_immediate_value_t immediate_value =
                 GET_OPERAND(vm_immediate_value_t);
             job->registers[register_] =
-                CALL_STACK_ARRAY_GET(job->call_stack.stack_array,
-                                     job->call_stack.fp + stack_offset) - immediate_value;
+                call_stack_array_get(&job->call_stack,
+                                     job->call_stack.fp + stack_offset) -
+                immediate_value;
             job->pc += size;
             break;
         }
+        case OPCODE_ADDRRI: {
+            vm_register_t first_register = GET_OPERAND(vm_register_t);
+            vm_register_t second_register = GET_OPERAND(vm_register_t);
+            vm_immediate_value_t immediate_value =
+                GET_OPERAND(vm_immediate_value_t);
+            job->registers[first_register] =
+                job->registers[second_register] + immediate_value;
+            job->pc += size;
+            break;
+        }
+        case OPCODE_LOADRI: {
+            vm_register_t register_ = GET_OPERAND(vm_register_t);
+            vm_immediate_value_t immediate_value =
+                GET_OPERAND(vm_immediate_value_t);
+            job->registers[register_] = immediate_value;
+            job->pc += size;
+            break;
+        }
+        case OPCODE_PUSHR: {
+            vm_register_t register_ = GET_OPERAND(vm_register_t);
+            call_stack_push(&job->call_stack, job->registers[register_]);
+            job->pc += size;
+            break;
+        }
+        case OPCODE_LOADRS: {
+            vm_register_t register_ = GET_OPERAND(vm_register_t);
+            vm_stack_offset_t stack_offset = GET_OPERAND(vm_stack_offset_t);
+            job->registers[register_] =
+                call_stack_array_get(&job->call_stack,
+                                     job->call_stack.fp + stack_offset);
+            job->pc += size;
+            break;
+        }
+        case OPCODE_LOADRR: {
+            vm_register_t first_register = GET_OPERAND(vm_register_t);
+            vm_register_t second_register = GET_OPERAND(vm_register_t);
+            job->registers[first_register] = job->registers[second_register];
+            job->pc += size;
+            break;
+        }
+        case OPCODE_RCALL: {
+            // Extract address to function
+            vm_address_t address = GET_OPERAND(vm_address_t);
+            // Push return address onto call stack
+            call_stack_push(&job->call_stack, job->pc + sizeof(vm_address_t));
+            // Push previous FP onto call stack
+            call_stack_push(&job->call_stack, job->call_stack.fp);
+            // Set FP to point at return address
+            job->call_stack.fp = call_stack_length(&job->call_stack) - 2;
+            // Jump to function address
+            job->pc = address;
+            break;
+        }
+        case OPCODE_RRET: {
+            // Has call stack been exhausted?
+            if (call_stack_length(&job->call_stack) == 2) {
+                return INTERPRETER_RESULT_HALT;
+            }
+            vm_address_t return_address =
+                call_stack_array_get(&job->call_stack, job->call_stack.fp);
+            // Remember previous FP
+            vm_stack_value_t previous_fp =
+                call_stack_array_get(&job->call_stack, job->call_stack.fp + 1);
+            // Remove call stack frame
+            call_stack_array_set_size(&job->call_stack, job->call_stack.fp - 1);
+            // Restore FP to previous FP
+            job->call_stack.fp = previous_fp;
+            // Jump to return address
+            job->pc = return_address;
+            break;
+        }
+        case OPCODE_JMP: {
+            vm_address_t address = GET_OPERAND(vm_address_t);
+            job->pc = address;
+            break;
+        }
+        case OPCODE_POP: {
+            call_stack_pop(&job->call_stack);
+            break;
+        }
+        case OPCODE_SYS: {
+            vm_system_call_t system_call = GET_OPERAND(vm_system_call_t);
+            switch (system_call) {
+            case SYSTEM_CALL_DISPLAY:
+                vm_stack_value_t value = call_stack_pop(&job->call_stack);
+                fprintf(stdout, "%ld\n", value);
+                call_stack_push(&job->call_stack, 1);
+                break;
+            default:
+                LOG_ABORT("Unknown system call");
+            }
+        }
+        default:
+            LOG_ABORT("Unknown opcode");
         }
 
         if (instructions_executed++ >= check_after) {
@@ -107,455 +202,3 @@ interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
 
     return interpreter_result;
 }
-
-/*
-class Interpreter {
-    private Loader loader;
-    private InterpreterMode interpreterMode;
-
-    this(Loader loader, InterpreterMode interpreterMode) {
-        this.loader = loader;
-        this.interpreterMode = interpreterMode;
-    }
-
-    InterpreterResult run(Scheduler scheduler, Job job,
-                          uint64_t time_slice, uint checkAfter) {
-        auto startTime = Clock.currTime();
-        uint instructionsExecuted = 0;
-        InterpreterResult interpreterResult;
-
-        while (true) {
-            auto byteCode = loader.byteCode;
-
-            debug(interpreter) {
-                if (interpreterMode == InterpreterMode.register) {
-                    writefln("%d: registers = %s", job.jid,
-                             to!string(job.registers[0 .. 8]));
-                }
-                writefln("%d: stack = %s", job.jid,
-                         to!string(job.callStack.stack));
-                writef("==> %d:%d: ", job.jid, job.pc);
-                PrettyPrint.printInstruction(&byteCode[job.pc]);
-            }
-
-            auto currentPc = job.pc;
-
-            if (++job.pc > byteCode.length) {
-                throw new InterpreterError(
-                              "Unexpected end of bytecode or invalid jump");
-            }
-
-            ubyte* ops = &byteCode[job.pc];
-
-            switch (byteCode[currentPc]) {
-            // Register machine instructions
-            case Opcode.jmprnze:
-                uint size = 0;
-                auto register = mixin(Operand!(RegisterType, "ops", "size"));
-                auto address = mixin(Operand!(AddressType, "ops", "size"));
-                if (job.registers[register] != 0) {
-                    job.pc = address;
-                } else {
-                    job.pc += size;
-                }
-                break;
-            case Opcode.jmpringt:
-                uint size = 0;
-                auto register = mixin(Operand!(RegisterType, "ops", "size"));
-                auto value = mixin(Operand!(ImmediateValueType, "ops", "size"));
-                auto address = mixin(Operand!(AddressType, "ops", "size"));
-                if (!(job.registers[register] > value)) {
-                    job.pc = address;
-                } else {
-                    job.pc += size;
-                }
-                break;
-            case Opcode.subrri:
-                uint size = 0;
-                auto firstRegister =
-                    mixin(Operand!(RegisterType, "ops", "size"));
-                auto secondRegister =
-                    mixin(Operand!(RegisterType, "ops", "size"));
-                auto value = mixin(Operand!(ImmediateValueType, "ops", "size"));
-                job.registers[firstRegister] =
-                    job.registers[secondRegister] - value;
-                job.pc += size;
-                break;
-            case Opcode.subrsi:
-                uint size = 0;
-                auto register = mixin(Operand!(RegisterType, "ops", "size"));
-                auto stackOffset =
-                    mixin(Operand!(StackOffsetType, "ops", "size"));
-                auto value = mixin(Operand!(ImmediateValueType, "ops", "size"));
-                job.registers[register] =
-                    job.callStack.stack[job.callStack.fp + stackOffset] - value;
-                job.pc += size;
-                break;
-            case Opcode.addrri:
-                uint size = 0;
-                auto firstRegister =
-                    mixin(Operand!(RegisterType, "ops", "size"));
-                auto secondRegister =
-                    mixin(Operand!(RegisterType, "ops", "size"));
-                auto value = mixin(Operand!(ImmediateValueType, "ops", "size"));
-                job.registers[firstRegister] =
-                    job.registers[secondRegister] + value;
-                job.pc += size;
-                break;
-            case Opcode.loadri:
-                uint size = 0;
-                auto register = mixin(Operand!(RegisterType, "ops", "size"));
-                auto value = mixin(Operand!(ImmediateValueType, "ops", "size"));
-                job.registers[register] = value;
-                job.pc += size;
-                break;
-            case Opcode.pushr:
-                uint size = 0;
-                auto register = mixin(Operand!(RegisterType, "ops", "size"));
-                job.callStack.push(job.registers[register]);
-                job.pc += size;
-                break;
-            case Opcode.loadrs:
-                uint size = 0;
-                auto register = mixin(Operand!(RegisterType, "ops", "size"));
-                auto stackOffset =
-                    mixin(Operand!(StackOffsetType, "ops", "size"));
-                job.registers[register] =
-                    job.callStack.stack[job.callStack.fp + stackOffset];
-                job.pc += size;
-                break;
-            case Opcode.loadrr:
-                uint size = 0;
-                auto firstRegister =
-                    mixin(Operand!(RegisterType, "ops", "size"));
-                auto secondRegister =
-                    mixin(Operand!(RegisterType, "ops", "size"));
-                job.registers[firstRegister] = job.registers[secondRegister];
-                job.pc += size;
-                break;
-            case Opcode.rcall:
-                uint size = 0;
-                // Extract address to function
-                auto address = mixin(Operand!(AddressType, "ops", "size"));
-                // Push return address onto call stack
-                job.callStack.push(job.pc + AddressType.sizeof);
-                // Push previous FP onto call stack
-                job.callStack.push(job.callStack.fp);
-                // Set FP to point at return address
-                job.callStack.fp = job.callStack.length - 2;
-                // Jump to function address
-                job.pc = address;
-                break;
-            case Opcode.rret:
-                // Has call stack been exhausted?
-                if (job.callStack.length == 2) {
-                    return InterpreterResult.halt;
-                }
-                auto returnAddress = job.callStack.stack[job.callStack.fp];
-                // Remember previous FP
-                auto previousFp = job.callStack.stack[job.callStack.fp + 1];
-                // Remove call stack frame
-                job.callStack.stack =
-                    job.callStack.stack[0 .. job.callStack.fp];
-                if (job.callStack.length == 1 || returnAddress == -1) {
-                    return InterpreterResult.halt;
-                }
-                // Restore FP to previous FP
-                job.callStack.fp = previousFp;
-                // Jump to return address
-                job.pc = cast(AddressType)returnAddress;
-                break;
-            case Opcode.jmp:
-                uint size = 0;
-                auto address = mixin(Operand!(AddressType, "ops", "size"));
-                job.pc = address;
-                break;
-            // Stack machine instructions
-            case Opcode.push:
-                uint size = 0;
-                auto stackValue =
-                    mixin(Operand!(StackValueType, "ops", "size"));
-                job.callStack.push(stackValue);
-                job.pc += size;
-                break;
-            case Opcode.pushs:
-                auto dataPushResult = job.dataStack.push(byteCode[job.pc .. $]);
-                auto dataAddress = dataPushResult[0];
-                auto length = dataPushResult[1];
-                job.callStack.push(dataAddress);
-                job.pc += DataLengthType.sizeof + length;
-                break;
-            case Opcode.pop:
-                job.callStack.pop();
-                break;
-            case Opcode.dup:
-                job.callStack.dup();
-                break;
-            case Opcode.swap:
-                job.callStack.swap();
-                break;
-            case Opcode.load:
-                job.callStack.load();
-                break;
-            case Opcode.store:
-                job.callStack.store();
-                break;
-            case Opcode.add:
-                job.callStack.binaryOperation((operand1, operand2) =>
-                                              operand1 + operand2);
-                break;
-            case Opcode.sub:
-                job.callStack.binaryOperation((operand1, operand2) =>
-                                              operand1 - operand2);
-                break;
-            case Opcode.mul:
-                job.callStack.binaryOperation((operand1, operand2) =>
-                                              operand1 * operand2);
-                break;
-            case Opcode.div:
-                job.callStack.binaryOperation((operand1, operand2) =>
-                                              operand1 / operand2);
-                break;
-            case Opcode.jump:
-                uint size = 0;
-                auto address = mixin(Operand!(AddressType, "ops", "size"));
-                job.pc = address;
-                break;
-            case Opcode.cjump:
-                uint size = 0;
-                auto conditional = job.callStack.pop();
-                if (conditional != 0) {
-                    job.pc = mixin(Operand!(AddressType, "ops", "size"));
-                } else {
-                    job.pc += AddressType.sizeof;
-                }
-                break;
-            case Opcode.call:
-                uint size = 0;
-                auto address = mixin(Operand!(AddressType, "ops", "size"));
-                auto arity = mixin(Operand!(ArityType, "ops", "size"));
-                call(job, address, arity, size);
-                break;
-            case Opcode.mcall:
-                auto label = job.callStack.pop();
-                auto moduleName = job.callStack.popString();
-                auto arity = job.callStack.pop();
-                // Ensure that module is loaded
-                if (!loader.isModuleLoaded(moduleName)) {
-                    loader.loadModule(moduleName);
-                    debug(scheduler) {
-                        loader.prettyPrint(moduleName);
-                    }
-                }
-                auto address =
-                    loader.lookupAddress(moduleName, cast(LabelType)label);
-                call(job, cast(AddressType)address, cast(ubyte)arity, 0);
-                break;
-            case Opcode.ret:
-                uint size = 0;
-                // Remember essential stack information
-                auto returnValue = job.callStack.pop();
-                auto arity = job.callStack.stack[job.callStack.fp];
-                auto returnAddress = job.callStack.stack[job.callStack.fp + 1];
-                auto previousFp = job.callStack.stack[job.callStack.fp + 2];
-                // Remove stack frame
-                job.callStack.stack =
-                    job.callStack.stack[0 .. job.callStack.fp - arity];
-                // Push return value onto caller's stack
-                auto returnMode =
-                    mixin(Operand!(ReturnModeType, "ops", "size"));
-                if (returnMode == ReturnMode.copy) {
-                    ubyte[] returnData = job.dataStack.peek(returnValue);
-                    // Copy data onto caller's data stack
-                    auto returnDataCopy = job.dataStack.push(returnData);
-                    auto dataAddress = returnDataCopy[0];
-                    // Push data address onto caller's stack
-                    job.callStack.push(dataAddress);
-                } else {
-                    // Push return value onto caller's stack
-                    job.callStack.push(returnValue);
-                }
-                // Has stack been exhausted?
-                if (job.callStack.length == 1 || returnAddress == -1) {
-                    // Just keep result
-                    job.callStack.stack = job.callStack.stack[$ - 1 .. $];
-                    return InterpreterResult.halt;
-                }
-                // Remove data stack frame
-                auto previousDataFp =
-                    Vm.getValue!long(
-                        &job.dataStack.stack[job.dataStack.fp]);
-                job.dataStack.stack =
-                    job.dataStack.stack[0 .. job.dataStack.fp];
-                // Restore FP and data FP
-                job.callStack.fp = previousFp;
-                job.dataStack.fp = previousDataFp;
-                // Jump to return address
-                job.pc = cast(AddressType)returnAddress;
-                break;
-            case Opcode.sys:
-                uint size = 0;
-                auto systemCall =
-                    mixin(Operand!(SystemCallType, "ops", "size"));
-                final switch (systemCall) {
-                case SystemCall.self:
-                    job.callStack.push(job.jid);
-                    break;
-                case SystemCall.send:
-                    auto value = job.callStack.pop();
-                    auto jid = job.callStack.pop();
-                    scheduler.sendMessage(cast(uint)jid, value);
-                    job.callStack.push(value);
-                    break;
-                case SystemCall.recv:
-                    if (job.messageBox.length == 0) {
-                        --job.pc;
-                        return InterpreterResult.recv;
-                    }
-                    job.callStack.push(job.messageBox.dequeue());
-                    break;
-                case SystemCall.println:
-                    auto s = job.callStack.popString();
-                    writeln(s);
-                    job.callStack.push(1);
-                    break;
-                case SystemCall.display:
-                    auto topValue = job.callStack.pop();
-                    writefln("%d", topValue);
-                    job.callStack.push(1);
-                    break;
-                case SystemCall.exit:
-                    return InterpreterResult.exit;
-                }
-                job.pc += size;
-                break;
-            case Opcode.and:
-                job.callStack.binaryOperation((operand1, operand2) =>
-                                              (operand1 != 0) &&
-                                              (operand2 == 0) ? 1 : 0);
-                break;
-            case Opcode.or:
-                job.callStack.binaryOperation((operand1, operand2) =>
-                                              (operand1 != 0) ||
-                                              (operand2 != 0) ? 1 : 0);
-                break;
-            case Opcode.not:
-                auto operand = job.callStack.pop();
-                job.callStack.push(!(operand != 0) ? 1 : 0);
-                break;
-            case Opcode.eq:
-                job.callStack.binaryOperation((operand1, operand2) =>
-                                              (operand1 == operand2) ? 1 : 0);
-                break;
-            case Opcode.neq:
-                job.callStack.binaryOperation((operand1, operand2) =>
-                                              (operand1 != operand2) ? 1 : 0);
-                break;
-            case Opcode.lt:
-                job.callStack.binaryOperation((operand1, operand2) =>
-                                              operand1 < operand2 ? 1 : 0);
-                break;
-            case Opcode.gt:
-                job.callStack.binaryOperation((operand1, operand2) =>
-                                              operand1 > operand2 ? 1 : 0);
-                break;
-            case Opcode.nop:
-                break;
-            case Opcode.halt:
-                return InterpreterResult.halt;
-            case Opcode.spawn:
-                uint size = 0;
-                auto address = mixin(Operand!(AddressType, "ops", "size"));
-                auto arity = mixin(Operand!(ArityType, "ops", "size"));
-                auto parameters =
-                    iota(arity).map!(_ => job.callStack.pop()).array.reverse;
-                auto jid = spawn(scheduler, address, parameters);
-                job.callStack.push(jid);
-                job.pc += size;
-                break;
-            case Opcode.mspawn:
-                auto label = job.callStack.pop();
-                auto moduleName = job.callStack.popString();
-                auto arity = job.callStack.pop();
-                auto parameters =
-                    iota(arity).map!(_ => job.callStack.pop()).array.reverse;
-                auto jid = mspawn(loader, scheduler, moduleName,
-                                  cast(LabelType)label, parameters);
-                job.callStack.push(jid);
-                break;
-            default:
-                throw new InterpreterError(
-                                           "Invalid opcode " ~
-                              to!string(byteCode[currentPc]));
-            }
-
-            if (instructionsExecuted ++ >= checkAfter) {
-                if (Clock.currTime() - startTime >= timeSlice) {
-                    interpreterResult = InterpreterResult.timeout;
-                    break;
-                }
-                instructionsExecuted = 0;
-            }
-        }
-
-        return interpreterResult;
-    }
-
-    private uint spawn(Scheduler scheduler, AddressType address,
-                       long[] parameters) {
-        long arity = parameters.length;
-        long returnAddress = -1;
-        long fp = -1;
-        long[] initialCallStack;
-
-        final switch(interpreterMode) {
-        case InterpreterMode.stack:
-            initialCallStack = parameters ~ [arity, returnAddress, fp];
-            break;
-        case InterpreterMode.register:
-            initialCallStack = [returnAddress, fp];
-        }
-
-        auto jid = Scheduler.nextJid();
-        auto job = new Job(jid, address, initialCallStack);
-
-        // Set FP to point to arity
-        job.callStack.fp = job.callStack.length - 3;
-        scheduler.spawn(job);
-        return jid;
-    }
-
-    public uint mspawn(Loader loader, Scheduler scheduler, string moduleName,
-                       LabelType label, long[] parameters) {
-        // Ensure that module is loaded
-        if (!loader.isModuleLoaded(moduleName)) {
-            loader.loadModule(moduleName);
-            debug(scheduler) {
-                loader.prettyPrint(moduleName);
-            }
-        }
-
-        auto address = loader.lookupAddress(moduleName, label);
-        return spawn(scheduler, address, parameters);
-    }
-
-    void call(Job job, AddressType address, ArityType arity,
-              uint sizeOfOperands) {
-        // Push arity onto stack
-        job.callStack.push(arity);
-        // Push return address onto stack
-        job.callStack.push(job.pc + sizeOfOperands);
-        // Push previous FP onto stack
-        job.callStack.push(job.callStack.fp);
-        // Set FP to point to arity
-        job.callStack.fp = job.callStack.length - 3;
-        // Save previous data FP on data stack
-        job.dataStack.stack ~=
-            (cast(ubyte*)&job.dataStack.fp)[0 .. long.sizeof];
-        // Set data FP to previous data FP
-        job.dataStack.fp = job.dataStack.length - long.sizeof;
-        // Jump to function address
-        job.pc = address;
-    }
-}
-*/

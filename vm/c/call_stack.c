@@ -154,7 +154,7 @@ void call_stack_unit_test(void) {
     call_stack_push(&call_stack, 42);
     call_stack_store(&call_stack);
     vm_stack_value_t stored_value =
-        CALL_STACK_ARRAY_GET(call_stack.stack_array, call_stack.fp + 2);
+        call_stack_array_get(&call_stack, call_stack.fp + 2);
     LOG_ASSERT(stored_value == 42, "call_stack_pop");
 
     LOG_INFO("call_stack_unit_test passed");

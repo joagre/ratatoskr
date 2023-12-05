@@ -3,7 +3,8 @@
 #include <stdarg.h>
 #include "log.h"
 
-void log_entry(log_level_t log_level, char* file, uint32_t line, char* format, ...) {
+void log_entry(log_level_t log_level, char* file, uint32_t line, char* format,
+               ...) {
     va_list args;
     va_start(args, format);
     switch (log_level) {
