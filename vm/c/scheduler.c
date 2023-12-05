@@ -2,13 +2,15 @@
 #include "log.h"
 #include "util.h"
 
+// Used to generate unique job IDs
 static uint32_t jid = 0;
 
 // Forward declarations of local functions (alphabetical order)
 static job_t* find_job(scheduler_t* scheduler, uint32_t jid);
 
-void scheduler_init(scheduler_t* scheduler, uint32_t time_slice, uint16_t check_after,
-                    interpreter_t* interpreter, loader_t* loader) {
+void scheduler_init(scheduler_t* scheduler, uint32_t time_slice,
+                    uint16_t check_after, interpreter_t* interpreter,
+                    loader_t* loader) {
     ready_queue_init(&scheduler->ready_queue);
     waiting_queue_init(&scheduler->waiting_queue);
     scheduler->time_slice = time_slice;
@@ -30,7 +32,7 @@ uint32_t next_jid() {
     return jid++;
 }
 
-void run(scheduler_t *scheduler) {
+void scheduler_run(scheduler_t *scheduler) {
     while (!waiting_queue_is_empty(&scheduler->waiting_queue) ||
            !ready_queue_is_empty(&scheduler->ready_queue)) {
         while (!ready_queue_is_empty(&scheduler->ready_queue)) {
@@ -66,7 +68,8 @@ void scheduler_spawn(scheduler_t* scheduler, job_t* job) {
     ready_queue_enqueue(&scheduler->ready_queue, job);
 }
 
-void scheduler_send_message(scheduler_t* scheduler, uint32_t jid, vm_stack_value_t value) {
+void scheduler_send_message(scheduler_t* scheduler, uint32_t jid,
+                            vm_stack_value_t value) {
     job_t* job = find_job(scheduler, jid);
     if (job == NULL) {
         LOG_ABORT("Job %d not found", jid);

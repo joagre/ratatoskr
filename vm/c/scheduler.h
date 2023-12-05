@@ -20,4 +20,14 @@ typedef struct scheduler {
     job_t* running_job;
 } scheduler_t;
 
+void scheduler_init(scheduler_t* scheduler, uint32_t time_slice,
+                    uint16_t check_after, struct interpreter* interpreter,
+                    loader_t* loader);
+void scheduler_free(scheduler_t* scheduler);
+uint32_t next_jid();
+void scheduler_run(scheduler_t *scheduler);
+void scheduler_spawn(scheduler_t* scheduler, job_t* job);
+void scheduler_send_message(scheduler_t* scheduler, uint32_t jid,
+                            vm_stack_value_t value);
+
 #endif
