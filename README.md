@@ -3,11 +3,11 @@
 ## Introduction
 
 <img src="doc/satie.png" style="width: 3em; height: auto;" align="left">
-Satie is a concurrent oriented and pure functional scripting language
-optimized for text editing applications, offering efficient large text
-buffer management with lazy loading capabilities for extensive texts,
-alongside a suite of features for effective handling of any-sized text
-files.
+Satie is a concurrent oriented pure functional scripting language
+optimized for text editing applications, offering efficient large-text
+buffer management with lazy loading capabilities for extensive text
+masses, alongside a suite of other features for effective handling of
+any-sized text files.
 
 In addition to powering versatile text editing applications, Satie is
 also suitable as an end-user scripting language, ideal for writing
@@ -28,16 +28,16 @@ import std.stdio : writeln
 import std.lists
 
 export fn main(args) {
-    ?numberOfTributes <= args[1],
-    ?jobs <= startTributes(numberOfTributes),
+    ?numberOfTributes <@ args[1],
+    ?jobs <@ startTributes(numberOfTributes),
     lists.foreach(fn (job) {
         job <| "Standing on the shoulders of giants"
     }, jobs)
 }
 
 fn startTributes(numberOfTributes, n = 0, jobs = []) {
-    if n :lt numberOfTributes {
-        ?job <= spawn fn () {
+    if n :< numberOfTributes {
+        ?job <@ spawn fn () {
             receive {
                 case ?message {
                    writeln("$n: $message")
@@ -200,7 +200,7 @@ class ColorIterator : Iterator {
     }
 
     public fn next() {
-        if :not hasNext() {
+        if !hasNext() {
             false
         } else {
             <this(colors: colors.rest()), colors.first()>
@@ -208,16 +208,16 @@ class ColorIterator : Iterator {
     }
 
     public fn hasNext() {
-        :not colors.isEmpty()
+        !colors.isEmpty()
     }
 }
 
 export fn main() {
-    ?colors <= [Color.red, Color.red, Color.blue, Color.green],
-    ?iterator <= new ColorIterator(colors),
+    ?colors <@ [Color.red, Color.red, Color.blue, Color.green],
+    ?iterator <@ new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
-            <?iterator, ?color> <= iterator.next(),
+            <?iterator, ?color> <@ iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
         }
@@ -475,7 +475,7 @@ potentially lifted if compelling reasons arise.
 
 ### Keywords
 
-25 special identifiers cannot be used in user code. These reserved
+26 special identifiers cannot be used in user code. These reserved
 identifiers are exclusive to the language's internal syntax and
 functionality.
 
@@ -490,6 +490,7 @@ if
 else
 switch
 default
+in
 class
 new
 interface
@@ -1243,20 +1244,20 @@ import std.stdio
 import std.lists
 
 export fn main() {
-  ?ackermann <= new Ackermann(),
-  ?ackermann <= ackermann.startJobs(3, 10),
+  ?ackermann <@ new Ackermann(),
+  ?ackermann <@ ackermann.startJobs(3, 10),
   ackermann.waitForJobs()
 }
 
 class Ackermann {
     private jobs = []
     public fn startJobs(m, n, i = 0, startedJobs = []) {
-        if i  :lt  n {
+        if i :< n {
             fn computeAckermann(parentJob, m, n) {
-                ?result <= ackermann(m, n),
+                ?result <@ ackermann(m, n),
                 parentJob <| <self, m, n, result>
             },
-            ?job <= spawn monitor computeAckermann(self, m, i),
+            ?job <@ spawn monitor computeAckermann(self, m, i),
             job.setMaxMailboxSize(job, 4, OnCrowding.block),
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
@@ -1266,7 +1267,7 @@ class Ackermann {
 
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
-            if jobs.length :gt 0 {
+            if jobs.length :> 0 {
                 receive {
                     case <?job, ?m, ?n, ?result> {
                         stdio.writeln("ackermann($m, $n) = $result"),
@@ -1284,9 +1285,9 @@ class Ackermann {
     }
 
     private fn ackermann(m, n) {
-        if m :eq 0 {
+        if m == 0 {
             n + 1
-        } elif n :eq 0 {
+        } elif n == 0 {
             ackermann(m - 1, 1)
         } else {
             ackermann(m - 1, ackermann(m, n - 1))
@@ -1372,7 +1373,8 @@ Operators in decreasing order of precedence:
 
 | Expression | Description                              |
 |------------|------------------------------------------|
-| a.b        | Field access                             |
+| a.b        | Enum access                              |
+| a.b(c)     | Method access                            |
 | a(b, c)    | Function call                            |
 | a[i]       | List and string indexing                 |
 | a[b .. c]  | List slicing  (see "List Literal" above) |
@@ -1380,30 +1382,30 @@ Operators in decreasing order of precedence:
 | a[a : b]   | Map setter (see "Map Literal" above)     |
 | -a         |                                          |
 | +a         |                                          |
-| :not a     |                                          |
-| :bnot a    | Bitwise complement                       |
+| !a         |                                          |
+| ~a         | Bitwise complement                       |
 | <\|        | Send message                             |
 | cast(t)a   | Cast expression                          |
-| a :exp b   | Exponentiation                           |
+| a ^^ b     | Exponentiation                           |
 | a * b      |                                          |
 | a / b      |                                          |
 | a % b      | Modulus                                  |
 | a + b      |                                          |
 | a - b      |                                          |
 | a ~ b      | Concatenation                            |
-| a :bsl b   |                                          |
-| a :bsr b   |                                          |
-| a :in b    | Map membership                           |
-| a :eq b    | Equality                                 |
-| a :lt b    |                                          |
-| a :lte b   |                                          |
-| a :gt b    |                                          |
-| a :gte b   |                                          |
-| a :bor     |                                          |
-| a :bxor    | Bitwise xor                              |
-| a :band b  |                                          |
-| a :and b   | Logical and                              |
-| a :or b    |                                          |
+| a :<< b    |                                          |
+| a :>> b    |                                          |
+| a in b     | Map membership                           |
+| a == b     | Equality                                 |
+| a :< b     |                                          |
+| a :<= b    |                                          |
+| a :> b     |                                          |
+| a :>= b    |                                          |
+| a \| b     |                                          |
+| a ^ b      | Bitwise xor                              |
+| a & b      |                                          |
+| a && b     | Logical and                              |
+| a \|\| b   |                                          |
 | a <= b     | Match                                    |
 
 # Appendix B: PEG grammar
@@ -1446,38 +1448,38 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 #
 
 Expr <- BindExpr
-BindExpr <- MatchExpr _ "<=" _ Expr / SendExpr
+BindExpr <- MatchExpr _ "<@" _ Expr / SendExpr
 SendExpr <- ("self" /
              ControlFlowExpr /
              SpawnExpr /
              Identifier /
              "(" _ Expr _ ")") (_ "<|" _ Expr) / LogicalOrExpr
-LogicalOrExpr <- LogicalAndExpr (_ ":or" _ LogicalAndExpr)*
-LogicalAndExpr <- BitwiseAndExpr (_ ":and" _ BitwiseAndExpr)*
-BitwiseAndExpr <- BitwiseXorExpr (_ ":band" _ BitwiseXorExpr)*
-BitwiseXorExpr <- BitwiseOrExpr (_ ":xor" _ BitwiseOrExpr)*
-BitwiseOrExpr <- GreaterThanEqualExpr (_ ":bor" _ GreaterThanEqualExpr)*
-GreaterThanEqualExpr <- GreaterThanExpr (_ ":gte" _ GreaterThanExpr)*
-GreaterThanExpr <- LessThanEqualExpr (_ ":gt" _ LessThanEqualExpr)*
-LessThanEqualExpr <- LessThanExpr (_ ":lte" _ LessThanExpr)*
-LessThanExpr <- NotEqualExpr (_ ":lt" _ NotEqualExpr)*
-NotEqualExpr <- EqualExpr (_ ":neq" _ EqualExpr)*
-EqualExpr <- InExpr (_ ":eq" _ InExpr)*
-InExpr <- RightShiftExpr (_ ":in" _ RightShiftExpr)*
-RightShiftExpr <- LeftShiftExpr (_ ":bsr" _ LeftShiftExpr)*
-LeftShiftExpr <- ConcatenateExpr (_ ":bsl" _ ConcatenateExpr)*
+LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
+LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
+BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
+BitwiseXorExpr <- BitwiseOrExpr (_ "^" _ BitwiseOrExpr)*
+BitwiseOrExpr <- GreaterThanEqualExpr (_ "|" _ GreaterThanEqualExpr)*
+GreaterThanEqualExpr <- GreaterThanExpr (_ ":>=" _ GreaterThanExpr)*
+GreaterThanExpr <- LessThanEqualExpr (_ ":>" _ LessThanEqualExpr)*
+LessThanEqualExpr <- LessThanExpr (_ ":>=" _ LessThanExpr)*
+LessThanExpr <- NotEqualExpr (_ ":<" _ NotEqualExpr)*
+NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
+EqualExpr <- InExpr (_ "==" _ InExpr)*
+InExpr <- RightShiftExpr (_ "in" _ RightShiftExpr)*
+RightShiftExpr <- LeftShiftExpr (_ ":>>" _ LeftShiftExpr)*
+LeftShiftExpr <- ConcatenateExpr (_ ":<<" _ ConcatenateExpr)*
 ConcatenateExpr <- MinusExpr (_ "~" _ MinusExpr)*
 MinusExpr <- PlusExpr (_ "-" _ PlusExpr)*
 PlusExpr <- ModulusExpr (_ "+" _ ModulusExpr)*
 ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
 DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
 MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
-ExponentiationExpr <- CastExpr (_ ":exp" _ CastExpr)*
+ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
 CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ SendMessageExpr /
             SendMessageExpr
 SendMessageExpr <- BitwiseComplementExpr (_ "*" _ BitwiseComplementExpr)*
 BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
-NotExpr <- ":not" _ UnaryPlusExpr / UnaryPlusExpr
+NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
 UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
 UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
 PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
@@ -1487,7 +1489,7 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
 MatchExpr <- (Literal / UnboundName / Identifier)
              (_ "is" _ (UnboundName / Identifier))?
 
-PrimaryExpr <- "null" /
+PrimaryExpr <- "nil" /
                "this" /
                "self" /
                "$" /
@@ -1717,12 +1719,12 @@ class TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
-        ?item <= new TodoItem(description),
+        ?item <@ new TodoItem(description),
         this(items: [tag : item] ~ items)
     }
 
     public fn markItemCompleted(tag) {
-        ?item <= items[tag].markCompleted(),
+        ?item <@ items[tag].markCompleted(),
         this(items: item ~ items.delete(tag))
     }
 
@@ -1733,24 +1735,24 @@ class TodoList {
 
 export fn main() {
     fn loopUntilQuit(todoList) {
-        ?input <= readInput(), // implemented elsewhere
-        if input.command :eq "add" {
-            <?todoList, ?a> <= todoList.addItem(input.tag, input.description),
+        ?input <@ readInput(), // implemented elsewhere
+        if input.command == "add" {
+            <?todoList, ?a> <@ todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
-        } elif input.command :eq "complete" {
-            ?todoList <= todoList.markItemCompleted(input.tag),
+        } elif input.command == "complete" {
+            ?todoList <@ todoList.markItemCompleted(input.tag),
             loopUntilQuit(todoList)
-        } elif input.command :eq "show" {
+        } elif input.command == "show" {
             todoList.displayItems(),
             loopUntilQuit(todoList)
-        } elif input.command :eq "quit" {
+        } elif input.command == "quit" {
             true
         } else {
           stdio.writeln("Unknown command: $input.command"),
           loopUntilQuit(todoList)
         }
     },
-    ?todoList <= new TodoList(),
+    ?todoList <@ new TodoList(),
     loopUntilQuit(todoList)
 }
 ```
