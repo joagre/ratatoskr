@@ -16,9 +16,9 @@
 #define SPAWN_ERROR 2
 
 #define DEFAULT_CHECK_AFTER 100
+#define DEFAULT_INTERPRETER_MODE INTERPRETER_MODE_STACK
 #define DEFAULT_LOAD_PATH "./"
 #define DEFAULT_TIME_SLICE 25
-#define DEFAULT_INTERPRETER_MODE INTERPRETER_MODE_STACK
 
 void usage(char* name);
 
@@ -31,19 +31,14 @@ int main(int argc, char* argv[]) {
 #endif
 
     uint16_t check_after = DEFAULT_CHECK_AFTER;
+    interpreter_mode_t mode = DEFAULT_INTERPRETER_MODE;
     char* load_path = DEFAULT_LOAD_PATH;
     uint32_t time_slice = DEFAULT_TIME_SLICE;
-    interpreter_mode_t mode = DEFAULT_INTERPRETER_MODE;
+
 
     // Parse command line options
     struct option longopts[] =
         {
-            {
-                .name = "time-slice",
-                .has_arg = required_argument,
-                .flag = 0,
-                .val = 't'
-            },
             {
                 .name = "check-after",
                 .has_arg = required_argument,
@@ -51,10 +46,10 @@ int main(int argc, char* argv[]) {
                 .val = 'c'
             },
             {
-                .name = "load-path",
-                .has_arg = required_argument,
+                .name = "help",
+                .has_arg = no_argument,
                 .flag = 0,
-                .val = 'l'
+                .val = 'h'
             },
             {
                 .name = "interpreter",
@@ -63,26 +58,25 @@ int main(int argc, char* argv[]) {
                 .val = 'i'
             },
             {
-                .name = "help",
-                .has_arg = no_argument,
+                .name = "load-path",
+                .has_arg = required_argument,
                 .flag = 0,
-                .val = 'h'
+                .val = 'l'
+            },
+            {
+                .name = "time-slice",
+                .has_arg = required_argument,
+                .flag = 0,
+                .val = 't'
             },
             {0, 0, 0, 0}
         };
     int longopt;
     int longindex = 0;
     satie_error_t error;
-    while ((longopt = getopt_long(argc, argv, "t:c:l:i:", longopts,
+    while ((longopt = getopt_long(argc, argv, "c:hi:l:t:", longopts,
                                   &longindex)) != -1) {
         switch (longopt) {
-        case 't': {
-            time_slice = string_to_long(optarg, &error);
-            if (error.failed) {
-                usage(basename(argv[0]));
-            }
-            break;
-        }
         case 'c': {
             check_after = string_to_long(optarg, &error);
             if (error.failed) {
@@ -90,8 +84,8 @@ int main(int argc, char* argv[]) {
             }
             break;
         }
-        case 'l':
-            load_path = optarg;
+        case 'h':
+            usage(basename(argv[0]));
             break;
         case 'i':
             if (strcmp(optarg, "stack") == 0) {
@@ -102,9 +96,16 @@ int main(int argc, char* argv[]) {
                 usage(basename(argv[0]));
             }
             break;
-        case 'h':
-            usage(basename(argv[0]));
+        case 'l':
+            load_path = optarg;
             break;
+        case 't': {
+            time_slice = string_to_long(optarg, &error);
+            if (error.failed) {
+                usage(basename(argv[0]));
+            }
+            break;
+        }
         default:
             usage(basename(argv[0]));
         }
@@ -129,6 +130,8 @@ int main(int argc, char* argv[]) {
     }
 
     LOG_DEBUG("check_after = %d", check_after);
+    LOG_DEBUG("interpreter = %s",
+              mode == INTERPRETER_MODE_STACK ? "stack" : "register");
     LOG_DEBUG("load_path = %s", load_path);
     LOG_DEBUG("time_slice = %d", time_slice);
     LOG_DEBUG("module_name = %s", module_name);
