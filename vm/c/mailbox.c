@@ -12,23 +12,23 @@ void mailbox_free(mailbox_t* mailbox) {
     dlist_iter_t iter;
     dlist_iter_init(&iter, mailbox);
     while(!dlist_iter_end(&iter)) {
-        message_t* message = dlist_iter_current(&iter);
+        mailbox_link_t* link = dlist_iter_current(&iter);
         dlist_iter_remove(&iter);
-        free(message);
+        free(link);
     }
 }
 
 vm_stack_value_t mailbox_dequeue(mailbox_t* mailbox) {
-    message_t* message = dlist_take_first(mailbox);
-    vm_stack_value_t value = message->value;
-    free(message);
+    mailbox_link_t* link = dlist_take_first(mailbox);
+    vm_stack_value_t value = link->value;
+    free(link);
     return value;
 }
 
 void mailbox_enqueue(mailbox_t* mailbox, vm_stack_value_t value) {
-    message_t* message = malloc(sizeof(message_t));
-    message->value = value;
-    dlist_insert_last(mailbox, message);
+    mailbox_link_t* link = malloc(sizeof(mailbox_link_t));
+    link->value = value;
+    dlist_insert_last(mailbox, link);
 }
 
 bool mailbox_is_empty(mailbox_t* mailbox) {

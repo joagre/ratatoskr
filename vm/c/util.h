@@ -3,6 +3,7 @@
 
 #include "satie.h"
 
+void sleep_ms(uint32_t ms);
 long string_to_long(char* string, satie_error_t* error);
 
 #endif

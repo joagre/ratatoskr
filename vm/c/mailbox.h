@@ -7,7 +7,7 @@
 typedef struct {
     dlink_t link;
     vm_stack_value_t value;
-} message_t;
+} mailbox_link_t;
 
 typedef dlist_t mailbox_t;
 

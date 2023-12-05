@@ -3,7 +3,7 @@
 
 #include <time.h>
 #include <stdint.h>
-#include "loader.h"
+#include "scheduler.h"
 
 #define MILLIS_PER_SEC 1000
 #define MS_TO_CLOCK(ms) ((ms) * CLOCKS_PER_SEC / MILLIS_PER_SEC)
@@ -22,9 +22,13 @@ typedef enum {
     INTERPRETER_MODE_REGISTER
 } interpreter_mode_t;
 
-typedef struct {
-    loader_t* loader;
+typedef struct interpreter {
     interpreter_mode_t mode;
 } interpreter_t;
+
+struct scheduler;  // Forward declaration
+
+void interpreter_init(interpreter_t *interpreter, interpreter_mode_t mode);
+interpreter_result_t interpreter_run(struct scheduler* scheduler);
 
 #endif

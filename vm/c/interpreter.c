@@ -8,23 +8,20 @@
 #include "log.h"
 #include "pretty_print.h"
 
-void interpreter_init(interpreter_t *interpreter, loader_t* loader,
-                      interpreter_mode_t mode) {
-    interpreter->loader = loader;
+void interpreter_init(interpreter_t *interpreter, interpreter_mode_t mode) {
     interpreter->mode = mode;
 }
 
-interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
-                         job_t* job, uint32_t time_slice,
-                         uint16_t check_after) {
+interpreter_result_t interpreter_run(scheduler_t *scheduler) {
     clock_t start_time = START_TIMER();
     uint32_t instructions_executed = 0;
     interpreter_result_t interpreter_result;
+    job_t* job = scheduler->running_job;
 
     while (true) {
 #ifdef DEBUG
 #ifndef MUTE_LOG_DEBUG
-        if (interpreter->mode == INTERPRETER_MODE_REGISTER) {
+        if (scheduler->interpreter->mode == INTERPRETER_MODE_REGISTER) {
             fprintf(stderr, "%d: registers = ", job->jid);
             for (int i = 0; i < NUMBER_OF_REGISTERS; i++) {
                 fprintf(stderr, "%ld ", job->registers[i]);
@@ -36,20 +33,20 @@ interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
             fprintf(stderr, "%ld ", *value);
         }
         fprintf(stderr, "=> %d:%d: ", job->jid, job->pc);
-        print_instruction(&interpreter->loader->byte_code[job->pc]);
+        print_instruction(&scheduler->loader->byte_code[job->pc]);
 #endif
 #endif
 
         uint32_t current_pc = job->pc;
 
-        if (++job->pc > interpreter->loader->byte_code_size) {
+        if (++job->pc > scheduler->loader->byte_code_size) {
             LOG_ABORT("Unexpected end of bytecode or invalid jump");
         }
 
-        uint8_t* operands = &interpreter->loader->byte_code[job->pc];
+        uint8_t* operands = &scheduler->loader->byte_code[job->pc];
         uint32_t size = 0;
 
-        switch (interpreter->loader->byte_code[current_pc]) {
+        switch (scheduler->loader->byte_code[current_pc]) {
         // Register machine instructions
         case OPCODE_JMPRNZE: {
             vm_register_t register_ = GET_OPERAND(vm_register_t);
@@ -186,13 +183,14 @@ interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
             default:
                 LOG_ABORT("Unknown system call");
             }
+            break;
         }
         default:
             LOG_ABORT("Unknown opcode");
         }
 
-        if (instructions_executed++ >= check_after) {
-            if (ELAPSED_TIME_MS(start_time) > time_slice) {
+        if (instructions_executed++ >= scheduler->check_after) {
+            if (ELAPSED_TIME_MS(start_time) > scheduler->time_slice) {
                 interpreter_result = INTERPRETER_RESULT_TIMEOUT;
                 break;
             }
