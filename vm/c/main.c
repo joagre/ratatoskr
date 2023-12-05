@@ -157,6 +157,9 @@ int main(int argc, char* argv[]) {
         return SPAWN_ERROR;
     }
 
+    // Start scheduler
+    scheduler_run(&scheduler);
+
     /*
     loader_load_module(&loader, module_name, &error);
     if (error.failed) {
