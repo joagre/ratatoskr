@@ -32,8 +32,7 @@ interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
         }
         fprintf(stderr, "%d: stack = ", job->jid);
         for (int i = 0; i < call_stack_length(&job->call_stack); i++) {
-            vm_stack_value_t* value =
-                dynarray_element(job->call_stack.stack_array, i);
+            vm_stack_value_t* value = DYN_ADDR(job->call_stack.stack_array, i);
             fprintf(stderr, "%ld ", *value);
         }
         fprintf(stderr, "==> %d:%d: ", job->jid, job->pc);
@@ -60,6 +59,39 @@ interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
             } else {
                 job->pc += size;
             }
+            break;
+        }
+        case OPCODE_JMPRINGT: {
+            vm_register_t register_ = GET_OPERAND(vm_register_t);
+            vm_immediate_value_t immediate_value =
+                GET_OPERAND(vm_immediate_value_t);
+            vm_address_t address = GET_OPERAND(vm_address_t);
+            if (!(job->registers[register_] > immediate_value)) {
+                job->pc = address;
+            } else {
+                job->pc += size;
+            }
+            break;
+        }
+        case OPCODE_SUBRRI: {
+            vm_register_t first_register = GET_OPERAND(vm_register_t);
+            vm_register_t second_register = GET_OPERAND(vm_register_t);
+            vm_immediate_value_t immediate_value =
+                GET_OPERAND(vm_immediate_value_t);
+            job->registers[first_register] =
+                job->registers[second_register] - immediate_value;
+            job->pc += size;
+            break;
+        }
+        case OPCODE_SUBRSI: {
+            vm_register_t register_ = GET_OPERAND(vm_register_t);
+            vm_stack_offset_t stack_offset = GET_OPERAND(vm_stack_offset_t);
+            vm_immediate_value_t immediate_value =
+                GET_OPERAND(vm_immediate_value_t);
+            job->registers[register_] =
+                CALL_STACK_ARRAY_GET(job->call_stack.stack_array,
+                                     job->call_stack.fp + stack_offset) - immediate_value;
+            job->pc += size;
             break;
         }
         }

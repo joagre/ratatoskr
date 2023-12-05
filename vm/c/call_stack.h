@@ -12,6 +12,12 @@ typedef struct {
     data_stack_t* data_stack;
 } call_stack_t;
 
+#define CALL_STACK_ARRAY_GET(stack_array, index) \
+    ({ \
+        vm_stack_value_t* stack_value = DYN_ADDR(stack_array, index); \
+        *stack_value; \
+    })
+
 void call_stack_init(call_stack_t* call_stack, call_stack_array_t* stack_array,
                      data_stack_t* data_stack);
 void call_stack_free(call_stack_t* call_stack);

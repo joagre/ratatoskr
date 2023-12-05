@@ -18,10 +18,6 @@ void call_stack_array_init(call_stack_array_t* stack_array) {
     dynarray_init(stack_array, NULL, 512, sizeof(vm_stack_value_t));
 }
 
-vm_stack_value_t* call_stack_array_get(call_stack_t* call_stack, uint32_t index) {
-    return dynarray_element(call_stack->stack_array, index);
-}
-
 void call_stack_array_free(call_stack_array_t* stack_array) {
     dynarray_clear(stack_array);
 }
@@ -89,7 +85,7 @@ void call_stack_print(call_stack_t* call_stack) {
     size_t i;
     for (i = 0; i < dynarray_size(call_stack->stack_array); i++) {
         vm_stack_value_t* value = dynarray_element(call_stack->stack_array, i);
-        fprintf(stderr, "stack[%ld] = %ld", i, *value);
+        LOG_DEBUG("stack[%ld] = %ld", i, *value);
     }
 }
 
@@ -157,9 +153,9 @@ void call_stack_unit_test(void) {
     call_stack_push(&call_stack, 2);
     call_stack_push(&call_stack, 42);
     call_stack_store(&call_stack);
-    vm_stack_value_t* stored_value =
-        dynarray_element(call_stack.stack_array, call_stack.fp + 2);
-    LOG_ASSERT(*stored_value == 42, "call_stack_pop");
+    vm_stack_value_t stored_value =
+        CALL_STACK_ARRAY_GET(call_stack.stack_array, call_stack.fp + 2);
+    LOG_ASSERT(stored_value == 42, "call_stack_pop");
 
     LOG_INFO("call_stack_unit_test passed");
 }

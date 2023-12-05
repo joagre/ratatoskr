@@ -1,4 +1,4 @@
-//#define MUTE_LOG_DEBUG 1
+#define MUTE_LOG_DEBUG 1
 
 #include <stdio.h>
 #include <errno.h>
