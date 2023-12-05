@@ -5,7 +5,7 @@
 // Used to generate unique job IDs
 static uint32_t jid = 0;
 
-// Forward declaration of local function
+// Forward declarations of local functions (alphabetical order)
 static job_t* find_job(scheduler_t* scheduler, uint32_t jid);
 
 void scheduler_init(scheduler_t* scheduler, uint32_t time_slice,
@@ -84,7 +84,7 @@ void scheduler_send_message(scheduler_t* scheduler, uint32_t jid,
 }
 
 //
-// Local function
+// Local functions (alphabetical order)
 //
 
 static job_t* find_job(scheduler_t* scheduler, uint32_t jid) {

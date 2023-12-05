@@ -20,7 +20,8 @@
 #define DEFAULT_LOAD_PATH "./"
 #define DEFAULT_TIME_SLICE 25
 
-void usage(char* name);
+// Forward declarations of local functions (alphabetical order)
+static void usage(char* name);
 
 int main(int argc, char* argv[]) {
 #ifdef UNITTEST
@@ -34,7 +35,6 @@ int main(int argc, char* argv[]) {
     interpreter_mode_t mode = DEFAULT_INTERPRETER_MODE;
     char* load_path = DEFAULT_LOAD_PATH;
     uint32_t time_slice = DEFAULT_TIME_SLICE;
-
 
     // Parse command line options
     struct option longopts[] =
@@ -71,9 +71,9 @@ int main(int argc, char* argv[]) {
             },
             {0, 0, 0, 0}
         };
+    satie_error_t error;
     int longopt;
     int longindex = 0;
-    satie_error_t error;
     while ((longopt = getopt_long(argc, argv, "c:hi:l:t:", longopts,
                                   &longindex)) != -1) {
         switch (longopt) {
@@ -110,7 +110,6 @@ int main(int argc, char* argv[]) {
             usage(basename(argv[0]));
         }
     }
-
     if (argc < 3) {
         usage(basename(argv[0]));
     }
@@ -181,7 +180,11 @@ int main(int argc, char* argv[]) {
     return SUCCESS;
 }
 
-void usage(char* name) {
+//
+// Local functions (alphabetical order)
+//
+
+static void usage(char* name) {
     fprintf(stderr,
             "Usage: %s [options] <module> <label> [<parameter> ...]\n"
             "Options:\n"
