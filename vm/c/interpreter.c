@@ -5,6 +5,7 @@
 #include "job.h"
 #include "scheduler.h"
 #include "loader.h"
+#include "log.h"
 #include "pretty_print.h"
 
 void interpreter_init(interpreter_t *interpreter, loader_t* loader,
@@ -40,14 +41,28 @@ interpreter_result_t run(interpreter_t *interpreter, scheduler_t *scheduler,
 #endif
 #endif
 
+        uint32_t current_pc = job->pc;
 
+        if (++job->pc > interpreter->loader->byte_code_size) {
+            LOG_ABORT("Unexpected end of bytecode or invalid jump");
+        }
 
+        uint8_t* operands = &interpreter->loader->byte_code[job->pc];
+        uint32_t size = 0;
 
-
-
-
-
-
+        switch (interpreter->loader->byte_code[current_pc]) {
+        // Register machine instructions
+        case OPCODE_JMPRNZE: {
+            vm_register_t register_ = GET_OPERAND(vm_register_t);
+            vm_address_t address = GET_OPERAND(vm_address_t);
+            if (job->registers[register_] != 0) {
+                job->pc = address;
+            } else {
+                job->pc += size;
+            }
+            break;
+        }
+        }
 
         if (instructions_executed++ >= check_after) {
             if (ELAPSED_TIME_MS(start_time) > time_slice) {
