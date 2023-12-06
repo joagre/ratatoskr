@@ -77,6 +77,7 @@ void loader_load_module(loader_t *loader, char* module_name,
         module->stop_address = loader->byte_code_size - 1;
         lhash_kv_insert(&loader->modules, (char *)module_name, module);
         CLEAR_ERROR(error);
+        pretty_print_module(loader, module_name);
     }
 }
 

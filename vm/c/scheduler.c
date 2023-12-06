@@ -8,15 +8,15 @@ static uint32_t jid = 0;
 // Forward declarations of local functions (alphabetical order)
 static job_t* find_job(scheduler_t* scheduler, uint32_t jid);
 
-void scheduler_init(scheduler_t* scheduler, uint32_t time_slice,
-                    uint16_t check_after, loader_t* loader,
-                    interpreter_t* interpreter) {
+void scheduler_init(scheduler_t* scheduler, loader_t* loader,
+                    interpreter_t* interpreter, uint32_t time_slice,
+                    uint16_t check_after) {
     ready_queue_init(&scheduler->ready_queue);
     waiting_queue_init(&scheduler->waiting_queue);
-    scheduler->time_slice = time_slice;
-    scheduler->check_after = check_after;
     scheduler->loader = loader;
     scheduler->interpreter = interpreter;
+    scheduler->time_slice = time_slice;
+    scheduler->check_after = check_after;
     scheduler->running_job = NULL;
 }
 

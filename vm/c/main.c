@@ -1,4 +1,4 @@
-//#define MUTE_LOG_DEBUG 1
+#define MUTE_LOG_DEBUG 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,9 +71,11 @@ int main(int argc, char* argv[]) {
             },
             {0, 0, 0, 0}
         };
+
     satie_error_t error;
     int longopt;
     int longindex = 0;
+
     while ((longopt = getopt_long(argc, argv, "c:hi:l:t:", longopts,
                                   &longindex)) != -1) {
         switch (longopt) {
@@ -149,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     // Prepare scheduler
     scheduler_t scheduler;
-    scheduler_init(&scheduler, time_slice, check_after, &loader, &interpreter);
+    scheduler_init(&scheduler, &loader, &interpreter, time_slice, check_after);
 
     // Spawn job according to command line arguments
     interpreter_mspawn(&scheduler, module_name, label, parameters,
