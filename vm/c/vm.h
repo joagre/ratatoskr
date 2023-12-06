@@ -2,7 +2,7 @@
 #define __VM_H__
 
 #include <stdint.h>
-#include "satie.h"
+#include "satie_error.h"
 
 #define NUMBER_OF_REGISTERS 64
 #define MAX_OPCODE_STRING_SIZE 16

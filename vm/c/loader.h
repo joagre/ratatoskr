@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "clib/lhash_kv.h"
 #include "module.h"
-#include "satie.h"
+#include "satie_error.h"
 
 #define APPEND_VALUE(loader, T, value) ({    \
     uint8_t bytes[sizeof(T)]; \

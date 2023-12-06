@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "satie.h"
+#include "satie_error.h"
 
 // Used to store error messages (see satie.h)
 char satie_error_message[MAX_ERROR_MESSAGE_SIZE];
