@@ -29,7 +29,7 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
         }
         fprintf(stderr, "%d: stack = ", job->jid);
         for (int i = 0; i < call_stack_length(&job->call_stack); i++) {
-            vm_stack_value_t* value = DYN_ADDR(job->call_stack.stack_array, i);
+            vm_stack_value_t* value = DYN_ADDR(job->call_stack.array, i);
             fprintf(stderr, "%ld ", *value);
         }
         fprintf(stderr, "=> %d:%d: ", job->jid, job->pc);
@@ -226,26 +226,26 @@ static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
     vm_stack_value_t fp = -1;
 
     // Prepare initial call stack depending on interpreter mode
-    call_stack_array_t stack_array;
-    call_stack_array_init(&stack_array);
+    call_stack_array_t array;
+    call_stack_array_init(&array);
     switch (scheduler->interpreter->mode) {
     case INTERPRETER_MODE_STACK:
         for (vm_arity_t i = 0; i < arity; i++) {
-            call_stack_array_append(&stack_array, parameters[i]);
+            call_stack_array_append(&array, parameters[i]);
         }
-        call_stack_array_append(&stack_array, arity);
-        call_stack_array_append(&stack_array, return_address);
-        call_stack_array_append(&stack_array, fp);
+        call_stack_array_append(&array, arity);
+        call_stack_array_append(&array, return_address);
+        call_stack_array_append(&array, fp);
         break;
     case INTERPRETER_MODE_REGISTER:
-        call_stack_array_append(&stack_array, return_address);
-        call_stack_array_append(&stack_array, fp);
+        call_stack_array_append(&array, return_address);
+        call_stack_array_append(&array, fp);
         break;
     }
 
     // Create job
     uint32_t jid = scheduler_next_jid();
-    job_t* job = job_new(jid, address, &stack_array);
+    job_t* job = job_new(jid, address, &array);
 
     // Set FP to point to arity
     job->call_stack.fp = call_stack_length(&job->call_stack) - 3;

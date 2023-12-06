@@ -7,7 +7,7 @@
 typedef dynarray_t data_stack_array_t;
 
 typedef struct {
-    data_stack_array_t stack_array;
+    data_stack_array_t array;
     vm_stack_value_t fp;
 } data_stack_t;
 
