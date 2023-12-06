@@ -24,8 +24,8 @@ typedef struct {
     vm_stack_value_t registers[NUMBER_OF_REGISTERS];
 } job_t;
 
-
-job_t* job_new(uint32_t jid, vm_address_t pc, call_stack_array_t* stack_array);
+job_t* job_new(uint32_t jid, vm_address_t pc,
+               vm_stack_value_t* initial_call_stack, vm_arity_t arity);
 void job_free(job_t* job);
 
 #endif

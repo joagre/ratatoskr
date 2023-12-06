@@ -3,79 +3,83 @@
 #include "call_stack.h"
 #include "log.h"
 
-void call_stack_init(call_stack_t* call_stack, call_stack_array_t* array,
+void call_stack_init(call_stack_t* call_stack,
+                     vm_stack_value_t* initial_call_stack, vm_arity_t arity,
                      data_stack_t* data_stack) {
-    call_stack->array = array;
+    dynarray_init(&call_stack->array, NULL, INITIAL_CALL_STACK_SIZE,
+                  sizeof(vm_stack_value_t));
+    for (size_t i = 0; i < arity; i++) {
+        call_stack_push(call_stack, initial_call_stack[i]);
+    }
     call_stack->fp = 0;
     call_stack->data_stack = data_stack;
 }
 
 void call_stack_free(call_stack_t* call_stack) {
-    call_stack_array_free(call_stack->array);
+    dynarray_clear(&call_stack->array);
 }
 
-void call_stack_array_init(call_stack_array_t* array) {
-    dynarray_init(array, NULL, 512, sizeof(vm_stack_value_t));
+inline vm_stack_value_t call_stack_get(call_stack_t* call_stack, size_t index) {
+    vm_stack_value_t* stack_value = DYN_ADDR(&call_stack->array, index);
+    return *stack_value;
 }
 
-void call_stack_array_free(call_stack_array_t* array) {
-    dynarray_clear(array);
+inline size_t call_stack_size(call_stack_t* call_stack) {
+    return dynarray_size(&call_stack->array);
 }
 
-void call_stack_array_append(call_stack_array_t* array,
-                             vm_stack_value_t value) {
-    dynarray_append(array, &value);
+inline void call_stack_set_size(call_stack_t* call_stack, size_t size) {
+    LOG_ASSERT(size <= call_stack->array.capacity,
+               "Call stack overflow: %zu > %zu",
+               size, call_stack->array.capacity);
+    call_stack->array.size = size;
 }
 
-size_t call_stack_length(call_stack_t* call_stack) {
-    return dynarray_size(call_stack->array);
-}
-
-void call_stack_push(call_stack_t* call_stack, vm_stack_value_t value) {
-    dynarray_append(call_stack->array, &value);
+inline void call_stack_push(call_stack_t* call_stack, vm_stack_value_t value) {
+    dynarray_append(&call_stack->array, &value);
 }
 
 char* call_stack_pop_string(call_stack_t* call_stack) {
-    vm_stack_value_t* data_address = dynarray_pop(call_stack->array);
+    vm_stack_value_t* data_address = dynarray_pop(&call_stack->array);
     uint8_t* bytes = data_stack_peek(call_stack->data_stack, *data_address);
     return (char*)(bytes + sizeof(vm_data_length_t));
 }
 
-vm_stack_value_t call_stack_pop(call_stack_t* call_stack) {
-    vm_stack_value_t* value = dynarray_pop(call_stack->array);
+inline vm_stack_value_t call_stack_pop(call_stack_t* call_stack) {
+    vm_stack_value_t* value = dynarray_pop(&call_stack->array);
     return *value;
 }
 
 void call_stack_dup(call_stack_t* call_stack) {
     vm_stack_value_t* value =
-        dynarray_element(call_stack->array,
-                         dynarray_size(call_stack->array) - 1);
-    dynarray_append(call_stack->array, value);
+        dynarray_element(&call_stack->array,
+                         dynarray_size(&call_stack->array) - 1);
+    dynarray_append(&call_stack->array, value);
 }
 
 void call_stack_swap(call_stack_t* call_stack) {
-    if (dynarray_size(call_stack->array) < 2) {
+    if (dynarray_size(&call_stack->array) < 2) {
         LOG_ERROR("Stack underflow");
         return;
     }
-    vm_stack_value_t* top = dynarray_pop(call_stack->array);
-    vm_stack_value_t* second_top = dynarray_pop(call_stack->array);
+    vm_stack_value_t* top = dynarray_pop(&call_stack->array);
+    vm_stack_value_t* second_top = dynarray_pop(&call_stack->array);
     vm_stack_value_t temp = *second_top;
-    dynarray_append(call_stack->array, top);
-    dynarray_append(call_stack->array, &temp);
+    dynarray_append(&call_stack->array, top);
+    dynarray_append(&call_stack->array, &temp);
 }
 
 void call_stack_load(call_stack_t* call_stack) {
     vm_stack_value_t offset = call_stack_pop(call_stack);
     vm_stack_value_t* value =
-        dynarray_element(call_stack->array, call_stack->fp + offset);
-    dynarray_append(call_stack->array, value);
+        dynarray_element(&call_stack->array, call_stack->fp + offset);
+    dynarray_append(&call_stack->array, value);
 }
 
 void call_stack_store(call_stack_t* call_stack) {
-    vm_stack_value_t* value = dynarray_pop(call_stack->array);
+    vm_stack_value_t* value = dynarray_pop(&call_stack->array);
     vm_stack_value_t offset = call_stack_pop(call_stack);
-    dynarray_setelement(call_stack->array, call_stack->fp + offset, value);
+    dynarray_setelement(&call_stack->array, call_stack->fp + offset, value);
 }
 
 void call_stack_binary_operation(call_stack_t* call_stack,
@@ -88,9 +92,9 @@ void call_stack_binary_operation(call_stack_t* call_stack,
 
 void call_stack_print(call_stack_t* call_stack) {
     size_t i;
-    for (i = 0; i < dynarray_size(call_stack->array); i++) {
-        vm_stack_value_t* value = dynarray_element(call_stack->array, i);
-        LOG_DEBUG("stack[%ld] = %ld", i, *value);
+    for (i = 0; i < dynarray_size(&call_stack->array); i++) {
+        vm_stack_value_t* value = dynarray_element(&call_stack->array, i);
+        fprintf(stderr, "stack[%ld] = %ld", i, *value);
     }
 }
 
@@ -108,15 +112,15 @@ void call_stack_unit_test(void) {
     data_stack_init(&data_stack);
 
     // Create call stack
-    dynarray_t array;
-    call_stack_array_init(&array);
     call_stack_t call_stack;
-    call_stack_init(&call_stack, &array, &data_stack);
+    vm_stack_value_t initial_call_stack[] = {};
+    vm_arity_t arity = 0;
+    call_stack_init(&call_stack, initial_call_stack, arity, &data_stack);
 
     // push, pop, length
     call_stack_push(&call_stack, 1);
     LOG_ASSERT(call_stack_pop(&call_stack) == 1, "call_stack_pop");
-    LOG_ASSERT(call_stack_length(&call_stack) == 0, "call_stack_length");
+    LOG_ASSERT(call_stack_size(&call_stack) == 0, "call_stack_size");
 
     // print
     call_stack_push(&call_stack, 1);
@@ -142,7 +146,7 @@ void call_stack_unit_test(void) {
     call_stack_push(&call_stack, 2);
     call_stack_binary_operation(&call_stack, add);
     LOG_ASSERT(call_stack_pop(&call_stack) == 3, "call_stack_pop");
-    LOG_ASSERT(call_stack_length(&call_stack) == 1, "call_stack_length");
+    LOG_ASSERT(call_stack_size(&call_stack) == 1, "call_stack_size");
     call_stack_pop(&call_stack);
 
     // load
@@ -158,8 +162,7 @@ void call_stack_unit_test(void) {
     call_stack_push(&call_stack, 2);
     call_stack_push(&call_stack, 42);
     call_stack_store(&call_stack);
-    vm_stack_value_t stored_value =
-        call_stack_array_get(&call_stack, call_stack.fp + 2);
+    vm_stack_value_t stored_value = call_stack_get(&call_stack, call_stack.fp + 2);
     LOG_ASSERT(stored_value == 42, "call_stack_pop");
 
     LOG_INFO("call_stack_unit_test passed");

@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     if (error.failed) {
         usage(basename(argv[0]));
     }
-    long parameters[argc - optind];
+    vm_stack_value_t parameters[argc - optind];
     for (int j = 0, i = optind + 2; i < argc; i++) {
         parameters[j++] = string_to_long(argv[i], &error);
         if (error.failed) {
