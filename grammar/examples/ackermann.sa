@@ -1,23 +1,22 @@
 import std.jobs : OnCrowding, Job
 import std.stdio
-import std.lists
 
 export fn main() {
-  ?ackermann @ new Ackermann(),
-  ?ackermann @ ackermann.startJobs(3, 10),
+  ?ackermann ?= new Ackermann(),
+  ?ackermann ?= ackermann.startJobs(3, 10),
   ackermann.waitForJobs()
 }
 
 class Ackermann {
     private jobs = []
     public fn startJobs(m, n, i = 0, startedJobs = []) {
-        if i :< n {
+        if i lt n {
             fn computeAckermann(parentJob, m, n) {
-                ?result @ ackermann(m, n),
-                parentJob # <self, m, n, result>
+                ?result ?= ackermann(m, n),
+                parentJob <| <self, m, n, result>
             },
-            ?job @ spawn monitor computeAckermann(self, m, i),
-            job.setMaxMailboxSize(job, 4, OnCrowding.block),
+            ?job ?= spawn monitor computeAckermann(self, m, i),
+            ?job ?= job.setMaxMailboxSize(job, 4, OnCrowding.block),
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
             this(jobs: startedJobs)
@@ -26,14 +25,19 @@ class Ackermann {
 
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
-            if jobs.length :> 0 {
+            if jobs.length gt 0 {
                 receive {
                     case <?job, ?m, ?n, ?result> {
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))
                     }
                     case <Job.died, ?job, ?reason> {
-                        stdio.writeln("Oh no! Compute job $job died: $reason")
+                        stdio.writeln("Oh no! Compute job $job died: $reason"),
+                        waitForJobs(jobs.delete(job))
+                    }
+                    case ?message {
+                        stdio.writeln("Oh no! Got an unknown message: $message"),
+                        waitForJobs(jobs)
                     }
                 }
             } else {

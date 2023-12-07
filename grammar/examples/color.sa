@@ -33,11 +33,11 @@ class ColorIterator : Iterator {
 }
 
 export fn main() {
-    ?colors @ [Color.red, Color.red, Color.blue, Color.green],
-    ?iterator @ new ColorIterator(colors),
+    ?colors ?= [Color.red, Color.red, Color.blue, Color.green],
+    ?iterator ?= new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
-            <?iterator, ?color> @ iterator.next(),
+            <?iterator, ?color> ?= iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
         }

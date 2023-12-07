@@ -2,7 +2,7 @@ import std.file
 import std.char
 
 fn main(args) {
-    <true, ?string> @ file.readFile(args[1]),
+    <true, ?string> ?= file.readFile(args[1]),
     combine(string.toList())
 }
 
