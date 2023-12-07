@@ -35,12 +35,12 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 #
 
 Expr <- BindExpr
-BindExpr <- MatchExpr _ "<@" _ Expr / SendExpr
+BindExpr <- MatchExpr _ "@" _ Expr / SendExpr
 SendExpr <- ("self" /
              ControlFlowExpr /
              SpawnExpr /
              Identifier /
-             "(" _ Expr _ ")") (_ "<|" _ Expr) / LogicalOrExpr
+             "(" _ Expr _ ")") (_ "#" _ Expr) / LogicalOrExpr
 LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
 BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*

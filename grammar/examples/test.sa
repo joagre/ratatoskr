@@ -22,19 +22,19 @@ class Foo {
 
 fn main() {
     {
-        ?a <@ 3
+        ?a @ 3
     },
     spawn new Foo(1, 2),
-    ?b <@ b[a: 4],
-    ?a <@ a[1, 2, 3],
+    ?b @ b[a: 4],
+    ?a @ a[1, 2, 3],
     [b: 2],
-    [1, 2] <@ a,
-    ?a <@ a[1 = 2],
-    a[b] <@ 3,
-    ?ackermann <@ new Ackermann(),
-    ackermann <@ startJobs(3, 10),
+    [1, 2] @ a,
+    ?a @ a[1 = 2],
+    a[b] @ 3,
+    ?ackermann @ new Ackermann(),
+    ackermann @ startJobs(3, 10),
     a[1],
-    1 <@ 1,
+    1 @ 1,
     switch a {
         case b {
             c
@@ -48,14 +48,14 @@ fn main() {
         }
     },
     lists.foreach(fn () { stdio.writeln(item.toString())}, items),
-    a <@ 1,
-    <1, 2> <@ a,
-    a <@ 1 + (2 + a) + 1,
+    a @ 1,
+    <1, 2> @ a,
+    a @ 1 + (2 + a) + 1,
     foo(),
     foo[1].baz.bonk,
-    ?len <@ if true {
-                a
-            } else {
-                b
-            }.length()
+    ?len @ if true {
+               a
+           } else {
+               b
+           }.length()
 }

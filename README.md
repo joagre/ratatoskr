@@ -28,16 +28,16 @@ import std.stdio : writeln
 import std.lists
 
 export fn main(args) {
-    ?numberOfTributes <@ args[1],
-    ?jobs <@ startTributes(numberOfTributes),
+    ?numberOfTributes @ args[1],
+    ?jobs @ startTributes(numberOfTributes),
     lists.foreach(fn (job) {
-        job <| "Standing on the shoulders of giants"
+        job # "Standing on the shoulders of giants"
     }, jobs)
 }
 
 fn startTributes(numberOfTributes, n = 0, jobs = []) {
     if n :< numberOfTributes {
-        ?job <@ spawn fn () {
+        ?job @ spawn fn () {
             receive {
                 case ?message {
                    writeln("$n: $message")
@@ -116,7 +116,7 @@ The following design choices have been made (in some sort of order):
 
 Satie incorporates pattern matching as a fundamental feature.
 
-* The `<-` match operator is used to bind values to unbound names
+* The `@` match operator is used to bind values to unbound names
   and/or to deconstruct composite values into their primitive
   components. There is no mutable variable assigments in Satie.
 
@@ -213,11 +213,11 @@ class ColorIterator : Iterator {
 }
 
 export fn main() {
-    ?colors <@ [Color.red, Color.red, Color.blue, Color.green],
-    ?iterator <@ new ColorIterator(colors),
+    ?colors @ [Color.red, Color.red, Color.blue, Color.green],
+    ?iterator @ new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
-            <?iterator, ?color> <@ iterator.next(),
+            <?iterator, ?color> @ iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
         }
@@ -244,7 +244,7 @@ other modules.
 `class`, `enum`, and `interface` definitions can be imported by other
 modules without any restrictions though.
 
-`#(` ... `)` defines a tuple, and placing a question mark before a
+`<` ... `>` defines a tuple, and placing a question mark before a
 name informs the compiler that the name should be treated as
 unbound, regardless of its previous state. Omitting the question mark
 prompts the compiler to ensure that the name is already bound. At
@@ -440,7 +440,7 @@ enum Foo {          //  Defined in bar.sa
 c.inspect(),        // [ "type" : "enum",
                     //   "name": "a",
                     //   "value": 3.14,
-                    //   "owner" : #("bar", "Foo") ]
+                    //   "owner" : <"bar", "Foo"> ]
 d.inspect()         // [ "type" : "list", "length": 2 ]
 ```
 
@@ -455,7 +455,7 @@ Try this:
 
 ```
 ?a = 3.14,
-?b = [Foo.a : 42, "bar": #(fn () { x + x}, [1, 2,3])],
+?b = [Foo.a : 42, "bar": <fn () { x + x}, [1, 2,3]>]
 a.toString(),       // "3.14"
 b.toString()        // "[Foo.a : 42, "bar": fn/0]"
 ```
@@ -601,9 +601,9 @@ a[3],               // 'ω'
 
 A tuple literal is represented as comma separated, fixed size sequence
 of values of any type. This sequence is enclosed between a leading
-`#(` and a trailing `)`:
+`<` and a trailing `>`:
 
-`#("foo", 3.14, #("bar", fn (x) { x + 1}))`
+`<"foo", 3.14, <"bar", fn (x) { x + 1}>>`
 
 ### List literal
 
@@ -634,7 +634,7 @@ In Satie every element is treated as an expression, with the exception
 of top-level definitions. These include `import`, `class`,
 `interface`, and `enum`.
 
-Among all expressions, the match expression, marked by the `<-`
+Among all expressions, the match expression, marked by the `@`
 operator, stands out for its ability to bind values to names. An
 unbound name is identified by a leading `?` character, and a naked
 name (without a `?`) must be bound before being refered.
@@ -665,18 +665,18 @@ Grok this:
 
 ```
 fn foo(x) {
-  #(4711, x + x, "bar")
+  <4711, x + x, "bar">
 },
 ?a = 1,
-#(a, ?b, 1) = #(1, 2, 1),     // b == 2
-#(?a, b, ?c) = foo(1),        // a == 4711 && c == "bar"
-#(a, a, a) = c                // Error!
+<a, ?b, 1> = <1, 2, 1>,     // b == 2
+<?a, b, ?c> = foo(1),       // a == 4711 && c == "bar"
+<a, a, a> = c               // Error!
 ```
 
 Pretty nifty.
 
 **Note:** In the examples above, we used expressions that have not been
-explained yet. For now, it's sufficient to understand that `#(1, 2, 1)`
+explained yet. For now, it's sufficient to understand that `<1, 2, 1>`
 represents a fixed-size tuple.
 
 The `switch` and `receive` expressions, which are described below,
@@ -684,7 +684,7 @@ also employ pattern matching. This feature enables them to deconstruct
 and select specific elements. Further details about these expressions can
 be found in the subsequent sections.
 
-Furthermore, the `<-` operator is restricted to be used as a
+Furthermore, the `@` operator is restricted to be used as a
 standalone expression and is not permitted within more complex
 expressions. This restriction is in place to maintain clarity and
 simplicity in coding practices. Your understanding and cooperation are
@@ -764,12 +764,12 @@ switch a {
 A combined case path selection and tuple deconstruction:
 
 ```
-?a = #("bar", 4711),
+?a = <"bar", 4711>,
 switch a {
     case "foo" {
         "Darn!"
     }
-    case #("bar", ?c) {
+    case <"bar", ?c> {
         c
     }
     default {
@@ -795,13 +795,13 @@ Like this:
 
 ```
 enum Color {
-    red = #(255, 0, 0)
-    green = #(0, 255, 0)
-    blue = #(0, 0, 255)
+    red = <255, 0, 0>
+    green = <0, 255, 0>
+    blue = <0, 0, 255>
 }
 
 Foo.red,              // An enumeration literal
-Foo.red.value         // #(255, 0, 0)
+Foo.red.value         // <255, 0, 0>
 ```
 
 ### Function -- `fn`
@@ -881,7 +881,7 @@ c[3] == 'ω'                     // true
 r"foo\nbar"                     // A raw string
 r.length == 9                   // true
 ```
-### Tuple -- `#(` a, b, c, ... `)`
+### Tuple -- `<` a, b, c, ... `>`
 
 Not much needs to be said about tuples: they are simply tuples.
 
@@ -889,8 +889,8 @@ Like this:
 
 ```
 ?a = 42,
-?b = #(4711, #(a, [1, 2])),
-#(_, #(?a, [_, c])) = b,
+?b = <4711, <a, [1, 2]>>,
+<_, <?a, [_, c]>> = b,
 a,                           // 4711
 c                            // 2
 ```
@@ -1166,10 +1166,10 @@ job = spawn sum(a)
 ```
 
 In the example above, `spawn` returns a job reference and it can be
-used to send messages to the job using the `<|` operator:
+used to send messages to the job using the `#` operator:
 
 ```
-job <| #(timeout, 1000)
+job # <timeout, 1000>
 ```
 
 A message sent to a job is placed in its mailbox and can be retrieved
@@ -1179,7 +1179,7 @@ Like this:
 
 ```
 receive {
-    case #(?job, ?result) {
+    case <?job, ?result> {
         stdio.writeln("Job $job sent result $result")
         result
     }
@@ -1201,7 +1201,7 @@ Like this:
 
 In the example above the job's mailbox is restricted to contain at
 most 64 messages, and if a sending job hits that threshold it is
-automatically blocked in the `<|` operator waiting for the mailbox to
+automatically blocked in the `#` operator waiting for the mailbox to
 shrink.
 
 As an alternative, `OnCrowding.ignore` can be used to specify that
@@ -1209,16 +1209,16 @@ overflowing messages should be ignored.
 
 The `OnCrowding` constant can also be replaced with a function that
 returns `false` if overflowing messages should be ignored or `true` if
-the sending job should be blocked in the `<|` operator.
+the sending job should be blocked in the `#` operator.
 
 The  concurrency keyword `self`  refers to the job which user code
 currently runs within.
 
 The `std.concurrency` module also provides these functions:
 
-* `monitor(job)` : Send a message `#(JobMonitor.died, job, reason)` to
+* `monitor(job)` : Send a message `<JobMonitor.died, job, reason>` to
 me if a job dies
-* `link(job)` : Send a message `#(JobMonitor.died, job, reason)` to me
+* `link(job)` : Send a message `<JobMonitor.died, job, reason>` to me
 if a job dies. Do the same to the linked job if I die. A link is a
 bidirectional monitor.
 * `kill(job)`
@@ -1244,8 +1244,8 @@ import std.stdio
 import std.lists
 
 export fn main() {
-  ?ackermann <@ new Ackermann(),
-  ?ackermann <@ ackermann.startJobs(3, 10),
+  ?ackermann @ new Ackermann(),
+  ?ackermann @ ackermann.startJobs(3, 10),
   ackermann.waitForJobs()
 }
 
@@ -1254,10 +1254,10 @@ class Ackermann {
     public fn startJobs(m, n, i = 0, startedJobs = []) {
         if i :< n {
             fn computeAckermann(parentJob, m, n) {
-                ?result <@ ackermann(m, n),
-                parentJob <| <self, m, n, result>
+                ?result @ ackermann(m, n),
+                parentJob # <self, m, n, result>
             },
-            ?job <@ spawn monitor computeAckermann(self, m, i),
+            ?job @ spawn monitor computeAckermann(self, m, i),
             job.setMaxMailboxSize(job, 4, OnCrowding.block),
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
@@ -1384,7 +1384,7 @@ Operators in decreasing order of precedence:
 | +a         |                                          |
 | !a         |                                          |
 | ~a         | Bitwise complement                       |
-| <\|        | Send message                             |
+| #          | Send message                             |
 | cast(t)a   | Cast expression                          |
 | a ^^ b     | Exponentiation                           |
 | a * b      |                                          |
@@ -1406,7 +1406,7 @@ Operators in decreasing order of precedence:
 | a & b      |                                          |
 | a && b     | Logical and                              |
 | a \|\| b   |                                          |
-| a <= b     | Match                                    |
+| a @ b      | Match                                    |
 
 # Appendix B: PEG grammar
 
@@ -1448,12 +1448,12 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 #
 
 Expr <- BindExpr
-BindExpr <- MatchExpr _ "<@" _ Expr / SendExpr
+BindExpr <- MatchExpr _ "@" _ Expr / SendExpr
 SendExpr <- ("self" /
              ControlFlowExpr /
              SpawnExpr /
              Identifier /
-             "(" _ Expr _ ")") (_ "<|" _ Expr) / LogicalOrExpr
+             "(" _ Expr _ ")") (_ "#" _ Expr) / LogicalOrExpr
 LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
 BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
@@ -1719,12 +1719,12 @@ class TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
-        ?item <@ new TodoItem(description),
+        ?item @ new TodoItem(description),
         this(items: [tag : item] ~ items)
     }
 
     public fn markItemCompleted(tag) {
-        ?item <@ items[tag].markCompleted(),
+        ?item @ items[tag].markCompleted(),
         this(items: item ~ items.delete(tag))
     }
 
@@ -1735,12 +1735,12 @@ class TodoList {
 
 export fn main() {
     fn loopUntilQuit(todoList) {
-        ?input <@ readInput(), // implemented elsewhere
+        ?input @ readInput(), // implemented elsewhere
         if input.command == "add" {
-            <?todoList, ?a> <@ todoList.addItem(input.tag, input.description),
+            <?todoList, ?a> @ todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
         } elif input.command == "complete" {
-            ?todoList <@ todoList.markItemCompleted(input.tag),
+            ?todoList @ todoList.markItemCompleted(input.tag),
             loopUntilQuit(todoList)
         } elif input.command == "show" {
             todoList.displayItems(),
@@ -1752,7 +1752,7 @@ export fn main() {
           loopUntilQuit(todoList)
         }
     },
-    ?todoList <@ new TodoList(),
+    ?todoList @ new TodoList(),
     loopUntilQuit(todoList)
 }
 ```
