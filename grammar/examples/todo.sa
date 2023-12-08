@@ -9,10 +9,6 @@ class TodoItem {
         this(descriptor: descriptor, completed: false)
     }
 
-    public fn markCompleted() {
-        this(completed: true)
-    }
-
     public fn toString() {
        if completed {
            "[x] "
@@ -31,7 +27,7 @@ class TodoList {
     }
 
     public fn markItemCompleted(tag) {
-        ?item := items[tag].markCompleted(),
+        ?item := items[tag].setCompleted(true),
         this(items: item ~ items.delete(tag))
     }
 
