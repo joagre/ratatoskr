@@ -28,21 +28,17 @@ import std.stdio : writeln
 import std.lists
 
 export fn main(args) {
-    ?numberOfTributes @ args[1],
-    ?jobs @ startTributes(numberOfTributes),
-    lists.foreach(fn (job) {
-        job # "Standing on the shoulders of giants"
-    }, jobs)
+    ?numberOfTributes := args[1],
+    ?channel := makeChannel(copies: numberOfTributes),
+    ?jobs := startTributes(channel, numberOfTributes),
+    channel.send("Standing on the shoulders of giants")
 }
 
 fn startTributes(numberOfTributes, n = 0, jobs = []) {
-    if n :< numberOfTributes {
-        ?job @ spawn fn () {
-            receive {
-                case ?message {
-                   writeln("$n: $message")
-                }
-            }
+    if n lt numberOfTributes {
+        ?job := spawn fn () {
+            ?message := receive channel,
+            writeln("$n: $message")
         },
         startTributes(numberOfTributes, n + 1, job ~ jobs)
     } else {
@@ -213,11 +209,11 @@ class ColorIterator : Iterator {
 }
 
 export fn main() {
-    ?colors @ [Color.red, Color.red, Color.blue, Color.green],
-    ?iterator @ new ColorIterator(colors),
+    ?colors := [Color.red, Color.red, Color.blue, Color.green],
+    ?iterator := new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
-            <?iterator, ?color> @ iterator.next(),
+            <?iterator, ?color> := iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
         }
@@ -1241,24 +1237,28 @@ Study this and do not despair:
 ```
 import std.jobs : OnCrowding, Job
 import std.stdio
-import std.lists
 
 export fn main() {
-  ?ackermann @ new Ackermann(),
-  ?ackermann @ ackermann.startJobs(3, 10),
+  ?ackermann := new Ackermann(),
+  ?ackermann := ackermann.startJobs(3, 10),
   ackermann.waitForJobs()
 }
 
 class Ackermann {
     private jobs = []
+    private resultChannel
+
+    this() {
+        this(resultChannel: self.makeChannel())
+    }
+
     public fn startJobs(m, n, i = 0, startedJobs = []) {
-        if i :< n {
-            fn computeAckermann(parentJob, m, n) {
-                ?result @ ackermann(m, n),
-                parentJob # <self, m, n, result>
+        if i lt n {
+            fn computeAckermann(m, n) {
+                ?result := ackermann(m, n),
+                resultChannel.send(<self, m, n, result>)
             },
-            ?job @ spawn monitor computeAckermann(self, m, i),
-            job.setMaxMailboxSize(job, 4, OnCrowding.block),
+            ?job := spawn monitor computeAckermann(m, i),
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
             this(jobs: startedJobs)
@@ -1266,16 +1266,20 @@ class Ackermann {
     }
 
     public fn waitForJobs() {
+        ?self := self.setMaxMailboxSize(job, 4, OnCrowding.block),
         fn waitForJobs(jobs) {
-            if jobs.length :> 0 {
-                receive {
-                    case <?job, ?m, ?n, ?result> {
+            if jobs.length gt 0 {
+                // FIXME: Should be self.systemChannel I think.
+                receive resultChannel, systemChannel {
+                    case <?job, ?m, ?n, ?result> :
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))
-                    }
-                    case <Job.died, ?job, ?reason> {
-                        stdio.writeln("Oh no! Compute job $job died: $reason")
-                    }
+                    case <Job.died, ?job, ?reason> :
+                        stdio.writeln("Oh no! Compute job $job died: $reason"),
+                        waitForJobs(jobs.delete(job))
+                    case ?message :
+                        stdio.writeln("Oh no! Got an unknown message: $message"),
+                        waitForJobs(jobs)
                 }
             } else {
                 this(jobs: [])
@@ -1416,6 +1420,11 @@ Operators in decreasing order of precedence:
 %header {
     #include <stdarg.h>
     #include "satie_auxil.h"
+    /*
+    static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
+    #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
+    fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
+    */
 }
 
 %auxil "satie_auxil_t*"
@@ -1440,6 +1449,7 @@ TopLevelDefError <- ("," / ";") {
 Imports <- Import (__ Import)*
 Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
 ModuleAlias <- Identifier
+
 ModulePath <- Identifier ("." Identifier)* (_ ":" _ ImportedEntities)?
 ImportedEntities <- Identifier (_ "," _ Identifier)*
 
@@ -1448,26 +1458,21 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 #
 
 Expr <- BindExpr
-BindExpr <- MatchExpr _ "@" _ Expr / SendExpr
-SendExpr <- ("self" /
-             ControlFlowExpr /
-             SpawnExpr /
-             Identifier /
-             "(" _ Expr _ ")") (_ "#" _ Expr) / LogicalOrExpr
+BindExpr <- MatchExpr _ ":=" _ Expr / LogicalOrExpr
 LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
 BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
 BitwiseXorExpr <- BitwiseOrExpr (_ "^" _ BitwiseOrExpr)*
 BitwiseOrExpr <- GreaterThanEqualExpr (_ "|" _ GreaterThanEqualExpr)*
-GreaterThanEqualExpr <- GreaterThanExpr (_ ":>=" _ GreaterThanExpr)*
-GreaterThanExpr <- LessThanEqualExpr (_ ":>" _ LessThanEqualExpr)*
-LessThanEqualExpr <- LessThanExpr (_ ":>=" _ LessThanExpr)*
-LessThanExpr <- NotEqualExpr (_ ":<" _ NotEqualExpr)*
+GreaterThanEqualExpr <- GreaterThanExpr (_ "gte" _ GreaterThanExpr)*
+GreaterThanExpr <- LessThanEqualExpr (_ "gt" _ LessThanEqualExpr)*
+LessThanEqualExpr <- LessThanExpr (_ "lte" _ LessThanExpr)*
+LessThanExpr <- NotEqualExpr (_ "lt" _ NotEqualExpr)*
 NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
 EqualExpr <- InExpr (_ "==" _ InExpr)*
 InExpr <- RightShiftExpr (_ "in" _ RightShiftExpr)*
-RightShiftExpr <- LeftShiftExpr (_ ":>>" _ LeftShiftExpr)*
-LeftShiftExpr <- ConcatenateExpr (_ ":<<" _ ConcatenateExpr)*
+RightShiftExpr <- LeftShiftExpr (_ "bsr" _ LeftShiftExpr)*
+LeftShiftExpr <- ConcatenateExpr (_ "bsl" _ ConcatenateExpr)*
 ConcatenateExpr <- MinusExpr (_ "~" _ MinusExpr)*
 MinusExpr <- PlusExpr (_ "-" _ PlusExpr)*
 PlusExpr <- ModulusExpr (_ "+" _ ModulusExpr)*
@@ -1563,11 +1568,16 @@ IfExpr <- "if" __ Expr _ BlockExpr
           (_ "else" _ BlockExpr)?
 
 SwitchExpr <- "switch" __ Expr _ "{"
-             (_ "case" __ MatchExpr _ BlockExpr)+ _ "}"
+             (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
+             (_ "default" _ ":" _ BlockLevelExprs)? _
+             "}"
+MatchExprs <- MatchExpr (_ "," _ MatchExpr)*
 
-ReceiveExpr <- "receive" _ "{"
-               (_ "case" __ MatchExpr _ BlockExpr)+
-               (_ "timeout" _ DecimalIntegral _ BlockExpr)? _ "}"
+ReceiveExpr <- "receive" __ Channels (_ "{"
+               (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
+               (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
+               "}")?
+Channels <- Identifier (_ "," _ Identifier)*
 
 SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
 
@@ -1636,19 +1646,11 @@ DefaultParams <- DefaultParam (_ "," _ DefaultParam)*
 DefaultParam <- Identifier _ "=" _ Expr
 
 BlockExpr <- "{" _ BlockLevelExprs _ "}"
-BlockLevelExprs <- BlockLevelExpr
-                   (_ Comma _ BlockLevelExpr / _ MissingComma)* _
-                   ExtraSemicolon?
+BlockLevelExprs <- BlockLevelExpr (_ Comma _ BlockLevelExpr)*
 BlockLevelExpr <- FunctionDef / Expr
 Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between expressions)",
           auxil->line);
-}
-MissingComma <- BlockLevelExpr {
-    panic("Missing ',' separator between expressions on line %d", auxil->line);
-}
-ExtraSemicolon <- ";" {
-    panic("Unexpected ';' on line %d", auxil->line);
 }
 
 Args <- PositionalArgs / NamedArgs
@@ -1719,12 +1721,12 @@ class TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
-        ?item @ new TodoItem(description),
+        ?item := new TodoItem(description),
         this(items: [tag : item] ~ items)
     }
 
     public fn markItemCompleted(tag) {
-        ?item @ items[tag].markCompleted(),
+        ?item := items[tag].markCompleted(),
         this(items: item ~ items.delete(tag))
     }
 
@@ -1735,12 +1737,12 @@ class TodoList {
 
 export fn main() {
     fn loopUntilQuit(todoList) {
-        ?input @ readInput(), // implemented elsewhere
+        ?input := readInput(), // implemented elsewhere
         if input.command == "add" {
-            <?todoList, ?a> @ todoList.addItem(input.tag, input.description),
+            <?todoList, ?a> := todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
         } elif input.command == "complete" {
-            ?todoList @ todoList.markItemCompleted(input.tag),
+            ?todoList := todoList.markItemCompleted(input.tag),
             loopUntilQuit(todoList)
         } elif input.command == "show" {
             todoList.displayItems(),
@@ -1752,7 +1754,7 @@ export fn main() {
           loopUntilQuit(todoList)
         }
     },
-    ?todoList @ new TodoList(),
+    ?todoList := new TodoList(),
     loopUntilQuit(todoList)
 }
 ```

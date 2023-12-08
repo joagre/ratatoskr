@@ -3,6 +3,11 @@
 %header {
     #include <stdarg.h>
     #include "satie_auxil.h"
+    /*
+    static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
+    #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
+    fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
+    */
 }
 
 %auxil "satie_auxil_t*"
@@ -36,12 +41,7 @@ ImportedEntities <- Identifier (_ "," _ Identifier)*
 #
 
 Expr <- BindExpr
-BindExpr <- MatchExpr _ "?=" _ Expr / SendExpr
-SendExpr <- ("self" /
-             ControlFlowExpr /
-             SpawnExpr /
-             Identifier /
-             "(" _ Expr _ ")") (_ "<|" _ Expr) / LogicalOrExpr
+BindExpr <- MatchExpr _ ":=" _ Expr / LogicalOrExpr
 LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
 LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
 BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
@@ -151,11 +151,16 @@ IfExpr <- "if" __ Expr _ BlockExpr
           (_ "else" _ BlockExpr)?
 
 SwitchExpr <- "switch" __ Expr _ "{"
-             (_ "case" __ MatchExpr _ BlockExpr)+ _ "}"
+             (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
+             (_ "default" _ ":" _ BlockLevelExprs)? _
+             "}"
+MatchExprs <- MatchExpr (_ "," _ MatchExpr)*
 
-ReceiveExpr <- "receive" _ "{"
-               (_ "case" __ MatchExpr _ BlockExpr)+
-               (_ "timeout" _ DecimalIntegral _ BlockExpr)? _ "}"
+ReceiveExpr <- "receive" __ Channels (_ "{"
+               (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
+               (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
+               "}")?
+Channels <- Identifier (_ "," _ Identifier)*
 
 SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
 
@@ -224,19 +229,11 @@ DefaultParams <- DefaultParam (_ "," _ DefaultParam)*
 DefaultParam <- Identifier _ "=" _ Expr
 
 BlockExpr <- "{" _ BlockLevelExprs _ "}"
-BlockLevelExprs <- BlockLevelExpr
-                   (_ Comma _ BlockLevelExpr / _ MissingComma)* _
-                   ExtraSemicolon?
+BlockLevelExprs <- BlockLevelExpr (_ Comma _ BlockLevelExpr)*
 BlockLevelExpr <- FunctionDef / Expr
 Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between expressions)",
           auxil->line);
-}
-MissingComma <- BlockLevelExpr {
-    panic("Missing ',' separator between expressions on line %d", auxil->line);
-}
-ExtraSemicolon <- ";" {
-    panic("Unexpected ';' on line %d", auxil->line);
 }
 
 Args <- PositionalArgs / NamedArgs
