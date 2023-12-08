@@ -29,12 +29,14 @@ TopLevelDefError <- ("," / ";") {
           $0, auxil->line);
 }
 
-Imports <- Import (__ Import)*
-Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
-ModuleAlias <- Identifier
+#
+# Import
+#
 
-ModulePath <- Identifier ("." Identifier)* (_ ":" _ ImportedEntities)?
-ImportedEntities <- Identifier (_ "," _ Identifier)*
+Imports <- Import (__ Import)*
+Import <- "import" __ (Identifier _ "=" _)? _ ModulePath
+ModulePath <- Identifier ("." Identifier)* (_ ":" _ ImportedConstructs)?
+ImportedConstructs <- Identifier (_ "," _ Identifier)*
 
 #
 # Expression
@@ -74,9 +76,6 @@ PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
                               "(" _ Args? _ ")" /
                               "[" _ Expr _ "]")*
 
-MatchExpr <- (Literal / UnboundName / Identifier)
-             (_ "is" _ (UnboundName / Identifier))?
-
 PrimaryExpr <- "nil" /
                "this" /
                "self" /
@@ -85,18 +84,48 @@ PrimaryExpr <- "nil" /
                ControlFlowExpr /
                SpawnExpr /
                NewExpr /
-               UnboundName /
-               Identifier /
+               BoundName /
                "(" _ Expr _ ")"
 
-Literal <- BooleanLiteral /
-           NumberLiteral /
-           CharacterLiteral /
-           StringLiteral /
-           FunctionLiteral /
-           TupleLiteral /
-           (Identifier _)? ListLiteral /
-           (Identifier _)? MapLiteral
+ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
+
+IfExpr <- "if" __ Expr _ BlockExpr
+          (_ "elif" __ Expr _ BlockExpr)*
+          (_ "else" _ BlockExpr)?
+
+SwitchExpr <- "switch" __ Expr (_ "is" _ (UnboundName / BoundName))? _ "{"
+             (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
+             (_ "default" _ ":" _ BlockLevelExprs)? _
+             "}"
+UnboundName <- "?" _ Identifier
+
+ReceiveExpr <- "receive" __ Channels (_ "{"
+               (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
+               (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
+               "}")?
+# FIXME: Think (function, variable, ., literal map) = name
+Channels <- Identifier (_ "," _ Identifier)*
+
+SpawnExpr <- "spawn" (_ "monitor" / "link")? __ Expr
+
+NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
+
+BoundName <- Identifier
+
+#
+# Literal
+#
+
+Literal <- BaseLiteral / CompositeLiteral
+BaseLiteral <- BooleanLiteral /
+               NumberLiteral /
+               CharacterLiteral /
+               StringLiteral /
+               FunctionLiteral /
+               EnumLiteral
+CompositeLiteral <- TupleLiteral /
+                    (BoundName _)? ListLiteral /
+                    (BoundName _)? MapLiteral
 
 BooleanLiteral <- "true" / "false"
 
@@ -131,6 +160,8 @@ RawString <- 'r"' [^"]* '"'
 
 FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 
+EnumLiteral <- Identifier _ "." _ Identifier
+
 TupleLiteral <- "<" _ Exprs? _ ">"
 Exprs <- Expr (_ "," _ Expr)*
 
@@ -144,31 +175,32 @@ MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues <- KeyValue (_ "," _ KeyValue)*
 KeyValue <- (Literal / Identifier) _ ":" _ Expr
 
-ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
+#
+# Match expression
+#
 
-IfExpr <- "if" __ Expr _ BlockExpr
-          (_ "elif" __ Expr _ BlockExpr)*
-          (_ "else" _ BlockExpr)?
+#MatchExpr <- (Literal / UnboundName / Identifier)
 
-SwitchExpr <- "switch" __ Expr _ "{"
-             (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
-             (_ "default" _ ":" _ BlockLevelExprs)? _
-             "}"
+MatchExpr <- MatchLiteral / UnboundName / BoundName
 MatchExprs <- MatchExpr (_ "," _ MatchExpr)*
 
-ReceiveExpr <- "receive" __ Channels (_ "{"
-               (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
-               (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
-               "}")?
-Channels <- Identifier (_ "," _ Identifier)*
+MatchLiteral <- MatchBaseLiteral / MatchCompositeLiteral
+MatchBaseLiteral <- BooleanLiteral /
+                    NumberLiteral /
+                    CharacterLiteral /
+                    StringLiteral /
+                    EnumLiteral
+MatchCompositeLiteral <- MatchTupleLiteral /
+                         (BoundName _)? MatchListLiteral /
+                         (BoundName _)? MatchMapLiteral
 
-SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
+MatchListLiteral <- "[" _ MatchExprs? _ "]"
 
-NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
+MatchTupleLiteral <- "<" _ MatchExprs? _ ">"
 
-UnboundName <- "?" _ Identifier
-
-Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
+MatchMapLiteral <- "[:]" / "[" _ MatchKeyValues? _ "]"
+MatchKeyValues <- MatchKeyValue (_ "," _ MatchKeyValue)*
+MatchKeyValue <- (MatchLiteral / Identifier) _ ":" _ MatchExpr
 
 #
 # Class definition
@@ -245,6 +277,7 @@ NamedArg <- Identifier _ ":" _ Expr
 # Misc
 #
 
+Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 #_ <- WS*
 #__ <- WS+
 _ <- (WS / Comments)*

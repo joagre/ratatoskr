@@ -3,7 +3,7 @@ import std.lists
 
 export fn main(args) {
     ?numberOfTributes := args[1],
-    ?channel := self.makeChannel(copies: numberOfTributes, keepAfterRead: 2000),
+    ?channel := self.makeChannel(copies: numberOfTributes, keep: 2000),
     ?jobs := startTributes(channel, numberOfTributes),
     channel.send("Standing on the shoulders of giants")
 }

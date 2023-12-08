@@ -1,4 +1,4 @@
-import std.jobs : OnCrowding, Job
+import std.jobs : OnCrowding, JobStatus, SpawnOption
 import std.stdio
 
 export fn main() {
@@ -21,6 +21,9 @@ class Ackermann {
                 ?result := ackermann(m, n),
                 resultChannel.send(<self, m, n, result>)
             },
+//            ?options := [SpawnOption.monitor: true,
+//                         SpawnOption.onCrowding: <OnCrowding.block, 4>],
+//            ?options := ["foo": 1],
             ?job := spawn monitor computeAckermann(m, i),
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
@@ -29,7 +32,6 @@ class Ackermann {
     }
 
     public fn waitForJobs() {
-        ?self := self.setMaxMailboxSize(job, 4, OnCrowding.block),
         fn waitForJobs(jobs) {
             if jobs.length gt 0 {
                 // FIXME: Should be self.systemChannel I think.
@@ -37,7 +39,7 @@ class Ackermann {
                     case <?job, ?m, ?n, ?result> :
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))
-                    case <Job.died, ?job, ?reason> :
+                    case <JobStatus.died, ?job, ?reason> :
                         stdio.writeln("Oh no! Compute job $job died: $reason"),
                         waitForJobs(jobs.delete(job))
                     case ?message :
