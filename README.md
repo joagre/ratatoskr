@@ -29,18 +29,18 @@ import std.lists
 
 export fn main(args) {
     ?numberOfTributes := args[1],
-    ?channel := self.makeChannel(copies: numberOfTributes, keep: 2000),
+    ?channel := self.makeChannel(copies: numberOfTributes, keepAfterRead: 2000),
     ?jobs := startTributes(channel, numberOfTributes),
     channel.send("Standing on the shoulders of giants")
 }
 
-fn startTributes(numberOfTributes, n = 0, jobs = []) {
+fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
     if n lt numberOfTributes {
         ?job := spawn fn () {
             ?message := receive channel,
             writeln("$n: $message")
         },
-        startTributes(numberOfTributes, n + 1, job ~ jobs)
+        startTributes(channel, numberOfTributes, n + 1, job ~ jobs)
     } else {
         jobs
     }
@@ -1704,10 +1704,6 @@ class TodoItem {
         this(descriptor: descriptor, completed: false)
     }
 
-    public fn markCompleted() {
-        this(completed: true)
-    }
-
     public fn toString() {
        if completed {
            "[x] "
@@ -1726,7 +1722,7 @@ class TodoList {
     }
 
     public fn markItemCompleted(tag) {
-        ?item := items[tag].markCompleted(),
+        ?item := items[tag].setCompleted(true),
         this(items: item ~ items.delete(tag))
     }
 
