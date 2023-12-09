@@ -24,24 +24,43 @@ programming languages.
 All rise. Here is a tribute and a premature Satie example:
 
 ```
+import std.satie
+import std.channels: ChannelOption
 import std.stdio : writeln
-import std.lists
 
 export fn main(args) {
     ?numberOfTributes := args[1],
-    // sync: true is also a possible idea
-    ?channel := self.makeChannel(copies: numberOfTributes, keep: 2000),
+    /*
+       satie.makeChannel() creates a channel which by default is
+       buffered and unbounded in size. Like in Erlang.
+
+       A channel can be created with the following modifiers though:
+
+       copies: N
+           Keep a message in the mailbox until N instancces has read it
+       fade N:
+           If a message hasn't been read in N milliseconds let it fade
+           away
+       sync Bool:
+           Should the sender blocks until the receiver has read the
+           message (defaults to false)
+       size <Type, Size>:
+           Set the number of messages allowed in a mailbox to Size. If
+           this threshold is reached the sender blocks or the message
+           is ignored, depending on Type (which can either the enum
+           ChannelOption.block or ChannelOption.ignore).
+    */
+    ?channel := satie.makeChannel(copies: numberOfTributes),
     ?jobs := startTributes(channel, numberOfTributes),
-    channel.send("Standing on the shoulders of giants")
+    channel.send("Standing on the shoulders of giants (${jobs.length()})")
 }
 
 fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
     if n lt numberOfTributes {
-
-?job := spawn fn () {
-            ?message := receive channel,
-            writeln("$n: $message")
-        },
+        ?job := satie.spawn(fn () {
+                    ?message := receive channel,
+                    writeln("$n: $message")
+                }),
         startTributes(channel, numberOfTributes, n + 1, job ~ jobs)
     } else {
         jobs
@@ -373,11 +392,13 @@ considered comments.
 
 `char` : A 32-bits Unicode code point
 
+`enum`: An enumeration
+
 `function` : A function
 
 `job` : A job
 
-`enum`: An enumeration
+`channel` : A mailbox channel
 
 ### Composite types
 
@@ -473,7 +494,7 @@ potentially lifted if compelling reasons arise.
 
 ### Keywords
 
-26 special identifiers cannot be used in user code. These reserved
+29 special identifiers cannot be used in user code. These reserved
 identifiers are exclusive to the language's internal syntax and
 functionality.
 
@@ -497,14 +518,28 @@ private
 readonly
 const
 this
-spawn
-monitor
-link
 receive
 timeout
 self
 nil
 ```
+
+Operators are normally not identifiers but the following reserved
+symbolic operators are exceptions:
+
+````
+gt
+gte
+lt
+lte
+bsl
+bsr
+```
+
+The reason is that the tuple syntax uses a '<' .. '>' for
+bracketing. It seemed like an awful waste to use the bracketing
+characters '<' and '>' as plain operators. Tuples are very common in
+Satie code. These operators less so.
 
 ## Literals
 
@@ -1237,7 +1272,9 @@ message.
 Study this and do not despair:
 
 ```
-import std.jobs : OnCrowding, JobStatus, SpawnOption
+import std.satie
+import std.jobs : JobStatus, SpawnOption
+import std.channels: ChannelOption
 import std.stdio
 
 export fn main() {
@@ -1251,7 +1288,7 @@ class Ackermann {
     private resultChannel
 
     this() {
-        this(resultChannel: self.makeChannel())
+        this(resultChannel: satie.makeChannel(onCrowding: <ChannelOption.block, 4>))
     }
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {
@@ -1260,11 +1297,9 @@ class Ackermann {
                 ?result := ackermann(m, n),
                 resultChannel.send(<self, m, n, result>)
             },
-            ?options := [SpawnOption.monitor: true,
-                         SpawnOption.onCrowding: <OnCrowding.block, 4>],
-            ?job := spawn fn () {
+            ?job := satie.spawn(fn () {
                         computeAckermann(m, i)
-                    } : options,
+                    }, [SpawnOption.monitor: true]),
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
             this(jobs: startedJobs)}
@@ -1273,7 +1308,7 @@ class Ackermann {
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
             if jobs.length gt 0 {
-                receive [systemChannel, self.systemChannel] {
+                receive [systemChannel, satie.systemChannel] {
                     case <?job, ?m, ?n, ?result> :
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))
@@ -1504,7 +1539,6 @@ PrimaryExpr <- "nil" /
                "self" /
                "$" /
                ControlFlowExpr /
-               SpawnExpr /
                NewExpr /
                Literal /
                BoundName /
@@ -1530,9 +1564,6 @@ ReceiveExpr <- "receive" __ Channels (_ "{"
 Channels <- Dereference / "[" _ Dereferences _ "]"
 Dereference <- Identifier (_ "." _ Identifier / _ "[" _ Expr _ "]")*
 Dereferences <- Dereference (_ "," _ Dereference)*
-
-SpawnExpr <- "spawn" __ FunctionLiteral (_ ":" _ SpawnOption)?
-SpawnOption <- Dereference / MapLiteral
 
 NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
 

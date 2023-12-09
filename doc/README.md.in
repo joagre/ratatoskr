@@ -306,11 +306,13 @@ considered comments.
 
 `char` : A 32-bits Unicode code point
 
+`enum`: An enumeration
+
 `function` : A function
 
 `job` : A job
 
-`enum`: An enumeration
+`channel` : A mailbox channel
 
 ### Composite types
 
@@ -406,7 +408,7 @@ potentially lifted if compelling reasons arise.
 
 ### Keywords
 
-26 special identifiers cannot be used in user code. These reserved
+29 special identifiers cannot be used in user code. These reserved
 identifiers are exclusive to the language's internal syntax and
 functionality.
 
@@ -430,14 +432,28 @@ private
 readonly
 const
 this
-spawn
-monitor
-link
 receive
 timeout
 self
 nil
 ```
+
+Operators are normally not identifiers but the following reserved
+symbolic operators are exceptions:
+
+````
+gt
+gte
+lt
+lte
+bsl
+bsr
+```
+
+The reason is that the tuple syntax uses a '<' .. '>' for
+bracketing. It seemed like an awful waste to use the bracketing
+characters '<' and '>' as plain operators. Tuples are very common in
+Satie code. These operators less so.
 
 ## Literals
 

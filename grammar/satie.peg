@@ -84,7 +84,6 @@ PrimaryExpr <- "nil" /
                "self" /
                "$" /
                ControlFlowExpr /
-               SpawnExpr /
                NewExpr /
                Literal /
                BoundName /
@@ -110,9 +109,6 @@ ReceiveExpr <- "receive" __ Channels (_ "{"
 Channels <- Dereference / "[" _ Dereferences _ "]"
 Dereference <- Identifier (_ "." _ Identifier / _ "[" _ Expr _ "]")*
 Dereferences <- Dereference (_ "," _ Dereference)*
-
-SpawnExpr <- "spawn" __ FunctionLiteral (_ ":" _ SpawnOption)?
-SpawnOption <- Dereference / MapLiteral
 
 NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
 
