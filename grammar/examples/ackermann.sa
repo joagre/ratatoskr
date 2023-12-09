@@ -34,7 +34,7 @@ class Ackermann {
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
             if jobs.length gt 0 {
-                receive resultChannel, self.systemChannel {
+                receive [systemChannel, self.systemChannel] {
                     case <?job, ?m, ?n, ?result> :
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))

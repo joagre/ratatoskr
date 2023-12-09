@@ -21,7 +21,7 @@ class Foo {
 }
 
 fn main() {
-    ?a := receive foo,
+    ?a := receive [foo, bar],
     {
         ?a := 3
     },

@@ -11,7 +11,8 @@ export fn main(args) {
 
 fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
     if n lt numberOfTributes {
-        ?job := spawn fn () {
+
+?job := spawn fn () {
             ?message := receive channel,
             writeln("$n: $message")
         },

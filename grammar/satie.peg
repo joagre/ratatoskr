@@ -6,7 +6,7 @@
     /*
     static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
     #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
-    fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
+    if (strcmp(rule, "WS") != 0 && strcmp(rule, "_") != 0 && strcmp(rule, "__") != 0) fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
     */
 }
 
@@ -81,10 +81,10 @@ PrimaryExpr <- "nil" /
                "this" /
                "self" /
                "$" /
-               Literal /
                ControlFlowExpr /
                SpawnExpr /
                NewExpr /
+               Literal /
                BoundName /
                "(" _ Expr _ ")"
 
@@ -95,17 +95,19 @@ IfExpr <- "if" __ Expr _ BlockExpr
           (_ "else" _ BlockExpr)?
 
 SwitchExpr <- "switch" __ Expr (_ "is" _ UnboundName)? _ "{"
-             (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
+             (_ "case" __ MatchExpr _ ":" _ BlockLevelExprs)+ _
              (_ "default" _ ":" _ BlockLevelExprs)? _
              "}"
 UnboundName <- "?" _ Identifier
 
 ReceiveExpr <- "receive" __ Channels (_ "{"
-               (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
-               (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
+                    (_ "case" __ MatchExpr _ ":" _ BlockLevelExprs _)+
+                    (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
                "}")?
-Channels <- Dereference (_ "," _ Dereference)*
-Dereference <- Identifier _ ("." _ Identifier / "[" _ Expr _ "]")*
+
+Channels <- Dereference / "[" _ Dereferences _ "]"
+Dereference <- Identifier (_ "." _ Identifier / _ "[" _ Expr _ "]")*
+Dereferences <- Dereference (_ "," _ Dereference)*
 
 SpawnExpr <- "spawn" __ FunctionLiteral (_ ":" _ SpawnOption)?
 SpawnOption <- Dereference / MapLiteral
