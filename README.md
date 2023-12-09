@@ -30,29 +30,9 @@ import std.stdio : writeln
 
 export fn main(args) {
     ?numberOfTributes := args[1],
-    /*
-       satie.makeChannel() creates a channel which by default is
-       buffered and unbounded in size. Like in Erlang.
-
-       A channel can be created with the following modifiers though:
-
-       copies: N
-           Keep a message in the mailbox until N instancces has read it
-       fade N:
-           If a message hasn't been read in N milliseconds let it fade
-           away
-       sync Bool:
-           Should the sender blocks until the receiver has read the
-           message (defaults to false)
-       size <Type, Size>:
-           Set the number of messages allowed in a mailbox to Size. If
-           this threshold is reached the sender blocks or the message
-           is ignored, depending on Type (which can either the enum
-           ChannelOption.block or ChannelOption.ignore).
-    */
     ?channel := satie.makeChannel(copies: numberOfTributes),
     ?jobs := startTributes(channel, numberOfTributes),
-    channel.send("Standing on the shoulders of giants (${jobs.length()})")
+    channel.send("Standing on the shoulders of ${jobs.length} giants")
 }
 
 fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
@@ -66,6 +46,23 @@ fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
         jobs
     }
 }
+
+/*
+A channel can be created with the following modifiers though:
+
+copies: N
+    Keep a message in the mailbox until N instances has read it
+fade: N
+    If a message hasn't been read in N milliseconds it fades away
+sync: Bool
+    Should the sender block until the receiver has read the message
+    (defaults to false)?
+size: <Type, Size>
+    Set the number of messages allowed in a channel to Size. If this
+    threshold is reached the sender blocks or the message is ignored,
+    depending on Type (which can either the enum ChannelOption.block
+    or ChannelOption.ignore).
+*/
 $ sac tribute.sa
 $ sa build/tribute 100000
 0: Standing on the shoulders of giants
@@ -1315,9 +1312,6 @@ class Ackermann {
                     case <JobStatus.died, ?job, ?reason> :
                         stdio.writeln("Oh no! Compute job $job died: $reason"),
                         waitForJobs(jobs.delete(job))
-                    case ?message :
-                        stdio.writeln("Oh no! Got an unknown message: $message"),
-                        waitForJobs(jobs)
                 }
             } else {
                 this(jobs: [])

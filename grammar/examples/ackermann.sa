@@ -41,9 +41,6 @@ class Ackermann {
                     case <JobStatus.died, ?job, ?reason> :
                         stdio.writeln("Oh no! Compute job $job died: $reason"),
                         waitForJobs(jobs.delete(job))
-                    case ?message :
-                        stdio.writeln("Oh no! Got an unknown message: $message"),
-                        waitForJobs(jobs)
                 }
             } else {
                 this(jobs: [])
