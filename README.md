@@ -48,7 +48,7 @@ fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
 }
 
 /*
-A channel can be created with the following modifiers though:
+A channel can be created with the following modifiers:
 
 copies: N
     Keep a message in the mailbox until N instances has read it
@@ -60,8 +60,8 @@ sync: Bool
 size: <Type, Size>
     Set the number of messages allowed in a channel to Size. If this
     threshold is reached the sender blocks or the message is ignored,
-    depending on Type (which can either the enum ChannelOption.block
-    or ChannelOption.ignore).
+    depending on Type (which can either be the enum
+    ChannelOption.block or ChannelOption.ignore).
 */
 $ sac tribute.sa
 $ sa build/tribute 100000
