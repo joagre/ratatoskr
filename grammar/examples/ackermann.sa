@@ -21,21 +21,20 @@ class Ackermann {
                 ?result := ackermann(m, n),
                 resultChannel.send(<self, m, n, result>)
             },
-//            ?options := [SpawnOption.monitor: true,
-//                         SpawnOption.onCrowding: <OnCrowding.block, 4>],
-//            ?options := ["foo": 1],
-            ?job := spawn monitor computeAckermann(m, i),
+            ?options := [SpawnOption.monitor: true,
+                         SpawnOption.onCrowding: <OnCrowding.block, 4>],
+            ?job := spawn fn () {
+                        computeAckermann(m, i)
+                    } : options,
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
-            this(jobs: startedJobs)
-        }
+            this(jobs: startedJobs)}
     }
 
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
             if jobs.length gt 0 {
-                // FIXME: Should be self.systemChannel I think.
-                receive resultChannel, systemChannel {
+                receive resultChannel, self.systemChannel {
                     case <?job, ?m, ?n, ?result> :
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))

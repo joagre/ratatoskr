@@ -65,16 +65,17 @@ ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
 DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
 MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
 ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
-CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ SendMessageExpr /
-            SendMessageExpr
-SendMessageExpr <- BitwiseComplementExpr (_ "*" _ BitwiseComplementExpr)*
+CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ BitwiseComplementExpr /
+            BitwiseComplementExpr
 BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
 NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
 UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
 UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
-PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
+PostfixExpr <- PrimaryExpr _ (
+                              "." _ Identifier /
                               "(" _ Args? _ ")" /
-                              "[" _ Expr _ "]")*
+                              "[" _ Expr _ "]"
+                             )*
 
 PrimaryExpr <- "nil" /
                "this" /
@@ -93,7 +94,7 @@ IfExpr <- "if" __ Expr _ BlockExpr
           (_ "elif" __ Expr _ BlockExpr)*
           (_ "else" _ BlockExpr)?
 
-SwitchExpr <- "switch" __ Expr (_ "is" _ (UnboundName / BoundName))? _ "{"
+SwitchExpr <- "switch" __ Expr (_ "is" _ UnboundName)? _ "{"
              (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
              (_ "default" _ ":" _ BlockLevelExprs)? _
              "}"
@@ -103,10 +104,11 @@ ReceiveExpr <- "receive" __ Channels (_ "{"
                (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
                (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
                "}")?
-# FIXME: Think (function, variable, ., literal map) = name
-Channels <- Identifier (_ "," _ Identifier)*
+Channels <- Dereference (_ "," _ Dereference)*
+Dereference <- Identifier _ ("." _ Identifier / "[" _ Expr _ "]")*
 
-SpawnExpr <- "spawn" (_ "monitor" / "link")? __ Expr
+SpawnExpr <- "spawn" __ FunctionLiteral (_ ":" _ SpawnOption)?
+SpawnOption <- Dereference / MapLiteral
 
 NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
 
@@ -178,8 +180,6 @@ KeyValue <- (Literal / Identifier) _ ":" _ Expr
 #
 # Match expression
 #
-
-#MatchExpr <- (Literal / UnboundName / Identifier)
 
 MatchExpr <- MatchLiteral / UnboundName / BoundName
 MatchExprs <- MatchExpr (_ "," _ MatchExpr)*
