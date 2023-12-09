@@ -39,6 +39,10 @@ fn main() {
         case b:
             c
     },
+    switch a {
+        case <?b, a>, <?b, a>:
+            c
+    },
     <1, 2>,
     receive foo {
         case a:

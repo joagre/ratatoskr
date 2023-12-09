@@ -6,7 +6,9 @@
     /*
     static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
     #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
-    if (strcmp(rule, "WS") != 0 && strcmp(rule, "_") != 0 && strcmp(rule, "__") != 0) fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
+    if (strcmp(rule, "WS") != 0 && strcmp(rule, "_") != 0 && strcmp(rule, "__") != 0) \
+        fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], \
+                rule, pos, (int)(length), buffer)
     */
 }
 
@@ -95,13 +97,13 @@ IfExpr <- "if" __ Expr _ BlockExpr
           (_ "else" _ BlockExpr)?
 
 SwitchExpr <- "switch" __ Expr (_ "is" _ UnboundName)? _ "{"
-             (_ "case" __ MatchExpr _ ":" _ BlockLevelExprs)+ _
+             (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
              (_ "default" _ ":" _ BlockLevelExprs)? _
              "}"
 UnboundName <- "?" _ Identifier
 
 ReceiveExpr <- "receive" __ Channels (_ "{"
-                    (_ "case" __ MatchExpr _ ":" _ BlockLevelExprs _)+
+                    (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
                     (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
                "}")?
 
@@ -121,12 +123,14 @@ BoundName <- Identifier
 #
 
 Literal <- BaseLiteral / CompositeLiteral
+
 BaseLiteral <- BooleanLiteral /
                NumberLiteral /
                CharacterLiteral /
                StringLiteral /
                FunctionLiteral /
                EnumLiteral
+
 CompositeLiteral <- TupleLiteral /
                     (BoundName _)? ListLiteral /
                     (BoundName _)? MapLiteral
@@ -187,11 +191,13 @@ MatchExpr <- MatchLiteral / UnboundName / BoundName
 MatchExprs <- MatchExpr (_ "," _ MatchExpr)*
 
 MatchLiteral <- MatchBaseLiteral / MatchCompositeLiteral
+
 MatchBaseLiteral <- BooleanLiteral /
                     NumberLiteral /
                     CharacterLiteral /
                     StringLiteral /
                     EnumLiteral
+
 MatchCompositeLiteral <- MatchTupleLiteral /
                          (BoundName _)? MatchListLiteral /
                          (BoundName _)? MatchMapLiteral

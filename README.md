@@ -29,14 +29,16 @@ import std.lists
 
 export fn main(args) {
     ?numberOfTributes := args[1],
-    ?channel := self.makeChannel(copies: numberOfTributes, keepAfterRead: 2000),
+    // sync: true is also a possible idea
+    ?channel := self.makeChannel(copies: numberOfTributes, keep: 2000),
     ?jobs := startTributes(channel, numberOfTributes),
     channel.send("Standing on the shoulders of giants")
 }
 
 fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
     if n lt numberOfTributes {
-        ?job := spawn fn () {
+
+?job := spawn fn () {
             ?message := receive channel,
             writeln("$n: $message")
         },
@@ -1235,7 +1237,7 @@ message.
 Study this and do not despair:
 
 ```
-import std.jobs : OnCrowding, Job
+import std.jobs : OnCrowding, JobStatus, SpawnOption
 import std.stdio
 
 export fn main() {
@@ -1258,23 +1260,24 @@ class Ackermann {
                 ?result := ackermann(m, n),
                 resultChannel.send(<self, m, n, result>)
             },
-            ?job := spawn monitor computeAckermann(m, i),
+            ?options := [SpawnOption.monitor: true,
+                         SpawnOption.onCrowding: <OnCrowding.block, 4>],
+            ?job := spawn fn () {
+                        computeAckermann(m, i)
+                    } : options,
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
-            this(jobs: startedJobs)
-        }
+            this(jobs: startedJobs)}
     }
 
     public fn waitForJobs() {
-        ?self := self.setMaxMailboxSize(job, 4, OnCrowding.block),
         fn waitForJobs(jobs) {
             if jobs.length gt 0 {
-                // FIXME: Should be self.systemChannel I think.
-                receive resultChannel, systemChannel {
+                receive [systemChannel, self.systemChannel] {
                     case <?job, ?m, ?n, ?result> :
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))
-                    case <Job.died, ?job, ?reason> :
+                    case <JobStatus.died, ?job, ?reason> :
                         stdio.writeln("Oh no! Compute job $job died: $reason"),
                         waitForJobs(jobs.delete(job))
                     case ?message :
@@ -1423,7 +1426,9 @@ Operators in decreasing order of precedence:
     /*
     static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
     #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
-    fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], rule, pos, (int)(length), buffer)
+    if (strcmp(rule, "WS") != 0 && strcmp(rule, "_") != 0 && strcmp(rule, "__") != 0) \
+        fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], \
+                rule, pos, (int)(length), buffer)
     */
 }
 
@@ -1446,12 +1451,14 @@ TopLevelDefError <- ("," / ";") {
           $0, auxil->line);
 }
 
-Imports <- Import (__ Import)*
-Import <- "import" __ (ModuleAlias _ "=" _)? _ ModulePath
-ModuleAlias <- Identifier
+#
+# Import
+#
 
-ModulePath <- Identifier ("." Identifier)* (_ ":" _ ImportedEntities)?
-ImportedEntities <- Identifier (_ "," _ Identifier)*
+Imports <- Import (__ Import)*
+Import <- "import" __ (Identifier _ "=" _)? _ ModulePath
+ModulePath <- Identifier ("." Identifier)* (_ ":" _ ImportedConstructs)?
+ImportedConstructs <- Identifier (_ "," _ Identifier)*
 
 #
 # Expression
@@ -1480,40 +1487,73 @@ ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
 DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
 MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
 ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
-CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ SendMessageExpr /
-            SendMessageExpr
-SendMessageExpr <- BitwiseComplementExpr (_ "*" _ BitwiseComplementExpr)*
+CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ BitwiseComplementExpr /
+            BitwiseComplementExpr
 BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
 NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
 UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
 UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
-PostfixExpr <- PrimaryExpr _ ("." _ (ControlFlowExpr / Identifier) /
+PostfixExpr <- PrimaryExpr _ (
+                              "." _ Identifier /
                               "(" _ Args? _ ")" /
-                              "[" _ Expr _ "]")*
-
-MatchExpr <- (Literal / UnboundName / Identifier)
-             (_ "is" _ (UnboundName / Identifier))?
+                              "[" _ Expr _ "]"
+                             )*
 
 PrimaryExpr <- "nil" /
                "this" /
                "self" /
                "$" /
-               Literal /
                ControlFlowExpr /
                SpawnExpr /
                NewExpr /
-               UnboundName /
-               Identifier /
+               Literal /
+               BoundName /
                "(" _ Expr _ ")"
 
-Literal <- BooleanLiteral /
-           NumberLiteral /
-           CharacterLiteral /
-           StringLiteral /
-           FunctionLiteral /
-           TupleLiteral /
-           (Identifier _)? ListLiteral /
-           (Identifier _)? MapLiteral
+ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
+
+IfExpr <- "if" __ Expr _ BlockExpr
+          (_ "elif" __ Expr _ BlockExpr)*
+          (_ "else" _ BlockExpr)?
+
+SwitchExpr <- "switch" __ Expr (_ "is" _ UnboundName)? _ "{"
+             (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
+             (_ "default" _ ":" _ BlockLevelExprs)? _
+             "}"
+UnboundName <- "?" _ Identifier
+
+ReceiveExpr <- "receive" __ Channels (_ "{"
+                    (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
+                    (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
+               "}")?
+
+Channels <- Dereference / "[" _ Dereferences _ "]"
+Dereference <- Identifier (_ "." _ Identifier / _ "[" _ Expr _ "]")*
+Dereferences <- Dereference (_ "," _ Dereference)*
+
+SpawnExpr <- "spawn" __ FunctionLiteral (_ ":" _ SpawnOption)?
+SpawnOption <- Dereference / MapLiteral
+
+NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
+
+BoundName <- Identifier
+
+#
+# Literal
+#
+
+Literal <- BaseLiteral / CompositeLiteral
+
+BaseLiteral <- BooleanLiteral /
+               NumberLiteral /
+               CharacterLiteral /
+               StringLiteral /
+               FunctionLiteral /
+               EnumLiteral
+
+CompositeLiteral <- TupleLiteral /
+                    (BoundName _)? ListLiteral /
+                    (BoundName _)? MapLiteral
 
 BooleanLiteral <- "true" / "false"
 
@@ -1548,6 +1588,8 @@ RawString <- 'r"' [^"]* '"'
 
 FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 
+EnumLiteral <- Identifier _ "." _ Identifier
+
 TupleLiteral <- "<" _ Exprs? _ ">"
 Exprs <- Expr (_ "," _ Expr)*
 
@@ -1561,31 +1603,32 @@ MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues <- KeyValue (_ "," _ KeyValue)*
 KeyValue <- (Literal / Identifier) _ ":" _ Expr
 
-ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
+#
+# Match expression
+#
 
-IfExpr <- "if" __ Expr _ BlockExpr
-          (_ "elif" __ Expr _ BlockExpr)*
-          (_ "else" _ BlockExpr)?
-
-SwitchExpr <- "switch" __ Expr _ "{"
-             (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
-             (_ "default" _ ":" _ BlockLevelExprs)? _
-             "}"
+MatchExpr <- MatchLiteral / UnboundName / BoundName
 MatchExprs <- MatchExpr (_ "," _ MatchExpr)*
 
-ReceiveExpr <- "receive" __ Channels (_ "{"
-               (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
-               (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
-               "}")?
-Channels <- Identifier (_ "," _ Identifier)*
+MatchLiteral <- MatchBaseLiteral / MatchCompositeLiteral
 
-SpawnExpr <- "spawn" (__ "monitor" / "link")? __ Expr
+MatchBaseLiteral <- BooleanLiteral /
+                    NumberLiteral /
+                    CharacterLiteral /
+                    StringLiteral /
+                    EnumLiteral
 
-NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
+MatchCompositeLiteral <- MatchTupleLiteral /
+                         (BoundName _)? MatchListLiteral /
+                         (BoundName _)? MatchMapLiteral
 
-UnboundName <- "?" _ Identifier
+MatchListLiteral <- "[" _ MatchExprs? _ "]"
 
-Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
+MatchTupleLiteral <- "<" _ MatchExprs? _ ">"
+
+MatchMapLiteral <- "[:]" / "[" _ MatchKeyValues? _ "]"
+MatchKeyValues <- MatchKeyValue (_ "," _ MatchKeyValue)*
+MatchKeyValue <- (MatchLiteral / Identifier) _ ":" _ MatchExpr
 
 #
 # Class definition
@@ -1662,6 +1705,7 @@ NamedArg <- Identifier _ ":" _ Expr
 # Misc
 #
 
+Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 #_ <- WS*
 #__ <- WS+
 _ <- (WS / Comments)*
