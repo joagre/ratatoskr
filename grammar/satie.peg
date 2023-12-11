@@ -9,7 +9,7 @@
     if (strcmp(rule, "WS") != 0 && strcmp(rule, "_") != 0 && strcmp(rule, "__") != 0) \
         fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], \
                 rule, pos, (int)(length), buffer)
-    */
+*/
 }
 
 %auxil "satie_auxil_t*"
@@ -24,12 +24,14 @@
 # Top level structure
 #
 
-Program <- _ (i:Imports __)? TopLevelDefs EOF {
-               $$ = CCN(PROGRAM, 1, i);
-           }
-TopLevelDefs <- TopLevelDef (__ TopLevelDef / TopLevelDefError)*
-TopLevelDef <- ClassDef / InterfaceDef / EnumDef / FunctionDef
-TopLevelDefError <- ("," / ";") {
+Program <- _ (i:Imports __)? t:TopLevelDefs EOF {
+    $$ = CCN(PROGRAM, 2, i, t);
+}
+TopLevelDefs <- t:TopLevelDef { AN(TOP_LEVEL_DEFS, t); } (__ t:TopLevelDef { AN(TOP_LEVEL_DEFS, t); } / TopDefError)* {
+    $$ = CSN(TOP_LEVEL_DEFS);
+}
+TopLevelDef <- t:ClassDef { $$ = t; } / t:InterfaceDef { $$ = t; } / t:EnumDef { $$ = t; } / t:FunctionDef { $$ = t; }
+TopDefError <- ("," / ";") {
     panic("Unexpected %s between top level definitions on line %d",
           $0, auxil->row);
 }
@@ -39,23 +41,30 @@ TopLevelDefError <- ("," / ";") {
 #
 
 Imports <- i:Import { AN(IMPORT, i); } (__ i:Import { AN(IMPORT, i); })* {
-               $$ = CSN(IMPORTS);
-           }
+    $$ = CSN(IMPORTS);
+}
 
-Import <- "import" __ (a:Alias _ "=" _)? _ mi:Module
-          (_ ":" _ in:ImportedNames)? {
-              $$ = CCN(IMPORT, 3, a, mi, in);
-          }
-Alias <- Identifier { $$ = CT(ALIAS, $0); }
+Import <- "import" __ (a:Alias _ "=" _)? _ m:Module (_ ":" _ i:ImportedNames)? {
+    $$ = CCN(IMPORT, 3, a, m, i);
+}
+Alias <- Identifier {
+    $$ = CT(ALIAS, $0);
+}
 
-Module <- ModuleComponent RemainingModule? { $$ = CSN(MODULE); }
-ModuleComponent <- Identifier { AT(MODULE_COMPONENT, $0); }
+Module <- ModuleComponent RemainingModule? {
+    $$ = CSN(MODULE);
+}
+ModuleComponent <- Identifier {
+    AT(MODULE_COMPONENT, $0);
+}
 RemainingModule <- "." ModuleComponent RemainingModule?
 
 ImportedNames <- ImportedName RemainingImportedNames? {
-                     $$ = CSN(IMPORTED_NAMES);
-                 }
-ImportedName <- Identifier { AT(IMPORTED_NAME, $0); }
+    $$ = CSN(IMPORTED_NAMES);
+}
+ImportedName <- Identifier {
+    AT(IMPORTED_NAME, $0);
+}
 RemainingImportedNames <- _ "," _ ImportedName RemainingImportedNames?
 
 #
@@ -261,9 +270,22 @@ InterfaceMemberError <- ("," / ";") {
 # Enumeration definition
 #
 
-EnumDef <- "enum" __ Identifier _ "{" _ EnumValues _ "}"
-EnumValues <- EnumValue (__ EnumValue / EnumValueError)*
-EnumValue <- Identifier (_ "=" _ Expr)?
+EnumDef <- "enum" __ ed:EnumDefName _ "{" _ e:Enums _ "}" {
+    $$ = CCN(ENUM_DEF, 2, ed, e);
+}
+EnumDefName <- Identifier {
+    $$ = CT(ENUM_DEF_NAME, $0);
+}
+
+Enums <- e:Enum { AN(ENUMS, e); } (__ e:Enum { AN(ENUMS, e); } / EnumValueError)* {
+    $$ = CSN(ENUMS);
+}
+Enum <- en:EnumName (_ "=" _ e:Expr)? {
+    $$ = CCN(ENUM, 2, en, CT(ENUM_VALUE, "value"));
+}
+EnumName <- Identifier {
+    $$ = CT(ENUM_NAME, $0);
+}
 EnumValueError <- ("," / ";") {
     panic("Unexpected %s between enum values on line %d", $0, auxil->row);
 }
