@@ -276,11 +276,11 @@ EnumDef <- "enum" __ ed:EnumDefName _ "{" _ e:Enums _ "}" {
 EnumDefName <- Identifier {
     $$ = CT(ENUM_DEF_NAME, $0);
 }
-
 Enums <- e:Enum { AN(ENUMS, e); } (__ e:Enum { AN(ENUMS, e); } / EnumValueError)* {
     $$ = CSN(ENUMS);
 }
 Enum <- en:EnumName (_ "=" _ e:Expr)? {
+    // FIXME: Use the expression value as the enum value
     $$ = CCN(ENUM, 2, en, CT(ENUM_VALUE, "value"));
 }
 EnumName <- Identifier {
@@ -295,14 +295,31 @@ EnumValueError <- ("," / ";") {
 #
 
 FunctionDef <- ("export" _)?
-               "fn" __ Identifier _ "(" _ Params? _ ")" _ BlockExpr
-Params <- NonDefaultParams _ "," _ DefaultParams /
-          NonDefaultParams /
-          DefaultParams
-NonDefaultParams <- NonDefaultParam (_ "," _ NonDefaultParam)*
-NonDefaultParam <- Identifier !(_ "=")
-DefaultParams <- DefaultParam (_ "," _ DefaultParam)*
-DefaultParam <- Identifier _ "=" _ Expr
+               "fn" __ f:FunctionName _ "(" _ p:Params? _ ")" _ b:BlockExpr {
+    $$ = CCN(FUNCTION_DEF, 3, f, p, b);
+}
+FunctionName <- Identifier {
+    $$ = CT(FUNCTION_NAME, $0);
+}
+Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CCN(PARAMS, 2, n, d); } /
+          n:NonDefaultParams { $$ = n; } /
+          d:DefaultParams { $$ = d; }
+NonDefaultParams <- n:NonDefaultParam { AN(NON_DEFAULT_PARAMS, n); }
+                    (_ "," _ n:NonDefaultParam { AN(NON_DEFAULT_PARAMS, n); })* {
+    $$ = CSN(NON_DEFAULT_PARAMS);
+}
+NonDefaultParam <- Identifier !(_ "=") {
+    $$ = CT(NON_DEFAULT_PARAM, $0);
+}
+DefaultParams <- d:DefaultParam { AN(DEFAULT_PARAMS, d); } (_ "," _ d:DefaultParam {AN(DEFAULT_PARAMS, d); })* {
+    $$ = CSN(DEFAULT_PARAMS);
+}
+DefaultParam <- i:DefaultParamName _ "=" _ e:Expr {
+    $$ = CCN(DEFAULT_PARAM, 2, i, CT(EXPR, "expr"));
+}
+DefaultParamName <- Identifier {
+    $$ = CT(DEFAULT_PARAM_NAME, $0);
+}
 
 BlockExpr <- "{" _ BlockLevelExprs _ "}"
 BlockLevelExprs <- BlockLevelExpr (_ Comma _ BlockLevelExpr)*

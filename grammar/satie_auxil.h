@@ -14,6 +14,8 @@ typedef dynarray_t node_array_t;
 typedef enum {
     PROGRAM = 0,
     TOP_LEVEL_DEFS,
+    // Expressions
+    EXPR,
     // IMPORT
     IMPORTS,
     IMPORT,
@@ -29,6 +31,15 @@ typedef enum {
     ENUM,
     ENUM_NAME,
     ENUM_VALUE,
+    // Function definition
+    FUNCTION_DEF,
+    FUNCTION_NAME,
+    PARAMS,
+    NON_DEFAULT_PARAMS,
+    NON_DEFAULT_PARAM,
+    DEFAULT_PARAMS,
+    DEFAULT_PARAM,
+    DEFAULT_PARAM_NAME,
     NOT_SET
 } satie_node_type_t;
 
@@ -58,6 +69,8 @@ static char* type_to_string(satie_node_type_t type) {
         return "PROGRAM";
     case TOP_LEVEL_DEFS:
         return "TOP_LEVEL_DEFS";
+    case EXPR:
+        return "EXPR";
     case IMPORTS:
         return "IMPORTS";
     case IMPORT:
@@ -84,11 +97,29 @@ static char* type_to_string(satie_node_type_t type) {
         return "ENUM_NAME";
     case ENUM_VALUE:
         return "ENUM_VALUE";
+    case FUNCTION_DEF:
+        return "FUNCTION_DEF";
+    case FUNCTION_NAME:
+        return "FUNCTION_NAME";
+    case PARAMS:
+        return "PARAMS";
+    case NON_DEFAULT_PARAMS:
+        return "NON_DEFAULT_PARAMS";
+    case NON_DEFAULT_PARAM:
+        return "NON_DEFAULT_PARAM";
+    case DEFAULT_PARAMS:
+        return "DEFAULT_PARAMS";
+    case DEFAULT_PARAM:
+        return "DEFAULT_PARAM";
+    case DEFAULT_PARAM_NAME:
+        return "DEFAULT_PARAM_NAME";
+    case NOT_SET:
+        return "NOT_SET";
     default:
+        fprintf(stderr, "Unknown type: %d\n", type);
         assert(false);
     }
 }
-
 
 static satie_auxil_t* satie_auxil_new() {
     satie_auxil_t* auxil = malloc(sizeof(satie_auxil_t));
