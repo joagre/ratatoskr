@@ -11,37 +11,84 @@ static int ROW = 1;
 
 typedef dynarray_t node_array_t;
 
+#define FOREACH_TYPE(TYPE) \
+        TYPE(PROGRAM) \
+        TYPE(TOP_LEVEL_DEFS) \
+        TYPE(EXPR) \
+        TYPE(BIND_EXPR) \
+        TYPE(OR) \
+        TYPE(AND) \
+        TYPE(BITWISE_AND) \
+        TYPE(BITWISE_XOR) \
+        TYPE(BITWISE_OR) \
+        TYPE(GTE) \
+        TYPE(GT) \
+        TYPE(LTE) \
+        TYPE(LT) \
+        TYPE(NE) \
+        TYPE(EQ) \
+        TYPE(IN) \
+        TYPE(BSR) \
+        TYPE(BSL) \
+        TYPE(CONCATENATE) \
+        TYPE(MINUS) \
+        TYPE(PLUS) \
+        TYPE(MODULUS) \
+        TYPE(DIVIDE) \
+        TYPE(MULTIPLY) \
+        TYPE(EXPONENTIATE) \
+        TYPE(CAST) \
+        TYPE(BITWISE_COMPLEMENT) \
+        TYPE(NOT) \
+        TYPE(UNARY_PLUS) \
+        TYPE(UNARY_MINUS) \
+        TYPE(POSTFIX_EXPR) \
+        TYPE(CAST_INT) \
+        TYPE(CAST_FLOAT) \
+        TYPE(NIL) \
+        TYPE(THIS) \
+        TYPE(SELF) \
+        TYPE(SLICE_LENGTH) \
+        TYPE(BOUND_NAME) \
+        TYPE(IDENTIFIER) \
+        TYPE(IMPORTS)        \
+        TYPE(IMPORT) \
+        TYPE(ALIAS) \
+        TYPE(MODULE) \
+        TYPE(MODULE_COMPONENT) \
+        TYPE(IMPORTED_NAMES) \
+        TYPE(IMPORTED_NAME) \
+        TYPE(ENUM_DEF) \
+        TYPE(ENUM_DEF_NAME) \
+        TYPE(ENUMS) \
+        TYPE(ENUM) \
+        TYPE(ENUM_NAME) \
+        TYPE(ENUM_VALUE) \
+        TYPE(FUNCTION_DEF) \
+        TYPE(FUNCTION_NAME) \
+        TYPE(PARAMS) \
+        TYPE(NON_DEFAULT_PARAMS) \
+        TYPE(NON_DEFAULT_PARAM) \
+        TYPE(DEFAULT_PARAMS) \
+        TYPE(DEFAULT_PARAM) \
+        TYPE(DEFAULT_PARAM_NAME) \
+        TYPE(NOT_SET)
+
+#define GENERATE_ENUM(ENUM) ENUM,
+
 typedef enum {
-    PROGRAM = 0,
-    TOP_LEVEL_DEFS,
-    // Expressions
-    EXPR,
-    // IMPORT
-    IMPORTS,
-    IMPORT,
-    ALIAS,
-    MODULE,
-    MODULE_COMPONENT,
-    IMPORTED_NAMES,
-    IMPORTED_NAME,
-    // Enumeration defintion
-    ENUM_DEF,
-    ENUM_DEF_NAME,
-    ENUMS,
-    ENUM,
-    ENUM_NAME,
-    ENUM_VALUE,
-    // Function definition
-    FUNCTION_DEF,
-    FUNCTION_NAME,
-    PARAMS,
-    NON_DEFAULT_PARAMS,
-    NON_DEFAULT_PARAM,
-    DEFAULT_PARAMS,
-    DEFAULT_PARAM,
-    DEFAULT_PARAM_NAME,
-    NOT_SET
+    FOREACH_TYPE(GENERATE_ENUM)
 } satie_node_type_t;
+
+#define GENERATE_STRING(STRING) #STRING,
+
+static const char* type_strings[] = {
+    FOREACH_TYPE(GENERATE_STRING)
+};
+
+static const char* type_to_string(satie_node_type_t type) {
+    return type_strings[type];
+}
 
 typedef struct {
     satie_node_type_t type;
@@ -61,65 +108,6 @@ typedef struct {
     uint32_t column;
     node_array_t* children;
 } ast_node_t;
-
-// mapping between enum value and string
-static char* type_to_string(satie_node_type_t type) {
-    switch (type) {
-    case PROGRAM:
-        return "PROGRAM";
-    case TOP_LEVEL_DEFS:
-        return "TOP_LEVEL_DEFS";
-    case EXPR:
-        return "EXPR";
-    case IMPORTS:
-        return "IMPORTS";
-    case IMPORT:
-        return "IMPORT";
-    case ALIAS:
-        return "ALIAS";
-    case MODULE:
-        return "MODULE";
-    case MODULE_COMPONENT:
-        return "MODULE_COMPONENT";
-    case IMPORTED_NAMES:
-        return "IMPORTED_NAMES";
-    case IMPORTED_NAME:
-        return "IMPORTED_NAME";
-    case ENUM_DEF:
-        return "ENUM_DEF";
-    case ENUM_DEF_NAME:
-        return "ENUM_DEF_NAME";
-    case ENUMS:
-        return "ENUMS";
-    case ENUM:
-        return "ENUM";
-    case ENUM_NAME:
-        return "ENUM_NAME";
-    case ENUM_VALUE:
-        return "ENUM_VALUE";
-    case FUNCTION_DEF:
-        return "FUNCTION_DEF";
-    case FUNCTION_NAME:
-        return "FUNCTION_NAME";
-    case PARAMS:
-        return "PARAMS";
-    case NON_DEFAULT_PARAMS:
-        return "NON_DEFAULT_PARAMS";
-    case NON_DEFAULT_PARAM:
-        return "NON_DEFAULT_PARAM";
-    case DEFAULT_PARAMS:
-        return "DEFAULT_PARAMS";
-    case DEFAULT_PARAM:
-        return "DEFAULT_PARAM";
-    case DEFAULT_PARAM_NAME:
-        return "DEFAULT_PARAM_NAME";
-    case NOT_SET:
-        return "NOT_SET";
-    default:
-        fprintf(stderr, "Unknown type: %d\n", type);
-        assert(false);
-    }
-}
 
 static satie_auxil_t* satie_auxil_new() {
     satie_auxil_t* auxil = malloc(sizeof(satie_auxil_t));
@@ -141,9 +129,13 @@ static ast_node_t* create_node(satie_auxil_t* auxil, satie_node_type_t type) {
 
 static ast_node_t* create_terminal(satie_auxil_t* auxil,
                                    satie_node_type_t type, const char* value) {
-    //fprintf(stderr, "** create_terminal: %s\n", value);
+    fprintf(stderr, "** create_terminal: %s\n", value);
     ast_node_t* node = create_node(auxil, type);
-    node->value = strdup(value);
+    if (value != NULL) {
+        node->value = strdup(value);
+    } else {
+        node->value = NULL;
+    }
     return node;
 }
 
@@ -163,7 +155,7 @@ static void add_nesting(satie_auxil_t* auxil, satie_node_type_t type) {
 
 static void append_terminal(satie_auxil_t* auxil, satie_node_type_t type,
                             const char* value) {
-    //fprintf(stderr, "** add_terminal: %s\n", value);
+    fprintf(stderr, "** add_terminal: %s\n", value);
     if (auxil->siblings[auxil->stack_index] == NULL ||
         auxil->siblings[auxil->stack_index]->type != type) {
         add_nesting(auxil, type);
@@ -177,7 +169,7 @@ static void append_terminal(satie_auxil_t* auxil, satie_node_type_t type,
 
 static void append_node(satie_auxil_t* auxil, satie_node_type_t type,
                         ast_node_t* node) {
-    //fprintf(stderr, "** append_node: %s\n", type_to_string(type));
+    fprintf(stderr, "** append_node: %s\n", type_to_string(type));
     if (node == NULL) {
         fprintf(stderr, "WARNING: Node of type %s is NULL\n",
                 type_to_string(type));
@@ -200,7 +192,7 @@ static ast_node_t* create_siblings_node(satie_auxil_t* auxil,
                 type_to_string(type));
         return NULL;
     }
-    //fprintf(stderr, "** create_siblings_node: %s\n", type_to_string(type));
+    fprintf(stderr, "** create_siblings_node: %s\n", type_to_string(type));
     ast_node_t* node = create_node(auxil, type);
     //fprintf(stderr, "***1 create_siblings_node\n");
     node->children = auxil->siblings[auxil->stack_index]->array;
@@ -217,7 +209,7 @@ static ast_node_t* create_siblings_node(satie_auxil_t* auxil,
 static ast_node_t* create_children_node(satie_auxil_t* auxil,
                                         satie_node_type_t type,
                                         uint16_t n, ...) {
-    //fprintf(stderr, "** create_children_node: %s\n", type_to_string(type));
+    fprintf(stderr, "** create_children_node: %s\n", type_to_string(type));
     ast_node_t* node = create_node(auxil, type);
     node->children = malloc(sizeof(node_array_t));
     dynarray_init(node->children, NULL, 0, sizeof(ast_node_t));

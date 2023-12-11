@@ -30,7 +30,7 @@ Program <- _ (i:Imports __)? t:TopLevelDefs EOF {
 TopLevelDefs <- t:TopLevelDef { AN(TOP_LEVEL_DEFS, t); } (__ t:TopLevelDef { AN(TOP_LEVEL_DEFS, t); } / TopDefError)* {
     $$ = CSN(TOP_LEVEL_DEFS);
 }
-TopLevelDef <- t:ClassDef { $$ = t; } / t:InterfaceDef { $$ = t; } / t:EnumDef { $$ = t; } / t:FunctionDef { $$ = t; }
+TopLevelDef <- (t:ClassDef / t:InterfaceDef / t:EnumDef / t:FunctionDef) { $$ = t; }
 TopDefError <- ("," / ";") {
     panic("Unexpected %s between top level definitions on line %d",
           $0, auxil->row);
@@ -43,14 +43,12 @@ TopDefError <- ("," / ";") {
 Imports <- i:Import { AN(IMPORT, i); } (__ i:Import { AN(IMPORT, i); })* {
     $$ = CSN(IMPORTS);
 }
-
 Import <- "import" __ (a:Alias _ "=" _)? _ m:Module (_ ":" _ i:ImportedNames)? {
     $$ = CCN(IMPORT, 3, a, m, i);
 }
 Alias <- Identifier {
     $$ = CT(ALIAS, $0);
 }
-
 Module <- ModuleComponent RemainingModule? {
     $$ = CSN(MODULE);
 }
@@ -58,7 +56,6 @@ ModuleComponent <- Identifier {
     AT(MODULE_COMPONENT, $0);
 }
 RemainingModule <- "." ModuleComponent RemainingModule?
-
 ImportedNames <- ImportedName RemainingImportedNames? {
     $$ = CSN(IMPORTED_NAMES);
 }
@@ -71,50 +68,115 @@ RemainingImportedNames <- _ "," _ ImportedName RemainingImportedNames?
 # Expression
 #
 
-Expr <- BindExpr
-BindExpr <- MatchExpr _ ":=" _ Expr / LogicalOrExpr
-LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
-LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
-BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
-BitwiseXorExpr <- BitwiseOrExpr (_ "^" _ BitwiseOrExpr)*
-BitwiseOrExpr <- GreaterThanEqualExpr (_ "|" _ GreaterThanEqualExpr)*
-GreaterThanEqualExpr <- GreaterThanExpr (_ "gte" _ GreaterThanExpr)*
-GreaterThanExpr <- LessThanEqualExpr (_ "gt" _ LessThanEqualExpr)*
-LessThanEqualExpr <- LessThanExpr (_ "lte" _ LessThanExpr)*
-LessThanExpr <- NotEqualExpr (_ "lt" _ NotEqualExpr)*
-NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
-EqualExpr <- InExpr (_ "==" _ InExpr)*
-InExpr <- RightShiftExpr (_ "in" _ RightShiftExpr)*
-RightShiftExpr <- LeftShiftExpr (_ "bsr" _ LeftShiftExpr)*
-LeftShiftExpr <- ConcatenateExpr (_ "bsl" _ ConcatenateExpr)*
-ConcatenateExpr <- MinusExpr (_ "~" _ MinusExpr)*
-MinusExpr <- PlusExpr (_ "-" _ PlusExpr)*
-PlusExpr <- ModulusExpr (_ "+" _ ModulusExpr)*
-ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
-DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
-MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
-ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
-CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ BitwiseComplementExpr /
-            BitwiseComplementExpr
-BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
-NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
-UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
-UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
-PostfixExpr <- PrimaryExpr _ (
-                              "." _ Identifier /
-                              "(" _ Args? _ ")" /
-                              "[" _ Expr _ "]"
-                             )*
+Expr <- e:BindExpr { $$ = e; }
+BindExpr <- l:MatchExpr _ ":=" _ e:Expr { $$ = CCN(BIND_EXPR, 2, l, e); } /
+            e:LogicalOrExpr { $$ = e; }
+LogicalOrExpr <- l:LogicalOrExpr _ "||" _ e:LogicalAndExpr { $$ = CCN(OR, 2, l, e); } /
+                 e:LogicalAndExpr { $$ = e; }
+LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ e:BitwiseAndExpr { $$ = CCN(AND, 2, l, e); } /
+                  e:BitwiseAndExpr { $$ = e; }
+BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ e:BitwiseXorExpr { $$ = CCN(BITWISE_AND, 2, l, e); } /
+                  e:BitwiseXorExpr { $$ = e; }
+BitwiseXorExpr <- l:BitwiseXorExpr _ "^" _ e:BitwiseOrExpr { $$ = CCN(BITWISE_XOR, 2, l, e); } /
+                  e:BitwiseOrExpr { $$ = e; }
+BitwiseOrExpr <- l:BitwiseOrExpr _ "|" _ e:GreaterThanEqualExpr { $$ = CCN(BITWISE_OR, 2, l, e); } /
+                 e:GreaterThanEqualExpr { $$ = e; }
+GreaterThanEqualExpr <- l:GreaterThanEqualExpr _ "gte" _ e:GreaterThanExpr { $$ = CCN(GTE, 2, l, e); } /
+                        e:GreaterThanExpr { $$ = e; }
+GreaterThanExpr <- l:GreaterThanExpr _ "gt" _ e:LessThanEqualExpr { $$ = CCN(GT, 2, l, e); } /
+                   e:LessThanEqualExpr { $$ = e; }
+LessThanEqualExpr <- l:LessThanEqualExpr _ "lte" _ e:LessThanExpr { $$ = CCN(LTE, 2, l, e); } /
+                     e:LessThanExpr { $$ = e; }
+LessThanExpr <- l:LessThanExpr _ "lt" _ e:NotEqualExpr { $$ = CCN(LT, 2, l, e); } /
+                e:NotEqualExpr { $$ = e; }
+NotEqualExpr <- l:NotEqualExpr _ "!=" _ e:EqualExpr { $$ = CCN(NE, 2, l, e); } /
+                e:EqualExpr { $$ = e; }
+EqualExpr <- l:EqualExpr _ "==" _ e:InExpr { $$ = CCN(EQ, 2, l, e); } /
+             e:InExpr { $$ = e; }
+InExpr <- l:InExpr _ "in" _ e:RightShiftExpr { $$ = CCN(IN, 2, l, e); } /
+          e:RightShiftExpr { $$ = e; }
+RightShiftExpr <- l:RightShiftExpr _ "bsr" _ e:LeftShiftExpr { $$ = CCN(BSR, 2, l, e); } /
+                  e:LeftShiftExpr { $$ = e; }
+LeftShiftExpr <- l:LeftShiftExpr _ "bsl" _ e:ConcatenateExpr { $$ = CCN(BSL, 2, l, e); } /
+                 e:ConcatenateExpr { $$ = e; }
+ConcatenateExpr <- l:ConcatenateExpr _ "~" _ e:MinusExpr { $$ = CCN(CONCATENATE, 2, l, e); } /
+                   e:MinusExpr { $$ = e; }
+MinusExpr <- l:MinusExpr _ "-" _ e:PlusExpr { $$ = CCN(MINUS, 2, l, e); } /
+             e:PlusExpr { $$ = e; }
+PlusExpr <- l:PlusExpr _ "+" _ e:ModulusExpr { $$ = CCN(PLUS, 2, l, e); } /
+            e:ModulusExpr { $$ = e; }
+ModulusExpr <- l:ModulusExpr _ "%" _ e:DivideExpr { $$ = CCN(MODULUS, 2, l, e); } /
+               e:DivideExpr { $$ = e; }
+DivideExpr <- l:DivideExpr _ "/" _ e:MultiplicateExpr { $$ = CCN(DIVIDE, 2, l, e); } /
+              e:MultiplicateExpr { $$ = e; }
+MultiplicateExpr <- l:MultiplicateExpr _ "*" _ e:ExponentiationExpr { $$ = CCN(MULTIPLY, 2, l, e); } /
+                    e:ExponentiationExpr { $$ = e; }
+ExponentiationExpr <- l:ExponentiationExpr _ "^^" _ e:CastExpr { $$ = CCN(EXPONENTIATE, 2, l, e); } /
+                      e:CastExpr { $$ = e; }
+CastExpr <- "cast" _ "(" _ (l:CastInt / l:CastFloat) _ ")" _ e:BitwiseComplementExpr { $$ = CCN(CAST, 2, l, e); } /
+            e:BitwiseComplementExpr { $$ = e; }
+BitwiseComplementExpr <- "~" _ e:NotExpr { $$ = CCN(BITWISE_COMPLEMENT, 1, e); } /
+                         e:NotExpr { $$ = e; }
+NotExpr <- "!" _ e:UnaryPlusExpr { $$ = CCN(NOT, 1, e); } /
+           e:UnaryPlusExpr { $$ = e; }
+UnaryPlusExpr <- "+" _ e:UnaryMinusExpr { $$ = CCN(UNARY_PLUS, 1, e); } /
+                 e:UnaryMinusExpr { $$ = e; }
+UnaryMinusExpr <- "-" _ e:PostfixExpr { $$ = CCN(UNARY_MINUS, 1, e); } /
+                  e:PostfixExpr { $$ = e; }
+PostfixExpr <- p:PrimaryExpr { AN(POSTFIX_EXPR, p); }
+               (_ "." _ i:Identifier { AN(POSTFIX_EXPR, i); } /
+                "(" _ a:Args? { AN(POSTFIX_EXPR, a); } _ ")" /
+                "[" _ e:Expr { AN(POSTFIX_EXPR, e); } _ "]")* {
+    $$ = CSN(POSTFIX_EXPR);
+}
 
-PrimaryExpr <- "nil" /
-               "this" /
-               "self" /
-               "$" /
-               ControlFlowExpr /
-               NewExpr /
-               Literal /
-               BoundName /
-               "(" _ Expr _ ")"
+CastInt <- "int" { $$ = CT(CAST_INT, NULL); }
+CastFloat <- "float" { $$ = CT(CAST_FLOAT, NULL); }
+
+# Expr <- BindExpr
+# BindExpr <- MatchExpr _ ":=" _ Expr / LogicalOrExpr
+# LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
+# LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
+# BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
+# BitwiseXorExpr <- BitwiseOrExpr (_ "^" _ BitwiseOrExpr)*
+# BitwiseOrExpr <- GreaterThanEqualExpr (_ "|" _ GreaterThanEqualExpr)*
+# GreaterThanEqualExpr <- GreaterThanExpr (_ "gte" _ GreaterThanExpr)*
+# GreaterThanExpr <- LessThanEqualExpr (_ "gt" _ LessThanEqualExpr)*
+# LessThanEqualExpr <- LessThanExpr (_ "lte" _ LessThanExpr)*
+# LessThanExpr <- NotEqualExpr (_ "lt" _ NotEqualExpr)*
+# NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
+# EqualExpr <- InExpr (_ "==" _ InExpr)*
+# InExpr <- RightShiftExpr (_ "in" _ RightShiftExpr)*
+# RightShiftExpr <- LeftShiftExpr (_ "bsr" _ LeftShiftExpr)*
+# LeftShiftExpr <- ConcatenateExpr (_ "bsl" _ ConcatenateExpr)*
+# ConcatenateExpr <- MinusExpr (_ "~" _ MinusExpr)*
+# MinusExpr <- PlusExpr (_ "-" _ PlusExpr)*
+# PlusExpr <- ModulusExpr (_ "+" _ ModulusExpr)*
+# ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
+# DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
+# MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
+# ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
+# CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ BitwiseComplementExpr /
+#             BitwiseComplementExpr
+# BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
+# NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
+# UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
+# UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
+# PostfixExpr <- PrimaryExpr _ (
+#                               "." _ Identifier /
+#                               "(" _ Args? _ ")" /
+#                               "[" _ Expr _ "]"
+#                              )*
+
+PrimaryExpr <- "nil" { $$ = CT(NIL, NULL); } /
+               "this" { $$ = CT(THIS, NULL); } /
+               "self" { $$ = CT(SELF, NULL); } /
+               "$" { $$ = CT(SLICE_LENGTH, NULL); } /
+               e:ControlFlowExpr { $$ = e; } /
+               e:NewExpr { $$ = e; } /
+               e:Literal { $$ = e; } /
+               e:BoundName { $$ = e; } /
+               "(" _ e:Expr _ ")" { $$ = e; }
 
 ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
 
@@ -139,7 +201,9 @@ Dereferences <- Dereference (_ "," _ Dereference)*
 
 NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
 
-BoundName <- Identifier
+BoundName <- Identifier {
+    $$ = CT(BOUND_NAME, $0);
+}
 
 #
 # Literal
@@ -280,8 +344,7 @@ Enums <- e:Enum { AN(ENUMS, e); } (__ e:Enum { AN(ENUMS, e); } / EnumValueError)
     $$ = CSN(ENUMS);
 }
 Enum <- en:EnumName (_ "=" _ e:Expr)? {
-    // FIXME: Use the expression value as the enum value
-    $$ = CCN(ENUM, 2, en, CT(ENUM_VALUE, "value"));
+    $$ = CCN(ENUM, 2, en, e);
 }
 EnumName <- Identifier {
     $$ = CT(ENUM_NAME, $0);
@@ -338,7 +401,9 @@ NamedArg <- Identifier _ ":" _ Expr
 # Misc
 #
 
-Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
+Identifier <- [a-zA-Z_][a-zA-Z_0-9_]* {
+    $$ = CT(IDENTIFIER, $0);
+}
 #_ <- WS*
 #__ <- WS+
 _ <- (WS / Comments)*
