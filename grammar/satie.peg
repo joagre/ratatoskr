@@ -41,6 +41,7 @@ TopLevelDefError <- ("," / ";") {
 Imports <- i:Import { AN(IMPORT, i); } (__ i:Import { AN(IMPORT, i); })* {
                $$ = CSN(IMPORTS);
            }
+
 Import <- "import" __ (a:Alias _ "=" _)? _ mi:Module
           (_ ":" _ in:ImportedNames)? {
               $$ = CCN(IMPORT, 3, a, mi, in);
