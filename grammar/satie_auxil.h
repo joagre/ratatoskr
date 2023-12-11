@@ -90,6 +90,8 @@ static ast_node_t* create_terminal(satie_auxil_t* auxil,
     return node;
 }
 
+#define CT(type, value) create_terminal(auxil, type, value)
+
 static void add_nesting(satie_auxil_t* auxil, satie_node_type_t type) {
     if (!(auxil->stack_index == 0 &&
           auxil->siblings[auxil->stack_index] == NULL)) {
@@ -113,6 +115,8 @@ static void append_terminal(satie_auxil_t* auxil, satie_node_type_t type,
     dynarray_append(auxil->siblings[auxil->stack_index]->array, node);
 }
 
+#define AT(type, value) append_terminal(auxil, type, value)
+
 static void append_node(satie_auxil_t* auxil, satie_node_type_t type,
                         ast_node_t* node) {
     if (auxil->siblings[auxil->stack_index] == NULL ||
@@ -122,6 +126,8 @@ static void append_node(satie_auxil_t* auxil, satie_node_type_t type,
     dynarray_append(auxil->siblings[auxil->stack_index]->array, node);
 }
 
+#define AN(type, node) append_node(auxil, type, node)
+
 static ast_node_t* create_siblings_node(satie_auxil_t* auxil,
                                         satie_node_type_t type) {
     ast_node_t* node = create_node(auxil, type);
@@ -130,6 +136,8 @@ static ast_node_t* create_siblings_node(satie_auxil_t* auxil,
     auxil->stack_index--;
     return node;
 }
+
+#define CSN(type) create_siblings_node(auxil, type)
 
 static ast_node_t* create_children_node(satie_auxil_t* auxil,
                                         satie_node_type_t type,
@@ -147,6 +155,8 @@ static ast_node_t* create_children_node(satie_auxil_t* auxil,
     }
     return node;
 }
+
+#define CCN(type, n, ...) create_children_node(auxil, type, n, __VA_ARGS__)
 
 static void print_ast(ast_node_t* node, uint16_t level) {
     for (uint16_t i = 0; i < level; i++) {

@@ -25,7 +25,7 @@
 #
 
 Program <- _ (i:Imports __)? TopLevelDefs EOF {
-               $$ = create_children_node(auxil, PROGRAM, 1, i);
+               $$ = CCN(PROGRAM, 1, i);
            }
 TopLevelDefs <- TopLevelDef (__ TopLevelDef / TopLevelDefError)*
 TopLevelDef <- ClassDef / InterfaceDef / EnumDef / FunctionDef
@@ -38,29 +38,24 @@ TopLevelDefError <- ("," / ";") {
 # Import
 #
 
-Imports <- i:Import { append_node(auxil, IMPORT, i); }
-           (__ i:Import { append_node(auxil, IMPORT, i); })* {
-               $$ = create_siblings_node(auxil, IMPORTS);
+Imports <- i:Import { AN(IMPORT, i); } (__ i:Import { AN(IMPORT, i); })* {
+               $$ = CSN(IMPORTS);
            }
 Import <- "import" __ (a:Alias _ "=" _)? _ mi:Module
-           (_ ":" _ in:ImportedNames)? {
-              $$ = create_children_node(auxil, IMPORT, 3, a, mi, in);
+          (_ ":" _ in:ImportedNames)? {
+              $$ = CCN(IMPORT, 3, a, mi, in);
           }
-Alias <- Identifier {
-             $$ = create_terminal(auxil, ALIAS, $0);
-         }
+Alias <- Identifier { $$ = CT(ALIAS, $0); }
 
-Module <- ModuleComponent RemainingModule? {
-              $$ = create_siblings_node(auxil, MODULE);
-          }
+Module <- ModuleComponent RemainingModule? { $$ = CSN(MODULE); }
 RemainingModule <- "." ModuleComponent RemainingModule?
-ModuleComponent <- Identifier { append_terminal(auxil, MODULE_COMPONENT, $0); }
+ModuleComponent <- Identifier { AT(MODULE_COMPONENT, $0); }
 
 ImportedNames <- ImportedName RemainingImportedNames? {
-                     $$ = create_siblings_node(auxil, IMPORTED_NAMES);
+                     $$ = CSN(IMPORTED_NAMES);
                  }
 RemainingImportedNames <- _ "," _ ImportedName RemainingImportedNames?
-ImportedName <- Identifier { append_terminal(auxil, IMPORTED_NAME, $0); }
+ImportedName <- Identifier { AT(IMPORTED_NAME, $0); }
 
 #
 # Expression
