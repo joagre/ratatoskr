@@ -49,14 +49,14 @@ Import <- "import" __ (a:Alias _ "=" _)? _ mi:Module
 Alias <- Identifier { $$ = CT(ALIAS, $0); }
 
 Module <- ModuleComponent RemainingModule? { $$ = CSN(MODULE); }
-RemainingModule <- "." ModuleComponent RemainingModule?
 ModuleComponent <- Identifier { AT(MODULE_COMPONENT, $0); }
+RemainingModule <- "." ModuleComponent RemainingModule?
 
 ImportedNames <- ImportedName RemainingImportedNames? {
                      $$ = CSN(IMPORTED_NAMES);
                  }
-RemainingImportedNames <- _ "," _ ImportedName RemainingImportedNames?
 ImportedName <- Identifier { AT(IMPORTED_NAME, $0); }
+RemainingImportedNames <- _ "," _ ImportedName RemainingImportedNames?
 
 #
 # Expression
