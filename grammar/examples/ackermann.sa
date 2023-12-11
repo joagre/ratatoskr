@@ -14,7 +14,8 @@ class Ackermann {
     private resultChannel
 
     this() {
-        this(resultChannel: satie.makeChannel(onCrowding: <ChannelOption.block, 4>))
+        this(resultChannel: satie.makeChannel(
+                                onCrowding: <ChannelOption.block, 4>))
     }
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {

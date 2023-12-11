@@ -1,5 +1,5 @@
 import std.satie
-import std.channels: ChannelOption
+import std.channels : ChannelOption
 import std.stdio : writeln
 
 export fn main(args) {

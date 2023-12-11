@@ -13,6 +13,7 @@
 }
 
 %auxil "satie_auxil_t*"
+%value "ast_node_t*"
 
 %source {
 #define PCC_GETCHAR(auxil) satie_getchar(auxil)
@@ -23,22 +24,43 @@
 # Top level structure
 #
 
-Program <- _ (Imports __)? TopLevelDefs EOF
+Program <- _ (i:Imports __)? TopLevelDefs EOF {
+               $$ = create_children_node(auxil, PROGRAM, 1, i);
+           }
 TopLevelDefs <- TopLevelDef (__ TopLevelDef / TopLevelDefError)*
 TopLevelDef <- ClassDef / InterfaceDef / EnumDef / FunctionDef
 TopLevelDefError <- ("," / ";") {
     panic("Unexpected %s between top level definitions on line %d",
-          $0, auxil->line);
+          $0, auxil->row);
 }
 
 #
 # Import
 #
 
-Imports <- Import (__ Import)*
-Import <- "import" __ (Identifier _ "=" _)? _ ModulePath
-ModulePath <- Identifier ("." Identifier)* (_ ":" _ ImportedConstructs)?
-ImportedConstructs <- Identifier (_ "," _ Identifier)*
+Imports <- i:Import { append_node(auxil, IMPORT, i); }
+           (__ i:Import { append_node(auxil, IMPORT, i); })* {
+               $$ = create_siblings_node(auxil, IMPORTS);
+           }
+Import <- "import" __ (a:Alias _ "=" _)? _ mi:Module
+           (_ ":" _ in:ImportedNames)? {
+              $$ = create_children_node(auxil, IMPORT, 3, a, mi, in);
+          }
+Alias <- Identifier {
+             $$ = create_terminal(auxil, ALIAS, $0);
+         }
+
+Module <- ModuleComponent RemainingModule? {
+              $$ = create_siblings_node(auxil, MODULE);
+          }
+RemainingModule <- "." ModuleComponent RemainingModule?
+ModuleComponent <- Identifier { append_terminal(auxil, MODULE_COMPONENT, $0); }
+
+ImportedNames <- ImportedName RemainingImportedNames? {
+                     $$ = create_siblings_node(auxil, IMPORTED_NAMES);
+                 }
+RemainingImportedNames <- _ "," _ ImportedName RemainingImportedNames?
+ImportedName <- Identifier { append_terminal(auxil, IMPORTED_NAME, $0); }
 
 #
 # Expression
@@ -95,11 +117,11 @@ IfExpr <- "if" __ Expr _ BlockExpr
           (_ "elif" __ Expr _ BlockExpr)*
           (_ "else" _ BlockExpr)?
 
-SwitchExpr <- "switch" __ Expr (_ "is" _ UnboundName)? _ "{"
+SwitchExpr <- "switch" __ Expr (_ "is" _ UnboundedName)? _ "{"
              (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
              (_ "default" _ ":" _ BlockLevelExprs)? _
              "}"
-UnboundName <- "?" _ Identifier
+UnboundedName <- "?" _ Identifier
 
 ReceiveExpr <- "receive" __ Channels (_ "{"
                     (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
@@ -183,7 +205,7 @@ KeyValue <- (Literal / Identifier) _ ":" _ Expr
 # Match expression
 #
 
-MatchExpr <- MatchLiteral / UnboundName / BoundName
+MatchExpr <- MatchLiteral / UnboundedName / BoundName
 MatchExprs <- MatchExpr (_ "," _ MatchExpr)*
 
 MatchLiteral <- MatchBaseLiteral / MatchCompositeLiteral
@@ -222,7 +244,7 @@ MemberAccess <- "public" / "private"
 MemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
                   (_ "=" _ Expr)?
 ClassMemberError <- ("," / ";") {
-    panic("Unexpected %s between members on line %d", $0, auxil->line);
+    panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
 
 #
@@ -236,7 +258,7 @@ InterfaceMemberMethod <- MemberAccess _ InterfaceMethod
 InterfaceMethod <- "fn" _ Identifier _ "(" _ Params? _ ")"
 InterfaceMemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
 InterfaceMemberError <- ("," / ";") {
-    panic("Unexpected %s between members on line %d", $0, auxil->line);
+    panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
 
 #
@@ -247,7 +269,7 @@ EnumDef <- "enum" __ Identifier _ "{" _ EnumValues _ "}"
 EnumValues <- EnumValue (__ EnumValue / EnumValueError)*
 EnumValue <- Identifier (_ "=" _ Expr)?
 EnumValueError <- ("," / ";") {
-    panic("Unexpected %s between enum values on line %d", $0, auxil->line);
+    panic("Unexpected %s between enum values on line %d", $0, auxil->row);
 }
 
 #
@@ -269,7 +291,7 @@ BlockLevelExprs <- BlockLevelExpr (_ Comma _ BlockLevelExpr)*
 BlockLevelExpr <- FunctionDef / Expr
 Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between expressions)",
-          auxil->line);
+          auxil->row);
 }
 
 Args <- PositionalArgs / NamedArgs
@@ -288,13 +310,13 @@ _ <- (WS / Comments)*
 __ <- (WS / Comments)+
 WS <- [ \t\r\n] {
     if (strcmp($0, "\n") == 0) {
-        auxil->line++;
+        auxil->row++;
     }
 }
 Comments <- SingleLineComment / BlockComment
 SingleLineComment <- "//" (!EOL .)* EOL?
 EOL <- "\r\n" / "\n" / "\r" {
-    auxil->line++;
+    auxil->row++;
 }
 BlockComment <- "/*" (BlockCommentContent / EOL)* "*/"
 BlockCommentContent <- (!("*/" / EOL) .)
@@ -302,9 +324,11 @@ EOF <- _ !.
 
 %%
 int main() {
-    satie_auxil_t satie_auxil = { 1 };
-    satie_context_t *context = satie_create(&satie_auxil);
-    satie_parse(context, NULL);
+    satie_auxil_t* satie_auxil = satie_auxil_new();
+    satie_context_t *context = satie_create(satie_auxil);
+    ast_node_t* program;
+    satie_parse(context, &program);
+    print_ast(program, 0);
     satie_destroy(context);
     return 0;
 }
