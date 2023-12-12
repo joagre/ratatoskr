@@ -3,13 +3,13 @@ PCC = packcc
 CFLAGS = -Wall -Wextra -std=c17 -g -D_POSIX_C_SOURCE=200809L -Wno-unused-parameter
 LDLIBS = -lm
 
-all: lint clean_satie.peg
+all: lint satie_no_actions.peg
 
 lint: satie.o
 	$(CC) $(LDLIBS) -o $@ $^
 
-clean_satie.peg: satie.peg
-	cat satie.peg | remove_actions.pl > clean_satie.peg
+satie_no_actions.peg: satie.peg
+	echo cat $^ | ./remove_actions.pl > $@
 
 examples:
 	(cd examples; $(MAKE))
