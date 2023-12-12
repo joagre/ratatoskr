@@ -65,7 +65,11 @@ typedef dynarray_t node_array_t;
         TYPE(LIST_SLICE)   \
         TYPE(LIST_UPDATE) \
         TYPE(MAP_UPDATE) \
-        TYPE(INDEX_VALUES) \
+        TYPE(DOT_NAME) \
+        TYPE(LIST_LOOKUP) \
+        TYPE(FUNCTION_CALL) \
+        TYPE(DOTTED_NAME) \
+        TYPE(INDEX_VALUES)        \
         TYPE(INDEX_VALUE) \
         TYPE(MAP_LITERAL) \
         TYPE(MAP_KEY_VALUES) \
@@ -194,7 +198,7 @@ static void append_node(satie_auxil_t* auxil, satie_node_type_t type,
                         ast_node_t* node) {
     fprintf(stderr, "** append_node: %s\n", type_to_string(type));
     if (node == NULL) {
-        fprintf(stderr, "WARNING: Node of type %s is NULL\n",
+        fprintf(stderr, "WARNING: An undefined node cannot be appended to %s\n",
                 type_to_string(type));
         return;
     }
@@ -206,6 +210,16 @@ static void append_node(satie_auxil_t* auxil, satie_node_type_t type,
 }
 
 #define AN(type, node) append_node(auxil, type, node)
+
+static void append_node_alias(satie_auxil_t* auxil, satie_node_type_t type,
+                              ast_node_t* node, satie_node_type_t alias_type) {
+    append_node(auxil, type, node);
+    if ( node != NULL) {
+        node->type = alias_type;
+    }
+}
+
+#define ANA(type, node, alias_type) append_node_alias(auxil, type, node, alias_type)
 
 static ast_node_t* create_siblings_node(satie_auxil_t* auxil,
                                         satie_node_type_t type) {

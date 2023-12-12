@@ -124,15 +124,25 @@ UnaryPlusExpr <- "+" _ e:UnaryMinusExpr { $$ = CCN(UNARY_PLUS, 1, e); } /
                  e:UnaryMinusExpr { $$ = e; }
 UnaryMinusExpr <- "-" _ e:ListSlice { $$ = CCN(UNARY_MINUS, 1, e); } /
                   e:ListSlice { $$ = e; }
-ListSlice <- BoundName _ "[" _ Expr _ ".." _ Expr _ "]" / ListUpdate
-ListUpdate <- BoundName _ "[" _ IndexValues _ "]" / MapUpdate
-MapUpdate <- BoundName _ "[" _ MapKeyValues _ "]" / PostfixExpr
-PostfixExpr <- PrimaryExpr (_ "." _ BoundName /
-                            _ "[" _ Expr _ "]" /
-                            _ "(" _ Args? _ ")")*
+ListSlice <- b:DottedName _ "[" _ s:Expr _ ".." _ e:Expr _ "]" { $$ = CCN(LIST_SLICE, 3, b, s, e); } /
+             e:ListUpdate { $$ = e; }
+ListUpdate <- b:DottedName _ "[" _ i:IndexValues _ "]" { $$ = CCN(LIST_UPDATE, 2, b, i); } /
+              e:MapUpdate { $$ = e; }
+MapUpdate <- b:DottedName _ "[" _ m:MapKeyValues _ "]" { $$ = CCN(MAP_UPDATE, 2, b, m); } /
+             e:PostfixExpr{ $$ = e; }
+PostfixExpr <- (p:PrimaryExpr { AN(POSTFIX_EXPR, p); }
+                (_ "." _ b:BoundName { ANA(POSTFIX_EXPR, b, DOT_NAME); } /
+                 _ "[" _ e:Expr _ "]" { ANA(POSTFIX_EXPR, e, LIST_LOOKUP); } /
+                 _ "(" _ a:Args? _ ")" { ANA(POSTFIX_EXPR, a, FUNCTION_CALL); })*) {
+    $$ = CSN(POSTFIX_EXPR);
+}
 
 Type <- "int" { $$ = CT(INT_TYPE, NULL); } /
         "float" { $$ = CT(FLOAT_TYPE, NULL); }
+
+DottedName <- b:BoundName { AN(DOTTED_NAME, b); } (_ "." _ b:BoundName { AN(DOTTED_NAME, b); })* {
+    $$ = CSN(DOTTED_NAME);
+}
 
 IndexValues <- i:IndexValue { AN(INDEX_VALUES, i); } (_ "," _ i:IndexValue { AN(INDEX_VALUES, i); })* {
     $$ = CSN(INDEX_VALUES);

@@ -93,15 +93,21 @@ UnaryPlusExpr <- "+" _ UnaryMinusExpr  /
                  UnaryMinusExpr 
 UnaryMinusExpr <- "-" _ ListSlice  /
                   ListSlice 
-ListSlice <- BoundName _ "[" _ Expr _ ".." _ Expr _ "]" / ListUpdate
-ListUpdate <- BoundName _ "[" _ IndexValues _ "]" / MapUpdate
-MapUpdate <- BoundName _ "[" _ MapKeyValues _ "]" / PostfixExpr
-PostfixExpr <- PrimaryExpr (_ "." _ BoundName /
-                            _ "[" _ Expr _ "]" /
-                            _ "(" _ Args? _ ")")*
+ListSlice <- DottedName _ "[" _ Expr _ ".." _ Expr _ "]"  /
+             ListUpdate 
+ListUpdate <- DottedName _ "[" _ IndexValues _ "]"  /
+              MapUpdate 
+MapUpdate <- DottedName _ "[" _ MapKeyValues _ "]"  /
+             PostfixExpr
+PostfixExpr <- (PrimaryExpr 
+                (_ "." _ BoundName  /
+                 _ "[" _ Expr _ "]"  /
+                 _ "(" _ Args? _ ")" )*) 
 
 Type <- "int"  /
         "float" 
+
+DottedName <- BoundName  (_ "." _ BoundName )* 
 
 IndexValues <- IndexValue  (_ "," _ IndexValue )* 
 IndexValue <- DecimalIntegral _ "=" _ Expr 
