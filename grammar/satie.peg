@@ -27,11 +27,14 @@
 Program <- _ (i:Imports __)? t:TopLevelDefs EOF {
     $$ = CCN(PROGRAM, 2, i, t);
 }
-TopLevelDefs <- t:TopLevelDef { AN(TOP_LEVEL_DEFS, t); } (__ t:TopLevelDef { AN(TOP_LEVEL_DEFS, t); } / TopDefError)* {
+TopLevelDefs <- t:TopLevelDef { AN(TOP_LEVEL_DEFS, t); } (__ t:TopLevelDef { AN(TOP_LEVEL_DEFS, t); } / TopLevelDefError)* {
     $$ = CSN(TOP_LEVEL_DEFS);
 }
-TopLevelDef <- (t:ClassDef / t:InterfaceDef / t:EnumDef / t:FunctionDef) { $$ = t; }
-TopDefError <- ("," / ";") {
+TopLevelDef <- ClassDef /
+               InterfaceDef /
+               t:EnumDef { $$ = t; } /
+               t:FunctionDef { $$ = t; }
+TopLevelDefError <- ("," / ";") {
     panic("Unexpected %s between top level definitions on line %d",
           $0, auxil->row);
 }
@@ -49,20 +52,18 @@ Import <- "import" __ (a:Alias _ "=" _)? _ m:Module (_ ":" _ i:ImportedNames)? {
 Alias <- Identifier {
     $$ = CT(ALIAS, $0);
 }
-Module <- ModuleComponent RemainingModule? {
+Module <- m:ModuleComponent {AN(MODULE, m); } ( "." m:ModuleComponent { AN(MODULE, m); })* {
     $$ = CSN(MODULE);
 }
 ModuleComponent <- Identifier {
     AT(MODULE_COMPONENT, $0);
 }
-RemainingModule <- "." ModuleComponent RemainingModule?
-ImportedNames <- ImportedName RemainingImportedNames? {
+ImportedNames <- m:ImportedName { AN(IMPORTED_NAMES, m); } (_ "," _ m:ImportedName { AN(IMPORTED_NAMES, m); })* {
     $$ = CSN(IMPORTED_NAMES);
 }
 ImportedName <- Identifier {
     AT(IMPORTED_NAME, $0);
 }
-RemainingImportedNames <- _ "," _ ImportedName RemainingImportedNames?
 
 #
 # Expression
@@ -121,17 +122,24 @@ NotExpr <- "!" _ e:UnaryPlusExpr { $$ = CCN(NOT, 1, e); } /
            e:UnaryPlusExpr { $$ = e; }
 UnaryPlusExpr <- "+" _ e:UnaryMinusExpr { $$ = CCN(UNARY_PLUS, 1, e); } /
                  e:UnaryMinusExpr { $$ = e; }
-UnaryMinusExpr <- "-" _ e:PostfixExpr { $$ = CCN(UNARY_MINUS, 1, e); } /
-                  e:PostfixExpr { $$ = e; }
-PostfixExpr <- p:PrimaryExpr { AN(POSTFIX_EXPR, p); }
-               (_ "." _ i:Identifier { AN(POSTFIX_EXPR, i); } /
-                "(" _ a:Args? { AN(POSTFIX_EXPR, a); } _ ")" /
-                "[" _ e:Expr { AN(POSTFIX_EXPR, e); } _ "]")* {
-    $$ = CSN(POSTFIX_EXPR);
-}
+UnaryMinusExpr <- "-" _ e:ListSlice { $$ = CCN(UNARY_MINUS, 1, e); } /
+                  e:ListSlice { $$ = e; }
+ListSlice <- BoundName _ "[" _ Expr _ ".." _ Expr _ "]" / ListUpdate
+ListUpdate <- BoundName _ "[" _ IndexValues _ "]" / MapUpdate
+MapUpdate <- BoundName _ "[" _ KeyValues _ "]" / PostfixExpr
+PostfixExpr <- PrimaryExpr (_ "." _ BoundName /
+                            _ "[" _ Expr _ "]" /
+                            _ "(" _ Args? _ ")")*
 
 CastInt <- "int" { $$ = CT(CAST_INT, NULL); }
 CastFloat <- "float" { $$ = CT(CAST_FLOAT, NULL); }
+
+IndexValues <- i:IndexValue { AN(INDEX_VALUES, i); } (_ "," _ i:IndexValue { AN(INDEX_VALUES, i); })* {
+    $$ = CSN(INDEX_VALUES);
+}
+IndexValue <- d:DecimalIntegral _ "=" _ e:Expr {
+    $$ = CCN(INDEX_VALUE, 2, d, e);
+}
 
 # Expr <- BindExpr
 # BindExpr <- MatchExpr _ ":=" _ Expr / LogicalOrExpr
@@ -201,6 +209,10 @@ Dereferences <- Dereference (_ "," _ Dereference)*
 
 NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
 
+#Name <- Identifier {
+#    $$ = CT(NAME, $0);
+#}
+
 BoundName <- Identifier {
     $$ = CT(BOUND_NAME, $0);
 }
@@ -209,62 +221,87 @@ BoundName <- Identifier {
 # Literal
 #
 
-Literal <- BaseLiteral / CompositeLiteral
+Literal <- (l:BaseLiteral / l:CompositeLiteral) {
+    $$ = l;
+}
 
-BaseLiteral <- BooleanLiteral /
-               NumberLiteral /
-               CharacterLiteral /
-               StringLiteral /
-               FunctionLiteral /
-               EnumLiteral
+BaseLiteral <- (b:BooleanLiteral /
+                b:NumberLiteral /
+                b:CharacterLiteral /
+                b:StringLiteral /
+                b:FunctionLiteral /
+                b:EnumLiteral) { $$ = b; }
 
 CompositeLiteral <- TupleLiteral /
-                    (BoundName _)? ListLiteral /
-                    (BoundName _)? MapLiteral
+                    ListLiteral /
+                    MapLiteral
 
-BooleanLiteral <- "true" / "false"
+BooleanLiteral <- "true" { $$ = CT(TRUE, NULL); } /
+                  "false" { $$ = CT(FALSE, NULL); }
 
-NumberLiteral <- FloatingPoint / Integral
-Integral <- HexIntegral / BinaryIntegral / OctalIntegral / DecimalIntegral
-FloatingPoint <- DecimalPointLeading / DecimalPointTrailing
+NumberLiteral <- (n:FloatingPoint / n:Integral) {
+    $$ = n;
+}
+
+FloatingPoint <- (f:DecimalPointLeading / f:DecimalPointTrailing) {
+    $$ = CT(FLOATING_POINT, $0);
+}
 DecimalPointLeading <- [0-9]* "." [0-9]+ ExponentPart?
 DecimalPointTrailing <- [0-9]+ ExponentPart
 ExponentPart <- [eE] [+-]? [0-9]+
-DecimalIntegral <- [0-9]+
-OctalIntegral <- "0" [0-7]+
+
+Integral <- (HexIntegral / BinaryIntegral / OctalIntegral / DecimalIntegral) {
+    $$ = CT(INTEGRAL, $0);
+}
 HexIntegral <- "0x" [0-9a-fA-F]+
 BinaryIntegral <- "0b" [01]+
+OctalIntegral <- "0" [0-7]+
+DecimalIntegral <- [0-9]+
 
-CharacterLiteral <- "'" ( Escape / NonQuoteChar ) "'"
-Escape <- "\\" ( [abfnrtv'"\\] /
-                 "x" HexDigit HexDigit /
-                 "u" HexDigit HexDigit HexDigit HexDigit /
-                 "U" HexDigit HexDigit HexDigit HexDigit
-                     HexDigit HexDigit HexDigit HexDigit /
-                  OctalDigit /
-                  OctalDigit OctalDigit /
-                  OctalDigit OctalDigit OctalDigit )
+CharacterLiteral <- "'" ( c:EscapeCharacter / c:NonQuoteCharacter ) "'" {
+    $$ = CCN(CHARACTER_LITERAL, 1, c);
+}
+EscapeCharacter <- "\\" ( [abfnrtv'"\\] /
+                   "x" HexDigit HexDigit /
+                   "u" HexDigit HexDigit HexDigit HexDigit /
+                   "U" HexDigit HexDigit HexDigit HexDigit
+                       HexDigit HexDigit HexDigit HexDigit /
+                    OctalDigit /
+                    OctalDigit OctalDigit /
+                    OctalDigit OctalDigit OctalDigit ) {
+    $$ = CT(ESCAPE_CHARACTER, $0);
+}
 HexDigit <- [0-9a-fA-F]
 OctalDigit <- [0-7]
-NonQuoteChar <- [^']
+NonQuoteCharacter <- [^'] {
+    $$ = CT(NON_QUOTE_CHARACTER, $0);
+}
 
-StringLiteral <- RegularString / RawString
-RegularString <- '"' ( EscapeSequence / [^"] )* '"'
+StringLiteral <- '"' RegularString '"' / 'r"' RawString '"'
+RegularString <- (EscapeSequence / [^"])* {
+    $$ = CT(REGULAR_STRING, $0);
+}
 EscapeSequence <- "\\" [btnvfr"\\]
-RawString <- 'r"' [^"]* '"'
+RawString <- [^"]* {
+    $$ = CT(RAW_STRING, $0);
+}
 
-FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
+FunctionLiteral <- "fn" _ "(" _ p:Params? _ ")" _ e:BlockExpr {
+    $$ = CCN(FUNCTION_LITERAL, 2, p, e);
+}
 
-EnumLiteral <- Identifier _ "." _ Identifier
+EnumLiteral <- edn:EnumDefName _ "." _ en:EnumName {
+    $$ = CCN(ENUM_LITERAL, 2, edn, en);
+}
 
-TupleLiteral <- "<" _ Exprs? _ ">"
-Exprs <- Expr (_ "," _ Expr)*
+TupleLiteral <- "<" _ e:Exprs? _ ">" {
+    $$ = CCN(TUPLE_LITERAL, 1, e);
+}
+Exprs <- e:Expr { AN(EXPRS, e); } (_ "," _ e:Expr { AN(EXPRS, e); })* {
+    $$ = CSN(EXPRS);
+}
 
-ListLiteral <- "[" _ Exprs? _ "]" /
-               "[" Expr _ ".." _ Expr "]" /
-               "[" _ IndexValues _ "]"
-IndexValues <- IndexValue (_ "," _ IndexValue)*
-IndexValue <- DecimalIntegral _ "=" _ Expr
+ListLiteral <- "[" _ e:Exprs? _ "]"
 
 MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
 KeyValues <- KeyValue (_ "," _ KeyValue)*
@@ -401,9 +438,7 @@ NamedArg <- Identifier _ ":" _ Expr
 # Misc
 #
 
-Identifier <- [a-zA-Z_][a-zA-Z_0-9_]* {
-    $$ = CT(IDENTIFIER, $0);
-}
+Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 #_ <- WS*
 #__ <- WS+
 _ <- (WS / Comments)*

@@ -49,9 +49,30 @@ typedef dynarray_t node_array_t;
         TYPE(THIS) \
         TYPE(SELF) \
         TYPE(SLICE_LENGTH) \
+        TYPE(NAME) \
         TYPE(BOUND_NAME) \
         TYPE(IDENTIFIER) \
-        TYPE(IMPORTS)        \
+        TYPE(TRUE) \
+        TYPE(FALSE) \
+        TYPE(FLOATING_POINT) \
+        TYPE(INTEGRAL) \
+        TYPE(CHARACTER_LITERAL) \
+        TYPE(ESCAPE_CHARACTER) \
+        TYPE(NON_QUOTE_CHARACTER) \
+        TYPE(REGULAR_STRING) \
+        TYPE(RAW_STRING) \
+        TYPE(REGULAR_LIST) \
+        TYPE(SLICE_LIST) \
+        TYPE(SET_LIST) \
+        TYPE(INDEX_VALUES)                      \
+        TYPE(INDEX_VALUE) \
+        TYPE(FUNCTION_LITERAL) \
+        TYPE(ENUM_LITERAL) \
+        TYPE(TUPLE_LITERAL) \
+        TYPE(EXPRS) \
+        TYPE(LIST_SLICE) \
+        TYPE(INDEXED_LIST) \
+        TYPE(IMPORTS) \
         TYPE(IMPORT) \
         TYPE(ALIAS) \
         TYPE(MODULE) \
