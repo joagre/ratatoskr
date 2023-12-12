@@ -9,7 +9,7 @@ lint: satie.o
 	$(CC) $(LDLIBS) -o $@ $^
 
 satie_no_actions.peg: satie.peg
-	echo cat $^ | ./remove_actions.pl > $@
+	cat $^ | ./remove_actions.pl > $@
 
 examples:
 	(cd examples; $(MAKE))
