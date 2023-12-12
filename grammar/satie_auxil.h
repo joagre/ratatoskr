@@ -61,17 +61,19 @@ typedef dynarray_t node_array_t;
         TYPE(NON_QUOTE_CHARACTER) \
         TYPE(REGULAR_STRING) \
         TYPE(RAW_STRING) \
-        TYPE(REGULAR_LIST) \
-        TYPE(SLICE_LIST) \
-        TYPE(SET_LIST) \
-        TYPE(INDEX_VALUES)                      \
+        TYPE(LIST_LITERAL) \
+        TYPE(LIST_SLICE)   \
+        TYPE(LIST_UPDATE) \
+        TYPE(MAP_UPDATE) \
+        TYPE(INDEX_VALUES) \
         TYPE(INDEX_VALUE) \
+        TYPE(MAP_LITERAL) \
+        TYPE(MAP_KEY_VALUES) \
+        TYPE(MAP_KEY_VALUE) \
         TYPE(FUNCTION_LITERAL) \
         TYPE(ENUM_LITERAL) \
         TYPE(TUPLE_LITERAL) \
         TYPE(EXPRS) \
-        TYPE(LIST_SLICE) \
-        TYPE(INDEXED_LIST) \
         TYPE(IMPORTS) \
         TYPE(IMPORT) \
         TYPE(ALIAS) \

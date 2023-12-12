@@ -126,7 +126,7 @@ UnaryMinusExpr <- "-" _ e:ListSlice { $$ = CCN(UNARY_MINUS, 1, e); } /
                   e:ListSlice { $$ = e; }
 ListSlice <- BoundName _ "[" _ Expr _ ".." _ Expr _ "]" / ListUpdate
 ListUpdate <- BoundName _ "[" _ IndexValues _ "]" / MapUpdate
-MapUpdate <- BoundName _ "[" _ KeyValues _ "]" / PostfixExpr
+MapUpdate <- BoundName _ "[" _ MapKeyValues _ "]" / PostfixExpr
 PostfixExpr <- PrimaryExpr (_ "." _ BoundName /
                             _ "[" _ Expr _ "]" /
                             _ "(" _ Args? _ ")")*
@@ -225,16 +225,14 @@ Literal <- (l:BaseLiteral / l:CompositeLiteral) {
     $$ = l;
 }
 
-BaseLiteral <- (b:BooleanLiteral /
-                b:NumberLiteral /
-                b:CharacterLiteral /
-                b:StringLiteral /
-                b:FunctionLiteral /
-                b:EnumLiteral) { $$ = b; }
+BaseLiteral <- (b:BooleanLiteral / b:NumberLiteral / b:CharacterLiteral /
+                b:StringLiteral / b:FunctionLiteral / b:EnumLiteral) {
+    $$ = b;
+}
 
-CompositeLiteral <- TupleLiteral /
-                    ListLiteral /
-                    MapLiteral
+CompositeLiteral <- (c:TupleLiteral / c:ListLiteral / c:MapLiteral) {
+    $$ = c;
+}
 
 BooleanLiteral <- "true" { $$ = CT(TRUE, NULL); } /
                   "false" { $$ = CT(FALSE, NULL); }
@@ -301,11 +299,19 @@ Exprs <- e:Expr { AN(EXPRS, e); } (_ "," _ e:Expr { AN(EXPRS, e); })* {
     $$ = CSN(EXPRS);
 }
 
-ListLiteral <- "[" _ e:Exprs? _ "]"
+ListLiteral <- "[" _ e:Exprs? _ "]" {
+    $$ = CCN(LIST_LITERAL, 1, e);
+}
 
-MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
-KeyValues <- KeyValue (_ "," _ KeyValue)*
-KeyValue <- (Literal / Identifier) _ ":" _ Expr
+MapLiteral <- "[:]" / "[" _ k:MapKeyValues? _ "]" {
+    $$ = CCN(MAP_LITERAL, 1, k);
+}
+MapKeyValues <- m:MapKeyValue { AN(MAP_KEY_VALUES, m); } (_ "," _ m:MapKeyValue { AN(MAP_KEY_VALUES, m); })* {
+    $$ = CSN(MAP_KEY_VALUES);
+}
+MapKeyValue <- (k:Literal / k:Identifier) _ ":" _ v:Expr {
+    $$ = CCN(MAP_KEY_VALUE, 2, k, v);
+}
 
 #
 # Match expression
@@ -415,7 +421,7 @@ DefaultParams <- d:DefaultParam { AN(DEFAULT_PARAMS, d); } (_ "," _ d:DefaultPar
     $$ = CSN(DEFAULT_PARAMS);
 }
 DefaultParam <- i:DefaultParamName _ "=" _ e:Expr {
-    $$ = CCN(DEFAULT_PARAM, 2, i, CT(EXPR, "expr"));
+    $$ = CCN(DEFAULT_PARAM, 2, i, e);
 }
 DefaultParamName <- Identifier {
     $$ = CT(DEFAULT_PARAM_NAME, $0);
