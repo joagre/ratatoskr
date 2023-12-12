@@ -67,9 +67,9 @@ InExpr <- InExpr _ "in" _ RightShiftExpr  /
           RightShiftExpr 
 RightShiftExpr <- RightShiftExpr _ "bsr" _ LeftShiftExpr  /
                   LeftShiftExpr 
-LeftShiftExpr <- LeftShiftExpr _ "bsl" _ ConcatenateExpr  /
-                 ConcatenateExpr 
-ConcatenateExpr <- ConcatenateExpr _ "~" _ MinusExpr  /
+LeftShiftExpr <- LeftShiftExpr _ "bsl" _ ConcatExpr  /
+                 ConcatExpr 
+ConcatExpr <- ConcatExpr _ "~" _ MinusExpr  /
                    MinusExpr 
 MinusExpr <- MinusExpr _ "-" _ PlusExpr  /
              PlusExpr 
@@ -83,7 +83,7 @@ MultiplicateExpr <- MultiplicateExpr _ "*" _ ExponentiationExpr  /
                     ExponentiationExpr 
 ExponentiationExpr <- ExponentiationExpr _ "^^" _ CastExpr  /
                       CastExpr 
-CastExpr <- "cast" _ "(" _ (CastInt / CastFloat) _ ")" _ BitwiseComplementExpr  /
+CastExpr <- "cast" _ "(" _ Type _ ")" _ BitwiseComplementExpr  /
             BitwiseComplementExpr 
 BitwiseComplementExpr <- "~" _ NotExpr  /
                          NotExpr 
@@ -100,8 +100,8 @@ PostfixExpr <- PrimaryExpr (_ "." _ BoundName /
                             _ "[" _ Expr _ "]" /
                             _ "(" _ Args? _ ")")*
 
-CastInt <- "int" 
-CastFloat <- "float" 
+Type <- "int"  /
+        "float" 
 
 IndexValues <- IndexValue  (_ "," _ IndexValue )* 
 IndexValue <- DecimalIntegral _ "=" _ Expr 

@@ -15,7 +15,7 @@ typedef dynarray_t node_array_t;
         TYPE(PROGRAM) \
         TYPE(TOP_LEVEL_DEFS) \
         TYPE(EXPR) \
-        TYPE(BIND_EXPR) \
+        TYPE(BIND) \
         TYPE(OR) \
         TYPE(AND) \
         TYPE(BITWISE_AND) \
@@ -30,7 +30,7 @@ typedef dynarray_t node_array_t;
         TYPE(IN) \
         TYPE(BSR) \
         TYPE(BSL) \
-        TYPE(CONCATENATE) \
+        TYPE(CONCAT) \
         TYPE(MINUS) \
         TYPE(PLUS) \
         TYPE(MODULUS) \
@@ -43,8 +43,8 @@ typedef dynarray_t node_array_t;
         TYPE(UNARY_PLUS) \
         TYPE(UNARY_MINUS) \
         TYPE(POSTFIX_EXPR) \
-        TYPE(CAST_INT) \
-        TYPE(CAST_FLOAT) \
+        TYPE(INT_TYPE) \
+        TYPE(FLOAT_TYPE) \
         TYPE(NIL) \
         TYPE(THIS) \
         TYPE(SELF) \

@@ -70,7 +70,7 @@ ImportedName <- Identifier {
 #
 
 Expr <- e:BindExpr { $$ = e; }
-BindExpr <- l:MatchExpr _ ":=" _ e:Expr { $$ = CCN(BIND_EXPR, 2, l, e); } /
+BindExpr <- l:MatchExpr _ ":=" _ e:Expr { $$ = CCN(BIND, 2, l, e); } /
             e:LogicalOrExpr { $$ = e; }
 LogicalOrExpr <- l:LogicalOrExpr _ "||" _ e:LogicalAndExpr { $$ = CCN(OR, 2, l, e); } /
                  e:LogicalAndExpr { $$ = e; }
@@ -98,9 +98,9 @@ InExpr <- l:InExpr _ "in" _ e:RightShiftExpr { $$ = CCN(IN, 2, l, e); } /
           e:RightShiftExpr { $$ = e; }
 RightShiftExpr <- l:RightShiftExpr _ "bsr" _ e:LeftShiftExpr { $$ = CCN(BSR, 2, l, e); } /
                   e:LeftShiftExpr { $$ = e; }
-LeftShiftExpr <- l:LeftShiftExpr _ "bsl" _ e:ConcatenateExpr { $$ = CCN(BSL, 2, l, e); } /
-                 e:ConcatenateExpr { $$ = e; }
-ConcatenateExpr <- l:ConcatenateExpr _ "~" _ e:MinusExpr { $$ = CCN(CONCATENATE, 2, l, e); } /
+LeftShiftExpr <- l:LeftShiftExpr _ "bsl" _ e:ConcatExpr { $$ = CCN(BSL, 2, l, e); } /
+                 e:ConcatExpr { $$ = e; }
+ConcatExpr <- l:ConcatExpr _ "~" _ e:MinusExpr { $$ = CCN(CONCAT, 2, l, e); } /
                    e:MinusExpr { $$ = e; }
 MinusExpr <- l:MinusExpr _ "-" _ e:PlusExpr { $$ = CCN(MINUS, 2, l, e); } /
              e:PlusExpr { $$ = e; }
@@ -114,7 +114,7 @@ MultiplicateExpr <- l:MultiplicateExpr _ "*" _ e:ExponentiationExpr { $$ = CCN(M
                     e:ExponentiationExpr { $$ = e; }
 ExponentiationExpr <- l:ExponentiationExpr _ "^^" _ e:CastExpr { $$ = CCN(EXPONENTIATE, 2, l, e); } /
                       e:CastExpr { $$ = e; }
-CastExpr <- "cast" _ "(" _ (l:CastInt / l:CastFloat) _ ")" _ e:BitwiseComplementExpr { $$ = CCN(CAST, 2, l, e); } /
+CastExpr <- "cast" _ "(" _ t:Type _ ")" _ e:BitwiseComplementExpr { $$ = CCN(CAST, 2, t, e); } /
             e:BitwiseComplementExpr { $$ = e; }
 BitwiseComplementExpr <- "~" _ e:NotExpr { $$ = CCN(BITWISE_COMPLEMENT, 1, e); } /
                          e:NotExpr { $$ = e; }
@@ -131,8 +131,8 @@ PostfixExpr <- PrimaryExpr (_ "." _ BoundName /
                             _ "[" _ Expr _ "]" /
                             _ "(" _ Args? _ ")")*
 
-CastInt <- "int" { $$ = CT(CAST_INT, NULL); }
-CastFloat <- "float" { $$ = CT(CAST_FLOAT, NULL); }
+Type <- "int" { $$ = CT(INT_TYPE, NULL); } /
+        "float" { $$ = CT(FLOAT_TYPE, NULL); }
 
 IndexValues <- i:IndexValue { AN(INDEX_VALUES, i); } (_ "," _ i:IndexValue { AN(INDEX_VALUES, i); })* {
     $$ = CSN(INDEX_VALUES);
