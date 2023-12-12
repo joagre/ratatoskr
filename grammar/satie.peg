@@ -9,7 +9,7 @@
     if (strcmp(rule, "WS") != 0 && strcmp(rule, "_") != 0 && strcmp(rule, "__") != 0) \
         fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], \
                 rule, pos, (int)(length), buffer)
-*/
+    */
 }
 
 %auxil "satie_auxil_t*"
@@ -141,41 +141,6 @@ IndexValue <- d:DecimalIntegral _ "=" _ e:Expr {
     $$ = CCN(INDEX_VALUE, 2, d, e);
 }
 
-# Expr <- BindExpr
-# BindExpr <- MatchExpr _ ":=" _ Expr / LogicalOrExpr
-# LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
-# LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
-# BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
-# BitwiseXorExpr <- BitwiseOrExpr (_ "^" _ BitwiseOrExpr)*
-# BitwiseOrExpr <- GreaterThanEqualExpr (_ "|" _ GreaterThanEqualExpr)*
-# GreaterThanEqualExpr <- GreaterThanExpr (_ "gte" _ GreaterThanExpr)*
-# GreaterThanExpr <- LessThanEqualExpr (_ "gt" _ LessThanEqualExpr)*
-# LessThanEqualExpr <- LessThanExpr (_ "lte" _ LessThanExpr)*
-# LessThanExpr <- NotEqualExpr (_ "lt" _ NotEqualExpr)*
-# NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
-# EqualExpr <- InExpr (_ "==" _ InExpr)*
-# InExpr <- RightShiftExpr (_ "in" _ RightShiftExpr)*
-# RightShiftExpr <- LeftShiftExpr (_ "bsr" _ LeftShiftExpr)*
-# LeftShiftExpr <- ConcatenateExpr (_ "bsl" _ ConcatenateExpr)*
-# ConcatenateExpr <- MinusExpr (_ "~" _ MinusExpr)*
-# MinusExpr <- PlusExpr (_ "-" _ PlusExpr)*
-# PlusExpr <- ModulusExpr (_ "+" _ ModulusExpr)*
-# ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
-# DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
-# MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
-# ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
-# CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ BitwiseComplementExpr /
-#             BitwiseComplementExpr
-# BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
-# NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
-# UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
-# UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
-# PostfixExpr <- PrimaryExpr _ (
-#                               "." _ Identifier /
-#                               "(" _ Args? _ ")" /
-#                               "[" _ Expr _ "]"
-#                              )*
-
 PrimaryExpr <- "nil" { $$ = CT(NIL, NULL); } /
                "this" { $$ = CT(THIS, NULL); } /
                "self" { $$ = CT(SELF, NULL); } /
@@ -208,10 +173,6 @@ Dereference <- Identifier (_ "." _ Identifier / _ "[" _ Expr _ "]")*
 Dereferences <- Dereference (_ "," _ Dereference)*
 
 NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
-
-#Name <- Identifier {
-#    $$ = CT(NAME, $0);
-#}
 
 BoundName <- Identifier {
     $$ = CT(BOUND_NAME, $0);
