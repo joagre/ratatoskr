@@ -124,7 +124,7 @@ UnaryPlusExpr <- "+" _ e:UnaryMinusExpr { $$ = CCN(UNARY_PLUS, 1, e); } /
                  e:UnaryMinusExpr { $$ = e; }
 UnaryMinusExpr <- "-" _ e:PostfixExpr { $$ = CCN(UNARY_MINUS, 1, e); } /
                   e:PostfixExpr { $$ = e; }
-# A real killer
+# FIXME: This is obviously overly accepting, but it's a start
 PostfixExpr <- (p:PrimaryExpr { AN(POSTFIX_EXPR, p); }
                 (_ "." _ b:BoundName { AN(POSTFIX_EXPR, CCN(DOT_NAME, 1, b)); } /
                  _ "[" _ s:Expr _ ".." _ e:Expr _ "]" { AN(POSTFIX_EXPR, CCN(LIST_SLICE, 2, s, e)); } /

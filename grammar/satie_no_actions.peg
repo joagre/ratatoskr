@@ -93,7 +93,7 @@ UnaryPlusExpr <- "+" _ UnaryMinusExpr  /
                  UnaryMinusExpr 
 UnaryMinusExpr <- "-" _ PostfixExpr  /
                   PostfixExpr 
-# A real killer
+#  This is obviously overly accepting, but it's a start
 PostfixExpr <- (PrimaryExpr 
                 (_ "." _ BoundName  /
                  _ "[" _ Expr _ ".." _ Expr _ "]"  /
