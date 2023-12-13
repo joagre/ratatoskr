@@ -198,12 +198,12 @@ FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 
 EnumLiteral <- EnumDefName _ "." _ EnumName 
 
-TupleLiteral <- "<" _ Exprs? _ ">" 
+TupleLiteral <- "<" _ ">"  /"<" _ Exprs? _ ">" 
 Exprs <- Expr  (_ "," _ Expr )* 
 
-ListLiteral <- "[" _ Exprs? _ "]" 
+ListLiteral <- "[" _ "]"  / "[" _ Exprs? _ "]" 
 
-MapLiteral <- "[:]" / "[" _ MapKeyValues? _ "]" 
+MapLiteral <- "[:]"  / "[" _ MapKeyValues? _ "]" 
 MapKeyValues <- MapKeyValue  (_ "," _ MapKeyValue )* 
 MapKeyValue <- (Literal / Identifier) _ ":" _ Expr 
 
@@ -284,8 +284,8 @@ EnumValueError <- ("," / ";") {
 # Function definition
 #
 
-FunctionDef <- ("export" _)?
-               "fn" __ FunctionName _ "(" _ Params? _ ")" _ BlockExpr 
+FunctionDef <- Export? _ "fn" __ FunctionName _ "(" _ Params? _ ")" _ BlockExpr 
+Export <- "export" 
 FunctionName <- Identifier 
 Params <- NonDefaultParams _ "," _ DefaultParams  /
           NonDefaultParams  /
@@ -297,9 +297,9 @@ DefaultParams <- DefaultParam  (_ "," _ DefaultParam )*
 DefaultParam <- DefaultParamName _ "=" _ Expr 
 DefaultParamName <- Identifier 
 
-BlockExpr <- "{" _ BlockLevelExprs _ "}"
-BlockLevelExprs <- BlockLevelExpr (_ Comma _ BlockLevelExpr)*
-BlockLevelExpr <- FunctionDef / Expr
+BlockExpr <- "{" _ BlockLevelExprs _ "}" 
+BlockLevelExprs <- BlockLevelExpr  (_ Comma _ BlockLevelExpr )* 
+BlockLevelExpr <- (FunctionDef / Expr) 
 Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between expressions)",
           auxil->row);

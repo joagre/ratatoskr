@@ -93,12 +93,15 @@ typedef dynarray_t node_array_t;
         TYPE(ENUM_VALUE) \
         TYPE(FUNCTION_DEF) \
         TYPE(FUNCTION_NAME) \
+        TYPE(EXPORT) \
         TYPE(PARAMS) \
         TYPE(NON_DEFAULT_PARAMS) \
         TYPE(NON_DEFAULT_PARAM) \
         TYPE(DEFAULT_PARAMS) \
         TYPE(DEFAULT_PARAM) \
         TYPE(DEFAULT_PARAM_NAME) \
+        TYPE(BLOCK_EXPR) \
+        TYPE(BLOCK_LEVEL_EXPR) \
         TYPE(NOT_SET)
 
 #define GENERATE_ENUM(ENUM) ENUM,
@@ -137,6 +140,7 @@ typedef struct {
 } ast_node_t;
 
 static satie_auxil_t* satie_auxil_new() {
+    fprintf(stderr, "** satie_auxil_new\n");
     satie_auxil_t* auxil = malloc(sizeof(satie_auxil_t));
     auxil->row = 1;
     auxil->stack_index = 0;
@@ -145,6 +149,7 @@ static satie_auxil_t* satie_auxil_new() {
 }
 
 static ast_node_t* create_node(satie_auxil_t* auxil, satie_node_type_t type) {
+    fprintf(stderr, "** create_node\n");
     ast_node_t* node = malloc(sizeof(ast_node_t));
     node->type = type;
     node->value = NULL;
@@ -154,21 +159,36 @@ static ast_node_t* create_node(satie_auxil_t* auxil, satie_node_type_t type) {
     return node;
 }
 
+static ast_node_t* retype_node(ast_node_t* node, satie_node_type_t type) {
+    fprintf(stderr, "** retype_node\n");
+    node->type = type;
+    return node;
+}
+
+#define RN(node, type) retype_node(node, type)
+
 static ast_node_t* create_terminal(satie_auxil_t* auxil,
                                    satie_node_type_t type, const char* value) {
-    fprintf(stderr, "** create_terminal: %s\n", value);
+    fprintf(stderr, "** create_terminal: %s (%s)\n", value, type_to_string(type));
     ast_node_t* node = create_node(auxil, type);
+    fprintf(stderr, "** 1\n");
     if (value != NULL) {
+        fprintf(stderr, "** 2\n");
         node->value = strdup(value);
+        fprintf(stderr, "** 3\n");
     } else {
+        fprintf(stderr, "** 4\n");
         node->value = NULL;
+        fprintf(stderr, "** 5\n");
     }
+    fprintf(stderr, "** 5\n");
     return node;
 }
 
 #define CT(type, value) create_terminal(auxil, type, value)
 
 static void add_nesting(satie_auxil_t* auxil, satie_node_type_t type) {
+    fprintf(stderr, "** add_nesting\n");
     if (!(auxil->stack_index == 0 &&
           auxil->siblings[auxil->stack_index] == NULL)) {
         auxil->stack_index++;
@@ -211,25 +231,23 @@ static void append_node(satie_auxil_t* auxil, satie_node_type_t type,
 
 #define AN(type, node) append_node(auxil, type, node)
 
-static void append_node_alias(satie_auxil_t* auxil, satie_node_type_t type,
-                              ast_node_t* node, satie_node_type_t alias_type) {
-    append_node(auxil, type, node);
-    if ( node != NULL) {
-        node->type = alias_type;
-    }
-}
-
-#define ANA(type, node, alias_type) append_node_alias(auxil, type, node, alias_type)
-
 static ast_node_t* create_siblings_node(satie_auxil_t* auxil,
                                         satie_node_type_t type) {
+    fprintf(stderr, "** create_siblings_node: %s\n", type_to_string(type));
     if (auxil->siblings[auxil->stack_index] == NULL ||
         dynarray_size(auxil->siblings[auxil->stack_index]->array) == 0) {
         fprintf(stderr, "WARNING: No siblings to create node from: %s\n",
                 type_to_string(type));
         return NULL;
     }
-    fprintf(stderr, "** create_siblings_node: %s\n", type_to_string(type));
+    // Special case
+    if (type == POSTFIX_EXPR &&
+        dynarray_size(auxil->siblings[auxil->stack_index]->array) == 1) {
+        ast_node_t* node = dynarray_element(auxil->siblings[auxil->stack_index]->array, 0);
+        free(auxil->siblings[auxil->stack_index]);
+        auxil->stack_index--;
+        return node;
+    }
     ast_node_t* node = create_node(auxil, type);
     //fprintf(stderr, "***1 create_siblings_node\n");
     node->children = auxil->siblings[auxil->stack_index]->array;
@@ -264,7 +282,6 @@ static ast_node_t* create_children_node(satie_auxil_t* auxil,
 #define CCN(type, n, ...) create_children_node(auxil, type, n, __VA_ARGS__)
 
 static void print_ast(ast_node_t* node, uint16_t level) {
-    //fprintf(stderr, "BAJJA\n");
     if (node == NULL) {
         printf("Tree: NULL\n");
         return;

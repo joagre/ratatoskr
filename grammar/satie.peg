@@ -43,7 +43,7 @@ TopLevelDefError <- ("," / ";") {
 # Import
 #
 
-Imports <- i:Import { AN(IMPORT, i); } (__ i:Import { AN(IMPORT, i); })* {
+Imports <- i:Import { AN(IMPORTS, i); } (__ i:Import { AN(IMPORTS, i); })* {
     $$ = CSN(IMPORTS);
 }
 Import <- "import" __ (a:Alias _ "=" _)? _ m:Module (_ ":" _ i:ImportedNames)? {
@@ -131,9 +131,9 @@ ListUpdate <- b:DottedName _ "[" _ i:IndexValues _ "]" { $$ = CCN(LIST_UPDATE, 2
 MapUpdate <- b:DottedName _ "[" _ m:MapKeyValues _ "]" { $$ = CCN(MAP_UPDATE, 2, b, m); } /
              e:PostfixExpr{ $$ = e; }
 PostfixExpr <- (p:PrimaryExpr { AN(POSTFIX_EXPR, p); }
-                (_ "." _ b:BoundName { ANA(POSTFIX_EXPR, b, DOT_NAME); } /
-                 _ "[" _ e:Expr _ "]" { ANA(POSTFIX_EXPR, e, LIST_LOOKUP); } /
-                 _ "(" _ a:Args? _ ")" { ANA(POSTFIX_EXPR, a, FUNCTION_CALL); })*) {
+                (_ "." _ b:BoundName { AN(POSTFIX_EXPR, CCN(DOT_NAME, 1, b)); } /
+                 _ "[" _ e:Expr _ "]" { AN(POSTFIX_EXPR, CCN(LIST_LOOKUP, 1, e)); } /
+                 _ "(" _ a:Args? _ ")" { AN(POSTFIX_EXPR, CCN(FUNCTION_CALL, 1, a)); })*) {
     $$ = CSN(POSTFIX_EXPR);
 }
 
@@ -263,20 +263,14 @@ EnumLiteral <- edn:EnumDefName _ "." _ en:EnumName {
     $$ = CCN(ENUM_LITERAL, 2, edn, en);
 }
 
-TupleLiteral <- "<" _ e:Exprs? _ ">" {
-    $$ = CCN(TUPLE_LITERAL, 1, e);
-}
+TupleLiteral <- "<" _ ">" { $$ = CT(TUPLE_LITERAL, NULL); } /"<" _ e:Exprs? _ ">" { $$ = RN(e, TUPLE_LITERAL); }
 Exprs <- e:Expr { AN(EXPRS, e); } (_ "," _ e:Expr { AN(EXPRS, e); })* {
     $$ = CSN(EXPRS);
 }
 
-ListLiteral <- "[" _ e:Exprs? _ "]" {
-    $$ = CCN(LIST_LITERAL, 1, e);
-}
+ListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } / "[" _ e:Exprs? _ "]" { $$ = RN(e, LIST_LITERAL); }
 
-MapLiteral <- "[:]" / "[" _ k:MapKeyValues? _ "]" {
-    $$ = CCN(MAP_LITERAL, 1, k);
-}
+MapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyValues? _ "]" { $$ = CCN(MAP_LITERAL, 1, k); }
 MapKeyValues <- m:MapKeyValue { AN(MAP_KEY_VALUES, m); } (_ "," _ m:MapKeyValue { AN(MAP_KEY_VALUES, m); })* {
     $$ = CSN(MAP_KEY_VALUES);
 }
@@ -371,9 +365,11 @@ EnumValueError <- ("," / ";") {
 # Function definition
 #
 
-FunctionDef <- ("export" _)?
-               "fn" __ f:FunctionName _ "(" _ p:Params? _ ")" _ b:BlockExpr {
-    $$ = CCN(FUNCTION_DEF, 3, f, p, b);
+FunctionDef <- e:Export? _ "fn" __ f:FunctionName _ "(" _ p:Params? _ ")" _ b:BlockExpr {
+    $$ = CCN(FUNCTION_DEF, 4, e, f, p, b);
+}
+Export <- "export" {
+    $$ = CT(EXPORT, NULL);
 }
 FunctionName <- Identifier {
     $$ = CT(FUNCTION_NAME, $0);
@@ -398,9 +394,15 @@ DefaultParamName <- Identifier {
     $$ = CT(DEFAULT_PARAM_NAME, $0);
 }
 
-BlockExpr <- "{" _ BlockLevelExprs _ "}"
-BlockLevelExprs <- BlockLevelExpr (_ Comma _ BlockLevelExpr)*
-BlockLevelExpr <- FunctionDef / Expr
+BlockExpr <- "{" _ b:BlockLevelExprs _ "}" {
+    $$ = b;
+}
+BlockLevelExprs <- b:BlockLevelExpr { AN(BLOCK_EXPR, b); } (_ Comma _ b:BlockLevelExpr { AN(BLOCK_EXPR, b); })* {
+    $$ = CSN(BLOCK_EXPR);
+}
+BlockLevelExpr <- (b:FunctionDef / b:Expr) {
+    $$ = b;
+}
 Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between expressions)",
           auxil->row);
