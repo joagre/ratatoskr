@@ -50,6 +50,7 @@ typedef dynarray_t node_array_t;
         TYPE(SELF) \
         TYPE(SLICE_LENGTH) \
         TYPE(NAME) \
+        TYPE(UNBOUND_NAME) \
         TYPE(BOUND_NAME) \
         TYPE(IDENTIFIER) \
         TYPE(TRUE) \
@@ -102,6 +103,45 @@ typedef dynarray_t node_array_t;
         TYPE(DEFAULT_PARAM_NAME) \
         TYPE(BLOCK_EXPR) \
         TYPE(BLOCK_LEVEL_EXPR) \
+        TYPE(MATCH_EXPRS) \
+        TYPE(IF_EXPR) \
+        TYPE(IF) \
+        TYPE(ELIF) \
+        TYPE(ELSE) \
+        TYPE(MATCH_IS) \
+        TYPE(SWITCH_EXPR) \
+        TYPE(SWITCH) \
+        TYPE(CASE) \
+        TYPE(DEFAULT) \
+        TYPE(MATCH_EXPR) \
+        TYPE(RECEIVE_EXPR) \
+        TYPE(RECEIVE) \
+        TYPE(TIMEOUT) \
+        TYPE(NEW_EXPR) \
+        TYPE(DEREFERENCE) \
+        TYPE(DEREFERENCES) \
+        TYPE(CLASS_DEF) \
+        TYPE(CLASS_NAME) \
+        TYPE(INTERFACES) \
+        TYPE(INTERFACE) \
+        TYPE(CLASS_MEMBERS) \
+        TYPE(CONSTRUCTOR) \
+        TYPE(DESTRUCTOR) \
+        TYPE(MEMBER_METHOD) \
+        TYPE(PUBLIC) \
+        TYPE(PRIVATE) \
+        TYPE(MEMBER_PROPERTY) \
+        TYPE(CONST) \
+        TYPE(READONLY) \
+        TYPE(POSITIONAL_ARGS) \
+        TYPE(NAMED_ARGS) \
+        TYPE(NAMED_ARG) \
+        TYPE(INTERFACE_DEF) \
+        TYPE(INTERFACE_NAME) \
+        TYPE(INTERFACE_MEMBERS) \
+        TYPE(INTERFACE_MEMBER_METHOD) \
+        TYPE(INTERFACE_METHOD) \
+        TYPE(INTERFACE_MEMBER_PROPERTY) \
         TYPE(NOT_SET)
 
 #define GENERATE_ENUM(ENUM) ENUM,
@@ -140,7 +180,7 @@ typedef struct {
 } ast_node_t;
 
 static satie_auxil_t* satie_auxil_new() {
-    fprintf(stderr, "** satie_auxil_new\n");
+    //fprintf(stderr, "** satie_auxil_new\n");
     satie_auxil_t* auxil = malloc(sizeof(satie_auxil_t));
     auxil->row = 1;
     auxil->stack_index = 0;
@@ -149,7 +189,7 @@ static satie_auxil_t* satie_auxil_new() {
 }
 
 static ast_node_t* create_node(satie_auxil_t* auxil, satie_node_type_t type) {
-    fprintf(stderr, "** create_node\n");
+    //fprintf(stderr, "** create_node\n");
     ast_node_t* node = malloc(sizeof(ast_node_t));
     node->type = type;
     node->value = NULL;
@@ -160,8 +200,13 @@ static ast_node_t* create_node(satie_auxil_t* auxil, satie_node_type_t type) {
 }
 
 static ast_node_t* retype_node(ast_node_t* node, satie_node_type_t type) {
-    fprintf(stderr, "** retype_node\n");
-    node->type = type;
+    //fprintf(stderr, "** retype_node\n");
+    if (node == NULL) {
+        fprintf(stderr, "WARNING: An undefined node cannot be retyped to %s\n",
+                type_to_string(type));
+    } else {
+        node->type = type;
+    }
     return node;
 }
 
@@ -169,26 +214,20 @@ static ast_node_t* retype_node(ast_node_t* node, satie_node_type_t type) {
 
 static ast_node_t* create_terminal(satie_auxil_t* auxil,
                                    satie_node_type_t type, const char* value) {
-    fprintf(stderr, "** create_terminal: %s (%s)\n", value, type_to_string(type));
+    //fprintf(stderr, "** create_terminal: %s (%s)\n", value, type_to_string(type));
     ast_node_t* node = create_node(auxil, type);
-    fprintf(stderr, "** 1\n");
     if (value != NULL) {
-        fprintf(stderr, "** 2\n");
         node->value = strdup(value);
-        fprintf(stderr, "** 3\n");
     } else {
-        fprintf(stderr, "** 4\n");
         node->value = NULL;
-        fprintf(stderr, "** 5\n");
     }
-    fprintf(stderr, "** 5\n");
     return node;
 }
 
 #define CT(type, value) create_terminal(auxil, type, value)
 
 static void add_nesting(satie_auxil_t* auxil, satie_node_type_t type) {
-    fprintf(stderr, "** add_nesting\n");
+    //fprintf(stderr, "** add_nesting\n");
     if (!(auxil->stack_index == 0 &&
           auxil->siblings[auxil->stack_index] == NULL)) {
         auxil->stack_index++;
@@ -202,7 +241,7 @@ static void add_nesting(satie_auxil_t* auxil, satie_node_type_t type) {
 
 static void append_terminal(satie_auxil_t* auxil, satie_node_type_t type,
                             const char* value) {
-    fprintf(stderr, "** add_terminal: %s\n", value);
+    //fprintf(stderr, "** add_terminal: %s\n", value);
     if (auxil->siblings[auxil->stack_index] == NULL ||
         auxil->siblings[auxil->stack_index]->type != type) {
         add_nesting(auxil, type);
@@ -216,27 +255,27 @@ static void append_terminal(satie_auxil_t* auxil, satie_node_type_t type,
 
 static void append_node(satie_auxil_t* auxil, satie_node_type_t type,
                         ast_node_t* node) {
-    fprintf(stderr, "** append_node: %s\n", type_to_string(type));
+    //fprintf(stderr, "** append_node: %s\n", type_to_string(type));
     if (node == NULL) {
         fprintf(stderr, "WARNING: An undefined node cannot be appended to %s\n",
                 type_to_string(type));
-        return;
+    } else {
+        if (auxil->siblings[auxil->stack_index] == NULL ||
+            auxil->siblings[auxil->stack_index]->type != type) {
+            add_nesting(auxil, type);
+        }
+        dynarray_append(auxil->siblings[auxil->stack_index]->array, node);
     }
-    if (auxil->siblings[auxil->stack_index] == NULL ||
-        auxil->siblings[auxil->stack_index]->type != type) {
-        add_nesting(auxil, type);
-    }
-    dynarray_append(auxil->siblings[auxil->stack_index]->array, node);
 }
 
 #define AN(type, node) append_node(auxil, type, node)
 
 static ast_node_t* create_siblings_node(satie_auxil_t* auxil,
                                         satie_node_type_t type) {
-    fprintf(stderr, "** create_siblings_node: %s\n", type_to_string(type));
+    //fprintf(stderr, "** create_siblings_node: %s\n", type_to_string(type));
     if (auxil->siblings[auxil->stack_index] == NULL ||
         dynarray_size(auxil->siblings[auxil->stack_index]->array) == 0) {
-        fprintf(stderr, "WARNING: No siblings to create node from: %s\n",
+        fprintf(stderr, "WARNING: An empty set of siblings cannot be turned into a %s\n",
                 type_to_string(type));
         return NULL;
     }
@@ -244,18 +283,16 @@ static ast_node_t* create_siblings_node(satie_auxil_t* auxil,
     if (type == POSTFIX_EXPR &&
         dynarray_size(auxil->siblings[auxil->stack_index]->array) == 1) {
         ast_node_t* node = dynarray_element(auxil->siblings[auxil->stack_index]->array, 0);
+        fprintf(stderr, "WARNING: POSTFIX_EXPR only has one child %s\n",
+                type_to_string(node->type));
         free(auxil->siblings[auxil->stack_index]);
         auxil->stack_index--;
         return node;
     }
     ast_node_t* node = create_node(auxil, type);
-    //fprintf(stderr, "***1 create_siblings_node\n");
     node->children = auxil->siblings[auxil->stack_index]->array;
-    //fprintf(stderr, "***2 create_siblings_node\n");
     free(auxil->siblings[auxil->stack_index]);
-    //fprintf(stderr, "***3 create_siblings_node\n");
     auxil->stack_index--;
-    //fprintf(stderr, "***4 create_siblings_node\n");
     return node;
 }
 
@@ -264,7 +301,7 @@ static ast_node_t* create_siblings_node(satie_auxil_t* auxil,
 static ast_node_t* create_children_node(satie_auxil_t* auxil,
                                         satie_node_type_t type,
                                         uint16_t n, ...) {
-    fprintf(stderr, "** create_children_node: %s\n", type_to_string(type));
+    //fprintf(stderr, "** create_children_node: %s\n", type_to_string(type));
     ast_node_t* node = create_node(auxil, type);
     node->children = malloc(sizeof(node_array_t));
     dynarray_init(node->children, NULL, 0, sizeof(ast_node_t));
@@ -274,6 +311,9 @@ static ast_node_t* create_children_node(satie_auxil_t* auxil,
         ast_node_t* child_node = va_arg(args, ast_node_t*);
         if (child_node != NULL) {
             dynarray_append(node->children, child_node);
+        } else {
+            fprintf(stderr, "WARNING: An undefined child note %d is ignored by %s\n",
+                    i, type_to_string(type));
         }
     }
     return node;

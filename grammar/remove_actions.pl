@@ -56,5 +56,14 @@ push @parts, $buffer if $buffer;
 my $output = join('', @parts);
 $output =~ s/\b\w+://g;
 
+# Removes trailing spaces on each line
+$output =~ s/ +$//mg;
+
+# Replaces multiple space characters with a single space, except at the start of a line
+$output =~ s/(?<=\S) {2,}/ /g;
+
+# Removes space before a ")" character
+$output =~ s/ (?=\))/)/g;
+
 # Print the modified input
 print $output;
