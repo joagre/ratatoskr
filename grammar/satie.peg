@@ -122,16 +122,14 @@ NotExpr <- "!" _ e:UnaryPlusExpr { $$ = CCN(NOT, 1, e); } /
            e:UnaryPlusExpr { $$ = e; }
 UnaryPlusExpr <- "+" _ e:UnaryMinusExpr { $$ = CCN(UNARY_PLUS, 1, e); } /
                  e:UnaryMinusExpr { $$ = e; }
-UnaryMinusExpr <- "-" _ e:ListSlice { $$ = CCN(UNARY_MINUS, 1, e); } /
-                  e:ListSlice { $$ = e; }
-ListSlice <- b:DottedName _ "[" _ s:Expr _ ".." _ e:Expr _ "]" { $$ = CCN(LIST_SLICE, 3, b, s, e); } /
-             e:ListUpdate { $$ = e; }
-ListUpdate <- b:DottedName _ "[" _ i:IndexValues _ "]" { $$ = CCN(LIST_UPDATE, 2, b, i); } /
-              e:MapUpdate { $$ = e; }
-MapUpdate <- b:DottedName _ "[" _ m:MapKeyValues _ "]" { $$ = CCN(MAP_UPDATE, 2, b, m); } /
-             e:PostfixExpr{ $$ = e; }
+UnaryMinusExpr <- "-" _ e:PostfixExpr { $$ = CCN(UNARY_MINUS, 1, e); } /
+                  e:PostfixExpr { $$ = e; }
+# A real killer
 PostfixExpr <- (p:PrimaryExpr { AN(POSTFIX_EXPR, p); }
                 (_ "." _ b:BoundName { AN(POSTFIX_EXPR, CCN(DOT_NAME, 1, b)); } /
+                 _ "[" _ s:Expr _ ".." _ e:Expr _ "]" { AN(POSTFIX_EXPR, CCN(LIST_SLICE, 2, s, e)); } /
+                 _ "[" _ i:IndexValues _ "]" { AN(POSTFIX_EXPR, CCN(LIST_UPDATE, 1, i)); } /
+                 _ "[" _ m:MapKeyValues _ "]" { AN(POSTFIX_EXPR, CCN(MAP_UPDATE, 1, m)); } /
                  _ "[" _ e:Expr _ "]" { AN(POSTFIX_EXPR, CCN(LIST_LOOKUP, 1, e)); } /
                  _ "(" _ a:Args? _ ")" { AN(POSTFIX_EXPR, CCN(FUNCTION_CALL, 1, a)); })*) {
     $$ = CSN(POSTFIX_EXPR);
@@ -139,10 +137,6 @@ PostfixExpr <- (p:PrimaryExpr { AN(POSTFIX_EXPR, p); }
 
 Type <- "int" { $$ = CT(INT_TYPE, NULL); } /
         "float" { $$ = CT(FLOAT_TYPE, NULL); }
-
-DottedName <- b:BoundName { AN(DOTTED_NAME, b); } (_ "." _ b:BoundName { AN(DOTTED_NAME, b); })* {
-    $$ = CSN(DOTTED_NAME);
-}
 
 IndexValues <- i:IndexValue { AN(INDEX_VALUES, i); } (_ "," _ i:IndexValue { AN(INDEX_VALUES, i); })* {
     $$ = CSN(INDEX_VALUES);
