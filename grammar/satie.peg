@@ -281,7 +281,9 @@ MatchBaseLiteral <- (m:BooleanLiteral /
     $$ = m;
 }
 
-MatchCompositeLiteral <- (m:MatchTupleLiteral / m:MatchListLiteral / m:MatchMapLiteral) {
+MatchCompositeLiteral <- (m:MatchTupleLiteral /
+                          m:MatchListLiteral /
+                          m:MatchMapLiteral) {
     $$ = m;
 }
 
@@ -290,7 +292,9 @@ MatchExprs <- m:MatchExpr { AN(MATCH_EXPRS, m); } (_ "," _ m:MatchExpr { AN(MATC
     $$ = CSN(MATCH_EXPRS);
 }
 
-MatchListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } / BoundName "[" _ m:MatchExpr? _ "]" { $$ = RN(m, LIST_LOOKUP); } / "[" _ m:MatchExprs? _ "]" { $$ = RN(m, LIST_LITERAL); }
+MatchListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } /
+                    BoundName "[" _ m:MatchExpr? _ "]" { $$ = RN(m, LIST_LOOKUP); } /
+                    "[" _ m:MatchExprs? _ "]" { $$ = RN(m, LIST_LITERAL); }
 
 MatchMapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyValues? _ "]" { $$ = CCN(MAP_LITERAL, 1, m); }
 MatchMapKeyValues <- m:MatchMapKeyValue { AN(MAP_KEY_VALUES, m); } (_ "," _ m:MatchMapKeyValue { AN(MAP_KEY_VALUES, m); })* {
@@ -304,7 +308,9 @@ MatchMapKeyValue <- (k:Literal / k:Identifier) _ ":" _ v:MatchExpr {
 # Class definition
 #
 
-ClassDef <- "class" __ cn:ClassName _ ( ":" _ i:Interfaces _ )? "{" _ c:ClassMembers _ "}" {
+ClassDef <- "class" __ cn:ClassName _ ( ":" _ i:Interfaces _ )? "{" _
+            c:ClassMembers _
+            "}" {
     $$ = CCN(CLASS_DEF, 3, cn, i, c);
 }
 ClassName <- Identifier {
@@ -443,8 +449,8 @@ BlockLevelExpr <- (b:FunctionDef / b:Expr) {
     $$ = b;
 }
 Comma <- "," / ";" {
-    panic("Unexpected ';' on line %d (use ',' as a separator between expressions)",
-          auxil->row);
+    panic("Unexpected ';' on line %d (use ',' as a separator between "
+          "expressions)", auxil->row);
 }
 
 Args <- (a:PositionalArgs / a:NamedArgs) {

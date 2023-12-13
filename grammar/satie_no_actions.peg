@@ -190,12 +190,16 @@ MatchBaseLiteral <- (BooleanLiteral /
                      StringLiteral /
                      EnumLiteral)
 
-MatchCompositeLiteral <- (MatchTupleLiteral / MatchListLiteral / MatchMapLiteral)
+MatchCompositeLiteral <- (MatchTupleLiteral /
+                          MatchListLiteral /
+                          MatchMapLiteral)
 
 MatchTupleLiteral <- "<" _ ">" / "<" _ MatchExprs? _ ">"
 MatchExprs <- MatchExpr (_ "," _ MatchExpr))*
 
-MatchListLiteral <- "[" _ "]" / BoundName "[" _ MatchExpr? _ "]" / "[" _ MatchExprs? _ "]"
+MatchListLiteral <- "[" _ "]" /
+                    BoundName "[" _ MatchExpr? _ "]" /
+                    "[" _ MatchExprs? _ "]"
 
 MatchMapLiteral <- "[:]" / "[" _ MatchMapKeyValues? _ "]"
 MatchMapKeyValues <- MatchMapKeyValue (_ "," _ MatchMapKeyValue))*
@@ -205,7 +209,9 @@ MatchMapKeyValue <- (Literal / Identifier) _ ":" _ MatchExpr
 # Class definition
 #
 
-ClassDef <- "class" __ ClassName _ ( ":" _ Interfaces _))? "{" _ ClassMembers _ "}"
+ClassDef <- "class" __ ClassName _ ( ":" _ Interfaces _))? "{" _
+            ClassMembers _
+            "}"
 ClassName <- Identifier
 Interfaces <- Interface (_ "," _ Interface))*
 Interface <- Identifier
@@ -274,8 +280,8 @@ BlockExpr <- "{" _ BlockLevelExprs _ "}"
 BlockLevelExprs <- BlockLevelExpr (_ Comma _ BlockLevelExpr))*
 BlockLevelExpr <- (FunctionDef / Expr)
 Comma <- "," / ";" {
-    panic("Unexpected ';' on line %d (use ',' as a separator between expressions)",
-          auxil->row);
+    panic("Unexpected ';' on line %d (use ',' as a separator between "
+          "expressions)", auxil->row);
 }
 
 Args <- (PositionalArgs / NamedArgs)
