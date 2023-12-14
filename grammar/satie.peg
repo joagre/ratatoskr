@@ -170,7 +170,7 @@ HexDigit <- [0-9a-fA-F]
 OctalDigit <- [0-7]
 NonQuoteCharacter <- [^'] { $$ = CT(NON_QUOTE_CHARACTER, $0); }
 
-StringLiteral <- '"' RegularString '"' / 'r"' RawString '"'
+StringLiteral <- ('"' s:RegularString '"' / 'r"' s:RawString '"') { $$ = s; }
 RegularString <- (EscapeSequence / [^"])* { $$ = CT(REGULAR_STRING, $0); }
 EscapeSequence <- "\\" [btnvfr"\\]
 RawString <- [^"]* { $$ = CT(RAW_STRING, $0); }
@@ -262,7 +262,7 @@ InterfaceMemberError <- ("," / ";") {
 EnumDef <- "enum" __ ed:EnumDefName _ "{" _ e:Enums _ "}" { $$ = CN(ENUM_DEF, 2, ed, e); }
 EnumDefName <- Identifier { $$ = CT(ENUM_DEF_NAME, $0); }
 Enums <- e:Enum { $$ = CN(ENUMS, 1, e); } (__ e:Enum { AC($$, e); } / EnumValueError)*
-Enum <- en:EnumName (_ "=" _ e:Expr)? { $$ = CN(ENUM, 2, en, e); }
+Enum <- en:EnumName (_ "=" _ e:Expr)? { $$ = CN(ENUM, 2, en, CN(ENUM_VALUE, 1, e)); }
 EnumName <- Identifier { $$ = CT(ENUM_NAME, $0); }
 EnumValueError <- ("," / ";") {
     panic("Unexpected %s between enum values on line %d", $0, auxil->row);
@@ -292,11 +292,8 @@ Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between "
           "expressions)", auxil->row);
 }
-
 Args <- (a:PositionalArgs / a:NamedArgs) { $$ = a; }
-
 PositionalArgs <- !NamedArg e:Expr { $$ = CN(POSITIONAL_ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
-
 NamedArgs <- n:NamedArg { $$ = CN(NAMED_ARGS, 1, n); } (_ "," _ n:NamedArg { AC($$, n); })*
 NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
 

@@ -133,6 +133,7 @@ typedef dynarray_t node_array_t;
         TYPE(MEMBER_PROPERTY) \
         TYPE(CONST) \
         TYPE(READONLY) \
+        TYPE(ARGS) \
         TYPE(POSITIONAL_ARGS) \
         TYPE(NAMED_ARGS) \
         TYPE(NAMED_ARG) \
@@ -228,6 +229,13 @@ static ast_node_t* create_node(satie_auxil_t* auxil, node_type_t type,
     for (uint16_t i = 0; i < n; i++) {
         ast_node_t* child_node = va_arg(args, ast_node_t*);
         if (child_node != NULL) {
+            if (child_node->type == POSTFIX_EXPR &&
+                dynarray_size(child_node->children) == 1) {
+                ast_node_t* grand_child_node =
+                    dynarray_element(child_node->children, 0);
+                free(child_node);
+                child_node = grand_child_node;
+            }
             dynarray_append(node->children, child_node);
         } else {
             fprintf(stderr,
@@ -235,6 +243,12 @@ static ast_node_t* create_node(satie_auxil_t* auxil, node_type_t type,
                     i, type_to_string(type));
         }
     }
+    /*
+    if (dynarray_size(node->children) == 0) {
+        free(node->children);
+        return NULL;
+    }
+    */
     return node;
 }
 
@@ -247,6 +261,12 @@ static void add_child(satie_auxil_t* auxil, ast_node_t* parent_node,
         fprintf(stderr, "WARNING: An undefined node cannot be appended to %s\n",
                 type_to_string(parent_node->type));
     } else {
+        if (node->type == POSTFIX_EXPR &&
+            dynarray_size(node->children) == 1) {
+            ast_node_t* child_node = dynarray_element(node->children, 0);
+            free(node);
+            node = child_node;
+        }
         dynarray_append(parent_node->children, node);
     }
 }
