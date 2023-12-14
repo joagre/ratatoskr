@@ -148,7 +148,7 @@ typedef dynarray_t node_array_t;
 
 typedef enum {
     FOREACH_TYPE(GENERATE_ENUM)
-} satie_node_type_t;
+} node_type_t;
 
 #define GENERATE_STRING(STRING) #STRING,
 
@@ -156,40 +156,30 @@ static const char* type_strings[] = {
     FOREACH_TYPE(GENERATE_STRING)
 };
 
-static const char* type_to_string(satie_node_type_t type) {
+static const char* type_to_string(node_type_t type) {
     return type_strings[type];
 }
 
 typedef struct {
-    satie_node_type_t type;
-    node_array_t* array;
-} satie_siblings_t;
-
-typedef struct {
-    uint32_t row;
-    uint8_t stack_index;
-    satie_siblings_t* siblings[256];
-} satie_auxil_t;
-
-typedef struct {
-    satie_node_type_t type;
+    node_type_t type;
     char *value;
     uint32_t row;
     uint32_t column;
     node_array_t* children;
 } ast_node_t;
 
+typedef struct {
+    uint32_t row;
+} satie_auxil_t;
+
 static satie_auxil_t* satie_auxil_new() {
-    //fprintf(stderr, "** satie_auxil_new\n");
+    fprintf(stderr, "** satie_auxil_new\n");
     satie_auxil_t* auxil = malloc(sizeof(satie_auxil_t));
     auxil->row = 1;
-    auxil->stack_index = 0;
-    auxil->siblings[auxil->stack_index] = NULL;
     return auxil;
 }
 
-static ast_node_t* create_node(satie_auxil_t* auxil, satie_node_type_t type) {
-    //fprintf(stderr, "** create_node\n");
+static ast_node_t* new_node(satie_auxil_t* auxil, node_type_t type) {
     ast_node_t* node = malloc(sizeof(ast_node_t));
     node->type = type;
     node->value = NULL;
@@ -199,7 +189,7 @@ static ast_node_t* create_node(satie_auxil_t* auxil, satie_node_type_t type) {
     return node;
 }
 
-static ast_node_t* retype_node(ast_node_t* node, satie_node_type_t type) {
+static ast_node_t* retype_node(ast_node_t* node, node_type_t type) {
     //fprintf(stderr, "** retype_node\n");
     if (node == NULL) {
         fprintf(stderr, "WARNING: An undefined node cannot be retyped to %s\n",
@@ -212,10 +202,11 @@ static ast_node_t* retype_node(ast_node_t* node, satie_node_type_t type) {
 
 #define RN(node, type) retype_node(node, type)
 
-static ast_node_t* create_terminal(satie_auxil_t* auxil,
-                                   satie_node_type_t type, const char* value) {
-    //fprintf(stderr, "** create_terminal: %s (%s)\n", value, type_to_string(type));
-    ast_node_t* node = create_node(auxil, type);
+static ast_node_t* create_terminal(satie_auxil_t* auxil, node_type_t type,
+                                   const char* value) {
+    //fprintf(stderr, "** create_terminal: %s (%s)\n", value,
+    //        type_to_string(type));
+    ast_node_t* node = new_node(auxil, type);
     if (value != NULL) {
         node->value = strdup(value);
     } else {
@@ -226,83 +217,10 @@ static ast_node_t* create_terminal(satie_auxil_t* auxil,
 
 #define CT(type, value) create_terminal(auxil, type, value)
 
-static void add_nesting(satie_auxil_t* auxil, satie_node_type_t type) {
-    //fprintf(stderr, "** add_nesting\n");
-    if (!(auxil->stack_index == 0 &&
-          auxil->siblings[auxil->stack_index] == NULL)) {
-        auxil->stack_index++;
-    }
-    auxil->siblings[auxil->stack_index] = malloc(sizeof(satie_siblings_t));
-    auxil->siblings[auxil->stack_index]->type = type;
-    auxil->siblings[auxil->stack_index]->array = malloc(sizeof(node_array_t));
-    dynarray_init(auxil->siblings[auxil->stack_index]->array, NULL, 0,
-                  sizeof(ast_node_t));
-}
-
-static void append_terminal(satie_auxil_t* auxil, satie_node_type_t type,
-                            const char* value) {
-    //fprintf(stderr, "** add_terminal: %s\n", value);
-    if (auxil->siblings[auxil->stack_index] == NULL ||
-        auxil->siblings[auxil->stack_index]->type != type) {
-        add_nesting(auxil, type);
-    }
-    ast_node_t* node = create_node(auxil, type);
-    node->value = strdup(value);
-    dynarray_append(auxil->siblings[auxil->stack_index]->array, node);
-}
-
-#define AT(type, value) append_terminal(auxil, type, value)
-
-static void append_node(satie_auxil_t* auxil, satie_node_type_t type,
-                        ast_node_t* node) {
-    //fprintf(stderr, "** append_node: %s\n", type_to_string(type));
-    if (node == NULL) {
-        fprintf(stderr, "WARNING: An undefined node cannot be appended to %s\n",
-                type_to_string(type));
-    } else {
-        if (auxil->siblings[auxil->stack_index] == NULL ||
-            auxil->siblings[auxil->stack_index]->type != type) {
-            add_nesting(auxil, type);
-        }
-        dynarray_append(auxil->siblings[auxil->stack_index]->array, node);
-    }
-}
-
-#define AN(type, node) append_node(auxil, type, node)
-
-static ast_node_t* create_siblings_node(satie_auxil_t* auxil,
-                                        satie_node_type_t type) {
-    //fprintf(stderr, "** create_siblings_node: %s\n", type_to_string(type));
-    if (auxil->siblings[auxil->stack_index] == NULL ||
-        dynarray_size(auxil->siblings[auxil->stack_index]->array) == 0) {
-        fprintf(stderr, "WARNING: An empty set of siblings cannot be turned into a %s\n",
-                type_to_string(type));
-        return NULL;
-    }
-    // Special case
-    if (type == POSTFIX_EXPR &&
-        dynarray_size(auxil->siblings[auxil->stack_index]->array) == 1) {
-        ast_node_t* node = dynarray_element(auxil->siblings[auxil->stack_index]->array, 0);
-        fprintf(stderr, "WARNING: POSTFIX_EXPR only has one child %s\n",
-                type_to_string(node->type));
-        free(auxil->siblings[auxil->stack_index]);
-        auxil->stack_index--;
-        return node;
-    }
-    ast_node_t* node = create_node(auxil, type);
-    node->children = auxil->siblings[auxil->stack_index]->array;
-    free(auxil->siblings[auxil->stack_index]);
-    auxil->stack_index--;
-    return node;
-}
-
-#define CSN(type) create_siblings_node(auxil, type)
-
-static ast_node_t* create_children_node(satie_auxil_t* auxil,
-                                        satie_node_type_t type,
-                                        uint16_t n, ...) {
+static ast_node_t* create_node(satie_auxil_t* auxil, node_type_t type,
+                               uint16_t n, ...) {
     //fprintf(stderr, "** create_children_node: %s\n", type_to_string(type));
-    ast_node_t* node = create_node(auxil, type);
+    ast_node_t* node = new_node(auxil, type);
     node->children = malloc(sizeof(node_array_t));
     dynarray_init(node->children, NULL, 0, sizeof(ast_node_t));
     va_list args;
@@ -312,14 +230,28 @@ static ast_node_t* create_children_node(satie_auxil_t* auxil,
         if (child_node != NULL) {
             dynarray_append(node->children, child_node);
         } else {
-            fprintf(stderr, "WARNING: An undefined child note %d is ignored by %s\n",
+            fprintf(stderr,
+                    "WARNING: An undefined child node %d is ignored by %s\n",
                     i, type_to_string(type));
         }
     }
     return node;
 }
 
-#define CCN(type, n, ...) create_children_node(auxil, type, n, __VA_ARGS__)
+#define CN(type, n, ...) create_node(auxil, type, n, __VA_ARGS__)
+
+static void add_child(satie_auxil_t* auxil, ast_node_t* parent_node,
+                      ast_node_t* node) {
+    //fprintf(stderr, "** add_child\n");
+    if (node == NULL) {
+        fprintf(stderr, "WARNING: An undefined node cannot be appended to %s\n",
+                type_to_string(parent_node->type));
+    } else {
+        dynarray_append(parent_node->children, node);
+    }
+}
+
+#define AC(parent_node, node) add_child(auxil, parent_node, node)
 
 static void print_ast(ast_node_t* node, uint16_t level) {
     if (node == NULL) {

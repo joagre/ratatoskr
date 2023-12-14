@@ -23,12 +23,12 @@ TopLevelDefError <- ("," / ";") {
 # Import
 #
 
-Imports <- Import (__ Import))*
+Imports <- Import (__ Import)*
 Import <- "import" __ (Alias _ "=" _)? _ Module (_ ":" _ ImportedNames)?
 Alias <- Identifier
-Module <- ModuleComponent ( "." ModuleComponent))*
+Module <- ModuleComponent ("." ModuleComponent)*
 ModuleComponent <- Identifier
-ImportedNames <- ImportedName (_ "," _ ImportedName))*
+ImportedNames <- ImportedName (_ "," _ ImportedName)*
 ImportedName <- Identifier
 
 #
@@ -68,18 +68,17 @@ BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
 NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
 UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
 UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
-# This is obviously overly accepting, but it's a start
 PostfixExpr <- (PrimaryExpr
                 (_ "." _ BoundName /
                  _ "[" _ Expr _ ".." _ Expr _ "]" /
                  _ "[" _ IndexValues _ "]" /
                  _ "[" _ MapKeyValues _ "]" /
                  _ "[" _ Expr _ "]" /
-                 _ "(" _ Args? _ ")"))*)
+                 _ "(" _ Args? _ ")")*)
 
 Type <- "int" / "float"
 
-IndexValues <- IndexValue (_ "," _ IndexValue))*
+IndexValues <- IndexValue (_ "," _ IndexValue)*
 IndexValue <- DecimalIntegral _ "=" _ Expr
 
 PrimaryExpr <- "nil" /
@@ -95,26 +94,27 @@ PrimaryExpr <- "nil" /
 ControlFlowExpr <- (IfExpr / SwitchExpr / ReceiveExpr / BlockExpr)
 
 IfExpr <- "if" __ Expr _ BlockExpr
-          (_ "elif" __ Expr _ BlockExpr))*
-          (_ "else" _ BlockExpr))?
+          (_ "elif" __ Expr _ BlockExpr)*
+          (_ "else" _ BlockExpr)?
 
 SwitchExpr <- "switch" __ Expr _ "{"
-              (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs))+
-              (_ "default" _ ":" _ BlockLevelExprs))? _
+              (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+
+              (_ "default" _ ":" _ BlockLevelExprs)? _
               "}"
 
 ReceiveExpr <- "receive" __ Channels (_ "{"
-               (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _))+
-               (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr))? _
+               (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
+               (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
                "}")?
 
 Channels <- (Dereference / "[" _ Dereferences _ "]")
-Dereference <- (Identifier
+Dereference <- (DereferenceName
                 (_ "." _ Name /
-                 _ "[" _ Expr _ "]"))*)
-Dereferences <- Dereference (_ "," _ Dereference))*
+                 _ "[" _ Expr _ "]")*)
+DereferenceName <- Identifier
+Dereferences <- Dereference (_ "," _ Dereference)*
 
-NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
+NewExpr <- "new" _ Name _ "(" _ Args? _ ")"
 
 #
 # Literal
@@ -127,8 +127,7 @@ BaseLiteral <- (BooleanLiteral / NumberLiteral / CharacterLiteral /
 
 CompositeLiteral <- (TupleLiteral / ListLiteral / MapLiteral)
 
-BooleanLiteral <- "true" /
-                  "false"
+BooleanLiteral <- "true" / "false"
 
 NumberLiteral <- (FloatingPoint / Integral)
 
@@ -143,44 +142,44 @@ BinaryIntegral <- "0b" [01]+
 OctalIntegral <- "0" [0-7]+
 DecimalIntegral <- [0-9]+
 
-CharacterLiteral <- "'" ( EscapeCharacter / NonQuoteCharacter)) "'"
-EscapeCharacter <- "\\" ( [abfnrtv'"\\] /
+CharacterLiteral <- "'" (EscapeCharacter / NonQuoteCharacter) "'"
+EscapeCharacter <- "\\" (
+                   [abfnrtv'"\\] /
                    "x" HexDigit HexDigit /
                    "u" HexDigit HexDigit HexDigit HexDigit /
                    "U" HexDigit HexDigit HexDigit HexDigit
                        HexDigit HexDigit HexDigit HexDigit /
                     OctalDigit /
                     OctalDigit OctalDigit /
-                    OctalDigit OctalDigit OctalDigit))
+                    OctalDigit OctalDigit OctalDigit
+                   )
 HexDigit <- [0-9a-fA-F]
 OctalDigit <- [0-7]
 NonQuoteCharacter <- [^']
 
 StringLiteral <- '"' RegularString '"' / 'r"' RawString '"'
-RegularString <- (EscapeSequence / [^"])* {
-    $$ = CT(REGULAR_STRING, $0);
-}
+RegularString <- (EscapeSequence / [^"])* { $$ = CT(REGULAR_STRING, $0); }
 EscapeSequence <- "\\" [btnvfr"\\]
 RawString <- [^"]*
 
 FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 
-EnumLiteral <- EnumDefName _ "." _ EnumName
+EnumLiteral <- EnumDefName _ "::" _ EnumName
 
 TupleLiteral <- "<" _ ">" / "<" _ Exprs? _ ">"
-Exprs <- Expr (_ "," _ Expr))*
+Exprs <- Expr (_ "," _ Expr)*
 
 ListLiteral <- "[" _ "]" / "[" _ Exprs? _ "]"
 
 MapLiteral <- "[:]" / "[" _ MapKeyValues? _ "]"
-MapKeyValues <- MapKeyValue (_ "," _ MapKeyValue))*
-MapKeyValue <- (Literal / Identifier) _ ":" _ Expr
+MapKeyValues <- MapKeyValue (_ "," _ MapKeyValue)*
+MapKeyValue <- (Literal / Name) _ ":" _ Expr
 
 #
 # Match expression
 #
 
-MatchExpr <- (MatchLiteral / UnboundName / BoundName) (_ "is" _ UnboundName))?
+MatchExpr <- (MatchLiteral / UnboundName / BoundName) (_ "is" _ UnboundName)?
 
 MatchLiteral <- (MatchBaseLiteral / MatchCompositeLiteral)
 
@@ -195,31 +194,28 @@ MatchCompositeLiteral <- (MatchTupleLiteral /
                           MatchMapLiteral)
 
 MatchTupleLiteral <- "<" _ ">" / "<" _ MatchExprs? _ ">"
-MatchExprs <- MatchExpr (_ "," _ MatchExpr))*
+MatchExprs <- MatchExpr (_ "," _ MatchExpr)*
 
 MatchListLiteral <- "[" _ "]" /
                     BoundName "[" _ MatchExpr? _ "]" /
                     "[" _ MatchExprs? _ "]"
 
 MatchMapLiteral <- "[:]" / "[" _ MatchMapKeyValues? _ "]"
-MatchMapKeyValues <- MatchMapKeyValue (_ "," _ MatchMapKeyValue))*
-MatchMapKeyValue <- (Literal / Identifier) _ ":" _ MatchExpr
+MatchMapKeyValues <- MatchMapKeyValue (_ "," _ MatchMapKeyValue)*
+MatchMapKeyValue <- (Literal / Name) _ ":" _ MatchExpr
 
 #
 # Class definition
 #
 
-ClassDef <- "class" __ ClassName _ ( ":" _ Interfaces _))? "{" _
+ClassDef <- "class" __ ClassName _ (":" _ Interfaces _)? "{" _
             ClassMembers _
             "}"
 ClassName <- Identifier
-Interfaces <- Interface (_ "," _ Interface))*
+Interfaces <- Interface (_ "," _ Interface)*
 Interface <- Identifier
 ClassMembers <- ClassMember (_ ClassMember / ClassMemberError)*
-ClassMember <- (Constructor /
-                Destructor /
-                MemberMethod /
-                MemberProperty)
+ClassMember <- (Constructor / Destructor / MemberMethod / MemberProperty)
 Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
 Destructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
 MemberMethod <- MemberAccess _ FunctionDef
@@ -270,14 +266,14 @@ Params <- NonDefaultParams _ "," _ DefaultParams /
           NonDefaultParams /
           DefaultParams
 NonDefaultParams <- NonDefaultParam
-                    (_ "," _ NonDefaultParam))*
+                    (_ "," _ NonDefaultParam)*
 NonDefaultParam <- Identifier !(_ "=")
-DefaultParams <- DefaultParam (_ "," _ DefaultParam))*
+DefaultParams <- DefaultParam (_ "," _ DefaultParam)*
 DefaultParam <- DefaultParamName _ "=" _ Expr
 DefaultParamName <- Identifier
 
 BlockExpr <- "{" _ BlockLevelExprs _ "}"
-BlockLevelExprs <- BlockLevelExpr (_ Comma _ BlockLevelExpr))*
+BlockLevelExprs <- BlockLevelExpr (_ Comma _ BlockLevelExpr)*
 BlockLevelExpr <- (FunctionDef / Expr)
 Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between "
@@ -285,20 +281,20 @@ Comma <- "," / ";" {
 }
 
 Args <- (PositionalArgs / NamedArgs)
-PositionalArgs <- !NamedArg Expr (_ "," _ Expr))*
-NamedArgs <- NamedArg (_ "," _ NamedArg))*
-NamedArg <- Identifier _ ":" _ Expr
+
+PositionalArgs <- !NamedArg Expr (_ "," _ Expr)*
+
+NamedArgs <- NamedArg (_ "," _ NamedArg)*
+NamedArg <- Name _ ":" _ Expr
 
 #
 # Misc
 #
 
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
-
 Name <- Identifier
 BoundName <- Name
 UnboundName <- "?" _ Name
-
 #_ <- WS*
 #__ <- WS+
 _ <- (WS / Comments)*
@@ -309,7 +305,6 @@ SingleLineComment <- "//" (!EOL .)* EOL?
 EOL <- "\r\n" / "\n" / "\r"
 BlockComment <- "/*" (BlockCommentContent / EOL)* "*/"
 BlockCommentContent <- (!("*/" / EOL) .)
-
 EOF <- _ !.
 
 %%

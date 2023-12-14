@@ -63,7 +63,10 @@ $output =~ s/ +$//mg;
 $output =~ s/(?<=\S) {2,}/ /g;
 
 # Removes space before a ")" character
-$output =~ s/ (?=\))/)/g;
+$output =~ s/ (?=\))//g;
+
+# Removes space after a "(" character
+$output =~ s/\( /(/g;
 
 # Print the modified input
 print $output;

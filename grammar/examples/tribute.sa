@@ -1,5 +1,4 @@
 import std.satie
-import std.channels : ChannelOption
 import std.stdio : writeln
 
 export fn main(args) {
@@ -35,5 +34,5 @@ size: <Type, Size>
     Set the number of messages allowed in a channel to Size. If this
     threshold is reached the sender blocks or the message is ignored,
     depending on Type (which can either be the enum
-    ChannelOption.block or ChannelOption.ignore).
+    ChannelOption@block or ChannelOption@ignore).
 */
