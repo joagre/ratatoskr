@@ -1,0 +1,958 @@
+(cd ../; make)
+make[1]: Entering directory '/home/jocke/projects/satie/grammar'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/jocke/projects/satie/grammar'
+../lint < ackermann.sa
+** satie_auxil_new
+** create_terminal: std (MODULE_COMPONENT)
+** create_children_node: MODULE
+** create_terminal: satie (MODULE_COMPONENT)
+** add_child
+** add_child1
+** create_children_node: IMPORT
+WARNING: An undefined child node 0 is ignored by IMPORT
+WARNING: An undefined child node 2 is ignored by IMPORT
+** create_children_node: IMPORTS
+** create_terminal: std (MODULE_COMPONENT)
+** create_children_node: MODULE
+** create_terminal: jobs (MODULE_COMPONENT)
+** add_child
+** add_child1
+** create_terminal: JobStatus (IMPORTED_NAME)
+** create_children_node: IMPORTED_NAMES
+** create_terminal: SpawnOption (IMPORTED_NAME)
+** add_child
+** add_child1
+** create_children_node: IMPORT
+WARNING: An undefined child node 0 is ignored by IMPORT
+** add_child
+** add_child1
+** create_terminal: std (MODULE_COMPONENT)
+** create_children_node: MODULE
+** create_terminal: channels (MODULE_COMPONENT)
+** add_child
+** add_child1
+** create_terminal: ChannelOption (IMPORTED_NAME)
+** create_children_node: IMPORTED_NAMES
+** create_children_node: IMPORT
+WARNING: An undefined child node 0 is ignored by IMPORT
+** add_child
+** add_child1
+** create_terminal: std (MODULE_COMPONENT)
+** create_children_node: MODULE
+** create_terminal: stdio (MODULE_COMPONENT)
+** add_child
+** add_child1
+** create_children_node: IMPORT
+WARNING: An undefined child node 0 is ignored by IMPORT
+WARNING: An undefined child node 2 is ignored by IMPORT
+** add_child
+** add_child1
+** create_terminal: (null) (EXPORT)
+** create_terminal: main (FUNCTION_NAME)
+** create_terminal: ackermann (NAME)
+** retype_node
+** create_terminal: Ackermann (NAME)
+** create_children_node: NEW_EXPR
+WARNING: An undefined child node 1 is ignored by NEW_EXPR
+** create_children_node: POSTFIX_EXPR
+** create_children_node: BIND
+** create_children_node: BLOCK_EXPR
+** create_terminal: ackermann (NAME)
+** retype_node
+** create_terminal: ackermann (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: startJobs (NAME)
+** retype_node
+** retype_node
+** add_child
+** add_child1
+** create_terminal: 3 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_terminal: 10 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** add_child
+** add_child1
+** add_child2
+** add_child3
+** add_child4
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BIND
+** add_child
+** add_child1
+** create_terminal: ackermann (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: waitForJobs (NAME)
+** retype_node
+** retype_node
+** add_child
+** add_child1
+** create_children_node: FUNCTION_CALL
+WARNING: An undefined child node 0 is ignored by FUNCTION_CALL
+** add_child
+** add_child1
+** add_child
+** add_child1
+** create_children_node: FUNCTION_DEF
+WARNING: An undefined child node 2 is ignored by FUNCTION_DEF
+** create_children_node: TOP_LEVEL_DEFS
+** create_terminal: Ackermann (CLASS_NAME)
+** create_terminal: (null) (PRIVATE)
+** create_terminal: jobs (NAME)
+** create_terminal: (null) (LIST_LITERAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: MEMBER_PROPERTY
+WARNING: An undefined child node 1 is ignored by MEMBER_PROPERTY
+** create_children_node: CLASS_MEMBERS
+** create_terminal: (null) (PRIVATE)
+** create_terminal: resultChannel (NAME)
+** create_children_node: MEMBER_PROPERTY
+WARNING: An undefined child node 1 is ignored by MEMBER_PROPERTY
+WARNING: An undefined child node 3 is ignored by MEMBER_PROPERTY
+** add_child
+** add_child1
+** create_terminal: (null) (THIS)
+** create_children_node: POSTFIX_EXPR
+** create_terminal: resultChannel (NAME)
+** create_terminal: satie (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: makeChannel (NAME)
+** retype_node
+** retype_node
+** add_child
+** add_child1
+** create_terminal: onCrowding (NAME)
+** create_terminal: ChannelOption (ENUM_DEF_NAME)
+** create_terminal: block (ENUM_NAME)
+** create_children_node: ENUM_LITERAL
+** create_children_node: POSTFIX_EXPR
+** create_children_node: EXPRS
+** create_terminal: 4 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** add_child
+** add_child1
+** add_child2
+** add_child3
+** add_child4
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: NAMED_ARG
+** create_children_node: NAMED_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: NAMED_ARG
+** create_children_node: NAMED_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BLOCK_EXPR
+** create_children_node: CONSTRUCTOR
+WARNING: An undefined child node 0 is ignored by CONSTRUCTOR
+** add_child
+** add_child1
+** create_terminal: (null) (PUBLIC)
+** create_terminal: startJobs (FUNCTION_NAME)
+** create_terminal: m (NON_DEFAULT_PARAM)
+** create_children_node: NON_DEFAULT_PARAMS
+** create_terminal: n (NON_DEFAULT_PARAM)
+** add_child
+** add_child1
+** create_terminal: i (DEFAULT_PARAM_NAME)
+** create_terminal: 0 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: DEFAULT_PARAM
+** create_children_node: DEFAULT_PARAMS
+** create_terminal: startedJobs (DEFAULT_PARAM_NAME)
+** create_terminal: (null) (LIST_LITERAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: DEFAULT_PARAM
+** add_child
+** add_child1
+** create_children_node: PARAMS
+** create_terminal: i (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: n (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: LT
+** create_terminal: computeAckermann (FUNCTION_NAME)
+** create_terminal: m (NON_DEFAULT_PARAM)
+** create_children_node: NON_DEFAULT_PARAMS
+** create_terminal: n (NON_DEFAULT_PARAM)
+** add_child
+** add_child1
+** create_terminal: result (NAME)
+** retype_node
+** create_terminal: ackermann (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: m (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_terminal: n (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** add_child
+** add_child1
+** add_child2
+** add_child3
+** add_child4
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BIND
+** create_children_node: BLOCK_EXPR
+** create_terminal: resultChannel (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: send (NAME)
+** retype_node
+** retype_node
+** add_child
+** add_child1
+** create_terminal: (null) (SELF)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: EXPRS
+** create_terminal: m (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** add_child
+** add_child1
+** add_child2
+** add_child3
+** add_child4
+** create_terminal: n (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** add_child
+** add_child1
+** add_child2
+** add_child3
+** add_child4
+** create_terminal: result (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** add_child
+** add_child1
+** add_child2
+** add_child3
+** add_child4
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** add_child
+** add_child1
+** create_children_node: FUNCTION_DEF
+WARNING: An undefined child node 0 is ignored by FUNCTION_DEF
+** create_children_node: BLOCK_EXPR
+** create_terminal: job (NAME)
+** retype_node
+** create_terminal: satie (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: spawn (NAME)
+** retype_node
+** retype_node
+** add_child
+** add_child1
+** create_terminal: computeAckermann (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: m (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_terminal: i (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** add_child
+** add_child1
+** add_child2
+** add_child3
+** add_child4
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BLOCK_EXPR
+** create_children_node: FUNCTION_LITERAL
+WARNING: An undefined child node 0 is ignored by FUNCTION_LITERAL
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_terminal: SpawnOption (ENUM_DEF_NAME)
+** create_terminal: monitor (ENUM_NAME)
+** create_children_node: ENUM_LITERAL
+** create_terminal: (null) (TRUE)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: MAP_KEY_VALUE
+** create_children_node: MAP_KEY_VALUES
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** add_child
+** add_child1
+** add_child2
+** add_child3
+** add_child4
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BIND
+** add_child
+** add_child1
+** create_terminal: startJobs (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: m (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_terminal: n (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** add_child
+** add_child1
+** add_child2
+** add_child3
+** add_child4
+** create_terminal: i (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: 1 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: PLUS
+** add_child
+** add_child1
+** create_terminal: job (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: startedJobs (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: CONCAT
+** add_child
+** add_child1
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** add_child
+** add_child1
+** create_children_node: IF
+** create_children_node: IF_EXPR
+** create_terminal: (null) (THIS)
+** create_children_node: POSTFIX_EXPR
+** create_terminal: jobs (NAME)
+** create_terminal: startedJobs (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: NAMED_ARG
+** create_children_node: NAMED_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BLOCK_EXPR
+** create_children_node: ELSE
+** add_child
+** add_child1
+** create_children_node: POSTFIX_EXPR
+** create_children_node: BLOCK_EXPR
+** create_children_node: FUNCTION_DEF
+WARNING: An undefined child node 0 is ignored by FUNCTION_DEF
+** create_children_node: MEMBER_METHOD
+** add_child
+** add_child1
+** create_terminal: (null) (PUBLIC)
+** create_terminal: waitForJobs (FUNCTION_NAME)
+** create_terminal: waitForJobs (FUNCTION_NAME)
+** create_terminal: jobs (NON_DEFAULT_PARAM)
+** create_children_node: NON_DEFAULT_PARAMS
+** create_terminal: jobs (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: length (NAME)
+** retype_node
+** retype_node
+** add_child
+** add_child1
+** create_terminal: 0 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: GT
+** create_terminal: systemChannel (CHANNEL_NAME)
+** create_children_node: CHANNEL
+** create_children_node: CHANNELS
+** create_terminal: satie (CHANNEL_NAME)
+** create_children_node: CHANNEL
+** create_terminal: systemChannel (NAME)
+** retype_node
+** add_child
+** add_child1
+** add_child
+** add_child1
+** create_children_node: RECEIVE
+** create_children_node: RECEIVE_EXPR
+** create_terminal: job (NAME)
+** retype_node
+** create_children_node: MATCH_EXPRS
+** create_terminal: m (NAME)
+** retype_node
+** add_child
+** add_child1
+** create_terminal: n (NAME)
+** retype_node
+** add_child
+** add_child1
+** create_terminal: result (NAME)
+** retype_node
+** add_child
+** add_child1
+** retype_node
+** create_children_node: MATCH_EXPRS
+** create_terminal: stdio (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: writeln (NAME)
+** retype_node
+** retype_node
+** add_child
+** add_child1
+** create_terminal: ackermann($m, $n) = $result (REGULAR_STRING)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BLOCK_EXPR
+** create_terminal: waitForJobs (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: jobs (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: delete (NAME)
+** retype_node
+** retype_node
+** add_child
+** add_child1
+** create_terminal: job (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: POSITIONAL_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** add_child
+** add_child1
+** create_children_node: CASE
+** add_child
+** add_child1
+** create_terminal: JobStatus (ENUM_DEF_NAME)
+** create_terminal: died (ENUM_NAME)
+** create_children_node: ENUM_LITERAL
+** create_children_node: MATCH_EXPRS
+** create_terminal: job (NAME)
+** retype_node
+** add_child
+** add_child1
+** create_terminal: reason (NAME)
+** retype_node
+** add_child
+** add_child1
+** retype_node
+** create_children_node: MATCH_EXPRS
+** create_terminal: stdio (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: writeln (NAME)
+** retype_node
+** retype_node
+** add_child
+** add_child1
+** create_terminal: Oh no! Compute job $job died: $reason (REGULAR_STRING)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BLOCK_EXPR
+** create_terminal: waitForJobs (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: jobs (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: delete (NAME)
+** retype_node
+** retype_node
+** add_child
+** add_child1
+** create_terminal: job (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: POSITIONAL_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** add_child
+** add_child1
+** create_children_node: CASE
+** add_child
+** add_child1
+** create_children_node: POSTFIX_EXPR
+** create_children_node: BLOCK_EXPR
+** create_children_node: IF
+** create_children_node: IF_EXPR
+** create_terminal: (null) (THIS)
+** create_children_node: POSTFIX_EXPR
+** create_terminal: jobs (NAME)
+** create_terminal: (null) (LIST_LITERAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: NAMED_ARG
+** create_children_node: NAMED_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BLOCK_EXPR
+** create_children_node: ELSE
+** add_child
+** add_child1
+** create_children_node: POSTFIX_EXPR
+** create_children_node: BLOCK_EXPR
+** create_children_node: FUNCTION_DEF
+WARNING: An undefined child node 0 is ignored by FUNCTION_DEF
+** create_children_node: BLOCK_EXPR
+** create_terminal: waitForJobs (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: jobs (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** add_child
+** add_child1
+** create_children_node: FUNCTION_DEF
+WARNING: An undefined child node 0 is ignored by FUNCTION_DEF
+WARNING: An undefined child node 2 is ignored by FUNCTION_DEF
+** create_children_node: MEMBER_METHOD
+** add_child
+** add_child1
+** create_terminal: (null) (PRIVATE)
+** create_terminal: ackermann (FUNCTION_NAME)
+** create_terminal: m (NON_DEFAULT_PARAM)
+** create_children_node: NON_DEFAULT_PARAMS
+** create_terminal: n (NON_DEFAULT_PARAM)
+** add_child
+** add_child1
+** create_terminal: m (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: 0 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: EQ
+** create_terminal: n (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: 1 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: PLUS
+** create_children_node: BLOCK_EXPR
+** create_children_node: IF
+** create_children_node: IF_EXPR
+** create_terminal: n (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: 0 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: EQ
+** create_terminal: ackermann (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: m (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: 1 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: MINUS
+** create_children_node: POSITIONAL_ARGS
+** create_terminal: 1 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** add_child
+** add_child1
+** add_child2
+** add_child3
+** add_child4
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BLOCK_EXPR
+** create_children_node: ELIF
+** add_child
+** add_child1
+** create_terminal: ackermann (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: m (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: 1 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: MINUS
+** create_children_node: POSITIONAL_ARGS
+** create_terminal: ackermann (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: m (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_children_node: POSITIONAL_ARGS
+** create_terminal: n (NAME)
+** retype_node
+** create_children_node: POSTFIX_EXPR
+** create_terminal: 1 (INTEGRAL)
+** create_children_node: POSTFIX_EXPR
+** create_children_node: MINUS
+** add_child
+** add_child1
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** add_child
+** add_child1
+** create_children_node: FUNCTION_CALL
+** add_child
+** add_child1
+** create_children_node: BLOCK_EXPR
+** create_children_node: ELSE
+** add_child
+** add_child1
+** create_children_node: POSTFIX_EXPR
+** create_children_node: BLOCK_EXPR
+** create_children_node: FUNCTION_DEF
+WARNING: An undefined child node 0 is ignored by FUNCTION_DEF
+** create_children_node: MEMBER_METHOD
+** add_child
+** add_child1
+** create_children_node: CLASS_DEF
+WARNING: An undefined child node 1 is ignored by CLASS_DEF
+** add_child
+** add_child1
+** create_children_node: PROGRAM
+PROGRAM
+  IMPORTS
+    IMPORT
+      MODULE
+        MODULE_COMPONENT: std
+        MODULE_COMPONENT: satie
+    IMPORT
+      MODULE
+        MODULE_COMPONENT: std
+        MODULE_COMPONENT: jobs
+      IMPORTED_NAMES
+        IMPORTED_NAME: JobStatus
+        IMPORTED_NAME: SpawnOption
+    IMPORT
+      MODULE
+        MODULE_COMPONENT: std
+        MODULE_COMPONENT: channels
+      IMPORTED_NAMES
+        IMPORTED_NAME: ChannelOption
+    IMPORT
+      MODULE
+        MODULE_COMPONENT: std
+        MODULE_COMPONENT: stdio
+  TOP_LEVEL_DEFS
+    FUNCTION_DEF
+      EXPORT
+      FUNCTION_NAME: main
+      BLOCK_EXPR
+        BIND
+          UNBOUND_NAME: ackermann
+          NEW_EXPR
+            NAME: Ackermann
+        BIND
+          UNBOUND_NAME: ackermann
+          POSTFIX_EXPR
+            BOUND_NAME: ackermann
+            DOT_NAME: startJobs
+            FUNCTION_CALL
+              POSITIONAL_ARGS
+                INTEGRAL: 3
+                INTEGRAL: 10
+        POSTFIX_EXPR
+          BOUND_NAME: ackermann
+          DOT_NAME: waitForJobs
+          FUNCTION_CALL
+    CLASS_DEF
+      CLASS_NAME: Ackermann
+      CLASS_MEMBERS
+        MEMBER_PROPERTY
+          PRIVATE
+          NAME: jobs
+          LIST_LITERAL
+        MEMBER_PROPERTY
+          PRIVATE
+          NAME: resultChannel
+        CONSTRUCTOR
+          BLOCK_EXPR
+            POSTFIX_EXPR
+              THIS
+              FUNCTION_CALL
+                NAMED_ARGS
+                  NAMED_ARG
+                    NAME: resultChannel
+                    POSTFIX_EXPR
+                      BOUND_NAME: satie
+                      DOT_NAME: makeChannel
+                      FUNCTION_CALL
+                        NAMED_ARGS
+                          NAMED_ARG
+                            NAME: onCrowding
+                            TUPLE_LITERAL
+                              ENUM_LITERAL
+                                ENUM_DEF_NAME: ChannelOption
+                                ENUM_NAME: block
+                              INTEGRAL: 4
+        MEMBER_METHOD
+          PUBLIC
+          FUNCTION_DEF
+            FUNCTION_NAME: startJobs
+            PARAMS
+              NON_DEFAULT_PARAMS
+                NON_DEFAULT_PARAM: m
+                NON_DEFAULT_PARAM: n
+              DEFAULT_PARAMS
+                DEFAULT_PARAM
+                  DEFAULT_PARAM_NAME: i
+                  INTEGRAL: 0
+                DEFAULT_PARAM
+                  DEFAULT_PARAM_NAME: startedJobs
+                  LIST_LITERAL
+            BLOCK_EXPR
+              IF_EXPR
+                IF
+                  LT
+                    BOUND_NAME: i
+                    BOUND_NAME: n
+                  BLOCK_EXPR
+                    FUNCTION_DEF
+                      FUNCTION_NAME: computeAckermann
+                      NON_DEFAULT_PARAMS
+                        NON_DEFAULT_PARAM: m
+                        NON_DEFAULT_PARAM: n
+                      BLOCK_EXPR
+                        BIND
+                          UNBOUND_NAME: result
+                          POSTFIX_EXPR
+                            BOUND_NAME: ackermann
+                            FUNCTION_CALL
+                              POSITIONAL_ARGS
+                                BOUND_NAME: m
+                                BOUND_NAME: n
+                        POSTFIX_EXPR
+                          BOUND_NAME: resultChannel
+                          DOT_NAME: send
+                          FUNCTION_CALL
+                            POSITIONAL_ARGS
+                              TUPLE_LITERAL
+                                SELF
+                                BOUND_NAME: m
+                                BOUND_NAME: n
+                                BOUND_NAME: result
+                    BIND
+                      UNBOUND_NAME: job
+                      POSTFIX_EXPR
+                        BOUND_NAME: satie
+                        DOT_NAME: spawn
+                        FUNCTION_CALL
+                          POSITIONAL_ARGS
+                            FUNCTION_LITERAL
+                              BLOCK_EXPR
+                                POSTFIX_EXPR
+                                  BOUND_NAME: computeAckermann
+                                  FUNCTION_CALL
+                                    POSITIONAL_ARGS
+                                      BOUND_NAME: m
+                                      BOUND_NAME: i
+                            MAP_LITERAL
+                              MAP_KEY_VALUE
+                                ENUM_LITERAL
+                                  ENUM_DEF_NAME: SpawnOption
+                                  ENUM_NAME: monitor
+                                TRUE
+                    POSTFIX_EXPR
+                      BOUND_NAME: startJobs
+                      FUNCTION_CALL
+                        POSITIONAL_ARGS
+                          BOUND_NAME: m
+                          BOUND_NAME: n
+                          PLUS
+                            BOUND_NAME: i
+                            INTEGRAL: 1
+                          CONCAT
+                            BOUND_NAME: job
+                            BOUND_NAME: startedJobs
+                ELSE
+                  BLOCK_EXPR
+                    POSTFIX_EXPR
+                      THIS
+                      FUNCTION_CALL
+                        NAMED_ARGS
+                          NAMED_ARG
+                            NAME: jobs
+                            BOUND_NAME: startedJobs
+        MEMBER_METHOD
+          PUBLIC
+          FUNCTION_DEF
+            FUNCTION_NAME: waitForJobs
+            BLOCK_EXPR
+              FUNCTION_DEF
+                FUNCTION_NAME: waitForJobs
+                NON_DEFAULT_PARAMS
+                  NON_DEFAULT_PARAM: jobs
+                BLOCK_EXPR
+                  IF_EXPR
+                    IF
+                      GT
+                        POSTFIX_EXPR
+                          BOUND_NAME: jobs
+                          DOT_NAME: length
+                        INTEGRAL: 0
+                      BLOCK_EXPR
+                        RECEIVE_EXPR
+                          RECEIVE
+                            CHANNELS
+                              CHANNEL
+                                CHANNEL_NAME: systemChannel
+                              CHANNEL
+                                CHANNEL_NAME: satie
+                                DOT_NAME: systemChannel
+                          CASE
+                            MATCH_EXPRS
+                              TUPLE_LITERAL
+                                UNBOUND_NAME: job
+                                UNBOUND_NAME: m
+                                UNBOUND_NAME: n
+                                UNBOUND_NAME: result
+                            BLOCK_EXPR
+                              POSTFIX_EXPR
+                                BOUND_NAME: stdio
+                                DOT_NAME: writeln
+                                FUNCTION_CALL
+                                  POSITIONAL_ARGS
+                                    REGULAR_STRING: ackermann($m, $n) = $result
+                              POSTFIX_EXPR
+                                BOUND_NAME: waitForJobs
+                                FUNCTION_CALL
+                                  POSITIONAL_ARGS
+                                    POSTFIX_EXPR
+                                      BOUND_NAME: jobs
+                                      DOT_NAME: delete
+                                      FUNCTION_CALL
+                                        POSITIONAL_ARGS
+                                          BOUND_NAME: job
+                          CASE
+                            MATCH_EXPRS
+                              TUPLE_LITERAL
+                                ENUM_LITERAL
+                                  ENUM_DEF_NAME: JobStatus
+                                  ENUM_NAME: died
+                                UNBOUND_NAME: job
+                                UNBOUND_NAME: reason
+                            BLOCK_EXPR
+                              POSTFIX_EXPR
+                                BOUND_NAME: stdio
+                                DOT_NAME: writeln
+                                FUNCTION_CALL
+                                  POSITIONAL_ARGS
+                                    REGULAR_STRING: Oh no! Compute job $job died: $reason
+                              POSTFIX_EXPR
+                                BOUND_NAME: waitForJobs
+                                FUNCTION_CALL
+                                  POSITIONAL_ARGS
+                                    POSTFIX_EXPR
+                                      BOUND_NAME: jobs
+                                      DOT_NAME: delete
+                                      FUNCTION_CALL
+                                        POSITIONAL_ARGS
+                                          BOUND_NAME: job
+                    ELSE
+                      BLOCK_EXPR
+                        POSTFIX_EXPR
+                          THIS
+                          FUNCTION_CALL
+                            NAMED_ARGS
+                              NAMED_ARG
+                                NAME: jobs
+                                LIST_LITERAL
+              POSTFIX_EXPR
+                BOUND_NAME: waitForJobs
+                FUNCTION_CALL
+                  POSITIONAL_ARGS
+                    BOUND_NAME: jobs
+        MEMBER_METHOD
+          PRIVATE
+          FUNCTION_DEF
+            FUNCTION_NAME: ackermann
+            NON_DEFAULT_PARAMS
+              NON_DEFAULT_PARAM: m
+              NON_DEFAULT_PARAM: n
+            BLOCK_EXPR
+              IF_EXPR
+                IF
+                  EQ
+                    BOUND_NAME: m
+                    INTEGRAL: 0
+                  BLOCK_EXPR
+                    PLUS
+                      BOUND_NAME: n
+                      INTEGRAL: 1
+                ELIF
+                  EQ
+                    BOUND_NAME: n
+                    INTEGRAL: 0
+                  BLOCK_EXPR
+                    POSTFIX_EXPR
+                      BOUND_NAME: ackermann
+                      FUNCTION_CALL
+                        POSITIONAL_ARGS
+                          MINUS
+                            BOUND_NAME: m
+                            INTEGRAL: 1
+                          INTEGRAL: 1
+                ELSE
+                  BLOCK_EXPR
+                    POSTFIX_EXPR
+                      BOUND_NAME: ackermann
+                      FUNCTION_CALL
+                        POSITIONAL_ARGS
+                          MINUS
+                            BOUND_NAME: m
+                            INTEGRAL: 1
+                          POSTFIX_EXPR
+                            BOUND_NAME: ackermann
+                            FUNCTION_CALL
+                              POSITIONAL_ARGS
+                                BOUND_NAME: m
+                                MINUS
+                                  BOUND_NAME: n
+                                  INTEGRAL: 1
