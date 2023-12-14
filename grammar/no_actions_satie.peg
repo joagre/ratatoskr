@@ -79,7 +79,7 @@ PostfixExpr <- (PrimaryExpr
 Type <- "int" / "float"
 
 IndexValues <- IndexValue (_ "," _ IndexValue)*
-IndexValue <- DecimalIntegral _ "=" _ Expr
+IndexValue <- Integral _ "=" _ Expr
 
 PrimaryExpr <- "nil" /
                "this" /
@@ -102,17 +102,17 @@ SwitchExpr <- "switch" __ Expr _ "{"
               (_ "default" _ ":" _ BlockLevelExprs)? _
               "}"
 
-ReceiveExpr <- "receive" __ Channels (_ "{"
+ReceiveExpr <- "receive" __ ReceiveChannels (_ "{"
                (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
                (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
                "}")?
 
-Channels <- (Dereference / "[" _ Dereferences _ "]")
-Dereference <- (DereferenceName
+ReceiveChannels <- (Channel / "[" _ Channels _ "]")
+Channel <- (ChannelName
                 (_ "." _ Name /
                  _ "[" _ Expr _ "]")*)
-DereferenceName <- Identifier
-Dereferences <- Dereference (_ "," _ Dereference)*
+ChannelName <- Identifier
+Channels <- Channel (_ "," _ Channel)*
 
 NewExpr <- "new" _ Name _ "(" _ Args? _ ")"
 
@@ -157,7 +157,7 @@ HexDigit <- [0-9a-fA-F]
 OctalDigit <- [0-7]
 NonQuoteCharacter <- [^']
 
-StringLiteral <- '"' RegularString '"' / 'r"' RawString '"'
+StringLiteral <- ('"' RegularString '"' / 'r"' RawString '"')
 RegularString <- (EscapeSequence / [^"])* { $$ = CT(REGULAR_STRING, $0); }
 EscapeSequence <- "\\" [btnvfr"\\]
 RawString <- [^"]*
@@ -279,11 +279,8 @@ Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between "
           "expressions)", auxil->row);
 }
-
 Args <- (PositionalArgs / NamedArgs)
-
 PositionalArgs <- !NamedArg Expr (_ "," _ Expr)*
-
 NamedArgs <- NamedArg (_ "," _ NamedArg)*
 NamedArg <- Name _ ":" _ Expr
 
