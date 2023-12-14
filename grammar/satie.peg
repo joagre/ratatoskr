@@ -92,7 +92,7 @@ PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX_EXPR, 1, p); }
 Type <- "int" { $$ = CT(INT_TYPE, NULL); } / "float" { $$ = CT(FLOAT_TYPE, NULL); }
 
 IndexValues <- i:IndexValue { $$ = CN(INDEX_VALUES, 1, i); } (_ "," _ i:IndexValue { AC($$, i); })*
-IndexValue <- d:DecimalIntegral _ "=" _ e:Expr { $$ = CN(INDEX_VALUE, 2, d, e); }
+IndexValue <- i:Integral _ "=" _ v:Expr { $$ = CN(INDEX_VALUE, 2, i, v); }
 
 PrimaryExpr <- "nil" { $$ = CT(NIL, NULL); } /
                "this" { $$ = CT(THIS, NULL); } /
@@ -115,17 +115,17 @@ SwitchExpr <- "switch" __ e:Expr { $$ = CN(SWITCH_EXPR, 1, CN(SWITCH, 1, e)); } 
               (_ "default" _ ":" _ b:BlockLevelExprs { AC($$, CN(DEFAULT, 1, b)); })? _
               "}"
 
-ReceiveExpr <- "receive" __ c:Channels { $$ = CN(RECEIVE_EXPR, 1, CN(RECEIVE, 1, c)); } (_ "{"
+ReceiveExpr <- "receive" __ c:ReceiveChannels { $$ = CN(RECEIVE_EXPR, 1, CN(RECEIVE, 1, c)); } (_ "{"
                (_ "case" __ m:MatchExprs _ ":" _ b:BlockLevelExprs _ { AC($$, CN(CASE, 2, m, b)); })+
                (_ "timeout" _ ":" _ d:DecimalIntegral _ b:BlockLevelExpr { AC($$, CN(TIMEOUT, 2, d, b)); })? _
                "}")?
 
-Channels <- (d:Dereference / "[" _ d:Dereferences _ "]") { $$ = d; }
-Dereference <- (d:DereferenceName { $$ = CN(DEREFERENCE, 1, d); }
+ReceiveChannels <- (c:Channel / "[" _ c:Channels _ "]") { $$ = c; }
+Channel <- (c:ChannelName { $$ = CN(CHANNEL, 1, c); }
                 (_ "." _ n:Name { AC($$, RN(n, DOT_NAME)); } /
                  _ "[" _ e:Expr _ "]" { AC($$, RN(e, LIST_LOOKUP)); })*)
-DereferenceName <- Identifier { $$ = CT(DEREFERENCE, $0); }
-Dereferences <- d:Dereference { $$ = CN(DEREFERENCES, 1, d); } (_ "," _ d:Dereference { AC($$, d); })*
+ChannelName <- Identifier { $$ = CT(CHANNEL_NAME, $0); }
+Channels <- c:Channel { $$ = CN(CHANNELS, 1, c); } (_ "," _ c:Channel { AC($$, c); })*
 
 NewExpr <- "new" _ n:Name _ "(" _ a:Args? _ ")" { $$ = CN(NEW_EXPR, 2, n, a); }
 
@@ -184,7 +184,7 @@ Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
 ListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } / "[" _ e:Exprs? _ "]" { $$ = RN(e, LIST_LITERAL); }
 
-MapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyValues? _ "]" { $$ = CN(MAP_LITERAL, 1, k); }
+MapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyValues? _ "]" { $$ = RN(k, MAP_LITERAL); }
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
 MapKeyValue <- (k:Literal / k:Name) _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
@@ -192,7 +192,7 @@ MapKeyValue <- (k:Literal / k:Name) _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k
 # Match expression
 #
 
-MatchExpr <- (m:MatchLiteral / m:UnboundName / m:BoundName) { $$ = CN(MATCH_EXPR, 1, m); } (_ "is" _ u:UnboundName { AC($$, RN(u, MATCH_IS)); })?
+MatchExpr <- (m:MatchLiteral / m:UnboundName / m:BoundName) { $$ = m; } (_ "is" _ u:UnboundName { AC($$, RN(u, MATCH_IS)); })?
 
 MatchLiteral <- (m:MatchBaseLiteral / m:MatchCompositeLiteral) { $$ = m; }
 
@@ -210,10 +210,10 @@ MatchTupleLiteral <- "<" _ ">" { $$ = CT(TUPLE_LITERAL, NULL); } / "<" _ m:Match
 MatchExprs <- m:MatchExpr { $$ = CN(MATCH_EXPRS, 1, m); } (_ "," _ m:MatchExpr { AC($$, m); })*
 
 MatchListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } /
-                    BoundName "[" _ m:MatchExpr? _ "]" { $$ = RN(m, LIST_LOOKUP); } /
+                    b:BoundName "[" _ m:MatchExpr? _ "]" { $$ = CN(LIST_LOOKUP, 2, b, m); } /
                     "[" _ m:MatchExprs? _ "]" { $$ = RN(m, LIST_LITERAL); }
 
-MatchMapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyValues? _ "]" { $$ = CN(MAP_LITERAL, 1, m); }
+MatchMapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyValues? _ "]" { $$ = RN(m, MAP_LITERAL); }
 MatchMapKeyValues <- m:MatchMapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MatchMapKeyValue { AC($$, m); })*
 MatchMapKeyValue <- (k:Literal / k:Name) _ ":" _ v:MatchExpr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 

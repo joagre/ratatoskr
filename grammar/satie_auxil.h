@@ -118,8 +118,9 @@ typedef dynarray_t node_array_t;
         TYPE(RECEIVE) \
         TYPE(TIMEOUT) \
         TYPE(NEW_EXPR) \
-        TYPE(DEREFERENCE) \
-        TYPE(DEREFERENCES) \
+        TYPE(CHANNEL) \
+        TYPE(CHANNEL_NAME) \
+        TYPE(CHANNELS) \
         TYPE(CLASS_DEF) \
         TYPE(CLASS_NAME) \
         TYPE(INTERFACES) \
@@ -191,7 +192,7 @@ static ast_node_t* new_node(satie_auxil_t* auxil, node_type_t type) {
 }
 
 static ast_node_t* retype_node(ast_node_t* node, node_type_t type) {
-    //fprintf(stderr, "** retype_node\n");
+    fprintf(stderr, "** retype_node\n");
     if (node == NULL) {
         fprintf(stderr, "WARNING: An undefined node cannot be retyped to %s\n",
                 type_to_string(type));
@@ -205,8 +206,8 @@ static ast_node_t* retype_node(ast_node_t* node, node_type_t type) {
 
 static ast_node_t* create_terminal(satie_auxil_t* auxil, node_type_t type,
                                    const char* value) {
-    //fprintf(stderr, "** create_terminal: %s (%s)\n", value,
-    //        type_to_string(type));
+    fprintf(stderr, "** create_terminal: %s (%s)\n", value,
+            type_to_string(type));
     ast_node_t* node = new_node(auxil, type);
     if (value != NULL) {
         node->value = strdup(value);
@@ -220,7 +221,7 @@ static ast_node_t* create_terminal(satie_auxil_t* auxil, node_type_t type,
 
 static ast_node_t* create_node(satie_auxil_t* auxil, node_type_t type,
                                uint16_t n, ...) {
-    //fprintf(stderr, "** create_children_node: %s\n", type_to_string(type));
+    fprintf(stderr, "** create_children_node: %s\n", type_to_string(type));
     ast_node_t* node = new_node(auxil, type);
     node->children = malloc(sizeof(node_array_t));
     dynarray_init(node->children, NULL, 0, sizeof(ast_node_t));
@@ -256,15 +257,19 @@ static ast_node_t* create_node(satie_auxil_t* auxil, node_type_t type,
 
 static void add_child(satie_auxil_t* auxil, ast_node_t* parent_node,
                       ast_node_t* node) {
-    //fprintf(stderr, "** add_child\n");
+    fprintf(stderr, "** add_child\n");
     if (node == NULL) {
         fprintf(stderr, "WARNING: An undefined node cannot be appended to %s\n",
                 type_to_string(parent_node->type));
     } else {
+        fprintf(stderr, "** add_child1\n");
         if (node->type == POSTFIX_EXPR &&
             dynarray_size(node->children) == 1) {
+            fprintf(stderr, "** add_child2\n");
             ast_node_t* child_node = dynarray_element(node->children, 0);
+            fprintf(stderr, "** add_child3\n");
             free(node);
+            fprintf(stderr, "** add_child4\n");
             node = child_node;
         }
         dynarray_append(parent_node->children, node);

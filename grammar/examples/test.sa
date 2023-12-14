@@ -21,53 +21,25 @@ class Foo {
 }
 
 fn main() {
-
-
-    ?a := receive [foo, bar],
-
-
-
+    ?a := receive [this.foo, bar],
     {
         ?a := 3
     },
-
-
-
     ?a := [1, 2, 3],
-
-
-
-
-
     ?b := b[a: 4],
-
-
-
     [b: 2],
+    c[d: 2],
     [1, 2] := a,
     ?a := a[1 = 2],
-
-
     a[b] := 3,
-
-
-
     ?ackermann := new Ackermann(),
-
-
-
-
     ackermann := startJobs(3, 10),
     a[1],
     1 := 1,
-
-
     switch a {
         case b:
             c
     },
-
-
     switch a {
         case <?b, a>, <?b, a>:
             c
