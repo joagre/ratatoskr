@@ -164,7 +164,7 @@ RawString <- [^"]*
 
 FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
 
-EnumLiteral <- EnumDefName _ "::" _ EnumName
+EnumLiteral <- EnumDefName _ "#" _ EnumName
 
 TupleLiteral <- "<" _ ">" / "<" _ Exprs? _ ">"
 Exprs <- Expr (_ "," _ Expr)*

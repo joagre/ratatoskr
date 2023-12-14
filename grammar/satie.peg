@@ -177,7 +177,7 @@ RawString <- [^"]* { $$ = CT(RAW_STRING, $0); }
 
 FunctionLiteral <- "fn" _ "(" _ p:Params? _ ")" _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 2, p, e); }
 
-EnumLiteral <- edn:EnumDefName _ "::" _ en:EnumName { $$ = CN(ENUM_LITERAL, 2, edn, en); }
+EnumLiteral <- edn:EnumDefName _ "#" _ en:EnumName { $$ = CN(ENUM_LITERAL, 2, edn, en); }
 
 TupleLiteral <- "<" _ ">" { $$ = CT(TUPLE_LITERAL, NULL); } / "<" _ e:Exprs? _ ">" { $$ = RN(e, TUPLE_LITERAL); }
 Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
