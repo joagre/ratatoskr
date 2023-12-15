@@ -2,7 +2,7 @@
 
 ## Version 0.1
 
-* [ ] Debug register machine and make Ackermann work (measure performance)
+* [x] Debug register machine and make Ackermann work (measure performance)
 * [ ] Make it possible to specify register content from the `sa` executable
 * [ ] Refactor code base
   - Move `vm/src/clib` into `src/clib/`
