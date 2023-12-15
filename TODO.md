@@ -13,21 +13,21 @@
 * [ ] Update `README.md` to a shining condition
 * [ ] Design and implement a full set of register instructions
 * [ ] Update `sac` compiler to generate register instructions
-  + `sa -> ast -> bytecode`
+  - `sa -> ast -> bytecode`
 * [ ] Use a dummy GC
 * [ ] Use copy-on-write instead of persistent datatypes
 
 ## Version 0.1
 
 * Basic set of standard libraries
-  _ Put them in `lib/`
+  - Put them in `lib/`
 * Add a unitest construct in Satie ala D
 * Basic REPL
 * Basic package manager
 
 ## Version 0.2
 
-* GC
+* GChttps://raw.githubusercontent.com/joagre/satie/master/grammar/no_actions_satie.peg
 
 ## Version 0.3
 
