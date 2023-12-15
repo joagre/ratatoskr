@@ -5,9 +5,9 @@
 * [x] Debug register machine and make Ackermann work (measure performance)
 * [ ] Make it possible to specify register content from the `sa` executable
 * [ ] Refactor code base
-  - Move `vm/src/clib` into `src/clib/`
+  - Move `vm/src/clib` to `src/clib/`
   - Move `vm/src/*` into `src/sa/`
-  - Move `grammar/` into `src/sac/`
+  - Move `grammar/` to `src/sac/`
   - Add `src/util`
 * [ ] Dive into Hindley-Milner type inferens
 * [ ] Update `README.md` to a shining condition
