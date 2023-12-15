@@ -9,7 +9,7 @@
   - Move `vm/src/*` into `src/sa/`
   - Move `grammar/` to `src/sac/`
   - Add `src/util`
-* [ ] Dive into Hindley-Milner type inferens
+* [ ] Dive into Hindley-Milner type inference
 * [ ] Update `README.md` to a shining condition
 * [ ] Design and implement a full set of register instructions
 * [ ] Update `sac` compiler to generate register instructions
