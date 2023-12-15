@@ -13,7 +13,7 @@
 * [ ] Update `README.md` to a shining condition
 * [ ] Design and implement a full set of register instructions
 * [ ] Update `sac` compiler to generate register instructions
-  + sa -> ast -> bytecode
+  + `sa -> ast -> bytecode`
 * [ ] Use a dummy GC
 * [ ] Use copy-on-write instead of persistent datatypes
 
