@@ -27,7 +27,7 @@
 
 ## Version 0.3
 
-* GChttps://raw.githubusercontent.com/joagre/satie/master/grammar/no_actions_satie.peg
+* GC
 
 ## Version 0.4
 
