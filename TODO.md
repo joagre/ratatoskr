@@ -2,20 +2,20 @@
 
 ## Version 0.1
 
-* Debug register machine and make Ackermann work (measure performance)
-* Make it possible to specify register content from the sa executable
-* Move grammar/ into src/sac/ and make into a bytecode compiler
-* Refactopr code base
-  _ Move vm/src/clib into src/clib/
-  _ Move vm/src/* into src/sa/
-  _ Move grammar/ into src/sac/
-  _ Add src/util
-* Dive into Hindley-Milner type inferens
-* Update README.md to a shining condition
-* Design a full set of instructions
-* Let the sac compiler generate instructions (AST -> bytecode)
-* Use a dummy GC
-* Use copy-on-write instead of persistent datatypes
+* [ ] Debug register machine and make Ackermann work (measure performance)
+* [ ] Make it possible to specify register content from the sa executable
+* [ ] Move grammar/ into src/sac/ and make into a bytecode compiler
+* [ ] Refactor code base
+  _ Move `vm/src/clib` into `src/clib/`
+  _ Move `vm/src/*` into `src/sa/`
+  _ Move `grammar/` into `src/sac/`
+  _ Add `src/util`
+* [ ] Dive into Hindley-Milner type inferens
+* [ ] Update README.md to a shining condition
+* [ ] Design a full set of instructions
+* [ ] Let the sac compiler generate instructions (AST -> bytecode)
+* [ ] Use a dummy GC
+* [ ] Use copy-on-write instead of persistent datatypes
 
 ## Version 0.1
 
