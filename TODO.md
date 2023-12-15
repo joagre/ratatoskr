@@ -11,8 +11,9 @@
   - Add `src/util`
 * [ ] Dive into Hindley-Milner type inferens
 * [ ] Update `README.md` to a shining condition
-* [ ] Design a full set of instructions
-* [ ] Let the sac compiler generate instructions (AST -> bytecode)
+* [ ] Design and implement a full set of register instructions
+* [ ] Update `sac` compiler to generate register instructions
+  + sa -> ast -> bytecode
 * [ ] Use a dummy GC
 * [ ] Use copy-on-write instead of persistent datatypes
 
