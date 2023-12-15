@@ -16,6 +16,13 @@
 * Use a dummy GC
 * Use copy-on-write instead of persistent datatypes
 
+## Version 0.1
+
+* Add a unitest construct in Satie ala D
+* Basic REPL
+* Basic package manager
+* Basic set of standard libraries
+
 ## Version 0.2
 
 * GC
@@ -26,9 +33,16 @@
 
 ## Version 0.4
 
+* Interpreter optimizations (not JIT)
 * Multi-core support
+
+## Version 0.5
+
+* JIT
 
 ## Thoughts
 
 * Objects as a shim layer on top of jobs?
-* Keep memory footprint small to make it feasible to run on micro controllers
+* Keep memory footprint small to make it feasible to run on micro
+  controllers?
+* Add gradual typing?
