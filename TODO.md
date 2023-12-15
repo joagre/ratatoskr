@@ -3,13 +3,15 @@
 ## Version 0.1
 
 * Debug register machine and make Ackermann work (measure performance)
-* Add it possible to specify regsiter register using the sa executable
+* Make it possible to specify register content from the sa executable
 * Move grammar/ into src/sac/ and make a byte code compiler
 * Move src/ into src/sa for the vm
 * Keep src/clib
 * Add src/util
 * Dive into Hindley-Milner type inferens
-* Design a full set of instructions for the regsiter machine suitable for Satie
+* Design a full set of instructions for the register machine suitable
+  for Satie. If needed refactor and cleanup the register machine
+  framework.
 * Generate byte code instructions from the AST
 * Use a dummy GC
 * Use copy-on-write instead of persistent datatypes
