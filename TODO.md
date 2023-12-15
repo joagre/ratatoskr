@@ -6,10 +6,10 @@
 * [ ] Make it possible to specify register content from the sa executable
 * [ ] Move grammar/ into src/sac/ and make into a bytecode compiler
 * [ ] Refactor code base
-  _ Move `vm/src/clib` into `src/clib/`
-  _ Move `vm/src/*` into `src/sa/`
-  _ Move `grammar/` into `src/sac/`
-  _ Add `src/util`
+  - Move `vm/src/clib` into `src/clib/`
+  - Move `vm/src/*` into `src/sa/`
+  - Move `grammar/` into `src/sac/`
+  - Add `src/util`
 * [ ] Dive into Hindley-Milner type inferens
 * [ ] Update README.md to a shining condition
 * [ ] Design a full set of instructions
