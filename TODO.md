@@ -3,15 +3,14 @@
 ## Version 0.1
 
 * [ ] Debug register machine and make Ackermann work (measure performance)
-* [ ] Make it possible to specify register content from the sa executable
-* [ ] Move grammar/ into src/sac/ and make into a bytecode compiler
+* [ ] Make it possible to specify register content from the `sa` executable
 * [ ] Refactor code base
   - Move `vm/src/clib` into `src/clib/`
   - Move `vm/src/*` into `src/sa/`
   - Move `grammar/` into `src/sac/`
   - Add `src/util`
 * [ ] Dive into Hindley-Milner type inferens
-* [ ] Update README.md to a shining condition
+* [ ] Update `README.md` to a shining condition
 * [ ] Design a full set of instructions
 * [ ] Let the sac compiler generate instructions (AST -> bytecode)
 * [ ] Use a dummy GC
@@ -20,7 +19,7 @@
 ## Version 0.1
 
 * Basic set of standard libraries
-  _ Put them in lib/
+  _ Put them in `lib/`
 * Add a unitest construct in Satie ala D
 * Basic REPL
 * Basic package manager
