@@ -17,7 +17,7 @@
 * [ ] Use a dummy GC
 * [ ] Use copy-on-write instead of persistent datatypes
 
-## Version 0.1
+## Version 0.2
 
 * Basic set of standard libraries
   - Put them in `lib/`
@@ -25,20 +25,20 @@
 * Basic REPL
 * Basic package manager
 
-## Version 0.2
+## Version 0.3
 
 * GChttps://raw.githubusercontent.com/joagre/satie/master/grammar/no_actions_satie.peg
 
-## Version 0.3
+## Version 0.4
 
 * Persistent datatypes
 
-## Version 0.4
+## Version 0.5
 
 * Interpreter optimizations (not JIT)
 * Multi-core support
 
-## Version 0.5
+## Version 0.6
 
 * JIT
 
