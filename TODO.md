@@ -4,7 +4,7 @@
 
 * Debug register machine and make Ackermann work (measure performance)
 * Make it possible to specify register content from the sa executable
-* Move grammar/ into src/sac/ and make a byte code compiler
+* Move grammar/ into src/sac/ and make into a bytecode compiler
 * Move src/ into src/sa for the vm
 * Keep src/clib
 * Add src/util
