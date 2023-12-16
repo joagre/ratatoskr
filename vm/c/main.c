@@ -165,6 +165,8 @@ int main(int argc, char* argv[]) {
     // Start scheduler
     scheduler_run(&scheduler);
 
+    fprintf(stderr, "Scheduler finished\n");
+
     return SUCCESS;
 }
 

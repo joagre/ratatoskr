@@ -13,6 +13,7 @@ label 10
   rcall 0
   pushr r0
   sys display
+  pop
   rret
 
 label 0            ; Clause ackermann(0, N)
