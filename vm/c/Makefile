@@ -1,7 +1,7 @@
 # http://web.archive.org/web/20141129061523/http://www.cs.utah.edu/dept/old/texinfo/as/gprof.html#SEC2
 
 CC := gcc
-CFLAGS := -Wall -Wextra -Wfatal-errors -std=c17 -g -DDEBUG -D_GNU_SOURCE -Wno-unused-value #-O3 #-DUNITTEST
+CFLAGS := -Wall -Wextra -Wfatal-errors -std=c17 -g -DDEBUG -D_GNU_SOURCE -Wno-unused-value -pg #-O3 #-DUNITTEST
 
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
