@@ -47,7 +47,7 @@ vm_address_t module_lookup_address(module_t* module, vm_label_t label) {
 
         lhash_kv_iter_next(&iter);
     }
-    LOG_ABORT("Label address mismatch");
+    LOG_ABORT("Label address mismatch: %d", label);
     return 0;
 }
 

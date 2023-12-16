@@ -77,7 +77,17 @@ class Loader {
             }
 
             // Insert opcode and its operand(s) into byte code
-            auto operandsBytes = getOperandsAsBytes(opcodeInfo, operands, line);
+
+
+
+            if (opcodeString == "subrsi") {
+                writefln("***** Opcode: %s", opcodeString);
+                for (auto i = 0; i < operands.length; i++) {
+                    writefln("***** Operand %d: %s", i, operands[i]);
+                }
+            }
+
+                auto operandsBytes = getOperandsAsBytes(opcodeInfo, operands, line);
             byteCode ~= operandsBytes;
         }
 

@@ -1,4 +1,4 @@
-//#define MUTE_LOG_DEBUG
+#define MUTE_LOG_DEBUG
 
 #include <stdio.h>
 #include "interpreter.h"
@@ -24,18 +24,27 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
 #ifdef DEBUG
 #ifndef MUTE_LOG_DEBUG
         if (scheduler->interpreter->mode == INTERPRETER_MODE_REGISTER) {
-            fprintf(stderr, "%d: registers = ", job->jid);
+            fprintf(stderr, "%d: registers = [", job->jid);
             for (int i = 0; i < 8; i++) {
-                fprintf(stderr, "%ld ", job->registers[i]);
+                fprintf(stderr, "%ld", job->registers[i]);
+                if (i < 7) {
+                    fprintf(stderr, ", ");
+                }
             }
-            fprintf(stderr, "\n");
         }
-        fprintf(stderr, "%d: stack = ", job->jid);
-        for (size_t i = 0; i < call_stack_size(&job->call_stack); i++) {
+        fprintf(stderr, "]\n");
+        fprintf(stderr, "%d: stack = [", job->jid);
+        size_t n = call_stack_size(&job->call_stack);
+        for (size_t i = 0; i < n; i++) {
             vm_stack_value_t value = call_stack_get(&job->call_stack, i);
-            fprintf(stderr, "%ld ", value);
+            if (i < n - 1) {
+                fprintf(stderr, "%ld, ", value);
+            } else {
+                fprintf(stderr, "%ld", value);
+            }
         }
-        fprintf(stderr, "\n==> %d:%d: ", job->jid, job->pc);
+        fprintf(stderr, "]\n");
+        fprintf(stderr, "==> %d:%d: ", job->jid, job->pc);
         print_instruction(&scheduler->loader->byte_code[job->pc]);
 #endif
 #endif
@@ -158,7 +167,7 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
             vm_stack_value_t previous_fp =
                 call_stack_get(&job->call_stack, job->call_stack.fp + 1);
             // Remove call stack frame
-            call_stack_set_size(&job->call_stack, job->call_stack.fp - 1);
+            call_stack_set_size(&job->call_stack, job->call_stack.fp);
             if (call_stack_size(&job->call_stack) == 1 || return_address == -1) {
                 return INTERPRETER_RESULT_HALT;
             }
@@ -182,8 +191,9 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
             switch (system_call) {
             case SYSTEM_CALL_DISPLAY:
                 vm_stack_value_t value = call_stack_pop(&job->call_stack);
-                fprintf(stdout, "%ld\n", value);
+                fprintf(stderr, "%ld\n", value);
                 call_stack_push(&job->call_stack, 1);
+                job->pc += size;
                 break;
             default:
                 LOG_ABORT("Unknown system call");

@@ -3,17 +3,19 @@
 ## Version 0.1
 
 * [x] Debug register machine and make Ackermann work (measure performance)
+* [ ] Ask T about clib errors and compiler warnings for -O3
 * [ ] Make it possible to specify register content from the `sa` executable
 * [ ] Refactor code base
   - Move `vm/src/clib` to `src/clib/`
   - Move `vm/src/*` into `src/sa/`
   - Move `grammar/` to `src/sac/`
   - Add `src/util`
+* [ ] Update `sac` compiler to generate register instructions
+  - `sa -> ast -> bytecode`
+  - Load bytecode from loader (not source code)
 * [ ] Dive into Hindley-Milner type inference
 * [ ] Update `README.md` to a shining condition
 * [ ] Design and implement a full set of register instructions
-* [ ] Update `sac` compiler to generate register instructions
-  - `sa -> ast -> bytecode`
 * [ ] Use a dummy GC
 * [ ] Use copy-on-write instead of persistent datatypes
 

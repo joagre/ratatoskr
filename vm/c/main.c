@@ -112,7 +112,8 @@ int main(int argc, char* argv[]) {
             usage(basename(argv[0]));
         }
     }
-    if (argc < 3) {
+
+    if (argc - optind < 2) {
         usage(basename(argv[0]));
     }
 
@@ -163,21 +164,6 @@ int main(int argc, char* argv[]) {
 
     // Start scheduler
     scheduler_run(&scheduler);
-
-    /*
-    loader_load_module(&loader, module_name, &error);
-    if (error.failed) {
-        satie_print_error(&error);
-        return SUCCESS;
-    }
-    loader_load_module(&loader, module_name, &error);
-    if (error.failed) {
-        satie_print_error(&error);
-        return SUCCESS;
-    }
-
-    pretty_print(&loader);
-    */
 
     return SUCCESS;
 }

@@ -1,4 +1,4 @@
-#define MUTE_LOG_DEBUG 1
+//#define MUTE_LOG_DEBUG 1
 
 #include <stdio.h>
 #include <errno.h>
@@ -187,6 +187,8 @@ static void append_operands(loader_t* loader, opcode_info_t *opcode_info,
             if (error->failed) {
                 return;
             }
+            // Stack offsets are relative to the current stack pointer
+            stack_offset += 2;
             APPEND_VALUE(loader, vm_stack_offset_t, stack_offset);
             break;
         case OPERAND_ARITY:
@@ -325,6 +327,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
     // Resolve labels to addresses
     vm_address_t address = module->start_address;
     LOG_DEBUG("start_address = %u\n", address);
+
     while (address < loader->byte_code_size) {
         opcode_t opcode = loader->byte_code[address];
         vm_address_t operand_address = address + (vm_address_t)OPCODE_SIZE;
@@ -362,6 +365,11 @@ static void generate_byte_code(loader_t* loader, module_t* module,
             resolve_label(loader->byte_code, module, operand_address, 0);
             address += size_of_operands(OPCODE_SPAWN);
         } else {
+            /*
+            opcode_info_t* opcode_info = opcode_to_opcode_info(opcode);
+            fprintf(stderr, "ADRESS+ %d: opcode = %s\n", size_of_operands((opcode_t)opcode),
+                    opcode_info->string);
+            */
             address += size_of_operands((opcode_t)opcode);
         }
         address++;
@@ -454,7 +462,7 @@ static uint16_t size_of_operands(opcode_t opcode) {
             size += sizeof(vm_return_mode_t);
             break;
         case OPERAND_SYSTEM_CALL:
-            size += sizeof(system_call_t);
+            size += sizeof(vm_system_call_t);
             break;
         case OPERAND_STRING:
             // String length calculation is taken care of elsewhere
