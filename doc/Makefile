@@ -2,6 +2,7 @@ SRCS = tribute.sa color.sa ackermann.sa todo.sa
 OBJS = $(SRCS:%=../examples/%) ../src/sac/satie.peg
 
 all: ../README.md satie.pdf
+	($MAKE -f Makefile.SAI all)
 
 satie.pdf: ../README.md
 	(cd ..; pandoc --toc --pdf-engine=xelatex -f gfm -o doc/$@ README.md)
@@ -15,5 +16,6 @@ satie.pdf: ../README.md
 
 clean:
 	rm -f satie.pdf
+	($MAKE -f Makefile.SAI clean)
 
 .PHONY: all clean
