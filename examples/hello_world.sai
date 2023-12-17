@@ -1,4 +1,4 @@
 label 0
-  pushs "Hello world!"        ; snuva
-  sys println            
-  ret
+  pushi #42
+  sys display
+  rret

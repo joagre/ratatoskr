@@ -191,7 +191,6 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
             case SYSTEM_CALL_DISPLAY:
                 vm_stack_value_t value = call_stack_pop(&job->call_stack);
                 fprintf(stderr, "%ld\n", value);
-                call_stack_push(&job->call_stack, 1);
                 job->pc += size;
                 break;
             default:
