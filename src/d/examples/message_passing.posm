@@ -1,0 +1,92 @@
+; Run: sa -l ./ message_passing 0 7
+;
+; start(N) ->
+;     spawn_all(self(), N),
+;     wait_for_all(N).
+;
+; spawn_all(_Self, 0) ->
+;     io:format("All jobs have been started\n");
+; spawn_all(Self, N) ->
+;     spawn(fun() -> Self ! ackermann:ackermann(3, N) end),
+;     spawn_all(Self, N - 1).
+;
+; wait_for_all(0) ->
+;     io:format("All jobs have returned a result\n");
+; wait_for_all(N) ->
+;     receive
+;         Result ->
+;             io:format("~w\n",  [Result]),
+;             wait_for_all(N - 1)
+;    end.
+
+label 0          ; start(N)
+  sys self       ; self()
+  push -1
+  load           ; N
+  call 10 2      ; spawn_all(self(), N),
+  pop
+  push -1
+  load           ; N
+  call 20 1      ; wait_for_all(N).
+  ret
+
+label 10         ; spawn_all(_Self, 0)
+  push -1
+  load           ; N
+  push 0
+  neq
+  cjump 11
+  pushs "All jobs have been started"
+  sys println
+  ret
+
+label 11         ; spawn_all(Self, N)
+  push -2
+  load           ; Self
+  push -1
+  load           ; N
+  spawn 12 2     ; fun() -> Self ! ackermann:ackermann(3, N) end)
+  pop
+  push -2
+  load           ; Self
+  push -1
+  load           ; N
+  push 1
+  sub            ; N - 1
+  call 10 2      ; spawn_all(Self, N - 1)
+  ret
+
+label 12         ; fun(Self, N)
+  push 3         ; M
+  push -1
+  load           ; N
+  push 2         ; Arity
+  pushs "ackermann"
+  push 1         ; Label
+  mcall          ; ackermann:ackermann(3, N)
+  push -2
+  load           ; Self
+  swap
+  sys send
+  ret
+
+label 20         ; wait_for_all(0)
+  push -1
+  load           ; N
+  push 0
+  neq
+  cjump 21
+  pushs "All jobs have returned a result"
+  sys println
+  ret
+
+label 21         ; wait_for_all(N)
+  sys recv
+  sys display
+  pop
+  push -1
+  load           ; N
+  push 1
+  sub            ; N - 1
+  call 20 1      ; wait_for_all(N - 1)
+  ret

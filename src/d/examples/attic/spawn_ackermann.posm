@@ -1,0 +1,36 @@
+LABEL 0          ; start/0
+  PUSH -1        ; Bogus return address
+  PUSH -1        ; Bogus FP
+  PUSH 10       ; Starts 10 fibers
+  CALL 1 1
+  POP
+  PUSHS "All 10 fibers have been spawned!"
+  SYS println
+  POP
+  SYS RECV
+  RET
+
+LABEL 1
+  PUSH 0
+  LOAD FP
+  PUSH 0
+  NEQ
+  CJUMP 2
+  PUSH 1
+  RET
+
+LABEL 2
+  ; Call summer(13, 10)
+  PUSHS "doc/example1.posm"
+  PUSH 13        ; Parameter M
+  PUSH 10        ; Parameter N
+  PUSH 2
+  SYS spawn
+  SYS display
+  POP
+  PUSH 0
+  LOAD FP
+  PUSH 1
+  SUB
+  CALL 1 1
+  RET
