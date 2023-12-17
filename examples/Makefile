@@ -1,21 +1,37 @@
-all: ackermann color test todo tribute
+all: sa sai
 
-ackermann: build
-	../lint < ackermann.sa
+#
+# Satie examples
+#
 
-color: build
-	../lint < color.sa
+sa: ackermann color test todo tribute
 
-test: build
-	../lint < test.sa
+ackermann: ../bin/sac
+	../bin/sac < ackermann.sa
 
-todo: build
-	../lint < todo.sa
+color: ../bin/sac
+	../bin/sac < color.sa
 
-tribute: build
-	../lint < tribute.sa
+test: ../bin/sac
+	../bin/sac < test.sa
 
-build:
-	(cd ../; $(MAKE))
+todo: ../bin/sac
+	../bin/sac < todo.sa
 
-.PHONY: all build ackermann color test todo tribute
+tribute: ../bin/sac
+	../bin/sac < tribute.sa
+
+../bin/sac:
+	(cd ../src/sac; $(MAKE))
+
+#
+# Satie register machine examples
+#
+
+sai: ackermannr
+
+ackermannr: ../bin/sa
+	../bin/sa ackermannr 0 3 6
+
+../bin/sa:
+	(cd ../src/sa; $(MAKE))

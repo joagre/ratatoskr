@@ -56,9 +56,9 @@ void loader_load_module(loader_t *loader, char* module_name,
     uint16_t file_path_length =
         strlen(loader->load_path) +
         strlen(module_name) +
-        strlen(".posm");
+        strlen(".sai");
     char file_path[file_path_length];
-    sprintf(file_path, "%s/%s.posm", loader->load_path, module_name);
+    sprintf(file_path, "%s/%s.sai", loader->load_path, module_name);
     FILE* file;
     if ((file = fopen(file_path, "r")) == NULL) {
         SET_ERROR_ERRNO(error, COMPONENT_LOADER);
