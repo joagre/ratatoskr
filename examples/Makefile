@@ -28,7 +28,11 @@ tribute: ../bin/sac
 # Satie register machine examples
 #
 
-sai: ackermannr
+sai: hello_world ackermannr
+
+
+hello_world: ../bin/sa
+	../bin/sa hello_world 0
 
 ackermannr: ../bin/sa
 	../bin/sa ackermannr 0 3 6
