@@ -25,7 +25,6 @@ All rise. Here is a tribute and a premature Satie example:
 
 ```
 import std.satie
-import std.channels: ChannelOption
 import std.stdio : writeln
 
 export fn main(args) {
@@ -61,7 +60,7 @@ size: <Type, Size>
     Set the number of messages allowed in a channel to Size. If this
     threshold is reached the sender blocks or the message is ignored,
     depending on Type (which can either be the enum
-    ChannelOption.block or ChannelOption.ignore).
+    ChannelOption@block or ChannelOption@ignore).
 */
 $ sac tribute.sa
 $ sa build/tribute 100000
@@ -227,7 +226,7 @@ class ColorIterator : Iterator {
 }
 
 export fn main() {
-    ?colors := [Color.red, Color.red, Color.blue, Color.green],
+    ?colors := [Color#red, Color#red, Color#blue, Color#green],
     ?iterator := new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
@@ -1285,7 +1284,8 @@ class Ackermann {
     private resultChannel
 
     this() {
-        this(resultChannel: satie.makeChannel(onCrowding: <ChannelOption.block, 4>))
+        this(resultChannel: satie.makeChannel(
+                                onCrowding: <ChannelOption#block, 4>))
     }
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {
@@ -1296,7 +1296,7 @@ class Ackermann {
             },
             ?job := satie.spawn(fn () {
                         computeAckermann(m, i)
-                    }, [SpawnOption.monitor: true]),
+                    }, [SpawnOption#monitor: true]),
             startJobs(m, n, i + 1, job ~ startedJobs)
         } else {
             this(jobs: startedJobs)}
@@ -1309,7 +1309,7 @@ class Ackermann {
                     case <?job, ?m, ?n, ?result> :
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))
-                    case <JobStatus.died, ?job, ?reason> :
+                    case <JobStatus#died, ?job, ?reason> :
                         stdio.writeln("Oh no! Compute job $job died: $reason"),
                         waitForJobs(jobs.delete(job))
                 }
@@ -1462,6 +1462,7 @@ Operators in decreasing order of precedence:
 }
 
 %auxil "satie_auxil_t*"
+%value "ast_node_t*"
 
 %source {
 #define PCC_GETCHAR(auxil) satie_getchar(auxil)
@@ -1472,288 +1473,310 @@ Operators in decreasing order of precedence:
 # Top level structure
 #
 
-Program <- _ (Imports __)? TopLevelDefs EOF
-TopLevelDefs <- TopLevelDef (__ TopLevelDef / TopLevelDefError)*
-TopLevelDef <- ClassDef / InterfaceDef / EnumDef / FunctionDef
+Program <- _ (i:Imports __)? t:TopLevelDefs EOF { $$ = CN(PROGRAM, 2, i, t); }
+TopLevelDefs <- t:TopLevelDef { $$ = CN(TOP_LEVEL_DEFS, 1, t); } (__ t:TopLevelDef { AC($$, t); } / TopLevelDefError)*
+TopLevelDef <- (t:ClassDef / t:InterfaceDef / t:EnumDef / t:FunctionDef) { $$ = t; }
 TopLevelDefError <- ("," / ";") {
     panic("Unexpected %s between top level definitions on line %d",
-          $0, auxil->line);
+          $0, auxil->row);
 }
 
 #
 # Import
 #
 
-Imports <- Import (__ Import)*
-Import <- "import" __ (Identifier _ "=" _)? _ ModulePath
-ModulePath <- Identifier ("." Identifier)* (_ ":" _ ImportedConstructs)?
-ImportedConstructs <- Identifier (_ "," _ Identifier)*
+Imports <- i:Import { $$ = CN(IMPORTS, 1, i); } (__ i:Import { AC($$, i); })*
+Import <- "import" __ (a:Alias _ "=" _)? _ m:Module (_ ":" _ i:ImportedNames)? { $$ = CN(IMPORT, 3, a, m, i); }
+Alias <- Identifier { $$ = CT(ALIAS, $0); }
+Module <- m:ModuleComponent {$$ = CN(MODULE, 1, m); } ( "." m:ModuleComponent { AC($$, m); })*
+ModuleComponent <- Identifier { $$ = CT(MODULE_COMPONENT, $0); }
+ImportedNames <- m:ImportedName { $$ = CN(IMPORTED_NAMES, 1, m); } (_ "," _ m:ImportedName { AC($$, m); })*
+ImportedName <- Identifier { $$ = CT(IMPORTED_NAME, $0); }
 
 #
 # Expression
 #
 
-Expr <- BindExpr
-BindExpr <- MatchExpr _ ":=" _ Expr / LogicalOrExpr
-LogicalOrExpr <- LogicalAndExpr (_ "||" _ LogicalAndExpr)*
-LogicalAndExpr <- BitwiseAndExpr (_ "&&" _ BitwiseAndExpr)*
-BitwiseAndExpr <- BitwiseXorExpr (_ "&" _ BitwiseXorExpr)*
-BitwiseXorExpr <- BitwiseOrExpr (_ "^" _ BitwiseOrExpr)*
-BitwiseOrExpr <- GreaterThanEqualExpr (_ "|" _ GreaterThanEqualExpr)*
-GreaterThanEqualExpr <- GreaterThanExpr (_ "gte" _ GreaterThanExpr)*
-GreaterThanExpr <- LessThanEqualExpr (_ "gt" _ LessThanEqualExpr)*
-LessThanEqualExpr <- LessThanExpr (_ "lte" _ LessThanExpr)*
-LessThanExpr <- NotEqualExpr (_ "lt" _ NotEqualExpr)*
-NotEqualExpr <- EqualExpr (_ "!=" _ EqualExpr)*
-EqualExpr <- InExpr (_ "==" _ InExpr)*
-InExpr <- RightShiftExpr (_ "in" _ RightShiftExpr)*
-RightShiftExpr <- LeftShiftExpr (_ "bsr" _ LeftShiftExpr)*
-LeftShiftExpr <- ConcatenateExpr (_ "bsl" _ ConcatenateExpr)*
-ConcatenateExpr <- MinusExpr (_ "~" _ MinusExpr)*
-MinusExpr <- PlusExpr (_ "-" _ PlusExpr)*
-PlusExpr <- ModulusExpr (_ "+" _ ModulusExpr)*
-ModulusExpr <- DivideExpr (_ "%" _ DivideExpr)*
-DivideExpr <- MultiplicateExpr (_ "/" _ MultiplicateExpr)*
-MultiplicateExpr <- ExponentiationExpr (_ "*" _ ExponentiationExpr)*
-ExponentiationExpr <- CastExpr (_ "^^" _ CastExpr)*
-CastExpr <- "cast" _ "(" _ ("int" / "float") _ ")" _ BitwiseComplementExpr /
-            BitwiseComplementExpr
-BitwiseComplementExpr <- "~" _ NotExpr / NotExpr
-NotExpr <- "!" _ UnaryPlusExpr / UnaryPlusExpr
-UnaryPlusExpr <- "+" _ UnaryMinusExpr / UnaryMinusExpr
-UnaryMinusExpr <- "-" _ PostfixExpr / PostfixExpr
-PostfixExpr <- PrimaryExpr _ (
-                              "." _ Identifier /
-                              "(" _ Args? _ ")" /
-                              "[" _ Expr _ "]"
-                             )*
+Expr <- e:BindExpr { $$ = e; }
+BindExpr <- m:MatchExpr _ ":=" _ e:Expr { $$ = CN(BIND, 2, m, e); } / e:LogicalOrExpr { $$ = e; }
+LogicalOrExpr <- l:LogicalOrExpr _ "||" _ e:LogicalAndExpr { $$ = CN(OR, 2, l, e); } / e:LogicalAndExpr { $$ = e; }
+LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ e:BitwiseAndExpr { $$ = CN(AND, 2, l, e); } / e:BitwiseAndExpr { $$ = e; }
+BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ e:BitwiseXorExpr { $$ = CN(BITWISE_AND, 2, l, e); } / e:BitwiseXorExpr { $$ = e; }
+BitwiseXorExpr <- l:BitwiseXorExpr _ "^" _ e:BitwiseOrExpr { $$ = CN(BITWISE_XOR, 2, l, e); } / e:BitwiseOrExpr { $$ = e; }
+BitwiseOrExpr <- l:BitwiseOrExpr _ "|" _ e:GreaterThanEqualExpr { $$ = CN(BITWISE_OR, 2, l, e); } /
+                 e:GreaterThanEqualExpr { $$ = e; }
+GreaterThanEqualExpr <- l:GreaterThanEqualExpr _ "gte" _ e:GreaterThanExpr { $$ = CN(GTE, 2, l, e); } /
+                        e:GreaterThanExpr { $$ = e; }
+GreaterThanExpr <- l:GreaterThanExpr _ "gt" _ e:LessThanEqualExpr { $$ = CN(GT, 2, l, e); } /
+                   e:LessThanEqualExpr { $$ = e; }
+LessThanEqualExpr <- l:LessThanEqualExpr _ "lte" _ e:LessThanExpr { $$ = CN(LTE, 2, l, e); } / e:LessThanExpr { $$ = e; }
+LessThanExpr <- l:LessThanExpr _ "lt" _ e:NotEqualExpr { $$ = CN(LT, 2, l, e); } / e:NotEqualExpr { $$ = e; }
+NotEqualExpr <- l:NotEqualExpr _ "!=" _ e:EqualExpr { $$ = CN(NE, 2, l, e); } / e:EqualExpr { $$ = e; }
+EqualExpr <- l:EqualExpr _ "==" _ e:InExpr { $$ = CN(EQ, 2, l, e); } / e:InExpr { $$ = e; }
+InExpr <- l:InExpr _ "in" _ e:RightShiftExpr { $$ = CN(IN, 2, l, e); } / e:RightShiftExpr { $$ = e; }
+RightShiftExpr <- l:RightShiftExpr _ "bsr" _ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
+LeftShiftExpr <- l:LeftShiftExpr _ "bsl" _ e:ConcatExpr { $$ = CN(BSL, 2, l, e); } / e:ConcatExpr { $$ = e; }
+ConcatExpr <- l:ConcatExpr _ "~" _ e:MinusExpr { $$ = CN(CONCAT, 2, l, e); } / e:MinusExpr { $$ = e; }
+MinusExpr <- l:MinusExpr _ "-" _ e:PlusExpr { $$ = CN(MINUS, 2, l, e); } / e:PlusExpr { $$ = e; }
+PlusExpr <- l:PlusExpr _ "+" _ e:ModulusExpr { $$ = CN(PLUS, 2, l, e); } / e:ModulusExpr { $$ = e; }
+ModulusExpr <- l:ModulusExpr _ "%" _ e:DivideExpr { $$ = CN(MODULUS, 2, l, e); } / e:DivideExpr { $$ = e; }
+DivideExpr <- l:DivideExpr _ "/" _ e:MultiplicateExpr { $$ = CN(DIVIDE, 2, l, e); } / e:MultiplicateExpr { $$ = e; }
+MultiplicateExpr <- l:MultiplicateExpr _ "*" _ e:ExponentiationExpr { $$ = CN(MULTIPLY, 2, l, e); } /
+                    e:ExponentiationExpr { $$ = e; }
+ExponentiationExpr <- l:ExponentiationExpr _ "^^" _ e:CastExpr { $$ = CN(EXPONENTIATE, 2, l, e); } / e:CastExpr { $$ = e; }
+CastExpr <- "cast" _ "(" _ t:Type _ ")" _ e:BitwiseComplementExpr { $$ = CN(CAST, 2, t, e); } /
+            e:BitwiseComplementExpr { $$ = e; }
+BitwiseComplementExpr <- "~" _ e:NotExpr { $$ = CN(BITWISE_COMPLEMENT, 1, e); } / e:NotExpr { $$ = e; }
+NotExpr <- "!" _ e:UnaryPlusExpr { $$ = CN(NOT, 1, e); } / e:UnaryPlusExpr { $$ = e; }
+UnaryPlusExpr <- "+" _ e:UnaryMinusExpr { $$ = CN(UNARY_PLUS, 1, e); } / e:UnaryMinusExpr { $$ = e; }
+UnaryMinusExpr <- "-" _ e:PostfixExpr { $$ = CN(UNARY_MINUS, 1, e); } / e:PostfixExpr { $$ = e; }
+PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX_EXPR, 1, p); }
+                (_ "." _ b:BoundName { AC($$, RN(b, DOT_NAME)); } /
+                 _ "[" _ s:Expr _ ".." _ e:Expr _ "]" { AC($$, CN(LIST_SLICE, 2, s, e)); } /
+                 _ "[" _ i:IndexValues _ "]" { AC($$, RN(i, LIST_UPDATE)); } /
+                 _ "[" _ m:MapKeyValues _ "]" { AC($$, RN(m, MAP_UPDATE)); } /
+                 _ "[" _ e:Expr _ "]" { AC($$, RN(e, LIST_LOOKUP)); } /
+                 _ "(" _ a:Args? _ ")" { AC($$, CN(FUNCTION_CALL, 1, a)); })*)
 
-PrimaryExpr <- "nil" /
-               "this" /
-               "self" /
-               "$" /
-               ControlFlowExpr /
-               NewExpr /
-               Literal /
-               BoundName /
-               "(" _ Expr _ ")"
+Type <- "int" { $$ = CT(INT_TYPE, NULL); } / "float" { $$ = CT(FLOAT_TYPE, NULL); }
 
-ControlFlowExpr <- IfExpr / SwitchExpr / ReceiveExpr / BlockExpr
+IndexValues <- i:IndexValue { $$ = CN(INDEX_VALUES, 1, i); } (_ "," _ i:IndexValue { AC($$, i); })*
+IndexValue <- i:Integral _ "=" _ v:Expr { $$ = CN(INDEX_VALUE, 2, i, v); }
 
-IfExpr <- "if" __ Expr _ BlockExpr
-          (_ "elif" __ Expr _ BlockExpr)*
-          (_ "else" _ BlockExpr)?
+PrimaryExpr <- "nil" { $$ = CT(NIL, NULL); } /
+               "this" { $$ = CT(THIS, NULL); } /
+               "self" { $$ = CT(SELF, NULL); } /
+               "$" { $$ = CT(SLICE_LENGTH, NULL); } /
+               e:ControlFlowExpr { $$ = e; } /
+               e:NewExpr { $$ = e; } /
+               e:Literal { $$ = e; } /
+               e:BoundName { $$ = e; } /
+               "(" _ e:Expr _ ")" { $$ = e; }
 
-SwitchExpr <- "switch" __ Expr (_ "is" _ UnboundName)? _ "{"
-             (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs)+ _
-             (_ "default" _ ":" _ BlockLevelExprs)? _
-             "}"
-UnboundName <- "?" _ Identifier
+ControlFlowExpr <- (c:IfExpr / c:SwitchExpr / c:ReceiveExpr / c:BlockExpr) { $$ = c; }
 
-ReceiveExpr <- "receive" __ Channels (_ "{"
-                    (_ "case" __ MatchExprs _ ":" _ BlockLevelExprs _)+
-                    (_ "timeout" _ ":" _ DecimalIntegral _ BlockLevelExpr)? _
+IfExpr <- "if" __ e:Expr _ b:BlockExpr { $$ = CN(IF_EXPR, 1, CN(IF, 2, e, b)); }
+          (_ "elif" __ e:Expr _ b:BlockExpr { AC($$, CN(ELIF, 2, e, b)); })*
+          (_ "else" _ e:BlockExpr { AC($$, CN(ELSE, 1, e)); })?
+
+SwitchExpr <- "switch" __ e:Expr { $$ = CN(SWITCH_EXPR, 1, CN(SWITCH, 1, e)); } _ "{"
+              (_ "case" __ m:MatchExprs _ ":" _ b:BlockLevelExprs { AC($$, CN(CASE, 2, m, b)); })+
+              (_ "default" _ ":" _ b:BlockLevelExprs { AC($$, CN(DEFAULT, 1, b)); })? _
+              "}"
+
+ReceiveExpr <- "receive" __ c:ReceiveChannels { $$ = CN(RECEIVE_EXPR, 1, CN(RECEIVE, 1, c)); } (_ "{"
+               (_ "case" __ m:MatchExprs _ ":" _ b:BlockLevelExprs _ { AC($$, CN(CASE, 2, m, b)); })+
+               (_ "timeout" _ ":" _ d:DecimalIntegral _ b:BlockLevelExpr { AC($$, CN(TIMEOUT, 2, d, b)); })? _
                "}")?
 
-Channels <- Dereference / "[" _ Dereferences _ "]"
-Dereference <- Identifier (_ "." _ Identifier / _ "[" _ Expr _ "]")*
-Dereferences <- Dereference (_ "," _ Dereference)*
+ReceiveChannels <- (c:Channel / "[" _ c:Channels _ "]") { $$ = c; }
+Channel <- (c:ChannelName { $$ = CN(CHANNEL, 1, c); }
+                (_ "." _ n:Name { AC($$, RN(n, DOT_NAME)); } /
+                 _ "[" _ e:Expr _ "]" { AC($$, RN(e, LIST_LOOKUP)); })*)
+ChannelName <- Identifier { $$ = CT(CHANNEL_NAME, $0); }
+Channels <- c:Channel { $$ = CN(CHANNELS, 1, c); } (_ "," _ c:Channel { AC($$, c); })*
 
-NewExpr <- "new" _ Identifier _ "(" _ Args? _ ")"
-
-BoundName <- Identifier
+NewExpr <- "new" _ n:Name _ "(" _ a:Args? _ ")" { $$ = CN(NEW_EXPR, 2, n, a); }
 
 #
 # Literal
 #
 
-Literal <- BaseLiteral / CompositeLiteral
+Literal <- (l:BaseLiteral / l:CompositeLiteral) { $$ = l; }
 
-BaseLiteral <- BooleanLiteral /
-               NumberLiteral /
-               CharacterLiteral /
-               StringLiteral /
-               FunctionLiteral /
-               EnumLiteral
+BaseLiteral <- (b:BooleanLiteral / b:NumberLiteral / b:CharacterLiteral /
+                b:StringLiteral / b:FunctionLiteral / b:EnumLiteral) { $$ = b; }
 
-CompositeLiteral <- TupleLiteral /
-                    (BoundName _)? ListLiteral /
-                    (BoundName _)? MapLiteral
+CompositeLiteral <- (c:TupleLiteral / c:ListLiteral / c:MapLiteral) { $$ = c; }
 
-BooleanLiteral <- "true" / "false"
+BooleanLiteral <- "true" { $$ = CT(TRUE, NULL); } / "false" { $$ = CT(FALSE, NULL); }
 
-NumberLiteral <- FloatingPoint / Integral
-Integral <- HexIntegral / BinaryIntegral / OctalIntegral / DecimalIntegral
-FloatingPoint <- DecimalPointLeading / DecimalPointTrailing
+NumberLiteral <- (n:FloatingPoint / n:Integral) { $$ = n; }
+
+FloatingPoint <- (f:DecimalPointLeading / f:DecimalPointTrailing) { $$ = CT(FLOATING_POINT, $0); }
 DecimalPointLeading <- [0-9]* "." [0-9]+ ExponentPart?
 DecimalPointTrailing <- [0-9]+ ExponentPart
 ExponentPart <- [eE] [+-]? [0-9]+
-DecimalIntegral <- [0-9]+
-OctalIntegral <- "0" [0-7]+
+
+Integral <- (HexIntegral / BinaryIntegral / OctalIntegral / DecimalIntegral) { $$ = CT(INTEGRAL, $0); }
 HexIntegral <- "0x" [0-9a-fA-F]+
 BinaryIntegral <- "0b" [01]+
+OctalIntegral <- "0" [0-7]+
+DecimalIntegral <- [0-9]+
 
-CharacterLiteral <- "'" ( Escape / NonQuoteChar ) "'"
-Escape <- "\\" ( [abfnrtv'"\\] /
-                 "x" HexDigit HexDigit /
-                 "u" HexDigit HexDigit HexDigit HexDigit /
-                 "U" HexDigit HexDigit HexDigit HexDigit
-                     HexDigit HexDigit HexDigit HexDigit /
-                  OctalDigit /
-                  OctalDigit OctalDigit /
-                  OctalDigit OctalDigit OctalDigit )
+CharacterLiteral <- "'" ( c:EscapeCharacter / c:NonQuoteCharacter ) "'" { $$ = CN(CHARACTER_LITERAL, 1, c); }
+EscapeCharacter <- "\\" (
+                   [abfnrtv'"\\] /
+                   "x" HexDigit HexDigit /
+                   "u" HexDigit HexDigit HexDigit HexDigit /
+                   "U" HexDigit HexDigit HexDigit HexDigit
+                       HexDigit HexDigit HexDigit HexDigit /
+                    OctalDigit /
+                    OctalDigit OctalDigit /
+                    OctalDigit OctalDigit OctalDigit
+                    ) { $$ = CT(ESCAPE_CHARACTER, $0); }
 HexDigit <- [0-9a-fA-F]
 OctalDigit <- [0-7]
-NonQuoteChar <- [^']
+NonQuoteCharacter <- [^'] { $$ = CT(NON_QUOTE_CHARACTER, $0); }
 
-StringLiteral <- RegularString / RawString
-RegularString <- '"' ( EscapeSequence / [^"] )* '"'
+StringLiteral <- ('"' s:RegularString '"' / 'r"' s:RawString '"') { $$ = s; }
+RegularString <- (EscapeSequence / [^"])* { $$ = CT(REGULAR_STRING, $0); }
 EscapeSequence <- "\\" [btnvfr"\\]
-RawString <- 'r"' [^"]* '"'
+RawString <- [^"]* { $$ = CT(RAW_STRING, $0); }
 
-FunctionLiteral <- "fn" _ "(" _ Params? _ ")" _ BlockExpr
+FunctionLiteral <- "fn" _ "(" _ p:Params? _ ")" _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 2, p, e); }
 
-EnumLiteral <- Identifier _ "." _ Identifier
+EnumLiteral <- edn:EnumDefName _ "#" _ en:EnumName { $$ = CN(ENUM_LITERAL, 2, edn, en); }
 
-TupleLiteral <- "<" _ Exprs? _ ">"
-Exprs <- Expr (_ "," _ Expr)*
+TupleLiteral <- "<" _ ">" { $$ = CT(TUPLE_LITERAL, NULL); } / "<" _ e:Exprs? _ ">" { $$ = RN(e, TUPLE_LITERAL); }
+Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
-ListLiteral <- "[" _ Exprs? _ "]" /
-               "[" Expr _ ".." _ Expr "]" /
-               "[" _ IndexValues _ "]"
-IndexValues <- IndexValue (_ "," _ IndexValue)*
-IndexValue <- DecimalIntegral _ "=" _ Expr
+ListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } / "[" _ e:Exprs? _ "]" { $$ = RN(e, LIST_LITERAL); }
 
-MapLiteral <- "[:]" / "[" _ KeyValues? _ "]"
-KeyValues <- KeyValue (_ "," _ KeyValue)*
-KeyValue <- (Literal / Identifier) _ ":" _ Expr
+MapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyValues? _ "]" { $$ = RN(k, MAP_LITERAL); }
+MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
+MapKeyValue <- (k:Literal / k:Name) _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
 #
 # Match expression
 #
 
-MatchExpr <- MatchLiteral / UnboundName / BoundName
-MatchExprs <- MatchExpr (_ "," _ MatchExpr)*
+MatchExpr <- (m:MatchLiteral / m:UnboundName / m:BoundName) { $$ = m; } (_ "is" _ u:UnboundName { AC($$, RN(u, MATCH_IS)); })?
 
-MatchLiteral <- MatchBaseLiteral / MatchCompositeLiteral
+MatchLiteral <- (m:MatchBaseLiteral / m:MatchCompositeLiteral) { $$ = m; }
 
-MatchBaseLiteral <- BooleanLiteral /
-                    NumberLiteral /
-                    CharacterLiteral /
-                    StringLiteral /
-                    EnumLiteral
+MatchBaseLiteral <- (m:BooleanLiteral /
+                     m:NumberLiteral /
+                     m:CharacterLiteral /
+                     m:StringLiteral /
+                     m:EnumLiteral) { $$ = m; }
 
-MatchCompositeLiteral <- MatchTupleLiteral /
-                         (BoundName _)? MatchListLiteral /
-                         (BoundName _)? MatchMapLiteral
+MatchCompositeLiteral <- (m:MatchTupleLiteral /
+                          m:MatchListLiteral /
+                          m:MatchMapLiteral) { $$ = m; }
 
-MatchListLiteral <- "[" _ MatchExprs? _ "]"
+MatchTupleLiteral <- "<" _ ">" { $$ = CT(TUPLE_LITERAL, NULL); } / "<" _ m:MatchExprs? _ ">" { $$ = RN(m, TUPLE_LITERAL); }
+MatchExprs <- m:MatchExpr { $$ = CN(MATCH_EXPRS, 1, m); } (_ "," _ m:MatchExpr { AC($$, m); })*
 
-MatchTupleLiteral <- "<" _ MatchExprs? _ ">"
+MatchListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } /
+                    b:BoundName "[" _ m:MatchExpr? _ "]" { $$ = CN(LIST_LOOKUP, 2, b, m); } /
+                    "[" _ m:MatchExprs? _ "]" { $$ = RN(m, LIST_LITERAL); }
 
-MatchMapLiteral <- "[:]" / "[" _ MatchKeyValues? _ "]"
-MatchKeyValues <- MatchKeyValue (_ "," _ MatchKeyValue)*
-MatchKeyValue <- (MatchLiteral / Identifier) _ ":" _ MatchExpr
+MatchMapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyValues? _ "]" { $$ = RN(m, MAP_LITERAL); }
+MatchMapKeyValues <- m:MatchMapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MatchMapKeyValue { AC($$, m); })*
+MatchMapKeyValue <- (k:Literal / k:Name) _ ":" _ v:MatchExpr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
 #
 # Class definition
 #
 
-ClassDef <- "class" __ Identifier _ ( ":" _ Interfaces _)?
-                   "{" _ ClassMembers _ "}"
-Interfaces <- Identifier (_ "," _ Identifier)*
-ClassMembers <- ClassMember (_ ClassMember / ClassMemberError)*
-ClassMember <- Constructor / Deconstructor / MemberMethod / MemberProperty
-Constructor <- "this" _ "(" _ Params? _ ")" _ BlockExpr
-Deconstructor <- "~this" _ "(" _ Params? _ ")" _ BlockExpr
-MemberMethod <- MemberAccess _ FunctionDef
-MemberAccess <- "public" / "private"
-MemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
-                  (_ "=" _ Expr)?
+ClassDef <- "class" __ cn:ClassName _ ( ":" _ i:Interfaces _ )? "{" _
+            c:ClassMembers _
+            "}" { $$ = CN(CLASS_DEF, 3, cn, i, c); }
+ClassName <- Identifier { $$ = CT(CLASS_NAME, $0); }
+Interfaces <- i:Interface { $$ = CN(INTERFACES, 1, i); } (_ "," _ i:Interface { AC($$, i); })*
+Interface <- Identifier { $$ = CT(INTERFACE, $0); }
+ClassMembers <- c:ClassMember { $$ = CN(CLASS_MEMBERS, 1, c); } (_ c:ClassMember { AC($$, c); } / ClassMemberError)*
+ClassMember <- (c:Constructor / c:Destructor / c:MemberMethod / c:MemberProperty) { $$ = c; }
+Constructor <- "this" _ "(" _ p:Params? _ ")" _ b:BlockExpr { $$ = CN(CONSTRUCTOR, 2, p, b); }
+Destructor <- "~this" _ "(" _ p:Params? _ ")" _ b:BlockExpr { $$ = CN(DESTRUCTOR, 2, p, b); }
+MemberMethod <- m:MemberAccess _ f:FunctionDef { $$ = CN(MEMBER_METHOD, 2, m, f); }
+MemberAccess <- "public" { $$ = CT(PUBLIC, NULL); } / "private" { $$ = CT(PRIVATE, NULL); }
+MemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name (_ "=" _ e:Expr)?) { $$ = CN(MEMBER_PROPERTY, 4, m, c, n, e); }
 ClassMemberError <- ("," / ";") {
-    panic("Unexpected %s between members on line %d", $0, auxil->line);
+    panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
+Const <- "const" { $$ = CT(CONST, NULL); }
+Readonly <- "readonly" { $$ = CT(READONLY, NULL); }
 
 #
 # Interface definition
 #
 
-InterfaceDef <- "interface" __ Identifier _ "{" _ InterfaceMembers _ "}"
-InterfaceMembers <- InterfaceMember (_ InterfaceMember / InterfaceMemberError)*
-InterfaceMember <- InterfaceMemberMethod / InterfaceMemberProperty
-InterfaceMemberMethod <- MemberAccess _ InterfaceMethod
-InterfaceMethod <- "fn" _ Identifier _ "(" _ Params? _ ")"
-InterfaceMemberProperty <- (MemberAccess (_ "const")? / "readonly") _ Identifier
+InterfaceDef <- "interface" __ i:InterfaceName _ "{" _ im:InterfaceMembers _ "}" { $$ = CN(INTERFACE_DEF, 2, i, im); }
+InterfaceName <- Identifier { $$ = CT(INTERFACE_NAME, $0); }
+InterfaceMembers <- i:InterfaceMember { $$ = CN(INTERFACE_MEMBERS, 1, i); } (_ i:InterfaceMember { AC($$, i); } / InterfaceMemberError)*
+InterfaceMember <- (i:InterfaceMemberMethod / i:InterfaceMemberProperty) { $$ = i; }
+InterfaceMemberMethod <- m:MemberAccess _ i:InterfaceMethod { $$ = CN(INTERFACE_MEMBER_METHOD, 2, m, i); }
+InterfaceMethod <- "fn" _ f:FunctionName _ "(" _ p:Params? _ ")" { $$ = CN(INTERFACE_METHOD, 2, f, p); }
+InterfaceMemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name) { $$ = CN(INTERFACE_MEMBER_PROPERTY, 3, m, c, n); }
 InterfaceMemberError <- ("," / ";") {
-    panic("Unexpected %s between members on line %d", $0, auxil->line);
+    panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
 
 #
 # Enumeration definition
 #
 
-EnumDef <- "enum" __ Identifier _ "{" _ EnumValues _ "}"
-EnumValues <- EnumValue (__ EnumValue / EnumValueError)*
-EnumValue <- Identifier (_ "=" _ Expr)?
+EnumDef <- "enum" __ ed:EnumDefName _ "{" _ e:Enums _ "}" { $$ = CN(ENUM_DEF, 2, ed, e); }
+EnumDefName <- Identifier { $$ = CT(ENUM_DEF_NAME, $0); }
+Enums <- e:Enum { $$ = CN(ENUMS, 1, e); } (__ e:Enum { AC($$, e); } / EnumValueError)*
+Enum <- en:EnumName (_ "=" _ e:Expr)? { $$ = CN(ENUM, 2, en, CN(ENUM_VALUE, 1, e)); }
+EnumName <- Identifier { $$ = CT(ENUM_NAME, $0); }
 EnumValueError <- ("," / ";") {
-    panic("Unexpected %s between enum values on line %d", $0, auxil->line);
+    panic("Unexpected %s between enum values on line %d", $0, auxil->row);
 }
 
 #
 # Function definition
 #
 
-FunctionDef <- ("export" _)?
-               "fn" __ Identifier _ "(" _ Params? _ ")" _ BlockExpr
-Params <- NonDefaultParams _ "," _ DefaultParams /
-          NonDefaultParams /
-          DefaultParams
-NonDefaultParams <- NonDefaultParam (_ "," _ NonDefaultParam)*
-NonDefaultParam <- Identifier !(_ "=")
-DefaultParams <- DefaultParam (_ "," _ DefaultParam)*
-DefaultParam <- Identifier _ "=" _ Expr
+FunctionDef <- e:Export? _ "fn" __ f:FunctionName _ "(" _ p:Params? _ ")" _ b:BlockExpr { $$ = CN(FUNCTION_DEF, 4, e, f, p, b); }
+Export <- "export" { $$ = CT(EXPORT, NULL); }
+FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
+Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d); } /
+          n:NonDefaultParams { $$ = n; } /
+          d:DefaultParams { $$ = d; }
+NonDefaultParams <- n:NonDefaultParam { $$ = CN(NON_DEFAULT_PARAMS, 1, n); }
+                    (_ "," _ n:NonDefaultParam { AC($$, n); })*
+NonDefaultParam <- Identifier !(_ "=") { $$ = CT(NON_DEFAULT_PARAM, $0); }
+DefaultParams <- d:DefaultParam { $$ = CN(DEFAULT_PARAMS, 1, d); } (_ "," _ d:DefaultParam {AC($$, d); })*
+DefaultParam <- i:DefaultParamName _ "=" _ e:Expr { $$ = CN(DEFAULT_PARAM, 2, i, e); }
+DefaultParamName <- Identifier { $$ = CT(DEFAULT_PARAM_NAME, $0); }
 
-BlockExpr <- "{" _ BlockLevelExprs _ "}"
-BlockLevelExprs <- BlockLevelExpr (_ Comma _ BlockLevelExpr)*
-BlockLevelExpr <- FunctionDef / Expr
+BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
+BlockLevelExprs <- b:BlockLevelExpr { $$ = CN(BLOCK_EXPR, 1, b); } (_ Comma _ b:BlockLevelExpr { AC($$, b); })*
+BlockLevelExpr <- (b:FunctionDef / b:Expr) { $$ = b; }
 Comma <- "," / ";" {
-    panic("Unexpected ';' on line %d (use ',' as a separator between expressions)",
-          auxil->line);
+    panic("Unexpected ';' on line %d (use ',' as a separator between "
+          "expressions)", auxil->row);
 }
-
-Args <- PositionalArgs / NamedArgs
-PositionalArgs <- !NamedArg Expr (_ "," _ Expr)*
-NamedArgs <- NamedArg (_ "," _ NamedArg)*
-NamedArg <- Identifier _ ":" _ Expr
+Args <- (a:PositionalArgs / a:NamedArgs) { $$ = a; }
+PositionalArgs <- !NamedArg e:Expr { $$ = CN(POSITIONAL_ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
+NamedArgs <- n:NamedArg { $$ = CN(NAMED_ARGS, 1, n); } (_ "," _ n:NamedArg { AC($$, n); })*
+NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
 
 #
 # Misc
 #
 
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
+Name <- Identifier { $$ = CT(NAME, $0); }
+BoundName <- n:Name { $$ = RN(n, BOUND_NAME); }
+UnboundName <- "?" _ n:Name { $$ = RN(n, UNBOUND_NAME); }
 #_ <- WS*
 #__ <- WS+
 _ <- (WS / Comments)*
 __ <- (WS / Comments)+
 WS <- [ \t\r\n] {
-    if (strcmp($0, "\n") == 0) {
-        auxil->line++;
+    if ($0[0] == '\n') {
+        auxil->row++;
     }
 }
 Comments <- SingleLineComment / BlockComment
 SingleLineComment <- "//" (!EOL .)* EOL?
-EOL <- "\r\n" / "\n" / "\r" {
-    auxil->line++;
-}
+EOL <- "\r\n" / "\n" / "\r" { auxil->row++; }
 BlockComment <- "/*" (BlockCommentContent / EOL)* "*/"
 BlockCommentContent <- (!("*/" / EOL) .)
 EOF <- _ !.
 
 %%
 int main() {
-    satie_auxil_t satie_auxil = { 1 };
-    satie_context_t *context = satie_create(&satie_auxil);
-    satie_parse(context, NULL);
+    satie_auxil_t* satie_auxil = satie_auxil_new();
+    satie_context_t *context = satie_create(satie_auxil);
+    ast_node_t* program;
+    satie_parse(context, &program);
+    print_ast(program, 0);
     satie_destroy(context);
     return 0;
 }
