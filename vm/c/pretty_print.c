@@ -57,6 +57,11 @@ uint32_t print_instruction(uint8_t* bytes) {
         fprintf(stderr, "loadri r%d #%ld\n", register_, immediate_value);
         return size;
     }
+    case OPCODE_PUSHI: {
+        vm_immediate_value_t value = GET_OPERAND(vm_immediate_value_t);
+        fprintf(stderr, "pushi #%ld\n", value);
+        return size;
+    }
     case OPCODE_PUSHR: {
         vm_register_t register_ = GET_OPERAND(vm_register_t);
         fprintf(stderr, "pushr r%d\n", register_);

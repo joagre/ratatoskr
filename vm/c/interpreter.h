@@ -17,21 +17,17 @@ typedef enum {
     INTERPRETER_RESULT_EXIT
 } interpreter_result_t;
 
-typedef enum {
-    INTERPRETER_MODE_STACK = 0,
-    INTERPRETER_MODE_REGISTER
-} interpreter_mode_t;
-
 typedef struct interpreter {
-    interpreter_mode_t mode;
+    uint8_t version;
 } interpreter_t;
 
 struct scheduler; // Forward declaration of circular dependency
 
-void interpreter_init(interpreter_t *interpreter, interpreter_mode_t mode);
+void interpreter_init(interpreter_t *interpreter, uint8_t version);
 interpreter_result_t interpreter_run(struct scheduler* scheduler);
 uint32_t interpreter_mspawn(struct scheduler* scheduler, char* module_name,
                             vm_label_t label, vm_stack_value_t* parameters,
-                            vm_arity_t arity, satie_error_t* error);
+                            vm_arity_t number_of_parameters,
+                            satie_error_t* error);
 
 #endif

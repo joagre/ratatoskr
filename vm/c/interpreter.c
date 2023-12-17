@@ -8,10 +8,10 @@
 
 // Forward declarations of local functions (alphabetical order)
 static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
-                      long* parameters, vm_arity_t arity);
+                      vm_stack_value_t* parameters, vm_arity_t number_of_parameters);
 
-void interpreter_init(interpreter_t *interpreter, interpreter_mode_t mode) {
-    interpreter->mode = mode;
+void interpreter_init(interpreter_t *interpreter, uint8_t version) {
+    interpreter->version = version;
 }
 
 interpreter_result_t interpreter_run(scheduler_t *scheduler) {
@@ -23,13 +23,11 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
     while (true) {
 #ifdef DEBUG
 #ifndef MUTE_LOG_DEBUG
-        if (scheduler->interpreter->mode == INTERPRETER_MODE_REGISTER) {
-            fprintf(stderr, "%d: registers = [", job->jid);
-            for (int i = 0; i < 8; i++) {
-                fprintf(stderr, "%ld", job->registers[i]);
-                if (i < 7) {
-                    fprintf(stderr, ", ");
-                }
+        fprintf(stderr, "%d: registers = [", job->jid);
+        for (int i = 0; i < 8; i++) {
+            fprintf(stderr, "%ld", job->registers[i]);
+            if (i < 7) {
+                fprintf(stderr, ", ");
             }
         }
         fprintf(stderr, "]\n");
@@ -117,10 +115,20 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
             job->pc += size;
             break;
         }
+        case OPCODE_PUSHI: {
+            vm_immediate_value_t value = GET_OPERAND(vm_immediate_value_t);
+            call_stack_push(&job->call_stack, value);
+            job->pc += size;
+            break;
+        }
         case OPCODE_PUSHR: {
             vm_register_t register_ = GET_OPERAND(vm_register_t);
             call_stack_push(&job->call_stack, job->registers[register_]);
             job->pc += size;
+            break;
+        }
+        case OPCODE_POP: {
+            call_stack_pop(&job->call_stack);
             break;
         }
         case OPCODE_LOADRS: {
@@ -153,14 +161,7 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
             break;
         }
         case OPCODE_RRET: {
-            //
-            // FIXME: Same halt checks here are not necessary. Think!
-            //
-
-            // Has call stack been exhausted?
-            if (call_stack_size(&job->call_stack) == 2) {
-                return INTERPRETER_RESULT_HALT;
-            }
+            // Remember return address
             vm_stack_value_t return_address =
                 call_stack_get(&job->call_stack, job->call_stack.fp);
             // Remember previous FP
@@ -168,7 +169,9 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
                 call_stack_get(&job->call_stack, job->call_stack.fp + 1);
             // Remove call stack frame
             call_stack_set_size(&job->call_stack, job->call_stack.fp);
-            if (call_stack_size(&job->call_stack) == 1 || return_address == -1) {
+
+            // Has call stack been exhausted?
+            if (return_address == 0 && previous_fp == 0) {
                 return INTERPRETER_RESULT_HALT;
             }
             // Restore FP to previous FP
@@ -180,10 +183,6 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
         case OPCODE_JMP: {
             vm_address_t address = GET_OPERAND(vm_address_t);
             job->pc = address;
-            break;
-        }
-        case OPCODE_POP: {
-            call_stack_pop(&job->call_stack);
             break;
         }
         case OPCODE_SYS: {
@@ -218,7 +217,8 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
 
 uint32_t interpreter_mspawn(scheduler_t *scheduler, char* module_name,
                             vm_label_t label, vm_stack_value_t* parameters,
-                            vm_arity_t arity, satie_error_t* error) {
+                            vm_arity_t number_of_parameters,
+                            satie_error_t* error) {
     // Ensure that module is loaded
     if (!loader_is_module_loaded(scheduler->loader, module_name)) {
         loader_load_module(scheduler->loader, module_name, error);
@@ -229,7 +229,7 @@ uint32_t interpreter_mspawn(scheduler_t *scheduler, char* module_name,
 
     vm_address_t address =
         loader_lookup_address(scheduler->loader, module_name, label);
-    return spawn(scheduler, address, parameters, arity);
+    return spawn(scheduler, address, parameters, number_of_parameters);
 }
 
 //
@@ -237,40 +237,9 @@ uint32_t interpreter_mspawn(scheduler_t *scheduler, char* module_name,
 //
 
 static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
-                      vm_stack_value_t* parameters, vm_arity_t arity) {
-    vm_stack_value_t return_address = -1;
-    vm_stack_value_t fp = -1;
-
-    // Prepare initial call stack depending on interpreter mode
-    vm_stack_value_t initial_call_stack[arity + 3];
-    switch (scheduler->interpreter->mode) {
-    case INTERPRETER_MODE_STACK:
-        for (vm_arity_t i = 0; i < arity; i++) {
-            initial_call_stack[i] = parameters[i];
-        }
-        initial_call_stack[arity] = arity;
-        initial_call_stack[arity + 1] = return_address;
-        initial_call_stack[arity + 2] = fp;
-        arity += 3;
-        break;
-    case INTERPRETER_MODE_REGISTER:
-        initial_call_stack[0] = return_address;
-        initial_call_stack[1] = fp;
-        arity = 2;
-        break;
-    }
-
-    // FIXME: In register mode parameters should be passed in registers
-
-    // Create job
+                      vm_stack_value_t* parameters, vm_arity_t number_of_parameters) {
     uint32_t jid = scheduler_next_jid();
-    job_t* job = job_new(jid, address, initial_call_stack, arity);
-
-    // Set FP to point to arity
-    job->call_stack.fp = call_stack_size(&job->call_stack) - 3;
-
-    // Add job to scheduler
+    job_t* job = job_new(jid, address, parameters, number_of_parameters);
     scheduler_spawn(scheduler, job);
-
     return jid;
 }

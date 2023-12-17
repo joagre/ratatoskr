@@ -3,20 +3,26 @@
 ## Version 0.1
 
 * [x] Debug register machine and make Ackermann work (measure performance)
-* [ ] Make it possible to specify register content from the `sa` executable
+* [x] Make it possible to specify register content from the `sa` executable
+* [ ] Ask T about clib
+  - `lhash_kv_find` does not work for me
+  - `-O3` produces compiler warnings
+  - Many calls dynarray_size?
+  - static inline in dynarray.h?
 * [ ] Refactor code base
-  - Move `vm/src/clib` to `src/clib/`
-  - Move `vm/src/*` into `src/sa/`
+  - Move `vm/c/clib` to `src/clib/`
+  - Move `vm/c/*` into `src/sa/`
   - Move `grammar/` to `src/sac/`
-  - Add `src/util`
-* [ ] Update `sac` compiler to generate register instructions
-  - `sa ( -> ast -> ) sab`
-  - Load bytecode from loader (not source code)
-* [ ] Ask T about clib errors and compiler warnings for -O3 +
-      dynarray_resize etc
+  - Add `src/base`
+  - Add `bin/`
+  - Move `vm/exmaples` to `examples/`
+  - Let `bin/sac` generate `sab` bytecode from `sa` source files
+  - Load bytecode instead of source code
 * [ ] Dive into Hindley-Milner type inference
 * [ ] Update `README.md` to a shining condition
 * [ ] Design and implement a full set of register instructions
+* [ ] Update `sac` compiler to generate register instructions
+  - `sa -> ast -> sab`
 * [ ] Use a dummy GC
 * [ ] Use copy-on-write instead of persistent datatypes
 

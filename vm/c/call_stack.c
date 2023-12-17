@@ -3,14 +3,9 @@
 #include "call_stack.h"
 #include "log.h"
 
-void call_stack_init(call_stack_t* call_stack,
-                     vm_stack_value_t* initial_call_stack, vm_arity_t arity,
-                     data_stack_t* data_stack) {
+void call_stack_init(call_stack_t* call_stack, data_stack_t* data_stack) {
     dynarray_init(&call_stack->array, NULL, INITIAL_CALL_STACK_SIZE,
                   sizeof(vm_stack_value_t));
-    for (size_t i = 0; i < arity; i++) {
-        call_stack_push(call_stack, initial_call_stack[i]);
-    }
     call_stack->fp = 0;
     call_stack->data_stack = data_stack;
 }
@@ -113,9 +108,7 @@ void call_stack_unit_test(void) {
 
     // Create call stack
     call_stack_t call_stack;
-    vm_stack_value_t initial_call_stack[] = {};
-    vm_arity_t arity = 0;
-    call_stack_init(&call_stack, initial_call_stack, arity, &data_stack);
+    call_stack_init(&call_stack, &data_stack);
 
     // push, pop, length
     call_stack_push(&call_stack, 1);

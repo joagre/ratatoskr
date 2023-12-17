@@ -13,9 +13,7 @@ typedef struct {
     data_stack_t* data_stack;
 } call_stack_t;
 
-void call_stack_init(call_stack_t* call_stack,
-                     vm_stack_value_t* initial_call_stack, vm_arity_t arity,
-                     data_stack_t* data_stack);
+void call_stack_init(call_stack_t* call_stack, data_stack_t* data_stack);
 void call_stack_free(call_stack_t* call_stack);
 size_t call_stack_size(call_stack_t* call_stack);
 vm_stack_value_t call_stack_get(call_stack_t* call_stack, size_t index);

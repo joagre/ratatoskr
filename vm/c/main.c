@@ -16,7 +16,6 @@
 #define SPAWN_ERROR 2
 
 #define DEFAULT_CHECK_AFTER 100
-#define DEFAULT_INTERPRETER_MODE INTERPRETER_MODE_STACK
 #define DEFAULT_LOAD_PATH "./"
 #define DEFAULT_TIME_SLICE 25
 
@@ -32,7 +31,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     uint16_t check_after = DEFAULT_CHECK_AFTER;
-    interpreter_mode_t mode = DEFAULT_INTERPRETER_MODE;
     char* load_path = DEFAULT_LOAD_PATH;
     uint32_t time_slice = DEFAULT_TIME_SLICE;
 
@@ -76,7 +74,7 @@ int main(int argc, char* argv[]) {
     int longopt;
     int longindex = 0;
 
-    while ((longopt = getopt_long(argc, argv, "c:hi:l:t:", longopts,
+    while ((longopt = getopt_long(argc, argv, "c:hl:t:", longopts,
                                   &longindex)) != -1) {
         switch (longopt) {
         case 'c': {
@@ -88,15 +86,6 @@ int main(int argc, char* argv[]) {
         }
         case 'h':
             usage(basename(argv[0]));
-            break;
-        case 'i':
-            if (strcmp(optarg, "stack") == 0) {
-                mode = INTERPRETER_MODE_STACK;
-            } else if (strcmp(optarg, "register") == 0) {
-                mode = INTERPRETER_MODE_REGISTER;
-            } else {
-                usage(basename(argv[0]));
-            }
             break;
         case 'l':
             load_path = optarg;
@@ -130,15 +119,14 @@ int main(int argc, char* argv[]) {
             usage(basename(argv[0]));
         }
     }
+    size_t number_of_parameters = argc - optind - 2;
 
     LOG_DEBUG("check_after = %d", check_after);
-    LOG_DEBUG("interpreter = %s",
-              mode == INTERPRETER_MODE_STACK ? "stack" : "register");
     LOG_DEBUG("load_path = %s", load_path);
     LOG_DEBUG("time_slice = %d", time_slice);
     LOG_DEBUG("module_name = %s", module_name);
     LOG_DEBUG("label = %d", label);
-    for (int i = 0; i < argc - optind - 2; i++) {
+    for (size_t i = 0; i < number_of_parameters; i++) {
         LOG_DEBUG("parameter = %d", parameters[i]);
     }
 
@@ -148,7 +136,7 @@ int main(int argc, char* argv[]) {
 
     // Prepare interpreter
     interpreter_t interpreter;
-    interpreter_init(&interpreter, mode);
+    interpreter_init(&interpreter, 0);
 
     // Prepare scheduler
     scheduler_t scheduler;
@@ -156,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     // Spawn job according to command line arguments
     interpreter_mspawn(&scheduler, module_name, label, parameters,
-                       argc - optind - 2, &error);
+                       number_of_parameters, &error);
     if (error.failed) {
         satie_print_error(&error);
         return SPAWN_ERROR;
@@ -182,16 +170,12 @@ static void usage(char* name) {
             "    Check time slice timeout each number of <instructions> (%d)\n"
             "  -h, --help\n"
             "    Print this message and exit\n"
-            "  -i, interpreter-mode <mode>\n"
-            "    Start interpreter in 'stack' or 'register' <mode> (%s)\n"
             "  -l <directory>, --load-path=<directory>\n"
             "    Load POSM files from <directory> (%s)\n"
             "  -t <milli-seconds>, --time-slice=<milli-seconds>\n"
             "    <milli-seconds> spent by each job before context switch (%d) "
             "ms)\n",
             name, DEFAULT_CHECK_AFTER,
-            DEFAULT_INTERPRETER_MODE ==
-                INTERPRETER_MODE_STACK ? "stack" : "register",
             DEFAULT_LOAD_PATH, DEFAULT_TIME_SLICE);
     exit(PARAMETER_ERROR);
 }

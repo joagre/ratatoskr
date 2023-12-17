@@ -1,4 +1,4 @@
-//#define MUTE_LOG_DEBUG 1
+#define MUTE_LOG_DEBUG 1
 
 #include <stdio.h>
 #include <errno.h>
@@ -365,11 +365,6 @@ static void generate_byte_code(loader_t* loader, module_t* module,
             resolve_label(loader->byte_code, module, operand_address, 0);
             address += size_of_operands(OPCODE_SPAWN);
         } else {
-            /*
-            opcode_info_t* opcode_info = opcode_to_opcode_info(opcode);
-            fprintf(stderr, "ADRESS+ %d: opcode = %s\n", size_of_operands((opcode_t)opcode),
-                    opcode_info->string);
-            */
             address += size_of_operands((opcode_t)opcode);
         }
         address++;

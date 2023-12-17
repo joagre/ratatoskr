@@ -40,22 +40,22 @@ void satie_print_error(satie_error_t *error) {
         fprintf(stderr, "Error: ");
         switch (GET_ERROR_TYPE(error)) {
         case ERROR_TYPE_NONE:
-            fprintf(stderr, "None");
+            fprintf(stderr, "None\n");
             break;
         case ERROR_TYPE_CODE:
-            fprintf(stderr, "Code: %d", error->code);
+            fprintf(stderr, "%d\n", error->code);
             break;
         case ERROR_TYPE_ERRNO:
-            fprintf(stderr, "Errno: %s", strerror(error->errno_value));
+            fprintf(stderr, "%s\n", strerror(error->errno_value));
             break;
         case ERROR_TYPE_MESSAGE:
-            fprintf(stderr, "Message: %s", satie_error_message);
+            fprintf(stderr, "%s\n", satie_error_message);
             break;
         default:
-            fprintf(stderr, "Unknown");
+            fprintf(stderr, "Unknown\n");
             break;
         }
-        fprintf(stderr, " (%s)\n", satie_error_type_to_string(GET_ERROR_TYPE(error)));
+        fprintf(stderr, "Type: %s\n", satie_error_type_to_string(GET_ERROR_TYPE(error)));
         fprintf(stderr, "Component: %s\n", satie_component_to_string(GET_COMPONENT(error)));
     } else {
         fprintf(stderr, "No error\n");

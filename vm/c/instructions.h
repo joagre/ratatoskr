@@ -52,6 +52,12 @@ opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
                      OPERAND_IMMEDIATE_VALUE},
         .number_of_operands = 2
     },
+    [OPCODE_PUSHI] = {
+        .opcode = OPCODE_PUSHI,
+        .string = "pushi",
+        .operands = {OPERAND_IMMEDIATE_VALUE},
+        .number_of_operands = 1
+    },
     [OPCODE_PUSHR] = {
         .opcode = OPCODE_PUSHR,
         .string = "pushr",
@@ -270,7 +276,8 @@ char* system_call_map[SYSTEM_CALL_ENUM_SIZE] = {
     [SYSTEM_CALL_RECV] = "recv",
     [SYSTEM_CALL_PRINTLN] = "println",
     [SYSTEM_CALL_DISPLAY] = "display",
-    [SYSTEM_CALL_EXIT] = "exit"
+    [SYSTEM_CALL_EXIT] = "exit",
+    [SYSTEM_CALL_INVALID] = "invalid"
 };
 
 char* return_mode_map[RETURN_MODE_ENUM_SIZE] = {
