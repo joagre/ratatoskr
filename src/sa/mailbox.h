@@ -1,7 +1,7 @@
 #ifndef __MAILBOX_H__
 #define __MAILBOX_H__
 
-#include "clib/dlist.h"
+#include <dlist.h>
 #include "vm.h"
 
 typedef struct {

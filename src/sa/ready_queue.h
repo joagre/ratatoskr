@@ -1,7 +1,7 @@
 #ifndef __READY_QUEUE_H__
 #define __READY_QUEUE_H__
 
-#include "clib/dlist.h"
+#include <dlist.h>
 #include "job.h"
 
 typedef struct {

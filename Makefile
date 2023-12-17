@@ -1,8 +1,8 @@
 all:
-	(cd src/prototype; $(MAKE) all)
+	(cd src; $(MAKE) all)
 
 clean:
-	(cd src/prototype; $(MAKE) clean)
+	(cd src; $(MAKE) clean)
 
 .PHONY: all clean
 

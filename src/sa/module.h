@@ -1,7 +1,7 @@
 #ifndef __MODULE_H__
 #define __MODULE_H__
 
-#include "clib/lhash_kv.h"
+#include <lhash_kv.h>
 #include "vm.h"
 
 typedef struct {

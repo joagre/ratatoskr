@@ -1,7 +1,7 @@
 #ifndef __WAITING_QUEUE_H__
 #define __WAITING_QUEUE_H__
 
-#include "clib/dlist.h"
+#include <dlist.h>
 #include "job.h"
 
 typedef struct {

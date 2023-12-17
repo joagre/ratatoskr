@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "../vm/c/clib/dynarr.h"
+#include <dynarr.h>
 
 static int ROW = 1;
 

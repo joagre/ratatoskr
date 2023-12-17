@@ -1,7 +1,7 @@
 #ifndef __DATA_STACK_H__
 #define __DATA_STACK_H__
 
-#include "clib/dynarr.h"
+#include <dynarr.h>
 #include "vm.h"
 
 typedef dynarray_t data_stack_array_t;

@@ -1,6 +1,6 @@
 CC = gcc
 PCC = packcc
-CFLAGS = -Wall -Wextra -std=c17 -g -D_POSIX_C_SOURCE=200809L -Wno-unused-parameter
+CFLAGS = -Wall -Wextra -I../clib -std=c17 -g -D_POSIX_C_SOURCE=200809L -Wno-unused-parameter
 LDLIBS = -lm
 
 all: ../../bin/sa no_actions_satie.peg

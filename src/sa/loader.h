@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "clib/lhash_kv.h"
+#include <lhash_kv.h>
 #include "module.h"
 #include "satie_error.h"
 
