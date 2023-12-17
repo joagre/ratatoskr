@@ -101,35 +101,35 @@ On to the examples.
 ## Example: Hello world!
 
 ```
-__hello_world.posm__
+__hello_world.sai__
 ```
 
 ## Example: Factorial
 
 ```
-__fac.posm__
+__fac.sai__
 ```
 
 ## Example: Factorial (tail recursive)
 
 ```
-__tfac.posm__
+__tfac.sai__
 ```
 
 ## Dynamic code loading
 
 ```
-__module_calls.posm__
+__module_calls.sai__
 ```
 
 ## Example: Concurrent Ackermann
 
 ```
-__ackermann.posm__
+__ackermann.sai__
 ```
 
 ## Message passing
 
 ```
-__message_passing.posm__
+__message_passing.sai__
 ```

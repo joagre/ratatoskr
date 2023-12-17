@@ -101,35 +101,308 @@ On to the examples.
 ## Example: Hello world!
 
 ```
-__hello_world.posm__
+label 0
+  pushs "Hello world!"        ; snuva
+  sys println            
+  ret
 ```
 
 ## Example: Factorial
 
 ```
-__fac.posm__
+; Run: sa -l ./ fac 0 10
+;
+; fac(1) ->
+;     1;
+; fac(N) ->
+;     N * fac(N - 1).
+
+label 0          ; fac(1)
+  push -1
+  load           ; N
+  push 1
+  neq
+  cjump 1
+  push 1
+  ret
+
+label 1          ; fac(N)
+  push -1
+  load           ; N
+  push -1
+  load           ; N
+  push 1
+  sub            ; N - 1
+  call 0 1       ; fac(N - 1).
+  mul            ; N * fac(N - 1).
+  ret
 ```
 
 ## Example: Factorial (tail recursive)
 
 ```
-__tfac.posm__
+; Run: sa -l ./ tfac 0 10 1
+;
+; fac(N) when N >= 0 ->
+;     fac(N, 1).
+;
+; fac(0, Acc) ->
+;     Acc;
+; fac(N, Acc) when N > 0 ->
+;     fac(N - 1, N * Acc).
+
+label 0          ; fac(0, Acc)
+  push -2
+  load           ; N
+  push 0
+  neq
+  cjump 1
+  push -1
+  load           ; Acc
+  ret
+
+label 1          ; fac(N, Acc)
+  push -2
+  load           ; N
+  push 1
+  sub            ; N - 1
+  push -2
+  load           ; N
+  push -1
+  load           ; Ack
+  mul
+  push -1
+  store          ; Replace parameter Acc
+  push -2
+  store          ; Replace parameter N
+  jump 0         ; fac(N - 1, N * Acc).
 ```
 
 ## Dynamic code loading
 
 ```
-__module_calls.posm__
+; Run: sa -l ./ module_calls 0 10
+;
+; start(N) ->
+;     io:format("~w\n", [fac:fac(N)]),
+;     io:format("~w\n", [tfac:fac(N + 2)]).
+
+label 0          ; start(N)
+  push -1
+  load           ; N
+  push 1         ; Arity
+  pushs "fac"    ; Module name
+  push 0
+  mcall          ; fac:fac(N)
+  sys display
+  pop
+  push -1
+  load           ; N
+  push 2
+  add            ; N + 2
+  push 1         ; Acc
+  push 2         ; Arity
+  pushs "tfac"   ; Module name
+  push 0         ; Label
+  mcall          ; tfac:fac(N, 1)
+  sys display
+  ret
 ```
 
 ## Example: Concurrent Ackermann
 
 ```
-__ackermann.posm__
+; Run: sa -l ./ ackermann 0
+; Run: sa -l ./ ackermann 10
+; Run: sa -l ./ ackermann 1 3 6
+;
+; start() ->
+;     ackermann(3, 6).
+;
+; start2() ->
+;     spawn(fun() -> ackermann(3, 6) end),
+;     spawn(fun() -> ackermann(3, 7) end),
+;     spawn(fun() -> fac:fac(10) end).
+;
+; ackermann(0, N) ->
+;     N + 1;
+; ackermann(M, 0) when M > 0 ->
+;     ackermann(M - 1, 1);
+; ackermann(M, N) when M > 0, N > 0 ->
+;     ackermann(M - 1, ackermann(M, N - 1)).
+
+label 0          ; start()
+  push 3         ; M
+  push 6         ; N
+  call 1 2       ; ackermann(3, 6)
+  dup
+  sys display
+  pop
+  ret
+
+label 10         ; start2()
+  push 3         ; M
+  push 6         ; N
+  spawn 1 2      ; spawn(fun() -> ackermann(3, 6) end)
+  pop
+  push 3         ; M
+  push 7         ; N
+  spawn 1 2      ; spawn(fun() -> ackermann(3, 7) end)
+  pop
+  push 10        ; N
+  push 1         ; Arity
+  pushs "fac"    ; Module name
+  push 0         ; Label
+  mspawn         ; spawn(fun() -> fac:fac(10) end)
+  ret
+
+label 1          ; ackermann(0, N)
+  push -2
+  load           ; M
+  push 0
+  neq            ; M == 0?
+  cjump 2
+  push -1
+  load           ; N
+  push 1
+  add            ; N + 1
+  ret
+
+label 2          ; ackermann(M, 0) when M > 0
+  push -1
+  load           ; N
+  push 0
+  neq
+  cjump 3
+  push -2
+  load           ; M
+  push 0
+  gt             ; M > 0 ?
+  not
+  cjump 3
+  push -2        ; M
+  load
+  push 1
+  sub            ; M - 1
+  push -2
+  store          ; Replace parameter M
+  push 1
+  push -1
+  store          ; Replace parameter N
+  jump 1         ; ackermann(M - 1, 1);
+
+label 3          ; ackermann(M, N) when M > 0, N > 0
+  push -2
+  load           ; M
+  push 1
+  sub            ; M - 1
+  push -2
+  load           ; M
+  push -1
+  load           ; N
+  push 1
+  sub            ; N - 1
+  call 1 2       ; ackermann(M, N - 1)
+  push -1
+  store          ; Replace parameter N
+  push -2
+  store          ; Replace parameter M
+  jump 1         ; ackermann(M - 1, ackermann(M, N - 1))
 ```
 
 ## Message passing
 
 ```
-__message_passing.posm__
+; Run: sa -l ./ message_passing 0 7
+;
+; start(N) ->
+;     spawn_all(self(), N),
+;     wait_for_all(N).
+;
+; spawn_all(_Self, 0) ->
+;     io:format("All jobs have been started\n");
+; spawn_all(Self, N) ->
+;     spawn(fun() -> Self ! ackermann:ackermann(3, N) end),
+;     spawn_all(Self, N - 1).
+;
+; wait_for_all(0) ->
+;     io:format("All jobs have returned a result\n");
+; wait_for_all(N) ->
+;     receive
+;         Result ->
+;             io:format("~w\n",  [Result]),
+;             wait_for_all(N - 1)
+;    end.
+
+label 0          ; start(N)
+  sys self       ; self()
+  push -1
+  load           ; N
+  call 10 2      ; spawn_all(self(), N),
+  pop
+  push -1
+  load           ; N
+  call 20 1      ; wait_for_all(N).
+  ret
+
+label 10         ; spawn_all(_Self, 0)
+  push -1
+  load           ; N
+  push 0
+  neq
+  cjump 11
+  pushs "All jobs have been started"
+  sys println
+  ret
+
+label 11         ; spawn_all(Self, N)
+  push -2
+  load           ; Self
+  push -1
+  load           ; N
+  spawn 12 2     ; fun() -> Self ! ackermann:ackermann(3, N) end)
+  pop
+  push -2
+  load           ; Self
+  push -1
+  load           ; N
+  push 1
+  sub            ; N - 1
+  call 10 2      ; spawn_all(Self, N - 1)
+  ret
+
+label 12         ; fun(Self, N)
+  push 3         ; M
+  push -1
+  load           ; N
+  push 2         ; Arity
+  pushs "ackermann"
+  push 1         ; Label
+  mcall          ; ackermann:ackermann(3, N)
+  push -2
+  load           ; Self
+  swap
+  sys send
+  ret
+
+label 20         ; wait_for_all(0)
+  push -1
+  load           ; N
+  push 0
+  neq
+  cjump 21
+  pushs "All jobs have returned a result"
+  sys println
+  ret
+
+label 21         ; wait_for_all(N)
+  sys recv
+  sys display
+  pop
+  push -1
+  load           ; N
+  push 1
+  sub            ; N - 1
+  call 20 1      ; wait_for_all(N - 1)
+  ret
 ```
