@@ -1,4 +1,4 @@
-# Milestones and thoughts
+cd # Milestones and thoughts
 
 ## Version 0.1
 
@@ -23,9 +23,9 @@
 
 ## Version 0.2
 
+* Add a unitest construct in Satie ala D
 * Basic set of standard libraries
   - Put them in `lib/`
-* Add a unitest construct in Satie ala D
 * Basic REPL
 * Basic package manager
 
