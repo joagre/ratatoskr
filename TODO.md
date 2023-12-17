@@ -9,11 +9,13 @@
   - `-O3` produces compiler warnings
   - Many calls dynarray_size?
   - static inline in dynarray.h?
-* [ ] Dive into Hindley-Milner type inference
+* [ ] Make sure that all examples/*.sai works
 * Let `bin/sac` generate `sab` bytecode from `sa` source files
   - Load bytecode instead of source code
+* [ ] Dive into Hindley-Milner type inference
 * [ ] Update `README.md` to a shining condition
-* [ ] Design and implement a full set of register instructions
+* [ ] Update `SAI.md` to a shining condition
+* [ ] Implement the instructions described in `SAI.md`
 * [ ] Update `sac` compiler to generate register instructions
   - `sa -> ast -> sab`
 * [ ] Use a dummy GC
