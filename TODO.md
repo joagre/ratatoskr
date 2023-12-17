@@ -9,14 +9,24 @@
   - `-O3` produces compiler warnings
   - Many calls dynarray_size?
   - static inline in dynarray.h?
+
+
 * [ ] Refactor code base
-  - Move `vm/c/clib` to `src/clib/`
+  - Move `vm/d/` to `src/d/sa/`
+  - Copy `vm/examples/` to `src/d/examples/`
+  - Move `vm/c/clib` into `src/c/clib`
+  - Move `vm/c` into `src/c/sa/`
+  - Copy `vm/examples` to `src/c/sa/examples`
+
+
+
+- Move `vm/c/clib` to `src/clib/`
   - Move `vm/c/*` into `src/sa/`
   - Move `grammar/` to `src/sac/`
   - Add `src/base`
   - Add `bin/`
-  - Move `vm/exmaples` to `examples/`
-  - Let `bin/sac` generate `sab` bytecode from `sa` source files
+  - Move `vm/examples` to `examples/`
+* Let `bin/sac` generate `sab` bytecode from `sa` source files
   - Load bytecode instead of source code
 * [ ] Dive into Hindley-Milner type inference
 * [ ] Update `README.md` to a shining condition
