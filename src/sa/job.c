@@ -11,11 +11,8 @@ job_t* job_new(uint32_t jid, vm_address_t pc, vm_stack_value_t* parameters,
     job->mode = JOB_MODE_INIT;
     job->pc = pc;
 
-    // Initialize data stack
-    data_stack_init(&job->data_stack);
-
     // Initialize call stack
-    call_stack_init(&job->call_stack, &job->data_stack);
+    call_stack_init(&job->call_stack);
     call_stack_push(&job->call_stack, 0); // Sentinel return address
     call_stack_push(&job->call_stack, 0); // Sentinel frame pointer
 
@@ -32,7 +29,6 @@ job_t* job_new(uint32_t jid, vm_address_t pc, vm_stack_value_t* parameters,
 }
 
 void job_free(job_t* job) {
-    data_stack_free(&job->data_stack);
     call_stack_free(&job->call_stack);
     mailbox_free(&job->mailbox);
     free(job);

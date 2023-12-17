@@ -3,11 +3,10 @@
 #include "call_stack.h"
 #include "log.h"
 
-void call_stack_init(call_stack_t* call_stack, data_stack_t* data_stack) {
+void call_stack_init(call_stack_t* call_stack) {
     dynarray_init(&call_stack->array, NULL, INITIAL_CALL_STACK_SIZE,
                   sizeof(vm_stack_value_t));
     call_stack->fp = 0;
-    call_stack->data_stack = data_stack;
 }
 
 void call_stack_free(call_stack_t* call_stack) {
@@ -37,12 +36,6 @@ void call_stack_set_size(call_stack_t* call_stack, size_t size) {
                "Call stack overflow: %zu > %zu",
                size, call_stack->array.capacity);
     call_stack->array.size = size;
-}
-
-char* call_stack_pop_string(call_stack_t* call_stack) {
-    vm_stack_value_t* data_address = dynarray_pop(&call_stack->array);
-    uint8_t* bytes = data_stack_peek(call_stack->data_stack, *data_address);
-    return (char*)(bytes + sizeof(vm_data_length_t));
 }
 
 void call_stack_dup(call_stack_t* call_stack) {
@@ -102,13 +95,9 @@ static vm_stack_value_t add(vm_stack_value_t a, vm_stack_value_t b) {
 }
 
 void call_stack_unit_test(void) {
-    // Create data stack
-    data_stack_t data_stack;
-    data_stack_init(&data_stack);
-
     // Create call stack
     call_stack_t call_stack;
-    call_stack_init(&call_stack, &data_stack);
+    call_stack_init(&call_stack);
 
     // push, pop, length
     call_stack_push(&call_stack, 1);
