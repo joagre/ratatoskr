@@ -1,8 +1,8 @@
 all:
-	(cd vm; $(MAKE) all)
+	(cd src/prototype; $(MAKE) all)
 
 clean:
-	(cd vm; $(MAKE) clean)
+	(cd src/prototype; $(MAKE) clean)
 
 .PHONY: all clean
 
