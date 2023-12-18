@@ -314,7 +314,11 @@ static void generate_byte_code(loader_t* loader, module_t* module,
         vm_address_t operand_address = address + (vm_address_t)OPCODE_SIZE;
 
         // Resolve register machine labels
-        if (opcode == OPCODE_JMPRNZE) {
+        if (opcode == OPCODE_JMPRINEQ) {
+            resolve_label(loader->byte_code, module, operand_address,
+                          sizeof(vm_register_t) + sizeof(vm_immediate_value_t));
+            address += size_of_operands(OPCODE_JMPRINEQ);
+        } else if (opcode == OPCODE_JMPRNZE) {
             resolve_label(loader->byte_code, module, operand_address,
                           sizeof(vm_register_t));
             address += size_of_operands(OPCODE_JMPRNZE);
@@ -339,13 +343,15 @@ static void generate_byte_code(loader_t* loader, module_t* module,
     }
 
     CLEAR_ERROR(error);
-}
+    }
 
-static int key_cmp(void* key1, void* key2, void*) {
+static int key_cmp(void* key1, void* key2, void* arg) {
+    (void*)arg;
     return (key1 == key2);
 };
 
-static size_t key_hash(void* key, void*) {
+static size_t key_hash(void* key, void* arg) {
+    (void*)arg;
     return (size_t)key;
 };
 

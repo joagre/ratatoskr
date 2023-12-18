@@ -75,6 +75,12 @@ opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
         .operands = {},
         .number_of_operands = 0
     },
+    [OPCODE_POPR] = {
+        .opcode = OPCODE_POPR,
+        .string = "popr",
+        .operands = {OPERAND_REGISTER},
+        .number_of_operands = 1
+    },
     [OPCODE_LOADRS] = {
         .opcode = OPCODE_LOADRS,
         .string = "loadrs",
@@ -106,6 +112,14 @@ opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
         .string = "jmp",
         .operands = {OPERAND_LABEL},
         .number_of_operands = 1
+    },
+    [OPCODE_MULRRR] = {
+        .opcode = OPCODE_MULRRR,
+        .string = "mulrrr",
+        .operands = {OPERAND_REGISTER,
+                     OPERAND_REGISTER,
+                     OPERAND_REGISTER},
+        .number_of_operands = 3
     },
     [OPCODE_SYS] = {
         .opcode = OPCODE_SYS,

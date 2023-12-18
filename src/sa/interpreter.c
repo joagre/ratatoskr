@@ -1,4 +1,4 @@
-#define MUTE_LOG_DEBUG
+//#define MUTE_LOG_DEBUG
 
 #include <stdio.h>
 #include "interpreter.h"
@@ -142,6 +142,13 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
             call_stack_pop(&job->call_stack);
             break;
         }
+        case OPCODE_POPR: {
+            vm_register_t register_ = GET_OPERAND(vm_register_t);
+            vm_stack_value_t value = call_stack_pop(&job->call_stack);
+            job->registers[register_] = value;
+            job->pc += size;
+            break;
+        }
         case OPCODE_LOADRS: {
             vm_register_t register_ = GET_OPERAND(vm_register_t);
             vm_stack_offset_t stack_offset = GET_OPERAND(vm_stack_offset_t);
@@ -194,6 +201,15 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
         case OPCODE_JMP: {
             vm_address_t address = GET_OPERAND(vm_address_t);
             job->pc = address;
+            break;
+        }
+        case OPCODE_MULRRR: {
+            vm_register_t first_register = GET_OPERAND(vm_register_t);
+            vm_register_t second_register = GET_OPERAND(vm_register_t);
+            vm_register_t third_register = GET_OPERAND(vm_register_t);
+            job->registers[first_register] =
+                job->registers[second_register] * job->registers[third_register];
+            job->pc += size;
             break;
         }
         case OPCODE_SYS: {

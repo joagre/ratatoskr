@@ -7,7 +7,13 @@ uint32_t print_instruction(uint8_t* bytes) {
     uint32_t size = 0;
 
     switch (*bytes) {
-    // Register machine instructions
+    case OPCODE_JMPRINEQ: {
+        vm_register_t register_ = GET_OPERAND(vm_register_t);
+        vm_immediate_value_t value = GET_OPERAND(vm_immediate_value_t);
+        vm_address_t address = GET_OPERAND(vm_address_t);
+        fprintf(stderr, "jmprineq r%d #%ld %d\n", register_, value, address);
+        return size;
+    }
     case OPCODE_JMPRNZE: {
         vm_register_t register_ = GET_OPERAND(vm_register_t);
         vm_address_t address = GET_OPERAND(vm_address_t);
@@ -67,6 +73,11 @@ uint32_t print_instruction(uint8_t* bytes) {
         fprintf(stderr, "pushr r%d\n", register_);
         return size;
     }
+    case OPCODE_POPR: {
+        vm_register_t register_ = GET_OPERAND(vm_register_t);
+        fprintf(stderr, "popr r%d\n", register_);
+        return size;
+    }
     case OPCODE_LOADRS: {
         vm_register_t register_ = GET_OPERAND(vm_register_t);
         vm_stack_offset_t stack_offset = GET_OPERAND(vm_stack_offset_t);
@@ -87,6 +98,14 @@ uint32_t print_instruction(uint8_t* bytes) {
     case OPCODE_JMP: {
         vm_address_t address = GET_OPERAND(vm_address_t);
         fprintf(stderr, "jmp %d\n", address);
+        return size;
+    }
+    case OPCODE_MULRRR: {
+        vm_register_t first_register = GET_OPERAND(vm_register_t);
+        vm_register_t second_register = GET_OPERAND(vm_register_t);
+        vm_register_t third_register = GET_OPERAND(vm_register_t);
+        fprintf(stderr, "mulrrr r%d r%d r%d\n", first_register, second_register,
+                third_register);
         return size;
     }
     case OPCODE_SYS: {
