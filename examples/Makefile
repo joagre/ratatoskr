@@ -28,14 +28,18 @@ tribute: ../bin/sac
 # Satie register machine examples
 #
 
-sai: hello_world ackermannr
+sai: hello_world fac ackermannr
 
 
 hello_world: build
 	../bin/sa hello_world 0
 
+fac: build
+	../bin/sa fac 0 5
+
 ackermannr: build
-	../bin/sa ackermannr 0 3 6
+	../bin/sa ackermannr 0 3 2
+
 
 build:
 	(cd ../src/sa; $(MAKE))
