@@ -4,11 +4,6 @@ cd # Milestones and thoughts
 
 * [x] Debug register machine and make Ackermann work (measure performance)
 * [x] Make it possible to specify register content from the `sa` executable
-* [ ] Ask T about clib
-  - `lhash_kv_find` does not work for me
-  - `-O3` produces compiler warnings
-  - Many calls dynarray_size?
-  - static inline in dynarray.h?
 * [ ] Make sure that all examples/*.sai works
 * Let `bin/sac` generate `sab` bytecode from `sa` source files
   - Load bytecode instead of source code
