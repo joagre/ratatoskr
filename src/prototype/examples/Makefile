@@ -31,5 +31,3 @@ build:
 	(cd ..; $(MAKE))
 
 clean:
-
-.PHONY: all ackermann0 ackermann10 ackermann1 ackermannr fac hello_world message_passing module_calls tfac build clean

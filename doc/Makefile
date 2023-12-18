@@ -17,5 +17,3 @@ satie.pdf: ../README.md
 clean:
 	rm -f satie.pdf
 	($(MAKE) -f Makefile.SAI clean)
-
-.PHONY: all clean

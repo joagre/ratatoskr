@@ -1,12 +1,12 @@
 all:
-	(cd src; $(MAKE) all)
+	(cd examples; $(MAKE) all)
 	(cd doc; $(MAKE) all)
+	(cd src; $(MAKE) all)
 
 clean:
-	(cd src; $(MAKE) clean)
+	(cd examples; $(MAKE) clean)
 	(cd doc; $(MAKE) clean)
-
-.PHONY: all clean
+	(cd src; $(MAKE) clean)
 
 mrproper: clean
 	find . \( -name "*~" -or -name '#*' -or -name '.#*' \) -exec rm {} \;;

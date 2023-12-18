@@ -11,5 +11,3 @@ all: ../SAI.md
         done
 
 clean:
-
-.PHONY: all clean

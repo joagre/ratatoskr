@@ -10,5 +10,3 @@ README.md: README.md.in $(FRAGMENTS)
 	    sed -i '/__'`basename $$frag`'__/r '$$frag README.md; \
 	    sed -i '/__'`basename $$frag`'__/d' README.md; \
         done
-
-.PHONY: all clean

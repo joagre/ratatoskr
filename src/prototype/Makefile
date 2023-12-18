@@ -16,5 +16,3 @@ clean:
 	rm -f bin/sa
 	$(MAKE) -f Makefile.README clean
 	(cd examples; $(MAKE) -f Makefile clean)
-
-.PHONY: all examples clean

@@ -19,5 +19,3 @@ satie.c: satie.peg satie_auxil.h
 
 clean:
 	rm -f ../../bin/lint no_actions_satie.peg satie.o satie.h satie.c
-
-.PHONY: all clean examples

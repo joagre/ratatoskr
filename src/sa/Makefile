@@ -18,8 +18,3 @@ $(EXEC): $(OBJS)
 
 clean:
 	rm -f $(OBJS) $(DEPS) $(EXEC)
-
-mrproper: clean
-	find . \( -name "*~" -or -name '#*' -or -name '.#*' \) -exec rm {} \;;
-
-.PHONY: all clean
