@@ -1,0 +1,19 @@
+    StringSubstring
+
+    StringCompare
+
+    StringFind
+
+    StringReplace
+
+    StringToUpper/ToLower
+
+    StringTrim
+
+    StringSplit
+
+    StringJoin
+
+    StringEncode/Decode
+
+    StringIterate
