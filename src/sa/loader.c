@@ -15,7 +15,7 @@
 static void append_bytes(loader_t* loader, uint16_t n, uint8_t* bytes);
 static void append_operands(loader_t* loader, opcode_info_t *opcode_info,
                             char operands[][MAX_OPERAND_STRING_SIZE],
-                            uint8_t number_of_operands, satie_error_t* error);
+                            satie_error_t* error);
 static void generate_byte_code(loader_t* loader, module_t* module,
                                FILE* file, satie_error_t* error);
 static int key_cmp(void* key1, void* key2, void*);
@@ -121,15 +121,7 @@ static void append_bytes(loader_t* loader, uint16_t n, uint8_t* bytes) {
 
 static void append_operands(loader_t* loader, opcode_info_t *opcode_info,
                             char operands[][MAX_OPERAND_STRING_SIZE],
-                            uint8_t number_of_operands, satie_error_t* error) {
-    // Check number of operands (special handling of pushs and ret)
-    if (!(opcode_info->opcode == OPCODE_PUSHS ||
-          opcode_info->opcode == OPCODE_RET ||
-          number_of_operands == opcode_info->number_of_operands)) {
-        SET_ERROR_MESSAGE(error, COMPONENT_LOADER, "Wrong number of operands");
-        return;
-    }
-
+                            satie_error_t* error) {
     // Append operands
     for (uint8_t i = 0; i < opcode_info->number_of_operands; i++) {
         switch (opcode_info->operands[i]) {
@@ -197,16 +189,6 @@ static void append_operands(loader_t* loader, opcode_info_t *opcode_info,
                 return;
             }
             APPEND_VALUE(loader, vm_arity_t, arity);
-            break;
-        case OPERAND_RETURN_MODE:
-            if (number_of_operands == 0) {
-                // Default return mode is value
-                vm_return_mode_t return_mode = RETURN_MODE_VALUE;
-                APPEND_VALUE(loader, vm_return_mode_t, return_mode);
-            } else if (strcmp(operands[0], "copy") == 0) {
-                vm_return_mode_t return_mode = RETURN_MODE_COPY;
-                APPEND_VALUE(loader, vm_return_mode_t, return_mode);
-            }
             break;
         case OPERAND_SYSTEM_CALL:
             system_call_t system_call =
@@ -315,8 +297,7 @@ static void generate_byte_code(loader_t* loader, module_t* module,
         append_bytes(loader, 1, (uint8_t*)&opcode_info->opcode);
 
         // Add operand bytes to byte code
-        append_operands(loader, opcode_info, operands, number_of_operands,
-                        error);
+        append_operands(loader, opcode_info, operands, error);
         if (error->failed) {
             free(line);
             return;
@@ -341,26 +322,13 @@ static void generate_byte_code(loader_t* loader, module_t* module,
             resolve_label(loader->byte_code, module, operand_address,
                           sizeof(vm_register_t) + sizeof(vm_immediate_value_t));
             address += size_of_operands(OPCODE_JMPRINGT);
-        } else if (opcode == OPCODE_RCALL) {
+        } else if (opcode == OPCODE_CALL) {
             resolve_label(loader->byte_code, module, operand_address, 0);
-            address += size_of_operands(OPCODE_RCALL);
+            address += size_of_operands(OPCODE_CALL);
         } else if (opcode == OPCODE_JMP) {
             resolve_label(loader->byte_code, module, operand_address, 0);
             address += size_of_operands(OPCODE_JMP);
             // Resolve stack machine labels
-        } else if (opcode == OPCODE_PUSHS) {
-            vm_data_length_t length =
-                GET_VALUE(vm_data_length_t, &loader->byte_code[operand_address]);
-            address += sizeof(vm_data_length_t) + length;
-        } else if (opcode == OPCODE_JUMP) {
-            resolve_label(loader->byte_code, module, operand_address, 0);
-            address += size_of_operands(OPCODE_JUMP);
-        } else if (opcode == OPCODE_CJUMP) {
-            resolve_label(loader->byte_code, module, operand_address, 0);
-            address += size_of_operands(OPCODE_CJUMP);
-        } else if (opcode == OPCODE_CALL) {
-            resolve_label(loader->byte_code, module, operand_address, 0);
-            address += size_of_operands(OPCODE_CALL);
         } else if (opcode == OPCODE_SPAWN) {
             resolve_label(loader->byte_code, module, operand_address, 0);
             address += size_of_operands(OPCODE_SPAWN);
@@ -452,9 +420,6 @@ static uint16_t size_of_operands(opcode_t opcode) {
             break;
         case OPERAND_ARITY:
             size += sizeof(vm_arity_t);
-            break;
-        case OPERAND_RETURN_MODE:
-            size += sizeof(vm_return_mode_t);
             break;
         case OPERAND_SYSTEM_CALL:
             size += sizeof(vm_system_call_t);

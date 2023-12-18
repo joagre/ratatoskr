@@ -32,12 +32,11 @@ typedef int64_t  vm_immediate_value_t;
 typedef uint32_t vm_stack_offset_t;
 typedef uint16_t vm_data_length_t;
 typedef uint8_t  vm_arity_t;
-typedef uint8_t  vm_return_mode_t;
 typedef uint16_t vm_system_call_t;
 
 typedef enum {
-    // Register machine opcodes
-    OPCODE_JMPRNZE = 0,
+    OPCODE_JMPRINEQ = 0,
+    OPCODE_JMPRNZE,
     OPCODE_JMPRINGT,
     OPCODE_SUBRRI,
     OPCODE_SUBRSI,
@@ -48,37 +47,13 @@ typedef enum {
     OPCODE_POP,
     OPCODE_LOADRS,
     OPCODE_LOADRR,
-    OPCODE_RCALL,
-    OPCODE_RRET,
-    OPCODE_JMP,
-    OPCODE_SYS,
-    // Stack machine opcodes
-    OPCODE_PUSH,
-    OPCODE_PUSHS,
-    OPCODE_DUP,
-    OPCODE_SWAP,
-    OPCODE_LOAD,
-    OPCODE_STORE,
-    OPCODE_ADD,
-    OPCODE_SUB,
-    OPCODE_MUL,
-    OPCODE_DIV,
-    OPCODE_JUMP,
-    OPCODE_CJUMP,
     OPCODE_CALL,
     OPCODE_RET,
-    OPCODE_AND,
-    OPCODE_OR,
-    OPCODE_NOT,
-    OPCODE_EQ,
-    OPCODE_NEQ,
-    OPCODE_LT,
-    OPCODE_GT,
-    OPCODE_NOP,
-    OPCODE_HALT,
-    OPCODE_MCALL,
-    OPCODE_SPAWN,
-    OPCODE_MSPAWN,
+    OPCODE_JMP,
+    OPCODE_SYS,
+    OPCODE_MCALL, // FIXME
+    OPCODE_SPAWN, // FIXME
+    OPCODE_MSPAWN, // FIXME
     OPCODE_ENUM_SIZE
 } opcode_t;
 
@@ -89,7 +64,6 @@ typedef enum {
     OPERAND_IMMEDIATE_VALUE,
     OPERAND_STACK_OFFSET,
     OPERAND_ARITY,
-    OPERAND_RETURN_MODE,
     OPERAND_SYSTEM_CALL,
     OPERAND_STRING
 } operand_t;
@@ -105,13 +79,6 @@ typedef enum {
     SYSTEM_CALL_ENUM_SIZE
 } system_call_t;
 
-typedef enum {
-    RETURN_MODE_VALUE = 0,
-    RETURN_MODE_COPY,
-    RETURN_MODE_INVALID,
-    RETURN_MODE_ENUM_SIZE
-} return_mode_t;
-
 typedef struct {
     opcode_t opcode;
     char string[MAX_OPCODE_STRING_SIZE];
@@ -123,7 +90,5 @@ opcode_info_t* opcode_to_opcode_info(opcode_t opcode);
 opcode_info_t* string_to_opcode_info(char* string, satie_error_t* error);
 char* system_call_to_string(system_call_t system_call);
 system_call_t string_to_system_call(char* string, satie_error_t* error);
-char* return_mode_to_string(return_mode_t return_mode);
-return_mode_t string_to_return_mode(char* string, satie_error_t* error);
 
 #endif

@@ -59,6 +59,17 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
 
         switch (scheduler->loader->byte_code[current_pc]) {
         // Register machine instructions
+        case OPCODE_JMPRINEQ: {
+            vm_register_t register_ = GET_OPERAND(vm_register_t);
+            vm_immediate_value_t value = GET_OPERAND(vm_immediate_value_t);
+            vm_address_t address = GET_OPERAND(vm_address_t);
+            if (job->registers[register_] != value) {
+                job->pc = address;
+            } else {
+                job->pc += size;
+            }
+            break;
+        }
         case OPCODE_JMPRNZE: {
             vm_register_t register_ = GET_OPERAND(vm_register_t);
             vm_address_t address = GET_OPERAND(vm_address_t);
@@ -147,7 +158,7 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
             job->pc += size;
             break;
         }
-        case OPCODE_RCALL: {
+        case OPCODE_CALL: {
             // Extract address to function
             vm_address_t address = GET_OPERAND(vm_address_t);
             // Push return address onto call stack
@@ -160,7 +171,7 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
             job->pc = address;
             break;
         }
-        case OPCODE_RRET: {
+        case OPCODE_RET: {
             // Remember return address
             vm_stack_value_t return_address =
                 call_stack_get(&job->call_stack, job->call_stack.fp);

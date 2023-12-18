@@ -79,51 +79,14 @@ uint32_t print_instruction(uint8_t* bytes) {
         fprintf(stderr, "loadrr r%d r%d\n", first_register, second_register);
         return size;
     }
-    case OPCODE_RCALL: {
+    case OPCODE_CALL: {
         vm_address_t address = GET_OPERAND(vm_address_t);
-        fprintf(stderr, "rcall %d\n", address);
+        fprintf(stderr, "call %d\n", address);
         return size;
     }
     case OPCODE_JMP: {
         vm_address_t address = GET_OPERAND(vm_address_t);
         fprintf(stderr, "jmp %d\n", address);
-        return size;
-    }
-    // Stack machine instructions
-    case OPCODE_PUSH: {
-        vm_stack_value_t stack_value = GET_OPERAND(vm_stack_value_t);
-        fprintf(stderr, "push %ld\n", stack_value);
-        return size;
-    }
-    case OPCODE_PUSHS: {
-        vm_data_length_t data_length = GET_OPERAND(vm_data_length_t);
-        uint8_t* byte_string = operands + size;
-        fprintf(stderr, "pushs \"%s\"\n", byte_string);
-        return size + data_length;
-    }
-    case OPCODE_JUMP: {
-        vm_address_t address = GET_OPERAND(vm_address_t);
-        fprintf(stderr, "jump %d\n", address);
-        return size;
-    }
-    case OPCODE_CJUMP: {
-        vm_address_t address = GET_OPERAND(vm_address_t);
-        fprintf(stderr, "cjump %d\n", address);
-        return size;
-    }
-    case OPCODE_CALL: {
-        vm_address_t address = GET_OPERAND(vm_address_t);
-        vm_arity_t arity = GET_OPERAND(vm_arity_t);
-        fprintf(stderr, "call %d %d\n", address, arity);
-        return size;
-    }
-    case OPCODE_RET: {
-        vm_return_mode_t return_mode = GET_OPERAND(vm_return_mode_t);
-        if (return_mode == RETURN_MODE_COPY) {
-            fprintf(stderr, "ret copy\n");
-        } else {
-            fprintf(stderr, "ret\n");
-        }
         return size;
     }
     case OPCODE_SYS: {
