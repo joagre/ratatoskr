@@ -179,8 +179,7 @@ static void append_operands(loader_t* loader, opcode_info_t *opcode_info,
             if (error->failed) {
                 return;
             }
-            // Stack offsets are relative to the current stack pointer
-            stack_offset += 2;
+            stack_offset += STACK_FRAME_HEADER_SIZE;
             APPEND_VALUE(loader, vm_stack_offset_t, stack_offset);
             break;
         case OPERAND_ARITY:

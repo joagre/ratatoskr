@@ -8,28 +8,16 @@
 ; fac(N, Acc) when N > 0 ->
 ;     fac(N - 1, N * Acc).
 
-label 0          ; fac(0, Acc)
-  push -2
-  load           ; N
-  push 0
-  neq
-  cjump 1
-  push -1
-  load           ; Acc
+label 0          ; fac(N)
+  loadri r2 #1
+
+label 1          ; fac(0, Acc)
+  jmprnze r1 2
+  loadrr r0 r2
   ret
 
-label 1          ; fac(N, Acc)
-  push -2
-  load           ; N
-  push 1
-  sub            ; N - 1
-  push -2
-  load           ; N
-  push -1
-  load           ; Ack
-  mul
-  push -1
-  store          ; Replace parameter Acc
-  push -2
-  store          ; Replace parameter N
-  jump 0         ; fac(N - 1, N * Acc).
+label 2            ; fac(N, Acc)
+  loadrr r3 r1     ; Save N
+  subrri r1 r1 #1  ; Replace parameter N
+  mulrrr r2 r3 r2  ; Replace parameter Acc
+  jmp 1            ; fac(N - 1, N * Acc)
