@@ -101,40 +101,35 @@ On to the examples.
 ## Example: Hello world!
 
 ```
+; Run: sa hello_world 0
+
 label 0
-  pushs "Hello world!"        ; snuva
-  sys println            
+  pushi #42
+  sys display
   ret
 ```
 
 ## Example: Factorial
 
 ```
-; Run: sa -l ./ fac 0 10
+; Run: sa fac 0 10
 ;
 ; fac(1) ->
 ;     1;
 ; fac(N) ->
 ;     N * fac(N - 1).
 
-label 0          ; fac(1)
-  push -1
-  load           ; N
-  push 1
-  neq
-  cjump 1
-  push 1
+label 0            ; fac(1)
+  jmprineq r1 #1 1
+  loadri r0 #1
   ret
 
-label 1          ; fac(N)
-  push -1
-  load           ; N
-  push -1
-  load           ; N
-  push 1
-  sub            ; N - 1
-  call 0 1       ; fac(N - 1).
-  mul            ; N * fac(N - 1).
+label 1            ; fac(N)
+  pushr r1
+  subrri r1 r1 #1
+  call 0
+  popr r1
+  mulrrr r0 r1 r0
   ret
 ```
 

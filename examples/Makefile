@@ -31,11 +31,11 @@ tribute: ../bin/sac
 sai: hello_world ackermannr
 
 
-hello_world: ../bin/sa
+hello_world: build
 	../bin/sa hello_world 0
 
-ackermannr: ../bin/sa
+ackermannr: build
 	../bin/sa ackermannr 0 3 6
 
-../bin/sa:
+build:
 	(cd ../src/sa; $(MAKE))
