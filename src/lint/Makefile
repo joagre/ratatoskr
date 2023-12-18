@@ -3,9 +3,9 @@ PCC = packcc
 CFLAGS = -Wall -Wextra -I../clib -std=c17 -g -D_POSIX_C_SOURCE=200809L -Wno-unused-parameter
 LDLIBS = -lm
 
-all: ../../bin/sac no_actions_satie.peg
+all: ../../bin/lint no_actions_satie.peg
 
-../../bin/sac: satie.o
+../../bin/lint: satie.o
 	$(CC) $(LDLIBS) -o $@ $^
 
 no_actions_satie.peg: satie.peg
@@ -18,6 +18,6 @@ satie.c: satie.peg satie_auxil.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f ../../bin/sac no_actions_satie.peg satie.o satie.h satie.c
+	rm -f ../../bin/lint no_actions_satie.peg satie.o satie.h satie.c
 
 .PHONY: all clean examples
