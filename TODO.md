@@ -7,6 +7,30 @@ cd # Milestones and thoughts
 * [ ] Make sure that all examples/*.sai works
 * Let `bin/sac` generate `sab` bytecode from `sa` source files
   - Load bytecode instead of source code
+
+
+
+
+- rename src/sac to src/lint
+
+- Rename bin/sac to bin/lint (maybe using the %value and more)
+
+- Implement a new lib/sac/sac.c
+
+- Rename lib/sa/main.c to lib/sa/sa.c to
+
+- loader.c (part of) , module to lib/sac
+
+- create src/base
+      move util.h, log.h, vm, instructions
+
+
+
+
+
+
+
+
 * [ ] Dive into Hindley-Milner type inference
 * [ ] Update `README.md` to a shining condition
 * [ ] Update `SAI.md` to a shining condition

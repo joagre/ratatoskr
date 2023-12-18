@@ -1,4 +1,6 @@
-    StringSubstring
+std.Strings
+
+    subString
 
     StringCompare
 
