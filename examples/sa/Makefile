@@ -1,6 +1,7 @@
-all: ackermann color test todo tribute
-
+EXAMPLES = ackermann color test todo tribute
 LINT=../../bin/lint
+
+all: $(EXAMPLES)
 
 ackermann: build
 	$(LINT) < ackermann.sa

@@ -16,9 +16,9 @@
 typedef lhash_kv_t module_map_t;
 
 typedef struct {
-    uint8_t* byte_code;
-    uint32_t byte_code_size;
-    uint32_t max_byte_code_size;
+    uint8_t* bytecode;
+    uint32_t bytecode_size;
+    uint32_t max_bytecode_size;
     char* load_path;
     lhash_kv_t modules;
 } loader_t;

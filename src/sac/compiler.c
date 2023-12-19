@@ -4,10 +4,9 @@
 #include <stdlib.h>
 #include <utils.h>
 #include <log.h>
+#include <module.h>
 #include "pretty_print.h"
 #include "compiler.h"
-
-#define MAX_OUTPUT_FILENAME_SIZE 256
 
 // Forward declarations of local functions (alphabetical order)
 static void append_bytes(compiler_t* compiler, uint16_t n, uint8_t* bytes);
@@ -16,8 +15,8 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
                             satie_error_t* error);
 static void compiler_init(compiler_t* compiler);
 static void compiler_free(compiler_t* compiler);
-static void generate_byte_code(compiler_t* compiler, FILE* file,
-                               satie_error_t* error);
+static void generate_bytecode(compiler_t* compiler, module_t* module,
+                              FILE* file, satie_error_t* error);
 static void pretty_print(compiler_t* compiler);
 static void purge_line(char *purged_line, char *line);
 
@@ -30,9 +29,15 @@ void compile(char* input_filename, char *output_directory, satie_error_t* error)
     }
 
     // Open output file
-    char output_filename[MAX_OUTPUT_FILENAME_SIZE];
+    char* module_name = strip_extension(basename(input_filename));
+    uint16_t output_filename_length =
+        strlen(output_directory) +
+        strlen("/") +
+        strlen(module_name) +
+        strlen(".sab");
+    char output_filename[output_filename_length];
     snprintf(output_filename, MAX_ERROR_MESSAGE_SIZE, "%s/%s.sab",
-             output_directory, strip_extension(basename(input_filename)));
+             output_directory, module_name);
     FILE* output_file;
     if ((output_file = fopen(output_filename, "w")) == NULL) {
         SET_ERROR_ERRNO(error, COMPONENT_COMPILER);
@@ -43,20 +48,46 @@ void compile(char* input_filename, char *output_directory, satie_error_t* error)
     // Generate byte code
     compiler_t compiler;
     compiler_init(&compiler);
-    generate_byte_code(&compiler, input_file, error);
+    module_t* module = module_new(compiler.bytecode_size);
+    generate_bytecode(&compiler, module, input_file, error);
     fclose(input_file);
 
     if (error->failed) {
+        // Free resources
         fclose(output_file);
         remove(output_filename);
         compiler_free(&compiler);
+        module_free(module);
         return;
     } else {
-        // Write byte code to file
-        fwrite(compiler.byte_code, compiler.byte_code_size, 1, output_file);
+        /*
+          Bytecode format:
+
+          jump_table_size: sizeof(uint32_t) bytes
+          label: sizeof(vm_label_t) bytes, address: sizeof(vm_address_t) bytes
+          ...
+          bytecode_size: sizeof(uint32_t) bytes
+          bytecode: bytecode_size bytes
+        */
+        // Write jump table size
+        uint32_t jump_table_size = module_jump_table_size(module);
+        fwrite(&jump_table_size, sizeof(jump_table_size), 1, output_file);
+        // Write jump table
+        void write_jump_table_entry(vm_label_t label, vm_address_t address) {
+            fwrite(&label, sizeof(label), 1, output_file);
+            fwrite(&address, sizeof(address), 1, output_file);
+        }
+        module_iterate(module, write_jump_table_entry);
+        // Write bytecode size
+        fwrite(&compiler.bytecode_size, sizeof(compiler.bytecode_size), 1,
+               output_file);
+        // Write bytecode
+        fwrite(compiler.bytecode, compiler.bytecode_size, 1, output_file);
+        // Free resources
         fclose(output_file);
         pretty_print(&compiler);
         compiler_free(&compiler);
+        module_free(module);
         CLEAR_ERROR(error);
     }
 }
@@ -66,19 +97,19 @@ void compile(char* input_filename, char *output_directory, satie_error_t* error)
 //
 
 static void append_bytes(compiler_t* compiler, uint16_t n, uint8_t* bytes) {
-    if (compiler->max_byte_code_size == 0) {
+    if (compiler->max_bytecode_size == 0) {
         // First allocation
-        compiler->byte_code = malloc(INITIAL_BYTE_CODE_SIZE);
-        compiler->max_byte_code_size = INITIAL_BYTE_CODE_SIZE;
-    } else if (compiler->byte_code_size + n > compiler->max_byte_code_size) {
+        compiler->bytecode = malloc(INITIAL_BYTECODE_SIZE);
+        compiler->max_bytecode_size = INITIAL_BYTECODE_SIZE;
+    } else if (compiler->bytecode_size + n > compiler->max_bytecode_size) {
         // Reallocate
-        compiler->max_byte_code_size *= 2;
-        compiler->byte_code =
-            realloc(compiler->byte_code, compiler->max_byte_code_size);
+        compiler->max_bytecode_size *= 2;
+        compiler->bytecode =
+            realloc(compiler->bytecode, compiler->max_bytecode_size);
     }
     // Append bytes
-    memcpy(compiler->byte_code + compiler->byte_code_size, bytes, n);
-    compiler->byte_code_size += n;
+    memcpy(compiler->bytecode + compiler->bytecode_size, bytes, n);
+    compiler->bytecode_size += n;
 }
 
 static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
@@ -182,16 +213,17 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
 }
 
 static void compiler_init(compiler_t* compiler) {
-    compiler->byte_code = NULL;
-    compiler->byte_code_size = 0;
-    compiler->max_byte_code_size = 0;
+    compiler->bytecode = NULL;
+    compiler->bytecode_size = 0;
+    compiler->max_bytecode_size = 0;
 }
 
 static void compiler_free(compiler_t* compiler) {
-    free(compiler->byte_code);
+    free(compiler->bytecode);
 }
 
-static void generate_byte_code(compiler_t* compiler, FILE* file, satie_error_t* error) {
+static void generate_bytecode(compiler_t* compiler, module_t* module,
+                              FILE* file, satie_error_t* error) {
     char opcode_string[MAX_OPCODE_STRING_SIZE];
     char operands_string[MAX_OPERANDS_STRING_SIZE] = "";
     char operands[MAX_OPERANDS][MAX_OPERAND_STRING_SIZE];
@@ -250,7 +282,8 @@ static void generate_byte_code(compiler_t* compiler, FILE* file, satie_error_t* 
                 free(line);
                 return;
             }
-            LOG_DEBUG("Jump table insertion: %u -> %u", label, compiler->byte_code_size);
+            LOG_DEBUG("Jump table insertion: %u -> %u", label, compiler->bytecode_size);
+            module_insert(module, label, compiler->bytecode_size);
             continue;
         }
 
@@ -278,9 +311,9 @@ static void generate_byte_code(compiler_t* compiler, FILE* file, satie_error_t* 
 
 static void pretty_print(compiler_t* compiler) {
     vm_address_t address = 0;
-    while (address < compiler->byte_code_size) {
+    while (address < compiler->bytecode_size) {
         fprintf(stderr, "%d: ", address);
-        address += 1 + print_instruction(&compiler->byte_code[address]);
+        address += 1 + print_instruction(&compiler->bytecode[address]);
     }
 }
 

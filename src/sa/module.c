@@ -22,6 +22,11 @@ void module_free(module_t *module) {
     free(module);
 }
 
+
+uint32_t module_jump_table_size(module_t* module) {
+    return lhash_kv_size(&module->jump_table);
+}
+
 void module_insert(module_t* module, vm_label_t label, vm_address_t address) {
     lhash_kv_insert(&module->jump_table, (void*)(uintptr_t)label,
                     (void*)(uintptr_t)address);
@@ -49,6 +54,21 @@ vm_label_t module_lookup_label(module_t* module, vm_address_t address) {
     LOG_ABORT("Label address mismatch");
     return 0;
 }
+
+void module_iterate(module_t* module,
+                    void (*callback)(vm_label_t, vm_address_t)) {
+    lhash_kv_iter_t iter;
+    lhash_kv_iter_init(&iter, &module->jump_table);
+    while(!lhash_kv_iter_end(&iter)) {
+        uintptr_t current_label;
+        uintptr_t current_address;
+        lhash_kv_iter_current(&iter, (void**)(uintptr_t*)&current_label,
+                              (void**)(uintptr_t*)&current_address);
+        callback((vm_label_t)current_label, (vm_address_t)current_address);
+        lhash_kv_iter_next(&iter);
+    }
+}
+
 void module_print_jump_table(module_t* module) {
     lhash_kv_iter_t iter;
     lhash_kv_iter_init(&iter, &module->jump_table);

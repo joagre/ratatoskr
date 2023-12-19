@@ -1,4 +1,4 @@
-//#define MUTE_LOG_DEBUG
+#define MUTE_LOG_DEBUG
 
 #include <stdio.h>
 #include "interpreter.h"
@@ -43,21 +43,21 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
         }
         fprintf(stderr, "]\n");
         fprintf(stderr, "==> %d:%d: ", job->jid, job->pc);
-        print_instruction(&scheduler->loader->byte_code[job->pc]);
+        print_instruction(&scheduler->loader->bytecode[job->pc]);
 #endif
 #endif
 
         uint32_t current_pc = job->pc;
 
-        if (++job->pc > scheduler->loader->byte_code_size) {
+        if (++job->pc > scheduler->loader->bytecode_size) {
             LOG_ABORT("Unexpected end of bytecode or invalid jump");
         }
 
         // These variables are required by the GET_OPERAND macro
-        uint8_t* operands = &scheduler->loader->byte_code[job->pc];
+        uint8_t* operands = &scheduler->loader->bytecode[job->pc];
         uint32_t size = 0;
 
-        switch (scheduler->loader->byte_code[current_pc]) {
+        switch (scheduler->loader->bytecode[current_pc]) {
         // Register machine instructions
         case OPCODE_JMPRINEQ: {
             vm_register_t register_ = GET_OPERAND(vm_register_t);
@@ -252,7 +252,6 @@ uint32_t interpreter_mspawn(scheduler_t *scheduler, char* module_name,
             return 0;
         }
     }
-
     vm_address_t address =
         loader_lookup_address(scheduler->loader, module_name, label);
     return spawn(scheduler, address, parameters, number_of_parameters);
