@@ -171,7 +171,7 @@ static void usage(char* name) {
             "  -h, --help\n"
             "    Print this message and exit\n"
             "  -l <directory>, --load-path=<directory>\n"
-            "    Load POSM files from <directory> (%s)\n"
+            "    Load .sab files from <directory> (%s)\n"
             "  -t <milli-seconds>, --time-slice=<milli-seconds>\n"
             "    <milli-seconds> spent by each job before context switch (%d) "
             "ms)\n",

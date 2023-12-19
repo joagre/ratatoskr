@@ -8,6 +8,8 @@ EXEC := ../../bin/sa
 
 all: $(EXEC)
 
+build: $(OBJS)
+
 $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 
