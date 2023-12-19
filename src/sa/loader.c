@@ -11,13 +11,12 @@
 #include "loader.h"
 #include "pretty_print.h"
 
-
 // Forward declarations of local functions (alphabetical order)
-static void append_bytes(loader_t* loader, uint16_t n, uint8_t* bytes);
+static void append_bytes(loader_t* loader, uint8_t* bytes,  uint16_t n);
 static int key_cmp(void* key1, void* key2, void*);
 static size_t key_hash(void* key, void*);
 static void load_bytecode(loader_t* loader, module_t* module, FILE* file,
-                           satie_error_t* error);
+                          satie_error_t* error);
 static void resolve_label(uint8_t* bytecode, module_t* module,
                           vm_address_t first_operand, uint16_t operand_offset);
 static uint16_t size_of_operands(opcode_t opcode);
@@ -103,20 +102,9 @@ void pretty_print_module(loader_t* loader, char* module_name) {
 // Local functions (alphabetical order)
 //
 
-static void append_bytes(loader_t* loader, uint16_t n, uint8_t* bytes) {
-    if (loader->max_bytecode_size == 0) {
-        // First allocation
-        loader->bytecode = malloc(INITIAL_BYTECODE_SIZE);
-        loader->max_bytecode_size = INITIAL_BYTECODE_SIZE;
-    } else if (loader->bytecode_size + n > loader->max_bytecode_size) {
-        // Reallocate
-        loader->max_bytecode_size *= 2;
-        loader->bytecode =
-            realloc(loader->bytecode, loader->max_bytecode_size);
-    }
-    // Append bytes
-    memcpy(loader->bytecode + loader->bytecode_size, bytes, n);
-    loader->bytecode_size += n;
+static void append_bytes(loader_t* loader, uint8_t* bytes, uint16_t n) {
+    buf_append(&loader->bytecode, &loader->max_bytecode_size,
+               &loader->bytecode_size, bytes, n);
 }
 
 static int key_cmp(void* key1, void* key2, void* arg) {
@@ -170,13 +158,13 @@ static void load_bytecode(loader_t* loader, module_t* module,
     }
     LOG_DEBUG("Byte code size: %u", byte_code_size);
     // Read byte code
-    uint8_t buffer[BUFSIZ];
+    uint8_t buf[BUFSIZ];
     do {
-        n = fread(buffer, 1, BUFSIZ, file);
+        n = fread(buf, 1, BUFSIZ, file);
         if (n == 0) {
             break;
         }
-        append_bytes(loader, n, buffer);
+        append_bytes(loader, buf, n);
     } while (true);
 
     // Resolve labels to addresses

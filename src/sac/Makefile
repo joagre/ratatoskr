@@ -10,8 +10,10 @@ EXEC := ../../bin/sac
 all: build $(EXEC)
 
 build:
-	cd ../utils && $(MAKE) build
-	cd ../sa && $(MAKE) build
+	cd ../utils && $(MAKE) objs
+	cd ../sa && $(MAKE) objs
+
+objs: $(OBJS)
 
 $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^

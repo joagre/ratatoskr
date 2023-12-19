@@ -3,6 +3,22 @@
 #include <time.h>
 #include "utils.h"
 
+void buf_append(uint8_t** buf, uint32_t* max_bufsiz, uint32_t* bufsiz,
+                uint8_t* bytes, uint16_t n) {
+    if (*max_bufsiz == 0) {
+        // First allocation
+        *buf = malloc(UTILS_INITIAL_BUFSIZ);
+        *max_bufsiz = UTILS_INITIAL_BUFSIZ;
+    } else if (*bufsiz + n > *max_bufsiz) {
+        // Reallocate
+        *max_bufsiz *= 2;
+        *buf = realloc(*buf, *max_bufsiz);
+    }
+    // Append bytes
+    memcpy(*buf + *bufsiz, bytes, n);
+    *bufsiz += n;
+}
+
 bool is_valid_extension(char *filename, char *extension) {
     char *dot = strrchr(filename, '.');
     if (dot == NULL || dot == filename) {

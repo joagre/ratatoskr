@@ -97,19 +97,8 @@ void compile(char* input_filename, char *output_directory, satie_error_t* error)
 //
 
 static void append_bytes(compiler_t* compiler, uint16_t n, uint8_t* bytes) {
-    if (compiler->max_bytecode_size == 0) {
-        // First allocation
-        compiler->bytecode = malloc(INITIAL_BYTECODE_SIZE);
-        compiler->max_bytecode_size = INITIAL_BYTECODE_SIZE;
-    } else if (compiler->bytecode_size + n > compiler->max_bytecode_size) {
-        // Reallocate
-        compiler->max_bytecode_size *= 2;
-        compiler->bytecode =
-            realloc(compiler->bytecode, compiler->max_bytecode_size);
-    }
-    // Append bytes
-    memcpy(compiler->bytecode + compiler->bytecode_size, bytes, n);
-    compiler->bytecode_size += n;
+    buf_append(&compiler->bytecode, &compiler->max_bytecode_size,
+               &compiler->bytecode_size, bytes, n);
 }
 
 static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,

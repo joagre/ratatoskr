@@ -7,9 +7,13 @@ OBJS := $(SRCS:.c=.o)
 DEPS := $(SRCS:.c=.d)
 EXEC := ../../bin/sa
 
-all: $(EXEC)
+all: build $(EXEC)
 
-build: $(OBJS)
+build:
+	cd ../utils && $(MAKE) objs
+	cd ../sac && $(MAKE) objs
+
+objs: $(OBJS)
 
 $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
