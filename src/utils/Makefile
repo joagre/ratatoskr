@@ -5,6 +5,8 @@ SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
 DEPS := $(SRCS:.c=.d)
 
+all: build
+
 build: $(OBJS)
 
 -include $(DEPS)
