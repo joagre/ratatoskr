@@ -4,11 +4,11 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <libgen.h>
-#include "log.h"
+#include <log.h>
+#include <utils.h>
 #include "loader.h"
 #include "mailbox.h"
 #include "call_stack.h"
-#include "util.h"
 #include "interpreter.h"
 
 #define SUCCESS 0

@@ -1,6 +1,6 @@
+#include <log.h>
+#include <utils.h>
 #include "scheduler.h"
-#include "log.h"
-#include "util.h"
 
 // Used to generate unique job IDs
 static uint32_t jid = 0;

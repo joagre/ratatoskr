@@ -1,9 +1,9 @@
 #define MUTE_LOG_DEBUG
 
 #include <stdio.h>
+#include <log.h>
+#include <pretty_print.h>
 #include "interpreter.h"
-#include "log.h"
-#include "pretty_print.h"
 #include "scheduler.h"
 
 // Forward declarations of local functions (alphabetical order)
