@@ -12,7 +12,8 @@
 #define MAX_LINE_LENGTH 256
 #define INITIAL_BYTECODE_SIZE 512
 #define OPCODE_SIZE sizeof(uint8_t)
-#define INITIAL_CALL_STACK_SIZE (128*1024)
+#define INITIAL_CALL_STACK_SIZE 1024
+#define INITIAL_STATIC_DATA_SIZE 512
 #define STACK_FRAME_HEADER_SIZE 2
 
 #define GET_OPERAND(T)                          \

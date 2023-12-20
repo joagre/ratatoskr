@@ -63,9 +63,15 @@ void compile(char* input_filename, char *output_directory, satie_error_t* error)
         /*
           Bytecode format:
 
+          static_data_size: sizeof(uint32_t) bytes
+          static_data: static_data_size bytes
+
+          HMM!!!
+
           jump_table_size: sizeof(uint32_t) bytes
           label: sizeof(vm_label_t) bytes, address: sizeof(vm_address_t) bytes
           ...
+
           bytecode_size: sizeof(uint32_t) bytes
           bytecode: bytecode_size bytes
         */

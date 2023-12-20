@@ -22,7 +22,6 @@ void module_free(module_t *module) {
     free(module);
 }
 
-
 uint32_t module_jump_table_size(module_t* module) {
     return lhash_kv_size(&module->jump_table);
 }

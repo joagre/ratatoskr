@@ -1,6 +1,6 @@
 CC := gcc
 CFLAGS := -Wall -Wextra -I../clib -I../utils -I ../sa -Wfatal-errors -std=c17 -g -D_GNU_SOURCE -Wno-unused-variable -DDEBUG
-LDFLAGS := ../utils/satie_error.o ../utils/utils.o ../utils/log.o ../sa/vm.o ../sa/module.o
+LDFLAGS := ../utils/satie_error.o ../utils/utils.o ../utils/log.o ../sa/vm.o ../sa/module.o ../sa/pretty_print.o
 
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)

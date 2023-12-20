@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <log.h>
-#include <pretty_print.h>
+#include "pretty_print.h"
 #include "interpreter.h"
 #include "scheduler.h"
 
