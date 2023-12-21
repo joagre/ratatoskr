@@ -125,99 +125,102 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
     // Append operands
     for (uint8_t i = 0; i < opcode_info->number_of_operands; i++) {
         switch (opcode_info->operands[i]) {
-        case OPERAND_STACK_VALUE: {
-            vm_stack_value_t value = string_to_long(operands[i], error);
-            if (error->failed) {
-                return;
-            }
-            APPEND_VALUE(compiler, vm_stack_value_t, value);
-            break;
-        }
-        case OPERAND_REGISTER: {
-            // Register values are prefixed with 'r'
-            if (operands[i][0] != 'r') {
-                SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
-                                  "Invalid register %s", operands[i]);
-                return;
-            }
-            vm_register_t register_ = string_to_long(operands[i] + 1, error);
-            if (error->failed) {
-                return;
-            }
-            APPEND_VALUE(compiler, vm_register_t, register_);
-            break;
-        }
-        case OPERAND_LABEL: {
-            vm_label_t label = string_to_long(operands[i], error);
-            if (error->failed) {
-                return;
-            }
-            APPEND_VALUE(compiler, vm_label_t, label);
-            break;
-        }
-        case OPERAND_IMMEDIATE_VALUE: {
-            // Immediate values are prefixed with '#'
-            if (operands[i][0] != '#') {
-                SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
-                                  "Invalid immediate value %s", operands[i]);
-                return;
-            }
-            vm_immediate_value_t value = string_to_long(operands[i] + 1, error);
-            if (error->failed) {
-                return;
-            }
-            APPEND_VALUE(compiler, vm_immediate_value_t, value);
-            break;
-        }
-        case OPERAND_STACK_OFFSET: {
-            // Stack offsets are prefixed with '@'
-            if (operands[i][0] != '@') {
-                SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
-                                  "Invalid stack offset %s", operands[i]);
-                return;
-            }
-            vm_stack_offset_t stack_offset =
-                string_to_long(operands[i] + 1, error);
-            if (error->failed) {
-                return;
-            }
-            stack_offset += STACK_FRAME_HEADER_SIZE;
-            APPEND_VALUE(compiler, vm_stack_offset_t, stack_offset);
-            break;
-        }
-        case OPERAND_ARITY: {
-            vm_arity_t arity = string_to_long(operands[i], error);
-            if (error->failed) {
-                return;
-            }
-            APPEND_VALUE(compiler, vm_arity_t, arity);
-            break;
-        }
-        case OPERAND_SYSTEM_CALL: {
-            system_call_t system_call =
-                string_to_system_call(operands[i], error);
-            if (error->failed) {
-                return;
-            }
-            APPEND_VALUE(compiler, vm_system_call_t, system_call);
-            break;
-        }
-        case OPERAND_STRING: {
-            // Strings are prefixed and suffixed with '"'
-            if (operands_string[0] != '"' ||
-                operands_string[strlen(operands_string) - 1] != '"') {
-                SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
-                                  "Invalid string '%s'", operands_string);
-                return;
-            }
-            // Remove quotes
-            char* naked_string = operands_string + 1;
-            naked_string[strlen(operands_string) - 2] = '\0';
-            vm_stack_value_t value =
-                static_data_insert_string(&compiler->static_data, naked_string);
-            APPEND_VALUE(compiler, vm_stack_value_t, value);
-            break;
-        }
+	    case OPERAND_STACK_VALUE: {
+		vm_stack_value_t value = string_to_long(operands[i], error);
+		if (error->failed) {
+		    return;
+		}
+		APPEND_VALUE(compiler, vm_stack_value_t, value);
+		break;
+	    }
+	    case OPERAND_REGISTER: {
+		// Register values are prefixed with 'r'
+		if (operands[i][0] != 'r') {
+		    SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
+				      "Invalid register %s", operands[i]);
+		    return;
+		}
+		vm_register_t register_ = string_to_long(operands[i] + 1, error);
+		if (error->failed) {
+		    return;
+		}
+		APPEND_VALUE(compiler, vm_register_t, register_);
+		break;
+	    }
+	    case OPERAND_LABEL: {
+		vm_label_t label = string_to_long(operands[i], error);
+		if (error->failed) {
+		    return;
+		}
+		APPEND_VALUE(compiler, vm_label_t, label);
+		break;
+	    }
+	    case OPERAND_IMMEDIATE_VALUE: {
+		// Immediate values are prefixed with '#'
+		if (operands[i][0] != '#') {
+		    SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
+				      "Invalid immediate value %s",
+				      operands[i]);
+		    return;
+		}
+		vm_immediate_value_t value =
+		    string_to_long(operands[i] + 1, error);
+		if (error->failed) {
+		    return;
+		}
+		APPEND_VALUE(compiler, vm_immediate_value_t, value);
+		break;
+	    }
+	    case OPERAND_STACK_OFFSET: {
+		// Stack offsets are prefixed with '@'
+		if (operands[i][0] != '@') {
+		    SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
+				      "Invalid stack offset %s", operands[i]);
+		    return;
+		}
+		vm_stack_offset_t stack_offset =
+		    string_to_long(operands[i] + 1, error);
+		if (error->failed) {
+		    return;
+		}
+		stack_offset += STACK_FRAME_HEADER_SIZE;
+		APPEND_VALUE(compiler, vm_stack_offset_t, stack_offset);
+		break;
+	    }
+	    case OPERAND_ARITY: {
+		vm_arity_t arity = string_to_long(operands[i], error);
+		if (error->failed) {
+		    return;
+		}
+		APPEND_VALUE(compiler, vm_arity_t, arity);
+		break;
+	    }
+	    case OPERAND_SYSTEM_CALL: {
+		system_call_t system_call =
+		    string_to_system_call(operands[i], error);
+		if (error->failed) {
+		    return;
+		}
+		APPEND_VALUE(compiler, vm_system_call_t, system_call);
+		break;
+	    }
+	    case OPERAND_STRING: {
+		// Strings are prefixed and suffixed with '"'
+		if (operands_string[0] != '"' ||
+		    operands_string[strlen(operands_string) - 1] != '"') {
+		    SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
+				      "Invalid string '%s'", operands_string);
+		    return;
+		}
+		// Remove quotes
+		char* naked_string = operands_string + 1;
+		naked_string[strlen(operands_string) - 2] = '\0';
+		vm_stack_value_t value =
+		    static_data_insert_string(&compiler->static_data,
+					      naked_string);
+		APPEND_VALUE(compiler, vm_stack_value_t, value);
+		break;
+	    }
         }
     }
     CLEAR_ERROR(error);

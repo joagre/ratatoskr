@@ -124,7 +124,7 @@ static size_t key_hash(void* key, void* arg) {
 };
 
 static void load_bytecode(loader_t* loader, module_t* module,
-                           FILE* file, satie_error_t* error) {
+			  FILE* file, satie_error_t* error) {
     // NOTE: Bytecode format is defined in sac/compiler.c
     // Read static data size
     uint32_t static_data_size = 0;
@@ -252,7 +252,7 @@ static void load_bytecode(loader_t* loader, module_t* module,
         address++;
     }
     CLEAR_ERROR(error);
-    }
+}
 
 static void resolve_label(uint8_t* bytecode, module_t* module,
                           vm_address_t first_operand, uint16_t operand_offset) {
@@ -269,30 +269,30 @@ static uint16_t size_of_operands(opcode_t opcode) {
     for (uint8_t i = 0; i < opcode_info->number_of_operands; i++) {
         operand_t operand_type = opcode_info->operands[i];
         switch (operand_type) {
-        case OPERAND_STACK_VALUE:
-            size += sizeof(vm_stack_value_t);
-            break;
-        case OPERAND_REGISTER:
-            size += sizeof(vm_register_t);
-            break;
-        case OPERAND_LABEL:
-            size += sizeof(vm_label_t);
-            break;
-        case OPERAND_IMMEDIATE_VALUE:
-            size += sizeof(vm_immediate_value_t);
-            break;
-        case OPERAND_STACK_OFFSET:
-            size += sizeof(vm_stack_offset_t);
-            break;
-        case OPERAND_ARITY:
-            size += sizeof(vm_arity_t);
-            break;
-        case OPERAND_SYSTEM_CALL:
-            size += sizeof(vm_system_call_t);
-            break;
-        case OPERAND_STRING:
-            size += sizeof(vm_stack_value_t);
-            break;
+	    case OPERAND_STACK_VALUE:
+		size += sizeof(vm_stack_value_t);
+		break;
+	    case OPERAND_REGISTER:
+		size += sizeof(vm_register_t);
+		break;
+	    case OPERAND_LABEL:
+		size += sizeof(vm_label_t);
+		break;
+	    case OPERAND_IMMEDIATE_VALUE:
+		size += sizeof(vm_immediate_value_t);
+		break;
+	    case OPERAND_STACK_OFFSET:
+		size += sizeof(vm_stack_offset_t);
+		break;
+	    case OPERAND_ARITY:
+		size += sizeof(vm_arity_t);
+		break;
+	    case OPERAND_SYSTEM_CALL:
+		size += sizeof(vm_system_call_t);
+		break;
+	    case OPERAND_STRING:
+		size += sizeof(vm_stack_value_t);
+		break;
         }
     }
     return size;

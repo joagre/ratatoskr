@@ -42,14 +42,14 @@ int main(int argc, char* argv[]) {
     while ((longopt = getopt_long(argc, argv, "o:h", longopts,
                                   &longindex)) != -1) {
         switch (longopt) {
-        case 'h':
-            usage(basename(argv[0]));
-            break;
-        case 'o':
-            output_directory = optarg;
-            break;
-        default:
-            usage(basename(argv[0]));
+	    case 'h':
+		usage(basename(argv[0]));
+		break;
+	    case 'o':
+		output_directory = optarg;
+		break;
+	    default:
+		usage(basename(argv[0]));
         }
     }
 

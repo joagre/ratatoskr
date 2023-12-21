@@ -36,39 +36,39 @@ int main(int argc, char* argv[]) {
 
     // Parse command line options
     struct option longopts[] =
-        {
-            {
-                .name = "check-after",
-                .has_arg = required_argument,
-                .flag = 0,
-                .val = 'c'
-            },
-            {
-                .name = "help",
-                .has_arg = no_argument,
-                .flag = 0,
-                .val = 'h'
-            },
-            {
-                .name = "interpreter",
-                .has_arg = required_argument,
-                .flag = 0,
-                .val = 'i'
-            },
-            {
-                .name = "load-path",
-                .has_arg = required_argument,
-                .flag = 0,
-                .val = 'l'
-            },
-            {
-                .name = "time-slice",
-                .has_arg = required_argument,
-                .flag = 0,
-                .val = 't'
-            },
-            {0, 0, 0, 0}
-        };
+    {
+	{
+	    .name = "check-after",
+	    .has_arg = required_argument,
+	    .flag = 0,
+	    .val = 'c'
+	},
+	{
+	    .name = "help",
+	    .has_arg = no_argument,
+	    .flag = 0,
+	    .val = 'h'
+	},
+	{
+	    .name = "interpreter",
+	    .has_arg = required_argument,
+	    .flag = 0,
+	    .val = 'i'
+	},
+	{
+	    .name = "load-path",
+	    .has_arg = required_argument,
+	    .flag = 0,
+	    .val = 'l'
+	},
+	{
+	    .name = "time-slice",
+	    .has_arg = required_argument,
+	    .flag = 0,
+	    .val = 't'
+	},
+	{0, 0, 0, 0}
+    };
 
     satie_error_t error;
     int longopt;
@@ -77,28 +77,28 @@ int main(int argc, char* argv[]) {
     while ((longopt = getopt_long(argc, argv, "c:hl:t:", longopts,
                                   &longindex)) != -1) {
         switch (longopt) {
-        case 'c': {
-            check_after = string_to_long(optarg, &error);
-            if (error.failed) {
-                usage(basename(argv[0]));
-            }
-            break;
-        }
-        case 'h':
-            usage(basename(argv[0]));
-            break;
-        case 'l':
-            load_path = optarg;
-            break;
-        case 't': {
-            time_slice = string_to_long(optarg, &error);
-            if (error.failed) {
-                usage(basename(argv[0]));
-            }
-            break;
-        }
-        default:
-            usage(basename(argv[0]));
+	    case 'c': {
+		check_after = string_to_long(optarg, &error);
+		if (error.failed) {
+		    usage(basename(argv[0]));
+		}
+		break;
+	    }
+	    case 'h':
+		usage(basename(argv[0]));
+		break;
+	    case 'l':
+		load_path = optarg;
+		break;
+	    case 't': {
+		time_slice = string_to_long(optarg, &error);
+		if (error.failed) {
+		    usage(basename(argv[0]));
+		}
+		break;
+	    }
+	    default:
+		usage(basename(argv[0]));
         }
     }
 

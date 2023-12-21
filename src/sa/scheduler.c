@@ -41,22 +41,23 @@ void scheduler_run(scheduler_t *scheduler) {
             scheduler->running_job = next_job;
             interpreter_result_t result = interpreter_run(scheduler);
             switch (result) {
-            case INTERPRETER_RESULT_HALT:
-                LOG_DEBUG("Job %d halt (r0 = %d)", scheduler->running_job->jid,
-                          scheduler->running_job->registers[0]);
-                break;
-            case INTERPRETER_RESULT_RECV:
-                scheduler->running_job->mode = JOB_MODE_WAITING;
-                waiting_queue_enqueue(&scheduler->waiting_queue,
-                                      scheduler->running_job);
-                break;
-            case INTERPRETER_RESULT_TIMEOUT:
-                scheduler->running_job->mode = JOB_MODE_READY;
-                ready_queue_enqueue(&scheduler->ready_queue,
-                                    scheduler->running_job);
-                break;
-            case INTERPRETER_RESULT_EXIT:
-                return;
+		case INTERPRETER_RESULT_HALT:
+		    LOG_DEBUG("Job %d halt (r0 = %d)",
+			      scheduler->running_job->jid,
+			      scheduler->running_job->registers[0]);
+		    break;
+		case INTERPRETER_RESULT_RECV:
+		    scheduler->running_job->mode = JOB_MODE_WAITING;
+		    waiting_queue_enqueue(&scheduler->waiting_queue,
+					  scheduler->running_job);
+		    break;
+		case INTERPRETER_RESULT_TIMEOUT:
+		    scheduler->running_job->mode = JOB_MODE_READY;
+		    ready_queue_enqueue(&scheduler->ready_queue,
+					scheduler->running_job);
+		    break;
+		case INTERPRETER_RESULT_EXIT:
+		    return;
             }
         }
         sleep_ms(scheduler->time_slice);
