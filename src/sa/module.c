@@ -41,7 +41,8 @@ void module_insert(module_t* module, vm_label_t label, vm_address_t address) {
 
 vm_address_t module_lookup_address(module_t* module, vm_label_t label) {
     uintptr_t address;
-    lhash_kv_find(&module->jump_table, (void*)(uintptr_t)label, (void**)(uintptr_t)&address);
+    lhash_kv_find(&module->jump_table, (void*)(uintptr_t)label,
+		  (void**)(uintptr_t)&address);
     return address;
 }
 

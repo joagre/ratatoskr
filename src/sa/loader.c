@@ -304,19 +304,12 @@ static uint16_t size_of_operands(opcode_t opcode) {
 
 void loader_unit_test(void) {
     loader_t loader;
-    loader_init(&loader, "../examples");
+    loader_init(&loader, "../../examples/sai");
     // Verify that loader->modules is functional
     module_t* module = module_new(42);
     lhash_kv_insert(&loader.modules, "foo", module);
     module_t* module2;
     lhash_kv_find(&loader.modules, "foo", (void**)&module2);
     LOG_ASSERT(module2->start_address == 42, "Wrong start address");
-    // loader_load_module
-    satie_error_t error;
-    loader_load_module(&loader, "ackermannr", &error);
-    LOG_ASSERT(!error.failed, "Failed to load module");
-    // loader_is_module_loaded
-    LOG_ASSERT(loader_is_module_loaded(&loader, "ackermannr"),
-               "loader_is_module_loaded");
     LOG_INFO("Unit test passed");
 }

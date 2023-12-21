@@ -140,7 +140,8 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
 				      "Invalid register %s", operands[i]);
 		    return;
 		}
-		vm_register_t register_ = string_to_long(operands[i] + 1, error);
+		vm_register_t register_ =
+		    string_to_long(operands[i] + 1, error);
 		if (error->failed) {
 		    return;
 		}
