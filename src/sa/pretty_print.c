@@ -53,7 +53,8 @@ uint32_t print_instruction(uint8_t* bytes, static_data_t* static_data) {
         vm_register_t second_register = GET_OPERAND(vm_register_t);
         vm_immediate_value_t immediate_value =
             GET_OPERAND(vm_immediate_value_t);
-        fprintf(stderr, "addrri r%d r%d #%ld\n", first_register, second_register,
+        fprintf(stderr, "addrri r%d r%d #%ld\n", first_register,
+                second_register,
                 immediate_value);
         return size;
     }
@@ -77,9 +78,8 @@ uint32_t print_instruction(uint8_t* bytes, static_data_t* static_data) {
     case OPCODE_PUSHSTR: {
         vm_stack_value_t index = GET_OPERAND(vm_stack_value_t);
         if (static_data != NULL) {
-            fprintf(stderr, "pushstr \"%s\"\n", &static_data->data[index]);
-        } else {
-            fprintf(stderr, "pushstr %ld\n", index);
+            fprintf(stderr, "pushstr \"%s\"\n",
+                    &static_data->data[index + sizeof(vm_data_length_t)]);
         }
         return size;
     }

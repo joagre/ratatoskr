@@ -1,4 +1,4 @@
-#define MUTE_LOG_DEBUG 1
+//#define MUTE_LOG_DEBUG 1
 
 #include <stdio.h>
 #include <errno.h>
@@ -27,11 +27,15 @@ void loader_init(loader_t* loader, char* load_path) {
     loader->max_bytecode_size = 0;
     loader->load_path = load_path;
     lhash_kv_init(&loader->modules, NULL, key_hash, key_cmp);
+    static_data_init(&loader->static_data);
+    static_data_map_init(&loader->static_data_map);
 }
 
 void loader_free(loader_t* loader) {
     free(loader->bytecode);
     lhash_kv_clear(&loader->modules);
+    static_data_clear(&loader->static_data);
+    static_data_map_clear(&loader->static_data_map);
 }
 
 bool loader_is_module_loaded(loader_t* loader, char *module_name) {
@@ -76,7 +80,7 @@ void loader_load_module(loader_t *loader, char* module_name,
         lhash_kv_insert(&loader->modules, (char *)module_name, module);
         CLEAR_ERROR(error);
         LOG_DEBUG("%s has been loaded...", filename);
-        //pretty_print_module(loader, module_name);
+        pretty_print_module(loader, module_name);
     }
 }
 
@@ -84,7 +88,8 @@ void pretty_print(loader_t* loader) {
     vm_address_t address = 0;
     while (address < loader->bytecode_size) {
         fprintf(stderr, "%d: ", address);
-        address += 1 + print_instruction(&loader->bytecode[address], NULL);
+        address += 1 + print_instruction(&loader->bytecode[address],
+                                         &loader->static_data);
     }
 }
 
@@ -94,7 +99,8 @@ void pretty_print_module(loader_t* loader, char* module_name) {
     vm_address_t address = module->start_address;
     while (address <= module->stop_address) {
         fprintf(stderr, "%d: ", address);
-        address += 1 + print_instruction(&loader->bytecode[address], NULL);
+        address += 1 + print_instruction(&loader->bytecode[address],
+                                         &loader->static_data);
     }
 }
 
@@ -120,9 +126,48 @@ static size_t key_hash(void* key, void* arg) {
 static void load_bytecode(loader_t* loader, module_t* module,
                            FILE* file, satie_error_t* error) {
     // NOTE: Bytecode format is defined in sac/compiler.c
+    // Read static data size
+    uint32_t static_data_size = 0;
+    size_t n = fread(&static_data_size, sizeof(static_data_size), 1, file);
+    if (n != 1) {
+        SET_ERROR_MESSAGE(error, COMPONENT_LOADER,
+                          "Failed to read static data size");
+        return;
+    }
+    LOG_DEBUG("Static data size: %u", static_data_size);
+    // Read static data
+    if (static_data_size > 0) {
+        vm_stack_value_t local_data_index = 0;
+        do {
+            LOG_DEBUG("local_data_index = %u", local_data_index);
+            vm_data_length_t data_length;
+            n = fread(&data_length, sizeof(data_length), 1, file);
+            if (n != 1) {
+                SET_ERROR_MESSAGE(error, COMPONENT_LOADER,
+                                  "Failed to read data length");
+                return;
+            }
+            LOG_DEBUG("Data length: %u", data_length);
+            char string[data_length];
+            n = fread(string, data_length, 1, file);
+            if (n != 1) {
+                SET_ERROR_MESSAGE(error, COMPONENT_LOADER,
+                                  "Failed to read string");
+                return;
+            }
+            LOG_DEBUG("String: %s", string);
+            vm_stack_value_t data_index =
+                static_data_insert_string(&loader->static_data, string);
+            LOG_DEBUG("Map %u -> %u", local_data_index, data_index);
+            static_data_map_insert(&loader->static_data_map,
+                                   local_data_index, data_index);
+            local_data_index += data_length;
+            static_data_size -= sizeof(data_length) + data_length;
+        } while (static_data_size > 0);
+    }
     // Read jump table size
     uint32_t jump_table_size = 0;
-    size_t n = fread(&jump_table_size, sizeof(jump_table_size), 1, file);
+    n = fread(&jump_table_size, sizeof(jump_table_size), 1, file);
     if (n != 1) {
         SET_ERROR_MESSAGE(error, COMPONENT_LOADER,
                           "Failed to read jump table size");
@@ -167,13 +212,12 @@ static void load_bytecode(loader_t* loader, module_t* module,
         append_bytes(loader, buf, n);
     } while (true);
 
-    // Resolve labels to addresses
+    // Resolve labels and static data
     vm_address_t address = module->start_address;
     LOG_DEBUG("start_address = %u\n", address);
     while (address < loader->bytecode_size) {
         opcode_t opcode = loader->bytecode[address];
         vm_address_t operand_address = address + (vm_address_t)OPCODE_SIZE;
-        // Resolve register machine labels
         if (opcode == OPCODE_JMPRINEQ) {
             resolve_label(loader->bytecode, module, operand_address,
                           sizeof(vm_register_t) + sizeof(vm_immediate_value_t));
@@ -192,10 +236,16 @@ static void load_bytecode(loader_t* loader, module_t* module,
         } else if (opcode == OPCODE_JMP) {
             resolve_label(loader->bytecode, module, operand_address, 0);
             address += size_of_operands(OPCODE_JMP);
-            // Resolve stack machine labels
         } else if (opcode == OPCODE_SPAWN) {
             resolve_label(loader->bytecode, module, operand_address, 0);
             address += size_of_operands(OPCODE_SPAWN);
+        } else if (opcode == OPCODE_PUSHSTR) {
+            vm_stack_value_t value =
+                GET_VALUE(vm_stack_value_t, &loader->bytecode[operand_address]);
+            value = static_data_map_lookup(&loader->static_data_map, value);
+            SET_VALUE(vm_stack_value_t, value,
+                      &loader->bytecode[operand_address]);
+            address += size_of_operands(OPCODE_PUSHSTR);
         } else {
             address += size_of_operands((opcode_t)opcode);
         }

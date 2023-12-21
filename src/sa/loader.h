@@ -4,8 +4,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <lhash_kv.h>
+#include <satie_error.h>
 #include "module.h"
-#include "satie_error.h"
+#include "static_data.h"
+#include "static_data_map.h"
 
 #define APPEND_VALUE(loader, T, value) ({    \
     uint8_t bytes[sizeof(T)]; \
@@ -21,6 +23,8 @@ typedef struct {
     uint32_t max_bytecode_size;
     char* load_path;
     lhash_kv_t modules;
+    static_data_t static_data;
+    static_data_map_t static_data_map;
 } loader_t;
 
 void loader_init(loader_t* loader, char* load_path);

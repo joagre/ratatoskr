@@ -1,4 +1,4 @@
-#define MUTE_LOG_DEBUG 1
+//#define MUTE_LOG_DEBUG 1
 
 #include <errno.h>
 #include <stdlib.h>
@@ -66,8 +66,6 @@ void compile(char* input_filename, char *output_directory, satie_error_t* error)
 
           static_data_size: sizeof(uint32_t) bytes
           static_data: static_data_size bytes
-          static_data_index_size: sizeof(uint32_t)
-          static_data_index: sizeof(uint32_t)
           ...
 
           jump_table_size: sizeof(uint32_t) bytes
@@ -77,6 +75,11 @@ void compile(char* input_filename, char *output_directory, satie_error_t* error)
           bytecode_size: sizeof(uint32_t) bytes
           bytecode: bytecode_size bytes
         */
+        // Write static data size
+        uint32_t data_size = compiler.static_data.size;
+        fwrite(&data_size, sizeof(data_size), 1, output_file);
+        // Write static data
+        fwrite(compiler.static_data.data, data_size, 1, output_file);
         // Write jump table size
         uint32_t jump_table_size = module_jump_table_size(module);
         fwrite(&jump_table_size, sizeof(jump_table_size), 1, output_file);
@@ -205,7 +208,7 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
             char* naked_string = operands_string + 1;
             naked_string[strlen(operands_string) - 2] = '\0';
             vm_stack_value_t value =
-                static_data_insert(&compiler->static_data, naked_string);
+                static_data_insert_string(&compiler->static_data, naked_string);
             APPEND_VALUE(compiler, vm_stack_value_t, value);
             break;
         }
