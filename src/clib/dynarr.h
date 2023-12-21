@@ -1,4 +1,5 @@
 #ifndef __DYNARR_H__
+#define __DYNARR_H__
 
 #include <stdint.h>
 #include <memory.h>

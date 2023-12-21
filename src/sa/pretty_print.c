@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include "vm.h"
+#include "pretty_print.h"
 
-uint32_t print_instruction(uint8_t* bytes) {
+uint32_t print_instruction(uint8_t* bytes, static_data_t* static_data) {
     // These variables are required by the GET_OPERAND macro
     uint8_t* operands = bytes + OPCODE_SIZE;
     uint32_t size = 0;
@@ -71,6 +72,15 @@ uint32_t print_instruction(uint8_t* bytes) {
     case OPCODE_PUSHR: {
         vm_register_t register_ = GET_OPERAND(vm_register_t);
         fprintf(stderr, "pushr r%d\n", register_);
+        return size;
+    }
+    case OPCODE_PUSHSTR: {
+        vm_stack_value_t index = GET_OPERAND(vm_stack_value_t);
+        if (static_data != NULL) {
+            fprintf(stderr, "pushstr \"%s\"\n", &static_data->data[index]);
+        } else {
+            fprintf(stderr, "pushstr %ld\n", index);
+        }
         return size;
     }
     case OPCODE_POPR: {

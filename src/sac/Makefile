@@ -1,9 +1,14 @@
 CC := gcc
 CFLAGS := -Wall -Wextra -I../clib -I../utils -I ../sa -Wfatal-errors -std=c17 -g -D_GNU_SOURCE -Wno-unused-variable -DDEBUG
-LDFLAGS := ../utils/satie_error.o ../utils/utils.o ../utils/log.o ../sa/vm.o ../sa/module.o ../sa/pretty_print.o
-
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
+EXTRA_OBJS := ../utils/log.o \
+              ../sa/module.o \
+              ../sa/pretty_print.o \
+              ../utils/satie_error.o \
+              ../sa/static_data.o \
+	      ../utils/utils.o \
+	      ../sa/vm.o
 DEPS := $(SRCS:.c=.d)
 EXEC := ../../bin/sac
 
@@ -15,8 +20,8 @@ build:
 
 objs: $(OBJS)
 
-$(EXEC): $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+$(EXEC): $(OBJS) $(EXTRA_OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
 -include $(DEPS)
 

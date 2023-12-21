@@ -104,7 +104,7 @@ On to the examples.
 ; Run: sa hello_world 0
 
 label 0
-  pushi #42
+  pushstr "Hello World!"
   sys display
   ret
 ```

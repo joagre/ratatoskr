@@ -84,7 +84,7 @@ void pretty_print(loader_t* loader) {
     vm_address_t address = 0;
     while (address < loader->bytecode_size) {
         fprintf(stderr, "%d: ", address);
-        address += 1 + print_instruction(&loader->bytecode[address]);
+        address += 1 + print_instruction(&loader->bytecode[address], NULL);
     }
 }
 
@@ -94,7 +94,7 @@ void pretty_print_module(loader_t* loader, char* module_name) {
     vm_address_t address = module->start_address;
     while (address <= module->stop_address) {
         fprintf(stderr, "%d: ", address);
-        address += 1 + print_instruction(&loader->bytecode[address]);
+        address += 1 + print_instruction(&loader->bytecode[address], NULL);
     }
 }
 
@@ -241,7 +241,8 @@ static uint16_t size_of_operands(opcode_t opcode) {
             size += sizeof(vm_system_call_t);
             break;
         case OPERAND_STRING:
-            // String length calculation is taken care of elsewhere
+            size += sizeof(vm_stack_value_t);
+            break;
         }
     }
     return size;

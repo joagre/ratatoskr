@@ -69,6 +69,12 @@ opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
         .operands = {OPERAND_REGISTER},
         .number_of_operands = 1
     },
+    [OPCODE_PUSHSTR] = {
+        .opcode = OPCODE_PUSHSTR,
+        .string = "pushstr",
+        .operands = {OPERAND_STRING},
+        .number_of_operands = 1
+    },
     [OPCODE_POP] = {
         .opcode = OPCODE_POP,
         .string = "pop",

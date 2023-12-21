@@ -138,6 +138,12 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
             job->pc += size;
             break;
         }
+        case OPCODE_PUSHSTR: {
+            vm_stack_value_t value = GET_OPERAND(vm_stack_value_t);
+            call_stack_push(&job->call_stack, value);
+            job->pc += size;
+            break;
+        }
         case OPCODE_POP: {
             call_stack_pop(&job->call_stack);
             break;

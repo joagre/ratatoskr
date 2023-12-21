@@ -11,6 +11,7 @@
 // Forward declarations of local functions (alphabetical order)
 static void append_bytes(compiler_t* compiler, uint16_t n, uint8_t* bytes);
 static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
+                            char* operands_string,
                             char operands[][MAX_OPERAND_STRING_SIZE],
                             satie_error_t* error);
 static void compiler_init(compiler_t* compiler);
@@ -65,8 +66,9 @@ void compile(char* input_filename, char *output_directory, satie_error_t* error)
 
           static_data_size: sizeof(uint32_t) bytes
           static_data: static_data_size bytes
-
-          HMM!!!
+          static_data_index_size: sizeof(uint32_t)
+          static_data_index: sizeof(uint32_t)
+          ...
 
           jump_table_size: sizeof(uint32_t) bytes
           label: sizeof(vm_label_t) bytes, address: sizeof(vm_address_t) bytes
@@ -108,20 +110,21 @@ static void append_bytes(compiler_t* compiler, uint16_t n, uint8_t* bytes) {
 }
 
 static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
+                            char* operands_string,
                             char operands[][MAX_OPERAND_STRING_SIZE],
                             satie_error_t* error) {
     // Append operands
     for (uint8_t i = 0; i < opcode_info->number_of_operands; i++) {
         switch (opcode_info->operands[i]) {
         case OPERAND_STACK_VALUE: {
-            vm_stack_value_t stack_value = string_to_long(operands[i], error);
+            vm_stack_value_t value = string_to_long(operands[i], error);
             if (error->failed) {
                 return;
             }
-            APPEND_VALUE(compiler, vm_stack_value_t, stack_value);
+            APPEND_VALUE(compiler, vm_stack_value_t, value);
             break;
         }
-        case OPERAND_REGISTER:
+        case OPERAND_REGISTER: {
             // Register values are prefixed with 'r'
             if (operands[i][0] != 'r') {
                 SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
@@ -134,28 +137,30 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
             }
             APPEND_VALUE(compiler, vm_register_t, register_);
             break;
-        case OPERAND_LABEL:
+        }
+        case OPERAND_LABEL: {
             vm_label_t label = string_to_long(operands[i], error);
             if (error->failed) {
                 return;
             }
             APPEND_VALUE(compiler, vm_label_t, label);
             break;
-        case OPERAND_IMMEDIATE_VALUE:
+        }
+        case OPERAND_IMMEDIATE_VALUE: {
             // Immediate values are prefixed with '#'
             if (operands[i][0] != '#') {
                 SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
                                   "Invalid immediate value %s", operands[i]);
                 return;
             }
-            vm_immediate_value_t immediate_value =
-                string_to_long(operands[i] + 1, error);
+            vm_immediate_value_t value = string_to_long(operands[i] + 1, error);
             if (error->failed) {
                 return;
             }
-            APPEND_VALUE(compiler, vm_immediate_value_t, immediate_value);
+            APPEND_VALUE(compiler, vm_immediate_value_t, value);
             break;
-        case OPERAND_STACK_OFFSET:
+        }
+        case OPERAND_STACK_OFFSET: {
             // Stack offsets are prefixed with '@'
             if (operands[i][0] != '@') {
                 SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
@@ -170,14 +175,16 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
             stack_offset += STACK_FRAME_HEADER_SIZE;
             APPEND_VALUE(compiler, vm_stack_offset_t, stack_offset);
             break;
-        case OPERAND_ARITY:
+        }
+        case OPERAND_ARITY: {
             vm_arity_t arity = string_to_long(operands[i], error);
             if (error->failed) {
                 return;
             }
             APPEND_VALUE(compiler, vm_arity_t, arity);
             break;
-        case OPERAND_SYSTEM_CALL:
+        }
+        case OPERAND_SYSTEM_CALL: {
             system_call_t system_call =
                 string_to_system_call(operands[i], error);
             if (error->failed) {
@@ -185,23 +192,23 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
             }
             APPEND_VALUE(compiler, vm_system_call_t, system_call);
             break;
-        case OPERAND_STRING:
+        }
+        case OPERAND_STRING: {
             // Strings are prefixed and suffixed with '"'
-            if (operands[i][0] != '"' ||
-                operands[i][strlen(operands[i]) - 1] != '"') {
+            if (operands_string[0] != '"' ||
+                operands_string[strlen(operands_string) - 1] != '"') {
                 SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
-                                  "Invalid string '%s'", operands[i]);
+                                  "Invalid string '%s'", operands_string);
                 return;
             }
             // Remove quotes
-            char* naked_string = operands[i] + 1;
-            naked_string[strlen(naked_string) - 1] = '\0';
-            // Append string length
-            uint16_t string_length = strlen(naked_string);
-            APPEND_VALUE(compiler, vm_data_length_t, string_length);
-            // Append string
-            append_bytes(compiler, string_length, (uint8_t*)naked_string);
+            char* naked_string = operands_string + 1;
+            naked_string[strlen(operands_string) - 2] = '\0';
+            vm_stack_value_t value =
+                static_data_insert(&compiler->static_data, naked_string);
+            APPEND_VALUE(compiler, vm_stack_value_t, value);
             break;
+        }
         }
     }
     CLEAR_ERROR(error);
@@ -211,6 +218,7 @@ static void compiler_init(compiler_t* compiler) {
     compiler->bytecode = NULL;
     compiler->bytecode_size = 0;
     compiler->max_bytecode_size = 0;
+    static_data_init(&compiler->static_data);
 }
 
 static void compiler_free(compiler_t* compiler) {
@@ -294,7 +302,8 @@ static void generate_bytecode(compiler_t* compiler, module_t* module,
         append_bytes(compiler, 1, (uint8_t*)&opcode_info->opcode);
 
         // Add operand bytes to byte code
-        append_operands(compiler, opcode_info, operands, error);
+        append_operands(compiler, opcode_info, operands_string, operands,
+                        error);
         if (error->failed) {
             free(line);
             return;
@@ -302,13 +311,14 @@ static void generate_bytecode(compiler_t* compiler, module_t* module,
     }
     free(line);
     CLEAR_ERROR(error);
-    }
+}
 
 static void pretty_print(compiler_t* compiler) {
     vm_address_t address = 0;
     while (address < compiler->bytecode_size) {
         fprintf(stderr, "%d: ", address);
-        address += 1 + print_instruction(&compiler->bytecode[address]);
+        address += 1 + print_instruction(&compiler->bytecode[address],
+                                         &compiler->static_data);
     }
 }
 
