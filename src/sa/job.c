@@ -4,7 +4,8 @@
 job_t* job_new(uint32_t jid, vm_address_t pc, vm_stack_value_t* parameters,
                vm_arity_t number_of_parameters) {
     LOG_ASSERT(number_of_parameters + 1 < NUMBER_OF_REGISTERS,
-               "Register arity %d > %d", number_of_parameters, NUMBER_OF_REGISTERS - 1);
+               "Register arity %d > %d", number_of_parameters,
+               NUMBER_OF_REGISTERS - 1);
 
     job_t* job = malloc(sizeof(job_t));
     job->jid = jid;
@@ -29,7 +30,7 @@ job_t* job_new(uint32_t jid, vm_address_t pc, vm_stack_value_t* parameters,
 }
 
 void job_free(job_t* job) {
-    call_stack_free(&job->call_stack);
-    mailbox_free(&job->mailbox);
+    call_stack_clear(&job->call_stack);
+    mailbox_clear(&job->mailbox);
     free(job);
 }

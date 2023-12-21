@@ -24,7 +24,7 @@ typedef struct scheduler {
 void scheduler_init(scheduler_t* scheduler, loader_t* loader,
                     struct interpreter* interpreter, uint32_t time_slice,
                     uint16_t check_after);
-void scheduler_free(scheduler_t* scheduler);
+void scheduler_clear(scheduler_t* scheduler);
 uint32_t scheduler_next_jid(void);
 void scheduler_run(scheduler_t *scheduler);
 void scheduler_spawn(scheduler_t* scheduler, job_t* job);

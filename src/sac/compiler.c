@@ -14,14 +14,27 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
                             char* operands_string,
                             char operands[][MAX_OPERAND_STRING_SIZE],
                             satie_error_t* error);
-static void compiler_init(compiler_t* compiler);
-static void compiler_free(compiler_t* compiler);
-static void generate_bytecode(compiler_t* compiler, module_t* module,
-                              FILE* file, satie_error_t* error);
+static void generate_bytecode(compiler_t* compiler, FILE* file,
+                              satie_error_t* error);
 static void pretty_print(compiler_t* compiler);
 static void purge_line(char *purged_line, char *line);
 
-void compile(char* input_filename, char *output_directory, satie_error_t* error) {
+void compiler_init(compiler_t* compiler) {
+    compiler->bytecode = NULL;
+    compiler->bytecode_size = 0;
+    compiler->max_bytecode_size = 0;
+    static_data_init(&compiler->static_data);
+    module_init(&compiler->module, 0);
+}
+
+void compiler_clear(compiler_t* compiler) {
+    free(compiler->bytecode);
+    static_data_clear(&compiler->static_data);
+    module_clear(&compiler->module);
+}
+
+void compiler_compile(compiler_t* compiler, char* input_filename,
+                      char *output_directory, satie_error_t* error) {
     // Open input file
     FILE* input_file;
     if ((input_file = fopen(input_filename, "r")) == NULL) {
@@ -47,18 +60,13 @@ void compile(char* input_filename, char *output_directory, satie_error_t* error)
     }
 
     // Generate byte code
-    compiler_t compiler;
-    compiler_init(&compiler);
-    module_t* module = module_new(compiler.bytecode_size);
-    generate_bytecode(&compiler, module, input_file, error);
+    generate_bytecode(compiler, input_file, error);
     fclose(input_file);
 
     if (error->failed) {
         // Free resources
         fclose(output_file);
         remove(output_filename);
-        compiler_free(&compiler);
-        module_free(module);
         return;
     } else {
         /*
@@ -76,29 +84,27 @@ void compile(char* input_filename, char *output_directory, satie_error_t* error)
           bytecode: bytecode_size bytes
         */
         // Write static data size
-        uint32_t data_size = compiler.static_data.size;
+        uint32_t data_size = compiler->static_data.size;
         fwrite(&data_size, sizeof(data_size), 1, output_file);
         // Write static data
-        fwrite(compiler.static_data.data, data_size, 1, output_file);
+        fwrite(compiler->static_data.data, data_size, 1, output_file);
         // Write jump table size
-        uint32_t jump_table_size = module_jump_table_size(module);
+        uint32_t jump_table_size = module_jump_table_size(&compiler->module);
         fwrite(&jump_table_size, sizeof(jump_table_size), 1, output_file);
         // Write jump table
         void write_jump_table_entry(vm_label_t label, vm_address_t address) {
             fwrite(&label, sizeof(label), 1, output_file);
             fwrite(&address, sizeof(address), 1, output_file);
         }
-        module_iterate(module, write_jump_table_entry);
+        module_iterate(&compiler->module, write_jump_table_entry);
         // Write bytecode size
-        fwrite(&compiler.bytecode_size, sizeof(compiler.bytecode_size), 1,
+        fwrite(&compiler->bytecode_size, sizeof(compiler->bytecode_size), 1,
                output_file);
         // Write bytecode
-        fwrite(compiler.bytecode, compiler.bytecode_size, 1, output_file);
+        fwrite(compiler->bytecode, compiler->bytecode_size, 1, output_file);
         // Free resources
         fclose(output_file);
-        pretty_print(&compiler);
-        compiler_free(&compiler);
-        module_free(module);
+        pretty_print(compiler);
         CLEAR_ERROR(error);
     }
 }
@@ -217,19 +223,8 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
     CLEAR_ERROR(error);
 }
 
-static void compiler_init(compiler_t* compiler) {
-    compiler->bytecode = NULL;
-    compiler->bytecode_size = 0;
-    compiler->max_bytecode_size = 0;
-    static_data_init(&compiler->static_data);
-}
-
-static void compiler_free(compiler_t* compiler) {
-    free(compiler->bytecode);
-}
-
-static void generate_bytecode(compiler_t* compiler, module_t* module,
-                              FILE* file, satie_error_t* error) {
+static void generate_bytecode(compiler_t* compiler, FILE* file,
+                              satie_error_t* error) {
     char opcode_string[MAX_OPCODE_STRING_SIZE];
     char operands_string[MAX_OPERANDS_STRING_SIZE] = "";
     char operands[MAX_OPERANDS][MAX_OPERAND_STRING_SIZE];
@@ -288,8 +283,9 @@ static void generate_bytecode(compiler_t* compiler, module_t* module,
                 free(line);
                 return;
             }
-            LOG_DEBUG("Jump table insertion: %u -> %u", label, compiler->bytecode_size);
-            module_insert(module, label, compiler->bytecode_size);
+            LOG_DEBUG("Jump table insertion: %u -> %u", label,
+                      compiler->bytecode_size);
+            module_insert(&compiler->module, label, compiler->bytecode_size);
             continue;
         }
 

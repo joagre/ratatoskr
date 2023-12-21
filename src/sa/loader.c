@@ -31,7 +31,7 @@ void loader_init(loader_t* loader, char* load_path) {
     static_data_map_init(&loader->static_data_map);
 }
 
-void loader_free(loader_t* loader) {
+void loader_clear(loader_t* loader) {
     free(loader->bytecode);
     lhash_kv_clear(&loader->modules);
     static_data_clear(&loader->static_data);

@@ -8,7 +8,7 @@ void mailbox_init(mailbox_t* mailbox) {
     dlist_init(mailbox);
 }
 
-void mailbox_free(mailbox_t* mailbox) {
+void mailbox_clear(mailbox_t* mailbox) {
     dlist_iter_t iter;
     dlist_iter_init(&iter, mailbox);
     while(!dlist_iter_end(&iter)) {
@@ -50,7 +50,7 @@ void mailbox_unit_test(void) {
 
     // is_empty
     LOG_ASSERT(mailbox_is_empty(&mailbox), "mailbox_is_empty failed");
-    mailbox_free(&mailbox);
+    mailbox_clear(&mailbox);
 
     LOG_INFO("Unit test passed");
 }

@@ -12,7 +12,7 @@ typedef struct {
 typedef dlist_t mailbox_t;
 
 void mailbox_init(mailbox_t* mailbox);
-void mailbox_free(mailbox_t* mailbox);
+void mailbox_clear(mailbox_t* mailbox);
 vm_stack_value_t mailbox_dequeue(mailbox_t* mailbox);
 void mailbox_enqueue(mailbox_t* mailbox, vm_stack_value_t value);
 bool mailbox_is_empty(mailbox_t* mailbox);

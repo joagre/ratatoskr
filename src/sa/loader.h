@@ -28,7 +28,7 @@ typedef struct {
 } loader_t;
 
 void loader_init(loader_t* loader, char* load_path);
-void loader_free(loader_t* loader);
+void loader_clear(loader_t* loader);
 bool loader_is_module_loaded(loader_t* loader, char *module_name);
 vm_address_t loader_lookup_address(loader_t* loader, char *module_name,
                                    vm_label_t label);

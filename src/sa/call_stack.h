@@ -13,7 +13,7 @@ typedef struct {
 } call_stack_t;
 
 void call_stack_init(call_stack_t* call_stack);
-void call_stack_free(call_stack_t* call_stack);
+void call_stack_clear(call_stack_t* call_stack);
 size_t call_stack_size(call_stack_t* call_stack);
 vm_stack_value_t call_stack_get(call_stack_t* call_stack, size_t index);
 void call_stack_push(call_stack_t* call_stack, vm_stack_value_t value);

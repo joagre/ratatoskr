@@ -20,9 +20,9 @@ void scheduler_init(scheduler_t* scheduler, loader_t* loader,
     scheduler->running_job = NULL;
 }
 
-void scheduler_free(scheduler_t* scheduler) {
-    ready_queue_free(&scheduler->ready_queue);
-    waiting_queue_free(&scheduler->waiting_queue);
+void scheduler_clear(scheduler_t* scheduler) {
+    ready_queue_clear(&scheduler->ready_queue);
+    waiting_queue_clear(&scheduler->waiting_queue);
     if (scheduler->running_job != NULL) {
         job_free(scheduler->running_job);
     }

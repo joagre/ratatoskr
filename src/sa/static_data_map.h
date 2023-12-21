@@ -12,8 +12,5 @@ void static_data_map_insert(static_data_map_t* map, vm_stack_value_t index,
                             vm_stack_value_t resolved_index);
 vm_stack_value_t static_data_map_lookup(static_data_map_t* map,
                                         vm_stack_value_t index);
-void static_data_map_iterate(static_data_map_t* map,
-                             void (*callback)(vm_stack_value_t,
-                                              vm_stack_value_t));
 
 #endif

@@ -12,7 +12,7 @@ typedef struct {
 typedef dlist_t ready_queue_t;
 
 void ready_queue_init(ready_queue_t* queue);
-void ready_queue_free(ready_queue_t* queue);
+void ready_queue_clear(ready_queue_t* queue);
 job_t* ready_queue_dequeue(ready_queue_t* queue);
 void ready_queue_enqueue(ready_queue_t* queue, job_t* job);
 bool ready_queue_is_empty(ready_queue_t* queue);

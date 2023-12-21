@@ -24,6 +24,7 @@ typedef struct interpreter {
 struct scheduler; // Forward declaration of circular dependency
 
 void interpreter_init(interpreter_t *interpreter, uint8_t version);
+void interpreter_clear(interpreter_t *interpreter);
 interpreter_result_t interpreter_run(struct scheduler* scheduler);
 uint32_t interpreter_mspawn(struct scheduler* scheduler, char* module_name,
                             vm_label_t label, vm_stack_value_t* parameters,

@@ -8,7 +8,7 @@ void waiting_queue_init(waiting_queue_t* queue) {
     dlist_init(queue);
 }
 
-void waiting_queue_free(waiting_queue_t* queue) {
+void waiting_queue_clear(waiting_queue_t* queue) {
     dlist_iter_t iter;
     dlist_iter_init(&iter, queue);
     while(!dlist_iter_end(&iter)) {

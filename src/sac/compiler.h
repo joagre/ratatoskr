@@ -18,10 +18,12 @@ typedef struct {
     uint32_t bytecode_size;
     uint32_t max_bytecode_size;
     static_data_t static_data;
-    //module_t module; // FIXME
+    module_t module;
 } compiler_t;
 
-void compile(char* input_filename, char *output_directory,
-             satie_error_t* error);
+void compiler_init(compiler_t* compiler);
+void compiler_clear(compiler_t* compiler);
+void compiler_compile(compiler_t* compiler, char* input_filename,
+                      char *output_directory, satie_error_t* error);
 
 #endif

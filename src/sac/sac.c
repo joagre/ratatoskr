@@ -66,14 +66,18 @@ int main(int argc, char* argv[]) {
     LOG_DEBUG("filename = %s", filename);
     LOG_DEBUG("output_directory = %s", output_directory);
 
+    compiler_t compiler;
+    compiler_init(&compiler);
     satie_error_t error;
-    compile(filename, output_directory, &error);
+    compiler_compile(&compiler, filename, output_directory, &error);
     if (error.failed) {
+        compiler_clear(&compiler);
         satie_print_error(&error);
         return COMPILE_ERROR;
+    } else {
+        compiler_clear(&compiler);
+        return SUCCESS;
     }
-
-    return SUCCESS;
 }
 
 //

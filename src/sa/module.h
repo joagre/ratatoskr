@@ -10,8 +10,10 @@ typedef struct {
     lhash_kv_t jump_table;
 } module_t;
 
+void module_init(module_t* module, vm_address_t start_address);
+void module_clear(module_t *module);
 module_t* module_new(vm_address_t start_address);
-void module_free(module_t *);
+void module_free(module_t *module);
 uint32_t module_jump_table_size(module_t* module);
 void module_insert(module_t* module, vm_label_t label, vm_address_t address);
 vm_address_t module_lookup_address(module_t* module, vm_label_t label);

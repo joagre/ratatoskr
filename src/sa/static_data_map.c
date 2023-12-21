@@ -28,22 +28,6 @@ vm_stack_value_t static_data_map_lookup(static_data_map_t* map,
     return resolved_index;
 }
 
-void static_data_map_iterate(static_data_map_t* map,
-                             void (*callback)(vm_stack_value_t,
-                                              vm_stack_value_t)) {
-    lhash_kv_iter_t iter;
-    lhash_kv_iter_init(&iter, map);
-    while(!lhash_kv_iter_end(&iter)) {
-        uintptr_t current_index;
-        uintptr_t current_resolved_index;
-        lhash_kv_iter_current(&iter, (void**)(uintptr_t*)&current_index,
-                              (void**)(uintptr_t*)&current_resolved_index);
-        callback((vm_stack_value_t)current_index,
-                 (vm_stack_value_t)current_resolved_index);
-        lhash_kv_iter_next(&iter);
-    }
-}
-
 //
 // Local functions (alphabetical order)
 //

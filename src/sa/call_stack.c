@@ -9,7 +9,7 @@ void call_stack_init(call_stack_t* call_stack) {
     call_stack->fp = 0;
 }
 
-void call_stack_free(call_stack_t* call_stack) {
+void call_stack_clear(call_stack_t* call_stack) {
     dynarray_clear(&call_stack->array);
 }
 

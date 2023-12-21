@@ -14,6 +14,10 @@ void interpreter_init(interpreter_t *interpreter, uint8_t version) {
     interpreter->version = version;
 }
 
+void interpreter_clear(interpreter_t *interpreter) {
+    (void*)interpreter;
+}
+
 interpreter_result_t interpreter_run(scheduler_t *scheduler) {
     clock_t start_time = START_TIMER();
     uint32_t instructions_executed = 0;

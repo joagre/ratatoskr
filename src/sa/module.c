@@ -10,15 +10,23 @@
 static int key_cmp(void* key1, void* key2, void* arg);
 static size_t key_hash(void* key, void* arg);
 
-module_t* module_new(vm_address_t start_address) {
-    module_t* module = malloc(sizeof(module_t));
+void module_init(module_t* module, vm_address_t start_address) {
     module->start_address = start_address;
     lhash_kv_init(&module->jump_table, NULL, key_hash, key_cmp);
+}
+
+void module_clear(module_t *module) {
+    lhash_kv_clear(&module->jump_table);
+}
+
+module_t* module_new(vm_address_t start_address) {
+    module_t* module = malloc(sizeof(module_t));
+    module_init(module, start_address);
     return module;
 }
 
 void module_free(module_t *module) {
-    lhash_kv_clear(&module->jump_table);
+    module_clear(module);
     free(module);
 }
 
