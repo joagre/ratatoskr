@@ -8,12 +8,11 @@ static uint32_t jid = 0;
 // Forward declarations of local functions (alphabetical order)
 static job_t* find_job(scheduler_t* scheduler, uint32_t jid);
 
-void scheduler_init(scheduler_t* scheduler, loader_t* loader,
-                    interpreter_t* interpreter, uint32_t time_slice,
+void scheduler_init(scheduler_t* scheduler, interpreter_t* interpreter,
+		    uint32_t time_slice,
                     uint16_t check_after) {
     ready_queue_init(&scheduler->ready_queue);
     waiting_queue_init(&scheduler->waiting_queue);
-    scheduler->loader = loader;
     scheduler->interpreter = interpreter;
     scheduler->time_slice = time_slice;
     scheduler->check_after = check_after;
@@ -39,7 +38,8 @@ void scheduler_run(scheduler_t *scheduler) {
             job_t* next_job = ready_queue_dequeue(&scheduler->ready_queue);
             next_job->mode = JOB_MODE_RUNNING;
             scheduler->running_job = next_job;
-            interpreter_result_t result = interpreter_run(scheduler);
+            interpreter_result_t result =
+		interpreter_run(scheduler->interpreter, scheduler);
             switch (result) {
 		case INTERPRETER_RESULT_HALT:
 		    LOG_DEBUG("Job %d halt (r0 = %d)",

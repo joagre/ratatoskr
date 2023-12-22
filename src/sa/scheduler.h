@@ -5,7 +5,6 @@
 #include "ready_queue.h"
 #include "waiting_queue.h"
 #include "interpreter.h"
-#include "loader.h"
 #include "job.h"
 
 struct interpreter;  // Forward declaration of circular dependency
@@ -13,7 +12,6 @@ struct interpreter;  // Forward declaration of circular dependency
 typedef struct scheduler {
     ready_queue_t ready_queue;
     waiting_queue_t waiting_queue;
-    loader_t* loader;
     struct interpreter* interpreter;
     uint32_t time_slice;
     uint16_t check_after;
@@ -21,9 +19,8 @@ typedef struct scheduler {
 } scheduler_t;
 
 
-void scheduler_init(scheduler_t* scheduler, loader_t* loader,
-                    struct interpreter* interpreter, uint32_t time_slice,
-                    uint16_t check_after);
+void scheduler_init(scheduler_t* scheduler, struct interpreter* interpreter,
+		    uint32_t time_slice, uint16_t check_after);
 void scheduler_clear(scheduler_t* scheduler);
 uint32_t scheduler_next_jid(void);
 void scheduler_run(scheduler_t *scheduler);

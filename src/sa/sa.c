@@ -136,14 +136,14 @@ int main(int argc, char* argv[]) {
 
     // Prepare interpreter
     interpreter_t interpreter;
-    interpreter_init(&interpreter, 0);
+    interpreter_init(&interpreter, &loader);
 
     // Prepare scheduler
     scheduler_t scheduler;
-    scheduler_init(&scheduler, &loader, &interpreter, time_slice, check_after);
+    scheduler_init(&scheduler, &interpreter, time_slice, check_after);
 
     // Spawn job according to command line arguments
-    interpreter_mspawn(&scheduler, module_name, label, parameters,
+    interpreter_mspawn(&interpreter, &scheduler, module_name, label, parameters,
                        number_of_parameters, &error);
     if (error.failed) {
         satie_print_error(&error);

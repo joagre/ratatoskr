@@ -81,7 +81,9 @@ uint32_t print_instruction(uint8_t* bytes, static_data_t* static_data) {
 	    vm_stack_value_t index = GET_OPERAND(vm_stack_value_t);
 	    if (static_data != NULL) {
 		fprintf(stderr, "pushstr \"%s\"\n",
-			&static_data->data[index + sizeof(vm_data_length_t)]);
+			(char*)static_data_lookup(static_data, index));
+	    } else {
+		fprintf(stderr, "pushstr %ld\n", index);
 	    }
 	    return size;
 	}

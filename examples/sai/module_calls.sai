@@ -5,12 +5,23 @@
 ;     io:format("~w\n", [tfac:fac(N + 2)]).
 
 label 0          ; start(N)
-  push -1
+  loadrr r1 r3
+  pushstr "fac"
+  pushsr r2
+  loadrr r1 r0
+  sys display
+
+
+mcall
+
+
+push -1
   load           ; N
   push 1         ; Arity
   pushs "fac"    ; Module name
   push 0
   mcall          ; fac:fac(N)
+  loadrr r1 r0
   sys display
   pop
   push -1
@@ -22,5 +33,36 @@ label 0          ; start(N)
   pushs "tfac"   ; Module name
   push 0         ; Label
   mcall          ; tfac:fac(N, 1)
+  loadrr r1 r0
+  sys display
+  ret
+
+
+
+
+
+
+
+
+label 0          ; start(N)
+  push -1
+  load           ; N
+  push 1         ; Arity
+  pushs "fac"    ; Module name
+  push 0
+  mcall          ; fac:fac(N)
+  loadrr r1 r0
+  sys display
+  pop
+  push -1
+  load           ; N
+  push 2
+  add            ; N + 2
+  push 1         ; Acc
+  push 2         ; Arity
+  pushs "tfac"   ; Module name
+  push 0         ; Label
+  mcall          ; tfac:fac(N, 1)
+  loadrr r1 r0
   sys display
   ret

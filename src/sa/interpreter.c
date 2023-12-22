@@ -11,15 +11,16 @@ static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
                       vm_stack_value_t* parameters,
 		      vm_arity_t number_of_parameters);
 
-void interpreter_init(interpreter_t *interpreter, uint8_t version) {
-    interpreter->version = version;
+void interpreter_init(interpreter_t *interpreter, loader_t* loader) {
+    interpreter->loader = loader;
 }
 
 void interpreter_clear(interpreter_t *interpreter) {
     (void*)interpreter;
 }
 
-interpreter_result_t interpreter_run(scheduler_t *scheduler) {
+interpreter_result_t interpreter_run(interpreter_t* interpreter,
+				     scheduler_t *scheduler) {
     clock_t start_time = START_TIMER();
     uint32_t instructions_executed = 0;
     interpreter_result_t result;
@@ -48,21 +49,21 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
         }
         fprintf(stderr, "]\n");
         fprintf(stderr, "==> %d:%d: ", job->jid, job->pc);
-        print_instruction(&scheduler->loader->bytecode[job->pc]);
+        print_instruction(&interpreter->loader->bytecode[job->pc]);
 #endif
 #endif
 
         uint32_t current_pc = job->pc;
 
-        if (++job->pc > scheduler->loader->bytecode_size) {
+        if (++job->pc > interpreter->loader->bytecode_size) {
             LOG_ABORT("Unexpected end of bytecode or invalid jump");
         }
 
         // These variables are required by the GET_OPERAND macro
-        uint8_t* operands = &scheduler->loader->bytecode[job->pc];
+        uint8_t* operands = &interpreter->loader->bytecode[job->pc];
         uint32_t size = 0;
 
-        switch (scheduler->loader->bytecode[current_pc]) {
+        switch (interpreter->loader->bytecode[current_pc]) {
 	    // Register machine instructions
 	    case OPCODE_JMPRINEQ: {
 		vm_register_t register_ = GET_OPERAND(vm_register_t);
@@ -230,14 +231,18 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
 		vm_system_call_t system_call = GET_OPERAND(vm_system_call_t);
 		switch (system_call) {
 		    case SYSTEM_CALL_DISPLAY:
-			vm_stack_value_t value =
-			    call_stack_pop(&job->call_stack);
-			fprintf(stderr, "%ld\n", value);
-			job->pc += size;
+			fprintf(stderr, "%ld\n", job->registers[1]);
+			break;
+		    case SYSTEM_CALL_PRINTLN:
+			fprintf(stderr, "%s\n",
+				(char*)static_data_lookup(
+				    &interpreter->loader->static_data,
+				    job->registers[1]));
 			break;
 		    default:
 			LOG_ABORT("Unknown system call");
 		}
+		job->pc += size;
 		break;
 	    }
 	    default:
@@ -256,19 +261,20 @@ interpreter_result_t interpreter_run(scheduler_t *scheduler) {
     return result;
 }
 
-uint32_t interpreter_mspawn(scheduler_t *scheduler, char* module_name,
-                            vm_label_t label, vm_stack_value_t* parameters,
-                            vm_arity_t number_of_parameters,
+uint32_t interpreter_mspawn(interpreter_t* interpreter, scheduler_t *scheduler,
+			    char* module_name, vm_label_t label,
+			    vm_stack_value_t* parameters,
+			    vm_arity_t number_of_parameters,
                             satie_error_t* error) {
     // Ensure that module is loaded
-    if (!loader_is_module_loaded(scheduler->loader, module_name)) {
-        loader_load_module(scheduler->loader, module_name, error);
+    if (!loader_is_module_loaded(interpreter->loader, module_name)) {
+        loader_load_module(interpreter->loader, module_name, error);
         if (error->failed) {
             return 0;
         }
     }
     vm_address_t address =
-        loader_lookup_address(scheduler->loader, module_name, label);
+	loader_lookup_address(interpreter->loader, module_name, label);
     return spawn(scheduler, address, parameters, number_of_parameters);
 }
 

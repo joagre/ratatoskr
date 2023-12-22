@@ -82,6 +82,7 @@ label 20         ; wait_for_all(0)
 
 label 21         ; wait_for_all(N)
   sys recv
+  loadrr r0 r1
   sys display
   pop
   push -1

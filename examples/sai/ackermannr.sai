@@ -11,9 +11,8 @@ label 10
   loadri r1 #3
   loadri r2 #1
   call 0
-  pushr r0
+  loadrr r1 r0
   sys display
-  pop
   ret
 
 label 0            ; Clause ackermann(0, N)
