@@ -7,6 +7,7 @@
 #include "scheduler.h"
 
 // Forward declarations of local functions (alphabetical order)
+static void call(job_t* job, vm_address_t address, size_t size_of_operands);
 static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
                       vm_stack_value_t* parameters,
 		      vm_arity_t number_of_parameters);
@@ -49,7 +50,8 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
         }
         fprintf(stderr, "]\n");
         fprintf(stderr, "==> %d:%d: ", job->jid, job->pc);
-        print_instruction(&interpreter->loader->bytecode[job->pc]);
+        print_instruction(&interpreter->loader->bytecode[job->pc],
+			  &interpreter->loader->static_data);
 #endif
 #endif
 
@@ -179,17 +181,8 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 		break;
 	    }
 	    case OPCODE_CALL: {
-		// Extract address to function
 		vm_address_t address = GET_OPERAND(vm_address_t);
-		// Push return address onto call stack
-		call_stack_push(&job->call_stack,
-				job->pc + sizeof(vm_address_t));
-		// Push previous FP onto call stack
-		call_stack_push(&job->call_stack, job->call_stack.fp);
-		// Set FP to point at return address
-		job->call_stack.fp = call_stack_size(&job->call_stack) - 2;
-		// Jump to function address
-		job->pc = address;
+		call(job, address, size);
 		break;
 	    }
 	    case OPCODE_RET: {
@@ -245,6 +238,47 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 		job->pc += size;
 		break;
 	    }
+            case OPCODE_MCALL:
+		vm_stack_value_t static_data_index =
+		    call_stack_pop(&job->call_stack);
+		LOG_DEBUG("static_data_index = %ld", static_data_index);
+		char* module_name =
+		    (char*)static_data_lookup(&interpreter->loader->static_data,
+					      static_data_index);
+		LOG_DEBUG("module_name = %s", module_name);
+		vm_label_t label = call_stack_pop(&job->call_stack);
+		LOG_DEBUG("label = %d", label);
+                // Ensure that module is loaded
+		satie_error_t error;
+		if (!loader_is_module_loaded(interpreter->loader,
+					     module_name)) {
+		    loader_load_module(interpreter->loader, module_name,
+				       &error);
+		    if (error.failed) {
+			LOG_PANIC("Failed to load module %s", module_name);
+			return INTERPRETER_RESULT_HALT;
+		    }
+		}
+		vm_address_t address =
+		    loader_lookup_address(interpreter->loader, module_name,
+					  label);
+		if (error.failed) {
+		    LOG_PANIC("Failed to call function %d in module  %s",
+			      module_name);
+		    return INTERPRETER_RESULT_HALT;
+		}
+		// Populate parameter registers
+		vm_stack_value_t arity = call_stack_pop(&job->call_stack);
+		LOG_ASSERT(arity < NUMBER_OF_REGISTERS - 1,
+			   "Arity %ld > %d", arity, NUMBER_OF_REGISTERS);
+		for (int i = 0; i < arity; i++) {
+		    vm_stack_value_t parameter =
+			call_stack_pop(&job->call_stack);
+		    LOG_DEBUG("registers[%d] = %ld", i + 1, parameter);
+		    job->registers[i + 1] = parameter;
+		}
+		call(job, address, 0);
+		break;
 	    default:
 		LOG_ABORT("Unknown opcode");
         }
@@ -281,6 +315,17 @@ uint32_t interpreter_mspawn(interpreter_t* interpreter, scheduler_t *scheduler,
 //
 // Local functions (alphabetical order)
 //
+
+void call(job_t* job, vm_address_t address, size_t size_of_operands) {
+    // Push return address onto call stack
+    call_stack_push(&job->call_stack, job->pc + size_of_operands);
+    // Push previous FP onto call stack
+    call_stack_push(&job->call_stack, job->call_stack.fp);
+    // Set FP to point at return address
+    job->call_stack.fp = call_stack_size(&job->call_stack) - 2;
+    // Jump to function address
+    job->pc = address;
+}
 
 static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
                       vm_stack_value_t* parameters,

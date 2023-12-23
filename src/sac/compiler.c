@@ -1,4 +1,4 @@
-//#define MUTE_LOG_DEBUG 1
+#define MUTE_LOG_DEBUG 1
 
 #include <errno.h>
 #include <stdlib.h>
@@ -85,19 +85,23 @@ void compiler_compile(compiler_t* compiler, char* input_filename,
         */
         // Write static data size
         uint32_t data_size = compiler->static_data.size;
+	LOG_DEBUG("data_size = %u", data_size);
         fwrite(&data_size, sizeof(data_size), 1, output_file);
         // Write static data
         fwrite(compiler->static_data.data, data_size, 1, output_file);
         // Write jump table size
         uint32_t jump_table_size = module_jump_table_size(&compiler->module);
+	LOG_DEBUG("jump_table_size = %u", jump_table_size);
         fwrite(&jump_table_size, sizeof(jump_table_size), 1, output_file);
         // Write jump table
         void write_jump_table_entry(vm_label_t label, vm_address_t address) {
+	    LOG_DEBUG("label = %u, address = %u", label, address);
             fwrite(&label, sizeof(label), 1, output_file);
             fwrite(&address, sizeof(address), 1, output_file);
         }
         module_iterate(&compiler->module, write_jump_table_entry);
         // Write bytecode size
+	LOG_DEBUG("bytecode_size = %u", compiler->bytecode_size);
         fwrite(&compiler->bytecode_size, sizeof(compiler->bytecode_size), 1,
                output_file);
         // Write bytecode
@@ -219,6 +223,7 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
 		vm_stack_value_t value =
 		    static_data_insert_string(&compiler->static_data,
 					      naked_string);
+		LOG_DEBUG("Static data %u -> %s", value, naked_string);
 		APPEND_VALUE(compiler, vm_stack_value_t, value);
 		break;
 	    }

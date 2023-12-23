@@ -1,4 +1,4 @@
-//#define MUTE_LOG_DEBUG 1
+#define MUTE_LOG_DEBUG 1
 
 #include <stdio.h>
 #include <errno.h>
@@ -88,8 +88,8 @@ void pretty_print(loader_t* loader) {
     vm_address_t address = 0;
     while (address < loader->bytecode_size) {
         fprintf(stderr, "%d: ", address);
-        address += 1 + print_instruction(&loader->bytecode[address],
-                                         &loader->static_data);
+        address += OPCODE_SIZE + print_instruction(&loader->bytecode[address],
+						   &loader->static_data);
     }
 }
 
@@ -158,10 +158,10 @@ static void load_bytecode(loader_t* loader, module_t* module,
             LOG_DEBUG("String: %s", string);
             vm_stack_value_t data_index =
                 static_data_insert_string(&loader->static_data, string);
-            LOG_DEBUG("Map %u -> %u", local_data_index, data_index);
+            LOG_DEBUG("Static data %u -> %u", local_data_index, data_index);
             static_data_map_insert(&loader->static_data_map,
                                    local_data_index, data_index);
-            local_data_index += data_length;
+            local_data_index += data_length + sizeof(data_length);
             static_data_size -= sizeof(data_length) + data_length;
         } while (static_data_size > 0);
     }
