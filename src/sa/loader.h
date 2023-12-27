@@ -29,13 +29,14 @@ typedef struct {
 
 void loader_init(loader_t* loader, char* load_path);
 void loader_clear(loader_t* loader);
+module_t* loader_lookup_module(loader_t* loader, char *module_name);
 bool loader_is_module_loaded(loader_t* loader, char *module_name);
 vm_address_t loader_lookup_address(loader_t* loader, char *module_name,
                                    vm_label_t label);
 void loader_load_module(loader_t *loader, char* module_name,
                         satie_error_t* error);
-void pretty_print(loader_t* loader);
-void pretty_print_module(loader_t* loader, char* module_name);
+void loader_pretty_print(loader_t* loader);
+void loader_pretty_print_module(loader_t* loader, char* module_name);
 void loader_unit_test(void);
 
 #endif

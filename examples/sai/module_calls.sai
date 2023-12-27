@@ -21,3 +21,4 @@ label 0
    mcall
    loadrr r1 r0
    sys display     ; Print result
+   ret

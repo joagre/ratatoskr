@@ -1,4 +1,4 @@
-EXAMPLES = hello_world fac tfac ackermannr
+EXAMPLES = hello_world fac tfac module_calls ackermannr
 SAB_FILES = $(EXAMPLES:%=%.sab)
 SA=../../bin/sa
 SAC=../../bin/sac
@@ -16,6 +16,10 @@ fac: build
 tfac: build
 	$(SAC) tfac.sai
 	$(SA) tfac 0 5
+
+tfac: module_calls
+	$(SAC) module_calls.sai
+	$(SA) module_calls 0 5
 
 ackermannr: build
 	$(SAC) ackermannr.sai

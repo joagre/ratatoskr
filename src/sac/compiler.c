@@ -108,7 +108,7 @@ void compiler_compile(compiler_t* compiler, char* input_filename,
         fwrite(compiler->bytecode, compiler->bytecode_size, 1, output_file);
         // Free resources
         fclose(output_file);
-        pretty_print(compiler);
+        //pretty_print(compiler);
         CLEAR_ERROR(error);
     }
 }

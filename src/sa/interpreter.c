@@ -5,6 +5,7 @@
 #include "pretty_print.h"
 #include "interpreter.h"
 #include "scheduler.h"
+#include "module.h"
 
 // Forward declarations of local functions (alphabetical order)
 static void call(job_t* job, vm_address_t address, size_t size_of_operands);
@@ -239,6 +240,7 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 		break;
 	    }
             case OPCODE_MCALL:
+		LOG_DEBUG("MCALL");
 		vm_stack_value_t static_data_index =
 		    call_stack_pop(&job->call_stack);
 		LOG_DEBUG("static_data_index = %ld", static_data_index);
@@ -277,6 +279,7 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 		    LOG_DEBUG("registers[%d] = %ld", i + 1, parameter);
 		    job->registers[i + 1] = parameter;
 		}
+		LOG_DEBUG("CAL in MCALL: adress = %d", address);
 		call(job, address, 0);
 		break;
 	    default:

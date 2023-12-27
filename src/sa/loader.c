@@ -38,6 +38,12 @@ void loader_clear(loader_t* loader) {
     static_data_map_clear(&loader->static_data_map);
 }
 
+module_t* loader_lookup_module(loader_t* loader, char *module_name) {
+    module_t* module;
+    lhash_kv_find(&loader->modules, module_name, (void**)&module);
+    return module;
+}
+
 bool loader_is_module_loaded(loader_t* loader, char *module_name) {
     module_t* module;
     return lhash_kv_find(&loader->modules, module_name, (void**)&module) != 0;
@@ -80,11 +86,12 @@ void loader_load_module(loader_t *loader, char* module_name,
         lhash_kv_insert(&loader->modules, (char *)module_name, module);
         CLEAR_ERROR(error);
         LOG_DEBUG("%s has been loaded...", filename);
-        pretty_print_module(loader, module_name);
+	//loader_pretty_print_module(loader, module_name);
+	//module_print_jump_table(module);
     }
 }
 
-void pretty_print(loader_t* loader) {
+void loader_pretty_print(loader_t* loader) {
     vm_address_t address = 0;
     while (address < loader->bytecode_size) {
         fprintf(stderr, "%d: ", address);
@@ -93,7 +100,7 @@ void pretty_print(loader_t* loader) {
     }
 }
 
-void pretty_print_module(loader_t* loader, char* module_name) {
+void loader_pretty_print_module(loader_t* loader, char* module_name) {
     module_t* module;
     lhash_kv_find(&loader->modules, module_name, (void**)&module);
     vm_address_t address = module->start_address;
@@ -191,7 +198,7 @@ static void load_bytecode(loader_t* loader, module_t* module,
             return;
         }
         LOG_DEBUG("Jump table insertion: %u -> %u", label, address);
-        module_insert(module, label, address);
+        module_insert(module, label, address + module->start_address);
     }
     // Read byte code size
     uint32_t byte_code_size = 0;
