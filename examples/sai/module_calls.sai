@@ -6,16 +6,12 @@
 
 label 0
    loadrr r3 r1    ; Remember N
-   pushr r1        ; Push N
-   pushi #1        ; Push arity
    pushi #0        ; Push label
    pushstr "fac"   ; Push module name
    mcall
    loadrr r1 r0
    sys display     ; Print result
    addrri r1 r3 #2 ;
-   pushr r1        ; Push N + 2
-   pushi #1        ; Push arity
    pushi #0        ; Push label
    pushstr "tfac"  ; Push module name
    mcall

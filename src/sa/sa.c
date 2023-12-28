@@ -119,14 +119,14 @@ int main(int argc, char* argv[]) {
             usage(basename(argv[0]));
         }
     }
-    size_t number_of_parameters = argc - optind - 2;
+    size_t arity = argc - optind - 2;
 
     LOG_DEBUG("check_after = %d", check_after);
     LOG_DEBUG("load_path = %s", load_path);
     LOG_DEBUG("time_slice = %d", time_slice);
     LOG_DEBUG("module_name = %s", module_name);
     LOG_DEBUG("label = %d", label);
-    for (size_t i = 0; i < number_of_parameters; i++) {
+    for (size_t i = 0; i < arity; i++) {
         LOG_DEBUG("parameter = %d", parameters[i]);
     }
 
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     // Spawn job according to command line arguments
     interpreter_mspawn(&interpreter, &scheduler, module_name, label, parameters,
-                       number_of_parameters, &error);
+                       arity, &error);
     if (error.failed) {
         satie_print_error(&error);
         return SPAWN_ERROR;

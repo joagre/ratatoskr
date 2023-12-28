@@ -68,9 +68,9 @@ typedef enum {
     OPCODE_JMP,
     OPCODE_MULRRR,
     OPCODE_SYS,
-    OPCODE_MCALL, // FIXME
-    OPCODE_SPAWN, // FIXME
-    OPCODE_MSPAWN, // FIXME
+    OPCODE_MCALL,
+    OPCODE_SPAWN,
+    OPCODE_MSPAWN,
     OPCODE_ENUM_SIZE
 } opcode_t;
 

@@ -130,8 +130,7 @@ uint32_t print_instruction(uint8_t* bytes, static_data_t* static_data) {
 	}
 	case OPCODE_SPAWN: {
 	    vm_address_t address = GET_OPERAND(vm_address_t);
-	    vm_arity_t arity = GET_OPERAND(vm_arity_t);
-	    fprintf(stderr, "spawn %d %d\n", address, arity);
+	    fprintf(stderr, "spawn %d\n", address);
 	    return size;
 	}
 	default:

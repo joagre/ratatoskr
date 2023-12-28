@@ -2,20 +2,9 @@
 ; Run: sa -l ./ ackermann 10
 ; Run: sa -l ./ ackermann 1 3 6
 ;
-; start() ->
-;     ackermann(3, 6).
-;
-; start2() ->
-;     spawn(fun() -> ackermann(3, 6) end),
-;     spawn(fun() -> ackermann(3, 7) end),
-;     spawn(fun() -> fac:fac(10) end).
-;
-; ackermann(0, N) ->
-;     N + 1;
-; ackermann(M, 0) when M > 0 ->
-;     ackermann(M - 1, 1);
-; ackermann(M, N) when M > 0, N > 0 ->
-;     ackermann(M - 1, ackermann(M, N - 1)).
+; star() ->
+;     spawn(fun() -> ackermannr:calc(3, 6) end),
+;     spawn(fun() -> fac:calc(10) end).
 
 label 0          ; start()
   push 3         ; M
@@ -41,56 +30,3 @@ label 10         ; start2()
   push 0         ; Label
   mspawn         ; spawn(fun() -> fac:fac(10) end)
   ret
-
-label 1          ; ackermann(0, N)
-  push -2
-  load           ; M
-  push 0
-  neq            ; M == 0?
-  cjump 2
-  push -1
-  load           ; N
-  push 1
-  add            ; N + 1
-  ret
-
-label 2          ; ackermann(M, 0) when M > 0
-  push -1
-  load           ; N
-  push 0
-  neq
-  cjump 3
-  push -2
-  load           ; M
-  push 0
-  gt             ; M > 0 ?
-  not
-  cjump 3
-  push -2        ; M
-  load
-  push 1
-  sub            ; M - 1
-  push -2
-  store          ; Replace parameter M
-  push 1
-  push -1
-  store          ; Replace parameter N
-  jump 1         ; ackermann(M - 1, 1);
-
-label 3          ; ackermann(M, N) when M > 0, N > 0
-  push -2
-  load           ; M
-  push 1
-  sub            ; M - 1
-  push -2
-  load           ; M
-  push -1
-  load           ; N
-  push 1
-  sub            ; N - 1
-  call 1 2       ; ackermann(M, N - 1)
-  push -1
-  store          ; Replace parameter N
-  push -2
-  store          ; Replace parameter M
-  jump 1         ; ackermann(M - 1, ackermann(M, N - 1))

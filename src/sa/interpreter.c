@@ -10,8 +10,7 @@
 // Forward declarations of local functions (alphabetical order)
 static void call(job_t* job, vm_address_t address, size_t size_of_operands);
 static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
-                      vm_stack_value_t* parameters,
-		      vm_arity_t number_of_parameters);
+		      vm_stack_value_t* parameters, vm_arity_t arity);
 
 void interpreter_init(interpreter_t *interpreter, loader_t* loader) {
     interpreter->loader = loader;
@@ -224,8 +223,19 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 	    case OPCODE_SYS: {
 		vm_system_call_t system_call = GET_OPERAND(vm_system_call_t);
 		switch (system_call) {
-		    case SYSTEM_CALL_DISPLAY:
-			fprintf(stderr, "%ld\n", job->registers[1]);
+		    case SYSTEM_CALL_SELF:
+			call_stack_push(&job->call_stack, job->jid);
+			break;
+		    case SYSTEM_CALL_SEND:
+			scheduler_send_message(scheduler, job->registers[1],
+					       job->registers[2]);
+			break;
+		    case SYSTEM_CALL_RECV:
+			if (mailbox_is_empty(&job->mailbox)) {
+			    --job->pc;
+			    return INTERPRETER_RESULT_RECV;
+			}
+			job->registers[0] = mailbox_dequeue(&job->mailbox);
 			break;
 		    case SYSTEM_CALL_PRINTLN:
 			fprintf(stderr, "%s\n",
@@ -233,14 +243,18 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 				    &interpreter->loader->static_data,
 				    job->registers[1]));
 			break;
+		    case SYSTEM_CALL_DISPLAY:
+			fprintf(stderr, "%ld\n", job->registers[1]);
+			break;
+		    case SYSTEM_CALL_EXIT:
+			return INTERPRETER_RESULT_EXIT;
 		    default:
 			LOG_ABORT("Unknown system call");
 		}
 		job->pc += size;
 		break;
 	    }
-            case OPCODE_MCALL:
-		LOG_DEBUG("MCALL");
+            case OPCODE_MCALL: {
 		vm_stack_value_t static_data_index =
 		    call_stack_pop(&job->call_stack);
 		LOG_DEBUG("static_data_index = %ld", static_data_index);
@@ -266,22 +280,38 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 					  label);
 		if (error.failed) {
 		    LOG_PANIC("Failed to call function %d in module  %s",
-			      module_name);
+			      address, module_name);
 		    return INTERPRETER_RESULT_HALT;
 		}
-		// Populate parameter registers
-		vm_stack_value_t arity = call_stack_pop(&job->call_stack);
-		LOG_ASSERT(arity < NUMBER_OF_REGISTERS - 1,
-			   "Arity %ld > %d", arity, NUMBER_OF_REGISTERS);
-		for (int i = 0; i < arity; i++) {
-		    vm_stack_value_t parameter =
-			call_stack_pop(&job->call_stack);
-		    LOG_DEBUG("registers[%d] = %ld", i + 1, parameter);
-		    job->registers[i + 1] = parameter;
-		}
-		LOG_DEBUG("CAL in MCALL: adress = %d", address);
 		call(job, address, 0);
 		break;
+	    }
+	    case OPCODE_SPAWN: {
+		vm_address_t address = GET_OPERAND(vm_address_t);
+		vm_arity_t arity = call_stack_pop(&job->call_stack);
+		LOG_DEBUG("address = %d", address);
+		job->registers[0] = spawn(scheduler, address, NULL, arity);
+                job->pc += size;
+                break;
+	    }
+	    case OPCODE_MSPAWN: {
+		vm_arity_t arity = call_stack_pop(&job->call_stack);
+		vm_label_t label = call_stack_pop(&job->call_stack);
+		vm_stack_value_t static_data_index =
+		    call_stack_pop(&job->call_stack);
+		char* module_name = (char*)static_data_lookup(
+		    &interpreter->loader->static_data, static_data_index);
+		satie_error_t error;
+		uint32_t jid = interpreter_mspawn(interpreter, scheduler,
+						  module_name, label, NULL,
+						  arity, &error);
+		if (error.failed) {
+		    LOG_PANIC("Failed to spawn module %s", module_name);
+		    return INTERPRETER_RESULT_HALT;
+		}
+		job->registers[0] = jid;
+		break;
+	    }
 	    default:
 		LOG_ABORT("Unknown opcode");
         }
@@ -300,9 +330,8 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 
 uint32_t interpreter_mspawn(interpreter_t* interpreter, scheduler_t *scheduler,
 			    char* module_name, vm_label_t label,
-			    vm_stack_value_t* parameters,
-			    vm_arity_t number_of_parameters,
-                            satie_error_t* error) {
+			    vm_stack_value_t* parameters, vm_arity_t arity,
+			    satie_error_t* error) {
     // Ensure that module is loaded
     if (!loader_is_module_loaded(interpreter->loader, module_name)) {
         loader_load_module(interpreter->loader, module_name, error);
@@ -312,7 +341,7 @@ uint32_t interpreter_mspawn(interpreter_t* interpreter, scheduler_t *scheduler,
     }
     vm_address_t address =
 	loader_lookup_address(interpreter->loader, module_name, label);
-    return spawn(scheduler, address, parameters, number_of_parameters);
+    return spawn(scheduler, address, parameters, arity);
 }
 
 //
@@ -331,10 +360,10 @@ void call(job_t* job, vm_address_t address, size_t size_of_operands) {
 }
 
 static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
-                      vm_stack_value_t* parameters,
-		      vm_arity_t number_of_parameters) {
+                      vm_stack_value_t* parameters, vm_arity_t arity) {
     uint32_t jid = scheduler_next_jid();
-    job_t* job = job_new(jid, address, parameters, number_of_parameters);
+    job_t* job =
+	job_new(scheduler->running_job, jid, address, parameters, arity);
     scheduler_spawn(scheduler, job);
     return jid;
 }

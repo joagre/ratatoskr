@@ -1,4 +1,4 @@
-#define MUTE_LOG_DEBUG 1
+//#define MUTE_LOG_DEBUG 1
 
 #include <errno.h>
 #include <stdlib.h>
@@ -11,8 +11,8 @@
 // Forward declarations of local functions (alphabetical order)
 static void append_bytes(compiler_t* compiler, uint16_t n, uint8_t* bytes);
 static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
-                            char* operands_string,
-                            char operands[][MAX_OPERAND_STRING_SIZE],
+			    char* operands_string,
+			    char operands[][MAX_OPERAND_STRING_SIZE],
                             satie_error_t* error);
 static void generate_bytecode(compiler_t* compiler, FILE* file,
                               satie_error_t* error);
@@ -123,8 +123,8 @@ static void append_bytes(compiler_t* compiler, uint16_t n, uint8_t* bytes) {
 }
 
 static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
-                            char* operands_string,
-                            char operands[][MAX_OPERAND_STRING_SIZE],
+			    char* operands_string,
+			    char operands[][MAX_OPERAND_STRING_SIZE],
                             satie_error_t* error) {
     // Append operands
     for (uint8_t i = 0; i < opcode_info->number_of_operands; i++) {
@@ -180,7 +180,8 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
 		// Stack offsets are prefixed with '@'
 		if (operands[i][0] != '@') {
 		    SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
-				      "Invalid stack offset %s", operands[i]);
+				      "%s: Invalid stack offset %s",
+				      operands[i]);
 		    return;
 		}
 		vm_stack_offset_t stack_offset =
@@ -311,7 +312,7 @@ static void generate_bytecode(compiler_t* compiler, FILE* file,
 
         // Add operand bytes to byte code
         append_operands(compiler, opcode_info, operands_string, operands,
-                        error);
+			error);
         if (error->failed) {
             free(line);
             return;

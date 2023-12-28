@@ -142,8 +142,8 @@ opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
     [OPCODE_SPAWN] = {
         .opcode = OPCODE_SPAWN,
         .string = "spawn",
-        .operands = {OPERAND_LABEL, OPERAND_ARITY},
-        .number_of_operands = 2
+        .operands = OPERAND_LABEL,
+        .number_of_operands = 1
     },
     [OPCODE_MSPAWN] = {
         .opcode = OPCODE_MSPAWN,
