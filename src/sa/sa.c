@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     interpreter_mspawn(&interpreter, &scheduler, module_name, label, parameters,
                        arity, &error);
     if (error.failed) {
-        satie_print_error(&error);
+	LOG_SATIE_ERROR(LOG_LEVEL_ERROR, &error);
         return SPAWN_ERROR;
     }
 

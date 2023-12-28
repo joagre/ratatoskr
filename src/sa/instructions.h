@@ -7,54 +7,69 @@ opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
     [OPCODE_JMPRINEQ] = {
         .opcode = OPCODE_JMPRINEQ,
         .string = "jmprineq",
-        .operands = {OPERAND_REGISTER,
-                     OPERAND_IMMEDIATE_VALUE,
-                     OPERAND_LABEL},
+        .operands = {
+	    OPERAND_REGISTER,
+	    OPERAND_IMMEDIATE_VALUE,
+	    OPERAND_LABEL
+	},
         .number_of_operands = 3
     },
     [OPCODE_JMPRNZE] = {
         .opcode = OPCODE_JMPRNZE,
         .string = "jmprnze",
-        .operands = {OPERAND_REGISTER, OPERAND_LABEL},
+        .operands = {
+	    OPERAND_REGISTER,
+	    OPERAND_LABEL
+	},
         .number_of_operands = 2
     },
     [OPCODE_JMPRINGT] = {
         .opcode = OPCODE_JMPRINGT,
         .string = "jmpringt",
-        .operands = {OPERAND_REGISTER,
-                     OPERAND_IMMEDIATE_VALUE,
-                     OPERAND_LABEL},
+        .operands = {
+	    OPERAND_REGISTER,
+	    OPERAND_IMMEDIATE_VALUE,
+	    OPERAND_LABEL
+	},
         .number_of_operands = 3
     },
     [OPCODE_SUBRRI] = {
         .opcode = OPCODE_SUBRRI,
         .string = "subrri",
-        .operands = {OPERAND_REGISTER,
-                     OPERAND_REGISTER,
-                     OPERAND_IMMEDIATE_VALUE},
+        .operands = {
+	    OPERAND_REGISTER,
+	    OPERAND_REGISTER,
+	    OPERAND_IMMEDIATE_VALUE
+	},
         .number_of_operands = 3
     },
     [OPCODE_SUBRSI] = {
         .opcode = OPCODE_SUBRSI,
         .string = "subrsi",
-        .operands = {OPERAND_REGISTER,
-                     OPERAND_STACK_OFFSET,
-                     OPERAND_IMMEDIATE_VALUE},
+        .operands = {
+	    OPERAND_REGISTER,
+	    OPERAND_STACK_OFFSET,
+	    OPERAND_IMMEDIATE_VALUE
+	},
         .number_of_operands = 3
     },
     [OPCODE_ADDRRI] = {
         .opcode = OPCODE_ADDRRI,
         .string = "addrri",
-        .operands = {OPERAND_REGISTER,
-                     OPERAND_REGISTER,
-                     OPERAND_IMMEDIATE_VALUE},
+        .operands = {
+	    OPERAND_REGISTER,
+	    OPERAND_REGISTER,
+	    OPERAND_IMMEDIATE_VALUE
+	},
         .number_of_operands = 3
     },
     [OPCODE_LOADRI] = {
         .opcode = OPCODE_LOADRI,
         .string = "loadri",
-        .operands = {OPERAND_REGISTER,
-                     OPERAND_IMMEDIATE_VALUE},
+        .operands = {
+	    OPERAND_REGISTER,
+	    OPERAND_IMMEDIATE_VALUE
+	},
         .number_of_operands = 2
     },
     [OPCODE_PUSHI] = {
@@ -90,15 +105,19 @@ opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
     [OPCODE_LOADRS] = {
         .opcode = OPCODE_LOADRS,
         .string = "loadrs",
-        .operands = {OPERAND_REGISTER,
-                     OPERAND_STACK_OFFSET},
+        .operands = {
+	    OPERAND_REGISTER,
+	    OPERAND_STACK_OFFSET
+	},
         .number_of_operands = 2
     },
     [OPCODE_LOADRR] = {
         .opcode = OPCODE_LOADRR,
         .string = "loadrr",
-        .operands = {OPERAND_REGISTER,
-                     OPERAND_REGISTER},
+        .operands = {
+	    OPERAND_REGISTER,
+	    OPERAND_REGISTER
+	},
         .number_of_operands = 2
     },
     [OPCODE_CALL] = {
@@ -122,9 +141,11 @@ opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
     [OPCODE_MULRRR] = {
         .opcode = OPCODE_MULRRR,
         .string = "mulrrr",
-        .operands = {OPERAND_REGISTER,
-                     OPERAND_REGISTER,
-                     OPERAND_REGISTER},
+        .operands = {
+	    OPERAND_REGISTER,
+	    OPERAND_REGISTER,
+	    OPERAND_REGISTER
+	},
         .number_of_operands = 3
     },
     [OPCODE_SYS] = {
@@ -142,7 +163,7 @@ opcode_info_t opcode_info_map[OPCODE_ENUM_SIZE] = {
     [OPCODE_SPAWN] = {
         .opcode = OPCODE_SPAWN,
         .string = "spawn",
-        .operands = OPERAND_LABEL,
+        .operands = {OPERAND_LABEL},
         .number_of_operands = 1
     },
     [OPCODE_MSPAWN] = {

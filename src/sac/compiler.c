@@ -16,7 +16,7 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
                             satie_error_t* error);
 static void generate_bytecode(compiler_t* compiler, FILE* file,
                               satie_error_t* error);
-static void pretty_print(compiler_t* compiler);
+//static void pretty_print(compiler_t* compiler);
 static void purge_line(char *purged_line, char *line);
 
 void compiler_init(compiler_t* compiler) {
@@ -180,8 +180,7 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
 		// Stack offsets are prefixed with '@'
 		if (operands[i][0] != '@') {
 		    SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
-				      "%s: Invalid stack offset %s",
-				      operands[i]);
+				      "Invalid stack offset %s", operands[i]);
 		    return;
 		}
 		vm_stack_offset_t stack_offset =
@@ -322,6 +321,7 @@ static void generate_bytecode(compiler_t* compiler, FILE* file,
     CLEAR_ERROR(error);
 }
 
+/*
 static void pretty_print(compiler_t* compiler) {
     vm_address_t address = 0;
     while (address < compiler->bytecode_size) {
@@ -330,6 +330,7 @@ static void pretty_print(compiler_t* compiler) {
                                          &compiler->static_data);
     }
 }
+*/
 
 static void purge_line(char *purged_line, char *line) {
     // Remove heading whitespaces and comment rows

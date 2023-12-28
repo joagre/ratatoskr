@@ -32,7 +32,8 @@ typedef enum {
     COMPONENT_VM,
     COMPONENT_LOADER,
     COMPONENT_INTERPRETER,
-    COMPONENT_COMPILER
+    COMPONENT_COMPILER,
+    COMPONENT_SCHEDULER
 } satie_component_t;
 
 #define SET_ERROR_NONE(error, component) ({ \
@@ -73,6 +74,6 @@ typedef enum {
 #define GET_COMPONENT(error) ((error)->flags >> 8)
 #define GET_ERROR_TYPE(error) ((error)->flags & 0xFF)
 
-void satie_print_error(satie_error_t *error);
+char* satie_error_to_string(satie_error_t *error, char* buf, size_t bufsiz);
 
 #endif

@@ -227,8 +227,14 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 			call_stack_push(&job->call_stack, job->jid);
 			break;
 		    case SYSTEM_CALL_SEND:
-			scheduler_send_message(scheduler, job->registers[1],
-					       job->registers[2]);
+			vm_stack_value_t jid = job->registers[1];
+			vm_stack_value_t value = job->registers[2];
+			satie_error_t error;
+			scheduler_send_message(scheduler, jid, value, &error);
+			if (error.failed) {
+			    LOG_SATIE_ERROR(LOG_LEVEL_ERROR, &error);
+			    return INTERPRETER_RESULT_HALT;
+			}
 			break;
 		    case SYSTEM_CALL_RECV:
 			if (mailbox_is_empty(&job->mailbox)) {

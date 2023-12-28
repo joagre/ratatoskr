@@ -1,21 +1,23 @@
 label 0
-  pushi #2
+  pushi #3
   loadri r1 #3
   loadri r2 #1
+  sys self
+  popr r3
   spawn 12
   loadrr r1 r0
   sys display
-  sys recv
+  ;sys recv
+  ;loadrr r1 r0
+  ;sys display
   ret
 
 label 12          ; fun(Self, N)
   pushi #0
+  pushr r3        ; Remember Self
   pushstr "ackermannr"
   mcall
-  loadrr r1 r0
-  sys display
-  pushstr "ackermanr done"
-  popr r1
-  sys println
-
+  loadrr r1 r3    ; Self
+  loadrr r2 r0    ; Result
+  sys send
   ret

@@ -70,10 +70,10 @@ void scheduler_spawn(scheduler_t* scheduler, job_t* job) {
 }
 
 void scheduler_send_message(scheduler_t* scheduler, uint32_t jid,
-                            vm_stack_value_t value) {
+                            vm_stack_value_t value, satie_error_t* error) {
     job_t* job = find_job(scheduler, jid);
     if (job == NULL) {
-        LOG_ABORT("Job %d not found", jid);
+	SET_ERROR_MESSAGE(error, COMPONENT_SCHEDULER, "Job %d not found", jid);
     } else {
         mailbox_enqueue(&job->mailbox, value);
         if (job->mode == JOB_MODE_WAITING) {

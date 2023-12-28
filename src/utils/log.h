@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "satie_error.h"
 
 typedef enum {
     LOG_LEVEL_DEBUG,
@@ -14,15 +15,26 @@ typedef enum {
 
 void log_entry(log_level_t log_level, char* file, uint32_t line, char* format,
                ...);
+void log_satie_error(log_level_t log_level, char* file, uint32_t line,
+		     satie_error_t* error);
 void log_abort(char* file, uint32_t line, char* message, ...);
 void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 
 #ifdef DEBUG
 
+// LOG_SATIE_ERROR
+#ifndef MUTE_LOG_SATIE_ERROR
+#define LOG_SATIE_ERROR(log_level, error) ({			   \
+	    log_satie_error(log_level, __FILE__, __LINE__, error); \
+})
+#else
+#define LOG_SATIE_ERROR(log_level, error) ((void)0)
+#endif
+
 // LOG_DEBUG
 #ifndef MUTE_LOG_DEBUG
-#define LOG_DEBUG(message, ...) ({           \
-  log_entry(LOG_LEVEL_DEBUG, __FILE__ , __LINE__, message, ##__VA_ARGS__); \
+#define LOG_DEBUG(message, ...) ({ \
+    log_entry(LOG_LEVEL_DEBUG, __FILE__ , __LINE__, message, ##__VA_ARGS__); \
 })
 #else
 #define LOG_DEBUG(message, ...) ((void)0)
@@ -30,7 +42,7 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 
 // LOG_INFO
 #ifndef MUTE_LOG_INFO
-#define LOG_INFO(message, ...) ({           \
+#define LOG_INFO(message, ...) ({ \
     log_entry(LOG_LEVEL_INFO, __FILE__ , __LINE__, message, ##__VA_ARGS__); \
 })
 #else
@@ -39,7 +51,7 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 
 // LOG_WARNING
 #ifndef MUTE_LOG_WARNING
-#define LOG_WARNING(message, ...) ({           \
+#define LOG_WARNING(message, ...) ({ \
     log_entry(LOG_LEVEL_WARNING, __FILE__, __LINE__, message, ##__VA_ARGS__); \
 })
 #else
@@ -47,7 +59,7 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 #endif
 
 // LOG_ERROR
-#define LOG_ERROR(message, ...) ({     \
+#define LOG_ERROR(message, ...) ({ \
     log_entry(LOG_LEVEL_ERROR, __FILE__, __LINE__, message, ##__VA_ARGS__); \
 })
 
@@ -68,6 +80,7 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 
 #else
 
+#define LOG_SATIE_ERROR(log_level, error) ((void)0)
 #define LOG_DEBUG(message, ...) ((void)0)
 #define LOG_INFO(message, ...) ((void)0)
 #define LOG_WARNING(message, ...) ((void)0)

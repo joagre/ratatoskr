@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     compiler_compile(&compiler, filename, output_directory, &error);
     if (error.failed) {
         compiler_clear(&compiler);
-        satie_print_error(&error);
+	LOG_SATIE_ERROR(LOG_LEVEL_ERROR, &error);
         return COMPILE_ERROR;
     } else {
         compiler_clear(&compiler);

@@ -29,6 +29,13 @@ void log_entry(log_level_t log_level, char* file, uint32_t line, char* format,
     va_end(args);
 }
 
+void log_satie_error(log_level_t log_level, char* file, uint32_t line,
+		     satie_error_t* error) {
+    char buf[1024];
+    log_entry(log_level, file, line, "%s",
+	      satie_error_to_string(error, buf, sizeof(buf)));
+}
+
 void log_abort(char* file, uint32_t line, char* message, ...) {
     va_list args;
     va_start(args, message);
