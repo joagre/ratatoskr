@@ -1,4 +1,4 @@
-cd # Milestones and thoughts
+# Releases
 
 ## Version 0.1
 
@@ -14,18 +14,18 @@ cd # Milestones and thoughts
 
 ## Version 0.2
 
+* GC
+
+## Version 0.3
+
+* Persistent datatypes
+
+## Version 0.4
+
 * Add a unitest construct in Satie ala D
 * Basic set of standard libraries
 * Basic REPL
 * Basic package manager
-
-## Version 0.3
-
-* GC
-
-## Version 0.4
-
-* Persistent datatypes
 
 ## Version 0.5
 
