@@ -284,11 +284,6 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 		vm_address_t address =
 		    loader_lookup_address(interpreter->loader, module_name,
 					  label);
-		if (error.failed) {
-		    LOG_PANIC("Failed to call function %d in module  %s",
-			      address, module_name);
-		    return INTERPRETER_RESULT_HALT;
-		}
 		call(job, address, 0);
 		break;
 	    }

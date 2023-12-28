@@ -81,6 +81,7 @@ void scheduler_send_message(scheduler_t* scheduler, uint32_t jid,
             job->mode = JOB_MODE_READY;
             ready_queue_enqueue(&scheduler->ready_queue, job);
         }
+	CLEAR_ERROR(error);
     }
 }
 

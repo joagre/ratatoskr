@@ -1,23 +1,78 @@
-label 0
-  pushi #3
-  loadri r1 #3
-  loadri r2 #1
-  sys self
-  popr r3
-  spawn 12
-  loadrr r1 r0
-  sys display
-  sys recv
-  loadrr r1 r0
-  sys display
+; Run: sa -l ./ message_passing 0 7
+;
+; start(N) ->
+;     spawn_all(self(), N),
+;     wait_for_all(N).
+;
+; spawn_all(_Self, 0) ->
+;     io:format("All jobs have been started\n");
+; spawn_all(Self, N) ->
+;     spawn(fun() -> Self ! ackermann:ackermann(3, N) end),
+;     spawn_all(Self, N - 1).
+;
+; wait_for_all(0) ->
+;     io:format("All jobs have returned a result\n");
+; wait_for_all(N) ->
+;     receive
+;         Result ->
+;             io:format("~w\n",  [Result]),
+;             wait_for_all(N - 1)
+;    end.
+
+label 0           ; start(N)
+  pushr r1        ; Remember N
+  sys self        ; self()
+  popr r1
+  loadrs r2 @0    ; N
+  call 10         ; spawn_all(self(), N),
+  popr r1         ; N
+  call 20         ; wait_for_all(N).
+  ret
+
+label 10          ; spawn_all(_Self, 0)
+  jmprnze r2 11
+  pushstr "All jobs have been started"
+  popr r1
+  sys println
+  ret
+
+label 11          ; spawn_all(Self, N)
+  pushr r2        ; Remember N
+  pushr r1        ; Remember Self
+  pushi #2
+  spawn 12        ; fun() -> Self ! ackermann:ackermann(3, N) end)
+  popr r1         ; Self
+  popr r2         ; N
+  subrri r2 r2 #1 ; N - 1
+  call 10         ; spawn_all(Self, N - 1)
   ret
 
 label 12          ; fun(Self, N)
+  pushr r1        ; Remember Self
+  pushr r2        ; Remember N
+  loadri r1 #3
+  popr r2
   pushi #0
-  pushr r3        ; Remember Self
   pushstr "ackermannr"
   mcall
-  loadrr r1 r3    ; Self
-  loadrr r2 r0    ; Result
+  popr r1
+  loadrr r2 r0
   sys send
+  ret
+
+label 20          ; wait_for_all(0)
+  jmprnze r1 21
+  pushstr "All jobs have returned a result"
+  popr r1
+  sys println
+  ret
+
+label 21          ; wait_for_all(N)
+  pushr r1        ; Remember N
+  sys recv
+  loadrr r1 r0
+  sys display
+  popr r1
+  subrri r1 r1 #1
+  call 20         ; wait_for_all(N - 1)
   ret

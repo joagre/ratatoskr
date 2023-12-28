@@ -27,7 +27,7 @@ ackermannr: build
 
 message_passing: build
 	$(SAC) message_passing.sai
-	$(SA) message_passing 0 5
+	$(SA) message_passing 0 6
 
 build:
 	(cd ../../src/sa; $(MAKE) all)
