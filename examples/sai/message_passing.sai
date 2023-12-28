@@ -7,9 +7,9 @@ label 0
   spawn 12
   loadrr r1 r0
   sys display
-  ;sys recv
-  ;loadrr r1 r0
-  ;sys display
+  sys recv
+  loadrr r1 r0
+  sys display
   ret
 
 label 12          ; fun(Self, N)
