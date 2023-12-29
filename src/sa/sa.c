@@ -119,14 +119,14 @@ int main(int argc, char* argv[]) {
             usage(basename(argv[0]));
         }
     }
-    size_t arity = argc - optind - 2;
+    uint8_t arity = argc - optind - 2;
 
     LOG_DEBUG("check_after = %d", check_after);
     LOG_DEBUG("load_path = %s", load_path);
     LOG_DEBUG("time_slice = %d", time_slice);
     LOG_DEBUG("module_name = %s", module_name);
     LOG_DEBUG("label = %d", label);
-    for (size_t i = 0; i < arity; i++) {
+    for (uint8_t i = 0; i < arity; i++) {
         LOG_DEBUG("parameter = %d", parameters[i]);
     }
 

@@ -31,6 +31,6 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 uint32_t interpreter_mspawn(interpreter_t* interpreter,
 			    struct scheduler* scheduler, char* module_name,
 			    vm_label_t label, vm_stack_value_t* parameters,
-			    vm_arity_t arity, satie_error_t* error);
+			    uint8_t arity, satie_error_t* error);
 
 #endif

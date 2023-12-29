@@ -23,7 +23,7 @@ typedef struct {
 } job_t;
 
 job_t* job_new(job_t* parent_job, uint32_t jid, vm_address_t pc,
-	       vm_stack_value_t* parameters, vm_arity_t arity);
+	       vm_stack_value_t* parameters, uint8_t arity);
 void job_free(job_t* job);
 
 #endif

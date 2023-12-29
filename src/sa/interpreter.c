@@ -10,7 +10,7 @@
 // Forward declarations of local functions (alphabetical order)
 static void call(job_t* job, vm_address_t address, size_t size_of_operands);
 static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
-		      vm_stack_value_t* parameters, vm_arity_t arity);
+		      vm_stack_value_t* parameters, uint8_t arity);
 
 void interpreter_init(interpreter_t *interpreter, loader_t* loader) {
     interpreter->loader = loader;
@@ -289,14 +289,14 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 	    }
 	    case OPCODE_SPAWN: {
 		vm_address_t address = GET_OPERAND(vm_address_t);
-		vm_arity_t arity = call_stack_pop(&job->call_stack);
+		vm_stack_value_t arity = call_stack_pop(&job->call_stack);
 		LOG_DEBUG("address = %d", address);
 		job->registers[0] = spawn(scheduler, address, NULL, arity);
                 job->pc += size;
                 break;
 	    }
 	    case OPCODE_MSPAWN: {
-		vm_arity_t arity = call_stack_pop(&job->call_stack);
+		vm_stack_value_t arity = call_stack_pop(&job->call_stack);
 		vm_label_t label = call_stack_pop(&job->call_stack);
 		vm_stack_value_t static_data_index =
 		    call_stack_pop(&job->call_stack);
@@ -331,7 +331,7 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 
 uint32_t interpreter_mspawn(interpreter_t* interpreter, scheduler_t *scheduler,
 			    char* module_name, vm_label_t label,
-			    vm_stack_value_t* parameters, vm_arity_t arity,
+			    vm_stack_value_t* parameters, uint8_t arity,
 			    satie_error_t* error) {
     // Ensure that module is loaded
     if (!loader_is_module_loaded(interpreter->loader, module_name)) {
@@ -361,7 +361,7 @@ void call(job_t* job, vm_address_t address, size_t size_of_operands) {
 }
 
 static uint32_t spawn(scheduler_t* scheduler, vm_address_t address,
-                      vm_stack_value_t* parameters, vm_arity_t arity) {
+                      vm_stack_value_t* parameters, uint8_t arity) {
     uint32_t jid = scheduler_next_jid();
     job_t* job =
 	job_new(scheduler->running_job, jid, address, parameters, arity);

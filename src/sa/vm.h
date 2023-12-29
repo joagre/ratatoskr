@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "satie_error.h"
 
+#define MAX_FILENAME_SIZE 1024
 #define NUMBER_OF_REGISTERS 64
 #define MAX_OPCODE_STRING_SIZE 16
 #define MAX_OPERANDS_STRING_SIZE 128
@@ -33,7 +34,6 @@ typedef uint32_t vm_address_t;
 typedef int64_t  vm_immediate_value_t;
 typedef uint32_t vm_stack_offset_t;
 typedef uint16_t vm_data_length_t;
-typedef uint8_t  vm_arity_t;
 typedef uint16_t vm_system_call_t;
 
 /*
@@ -80,7 +80,6 @@ typedef enum {
     OPERAND_LABEL,
     OPERAND_IMMEDIATE_VALUE,
     OPERAND_STACK_OFFSET,
-    OPERAND_ARITY,
     OPERAND_SYSTEM_CALL,
     OPERAND_STRING
 } operand_t;

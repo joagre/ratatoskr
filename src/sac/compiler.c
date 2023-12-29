@@ -1,4 +1,4 @@
-#define MUTE_LOG_DEBUG 1
+//#define MUTE_LOG_DEBUG 1
 
 #include <errno.h>
 #include <stdlib.h>
@@ -44,18 +44,14 @@ void compiler_compile(compiler_t* compiler, char* input_filename,
 
     // Open output file
     char* module_name = strip_extension(basename(input_filename));
-    uint16_t output_filename_length =
-        strlen(output_directory) +
-        strlen("/") +
-        strlen(module_name) +
-        strlen(".sab");
-    char output_filename[output_filename_length];
-    snprintf(output_filename, MAX_ERROR_MESSAGE_SIZE, "%s/%s.sab",
+    char output_filename[MAX_FILENAME_SIZE];
+    snprintf(output_filename, MAX_FILENAME_SIZE, "%s/%s.sab",
              output_directory, module_name);
+
     FILE* output_file;
     if ((output_file = fopen(output_filename, "w")) == NULL) {
-        SET_ERROR_ERRNO(error, COMPONENT_COMPILER);
         fclose(input_file);
+	SET_ERROR_ERRNO(error, COMPONENT_COMPILER);
         return;
     }
 
@@ -83,6 +79,7 @@ void compiler_compile(compiler_t* compiler, char* input_filename,
           bytecode_size: sizeof(uint32_t) bytes
           bytecode: bytecode_size bytes
         */
+
         // Write static data size
         uint32_t data_size = compiler->static_data.size;
 	LOG_DEBUG("data_size = %u", data_size);
@@ -190,14 +187,6 @@ static void append_operands(compiler_t* compiler, opcode_info_t *opcode_info,
 		}
 		stack_offset += STACK_FRAME_HEADER_SIZE;
 		APPEND_VALUE(compiler, vm_stack_offset_t, stack_offset);
-		break;
-	    }
-	    case OPERAND_ARITY: {
-		vm_arity_t arity = string_to_long(operands[i], error);
-		if (error->failed) {
-		    return;
-		}
-		APPEND_VALUE(compiler, vm_arity_t, arity);
 		break;
 	    }
 	    case OPERAND_SYSTEM_CALL: {

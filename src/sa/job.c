@@ -2,7 +2,7 @@
 #include "job.h"
 
 job_t* job_new(job_t* parent_job, uint32_t jid, vm_address_t pc,
-	       vm_stack_value_t* parameters, vm_arity_t arity) {
+	       vm_stack_value_t* parameters, uint8_t arity) {
     LOG_ASSERT(arity + 1 < NUMBER_OF_REGISTERS,
                "Register arity %d > %d", arity, NUMBER_OF_REGISTERS - 1);
 
@@ -22,11 +22,11 @@ job_t* job_new(job_t* parent_job, uint32_t jid, vm_address_t pc,
     // Initialize registers
     memset(job->registers, 0, sizeof(vm_stack_value_t) * NUMBER_OF_REGISTERS);
     if (parameters == NULL) {
-	for (vm_arity_t i = 0; i < arity; i++) {
+	for (uint8_t i = 0; i < arity; i++) {
 	    job->registers[i + 1] = parent_job->registers[i + 1];
 	}
     } else {
-	for (vm_arity_t i = 0; i < arity; i++) {
+	for (uint8_t i = 0; i < arity; i++) {
 	    job->registers[i + 1] = parameters[i];
 	}
     }

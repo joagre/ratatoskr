@@ -1,4 +1,4 @@
-EXAMPLES = hello_world fac tfac module_calls ackermannr message_passing
+EXAMPLES = hello_world fac tfac module_calls ackermannr message_passing ackermann
 SAB_FILES = $(EXAMPLES:%=%.sab)
 SA=../../bin/sa
 SAC=../../bin/sac
@@ -28,6 +28,10 @@ ackermannr: build
 message_passing: build
 	$(SAC) message_passing.sai
 	$(SA) message_passing 0 6
+
+ackermann: build
+	$(SAC) ackermann.sai
+	$(SA) ackermann 0 3 6
 
 build:
 	(cd ../../src/sa; $(MAKE) all)

@@ -37,13 +37,13 @@ typedef enum {
 } satie_component_t;
 
 #define SET_ERROR_NONE(error, component) ({ \
-    if (error) { \
+    if (error != NULL) { \
         (error)->failed = true; \
         (error)->flags = (((uint16_t)(component) << 8) | ERROR_TYPE_NONE); \
     } \
 })
 #define SET_ERROR_CODE(error, component, code) ({    \
-    if (error) { \
+    if (error != NULL) { \
         (error)->failed = true; \
         (error)->flags = (((uint16_t)(component) << 8) | ERROR_TYPE_CODE); \
         (error)->code = (code); \
@@ -57,14 +57,14 @@ typedef enum {
     } \
 })
 #define SET_ERROR_MESSAGE(error, component, format, ...) ({ \
-    if (error) { \
+    if (error != NULL) { \
         (error)->failed = true; \
         (error)->flags = (((uint16_t)(component) << 8) | ERROR_TYPE_MESSAGE); \
         snprintf(satie_error_message, MAX_ERROR_MESSAGE_SIZE, format, ##__VA_ARGS__); \
     } \
 })
 #define CLEAR_ERROR(error) ({ \
-    if (error) { \
+    if (error != NULL) { \
         (error)->failed = false; \
         (error)->flags = 0; \
     } \

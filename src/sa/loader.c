@@ -59,13 +59,9 @@ vm_address_t loader_lookup_address(loader_t* loader, char *module_name,
 void loader_load_module(loader_t *loader, char* module_name,
                         satie_error_t* error) {
     // Open bytecode file
-    uint16_t filename_length =
-        strlen(loader->load_path) +
-        strlen("/") +
-        strlen(module_name) +
-        strlen(".sab");
-    char filename[filename_length];
-    sprintf(filename, "%s/%s.sab", loader->load_path, module_name);
+    char filename[MAX_FILENAME_SIZE];
+    snprintf(filename, MAX_FILENAME_SIZE, "%s/%s.sab", loader->load_path,
+	     module_name);
     FILE* file;
     if ((file = fopen(filename, "r")) == NULL) {
         SET_ERROR_ERRNO(error, COMPONENT_LOADER);
@@ -290,9 +286,6 @@ static uint16_t size_of_operands(opcode_t opcode) {
 		break;
 	    case OPERAND_STACK_OFFSET:
 		size += sizeof(vm_stack_offset_t);
-		break;
-	    case OPERAND_ARITY:
-		size += sizeof(vm_arity_t);
 		break;
 	    case OPERAND_SYSTEM_CALL:
 		size += sizeof(vm_system_call_t);
