@@ -2,7 +2,7 @@
 
 ## Version 0.1
 
-* [ ] Make sure that all examples/*.sai works
+* [x] Make sure that all examples/*.sai works
 * [ ] Dive into Hindley-Milner type inference
 * [ ] Update `README.md` to a shining condition
 * [ ] Update `SAI.md` to a shining condition
