@@ -174,6 +174,45 @@ label 2            ; fac(N, Acc)
   jmp 1            ; fac(N - 1, N * Acc)
 ```
 
+## Example: Ackermann
+
+```
+; Run: sa ackermann 0 3 6
+;
+; ackermann(0, N) ->
+;     N + 1;
+; ackermann(M, 0) ->
+;     ackermann(M - 1, 1);
+; ackermann(M, N) ->
+;     ackermann(M - 1, ackermann(M, N - 1)).
+
+label 10
+  call 0
+  loadrr r1 r0
+  sys display
+  ret
+
+label 0            ; ackermann(0, N)
+  jmprnze r1 1
+  addrri r0 r2 #1
+  ret
+
+label 1            ; ackermann(M, 0)
+  jmprnze r2 2
+  subrri r1 r1 #1
+  loadri r2 #1
+  jmp 0            ; ackermann(M - 1, 1);
+
+label 2            ; Clause ackermann(M, N)
+  pushr r1
+  subrri r2 r2 #1
+  call 0          ; ackermann(M, N - 1)
+  subrsi r1 @0 #1
+  loadrr r2 r0
+  pop
+  jmp 0            ; ackermann(M - 1, ackermann(M, N - 1)).
+```
+
 ## Example: Inter-module calling
 
 ```

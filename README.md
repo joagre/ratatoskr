@@ -233,6 +233,8 @@ export fn main() {
             <?iterator, ?color> := iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
+        } else {
+            true
         }
     },
     iterate(iterator)
@@ -1521,11 +1523,14 @@ MinusExpr <- l:MinusExpr _ "-" _ e:PlusExpr { $$ = CN(MINUS, 2, l, e); } / e:Plu
 PlusExpr <- l:PlusExpr _ "+" _ e:ModulusExpr { $$ = CN(PLUS, 2, l, e); } / e:ModulusExpr { $$ = e; }
 ModulusExpr <- l:ModulusExpr _ "%" _ e:DivideExpr { $$ = CN(MODULUS, 2, l, e); } / e:DivideExpr { $$ = e; }
 DivideExpr <- l:DivideExpr _ "/" _ e:MultiplicateExpr { $$ = CN(DIVIDE, 2, l, e); } / e:MultiplicateExpr { $$ = e; }
-MultiplicateExpr <- l:MultiplicateExpr _ "*" _ e:ExponentiationExpr { $$ = CN(MULTIPLY, 2, l, e); } /
+MultiplicateExpr <- l:MultiplicateExpr _ "*" _ e:FloatMinusExpr { $$ = CN(MULTIPLY, 2, l, e); } /
+                    e:FloatMinusExpr { $$ = e; }
+FloatMinusExpr <- l:FloatMinusExpr _ "-." _ e:FloatPlusExpr { $$ = CN(MINUS, 2, l, e); } / e:FloatPlusExpr { $$ = e; }
+FloatPlusExpr <- l:FloatPlusExpr _ "+." _ e:FloatDivideExpr { $$ = CN(PLUS, 2, l, e); } / e:FloatDivideExpr { $$ = e; }
+FloatDivideExpr <- l:FloatDivideExpr _ "/." _ e:FloatMultiplicateExpr { $$ = CN(DIVIDE, 2, l, e); } / e:FloatMultiplicateExpr { $$ = e; }
+FloatMultiplicateExpr <- l:FloatMultiplicateExpr _ "*." _ e:ExponentiationExpr { $$ = CN(MULTIPLY, 2, l, e); } /
                     e:ExponentiationExpr { $$ = e; }
-ExponentiationExpr <- l:ExponentiationExpr _ "^^" _ e:CastExpr { $$ = CN(EXPONENTIATE, 2, l, e); } / e:CastExpr { $$ = e; }
-CastExpr <- "cast" _ "(" _ t:Type _ ")" _ e:BitwiseComplementExpr { $$ = CN(CAST, 2, t, e); } /
-            e:BitwiseComplementExpr { $$ = e; }
+ExponentiationExpr <- l:ExponentiationExpr _ "^^" _ e:BitwiseComplementExpr { $$ = CN(EXPONENTIATE, 2, l, e); } / e:BitwiseComplementExpr { $$ = e; }
 BitwiseComplementExpr <- "~" _ e:NotExpr { $$ = CN(BITWISE_COMPLEMENT, 1, e); } / e:NotExpr { $$ = e; }
 NotExpr <- "!" _ e:UnaryPlusExpr { $$ = CN(NOT, 1, e); } / e:UnaryPlusExpr { $$ = e; }
 UnaryPlusExpr <- "+" _ e:UnaryMinusExpr { $$ = CN(UNARY_PLUS, 1, e); } / e:UnaryMinusExpr { $$ = e; }
@@ -1537,8 +1542,6 @@ PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX_EXPR, 1, p); }
                  _ "[" _ m:MapKeyValues _ "]" { AC($$, RN(m, MAP_UPDATE)); } /
                  _ "[" _ e:Expr _ "]" { AC($$, RN(e, LIST_LOOKUP)); } /
                  _ "(" _ a:Args? _ ")" { AC($$, CN(FUNCTION_CALL, 1, a)); })*)
-
-Type <- "int" { $$ = CT(INT_TYPE, NULL); } / "float" { $$ = CT(FLOAT_TYPE, NULL); }
 
 IndexValues <- i:IndexValue { $$ = CN(INDEX_VALUES, 1, i); } (_ "," _ i:IndexValue { AC($$, i); })*
 IndexValue <- i:Integral _ "=" _ v:Expr { $$ = CN(INDEX_VALUE, 2, i, v); }
@@ -1555,12 +1558,12 @@ PrimaryExpr <- "nil" { $$ = CT(NIL, NULL); } /
 
 ControlFlowExpr <- (c:IfExpr / c:SwitchExpr / c:ReceiveExpr / c:BlockExpr) { $$ = c; }
 
-IfExpr <- "if" __ e:Expr _ b:BlockExpr { $$ = CN(IF_EXPR, 1, CN(IF, 2, e, b)); }
-          (_ "elif" __ e:Expr _ b:BlockExpr { AC($$, CN(ELIF, 2, e, b)); })*
-          (_ "else" _ e:BlockExpr { AC($$, CN(ELSE, 1, e)); })?
+IfExpr <- "if" __ ie:Expr _ b:BlockExpr { $$ = CN(IF_EXPR, 1, CN(IF, 2, ie, b)); }
+          (_ "elif" __ ee:Expr _ b:BlockExpr { AC($$, CN(ELIF, 2, ee, b)); })*
+          (_ "else" _ e:BlockExpr { AC($$, CN(ELSE, 1, e)); })
 
 SwitchExpr <- "switch" __ e:Expr { $$ = CN(SWITCH_EXPR, 1, CN(SWITCH, 1, e)); } _ "{"
-              (_ "case" __ m:MatchExprs _ ":" _ b:BlockLevelExprs { AC($$, CN(CASE, 2, m, b)); })+
+              (_ "case" __ m:MatchExprs _ ("when" _ we:Expr { AC($$, CN(WHEN, 1, we)); } _)? ":" _ b:BlockLevelExprs { AC($$, CN(CASE, 2, m, b)); })+
               (_ "default" _ ":" _ b:BlockLevelExprs { AC($$, CN(DEFAULT, 1, b)); })? _
               "}"
 
