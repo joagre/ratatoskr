@@ -1,4 +1,4 @@
-; Run: sa ackermannr 0 3 6
+; Run: sa ackermann 0 3 6
 ;
 ; ackermann(0, N) ->
 ;     N + 1;

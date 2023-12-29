@@ -1,4 +1,4 @@
-EXAMPLES = hello_world fac tfac mcall ackermannr message_passing mspawn
+EXAMPLES = hello_world fac tfac mcall ackermann message_passing mspawn
 SAB_FILES = $(EXAMPLES:%=%.sab)
 SA=../../bin/sa
 SAC=../../bin/sac
@@ -13,22 +13,22 @@ hello_world: build
 fac: build
 	@echo "==== Example: $@"
 	$(SAC) $@.sai
-	$(SA) $@ 0 5
+	$(SA) $@ 10 5
 
 tfac: build
 	@echo "==== Example: $@"
 	$(SAC) $@.sai
-	$(SA) $@ 0 5
+	$(SA) $@ 10 5
 
 mcall: build
 	@echo "==== Example: $@"
 	$(SAC) $@.sai
 	$(SA) $@ 0 5
 
-ackermannr: build
+ackermann: build
 	@echo "==== Example: $@"
 	$(SAC) $@.sai
-	$(SA) $@ 0 3 6
+	$(SA) $@ 10 3 6
 
 message_passing: build
 	@echo "==== Example: $@"

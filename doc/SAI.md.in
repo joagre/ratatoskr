@@ -116,6 +116,12 @@ __fac.sai__
 __tfac.sai__
 ```
 
+## Example: Ackermann
+
+```
+__ackermann.sai__
+```
+
 ## Example: Inter-module calling
 
 ```
