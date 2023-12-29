@@ -40,6 +40,8 @@ export fn main() {
             <?iterator, ?color> := iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
+        } else {
+            true
         }
     },
     iterate(iterator)

@@ -112,6 +112,7 @@ typedef dynarray_t node_array_t;
         TYPE(SWITCH_EXPR) \
         TYPE(SWITCH) \
         TYPE(CASE) \
+        TYPE(WHEN) \
         TYPE(DEFAULT) \
         TYPE(MATCH_EXPR) \
         TYPE(RECEIVE_EXPR) \

@@ -25,6 +25,7 @@ fn main() {
     {
         ?a := 3
     },
+    ?a := a +. 1,
     ?a := [1, 2, 3],
     ?b := b[a: 4],
     [b: 2],
@@ -37,8 +38,10 @@ fn main() {
     a[1],
     1 := 1,
     switch a {
-        case b:
+        case b when true:
             c
+        case e:
+            d
     },
     switch a {
         case <?b, a>, <?b, a>:
