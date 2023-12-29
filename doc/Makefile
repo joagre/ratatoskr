@@ -1,7 +1,7 @@
 READMESRCS = tribute.sa color.sa ackermann.sa todo.sa
 READMEOBJS = $(READMESRCS:%=../examples/sa/%) ../src/lint/satie.peg
 
-SAISRCS = hello_world.sai fac.sai tfac.sai module_calls.sai ackermann.sai message_passing.sai
+SAISRCS = hello_world.sai fac.sai tfac.sai mcall.sai mspawn.sai message_passing.sai
 SAIOBJS = $(SAISRCS:%=../examples/sai/%)
 
 all: ../README.md satie.pdf ../SAI.md

@@ -1,4 +1,4 @@
-; Run: sa -l ./ module_calls 0 10
+; Run: sa -l ./ mcall 0 10
 ;
 ; start(N) ->
 ;     io:format("~w\n", [fac:fac(N)]),

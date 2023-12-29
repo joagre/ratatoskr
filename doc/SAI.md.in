@@ -116,10 +116,10 @@ __fac.sai__
 __tfac.sai__
 ```
 
-## Example: Dynamic code loading
+## Example: Inter-module calling
 
 ```
-__module_calls.sai__
+__mcall.sai__
 ```
 
 ## Example: Inter-module spawning

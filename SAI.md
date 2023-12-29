@@ -120,6 +120,12 @@ label 0
 ; fac(N) ->
 ;     N * fac(N - 1).
 
+label 10
+  call 0
+  loadrr r1 r0
+  sys display
+  ret
+
 label 0            ; fac(1)
   jmprineq r1 #1 1
   loadri r0 #1
@@ -137,7 +143,7 @@ label 1            ; fac(N)
 ## Example: Factorial (tail recursive)
 
 ```
-; Run: sa -l ./ tfac 0 10 1
+; Run: sa tfac 0 10 1
 ;
 ; fac(N) when N >= 0 ->
 ;     fac(N, 1).
@@ -146,6 +152,12 @@ label 1            ; fac(N)
 ;     Acc;
 ; fac(N, Acc) when N > 0 ->
 ;     fac(N - 1, N * Acc).
+
+label 10
+  call 0
+  loadrr r1 r0
+  sys display
+  ret
 
 label 0          ; fac(N)
   loadri r2 #1
@@ -162,10 +174,10 @@ label 2            ; fac(N, Acc)
   jmp 1            ; fac(N - 1, N * Acc)
 ```
 
-## Dynamic code loading
+## Example: Inter-module calling
 
 ```
-; Run: sa -l ./ module_calls 0 10
+; Run: sa -l ./ mcall 0 10
 ;
 ; start(N) ->
 ;     io:format("~w\n", [fac:fac(N)]),
@@ -187,33 +199,34 @@ label 0
    ret
 ```
 
-## Example: Concurrent Ackermann
+## Example: Inter-module spawning
 
 ```
-; Run: sa ackermann 0 3 6
+; Run: sa mspawn 0 3 6
 ;
 ; start(M, N) ->
+;     spawn(fun() -> ackermannr:calc(M, N) end),
 ;     spawn(fun() -> ackermannr:calc(M, N) end),
 ;     spawn(fun() -> fac:calc(10) end).
 
 label 0
   pushi #2
-  ;pushi #0
-  ;pushstr "ackermannr"
-  ;mspawn         ; spawn(fun() -> ackermann:calc(M, N) end)
-  ;loadrr r1 r0
-  ;sys display
-  ;pushi #1
-  ;pushi #0
-  ;pushstr "fac"
-  ;loadri r1 #10
-  ;mspawn         ; spawn(fun() -> fac:calc(10) end)
-  ;loadrr r1 r0
-  ;sys display
+  pushi #10
+  pushstr "ackermannr"
+  mspawn         ; spawn(fun() -> ackermann:calc(M, N) end)
+  pushi #2
+  pushi #10
+  pushstr "ackermannr"
+  mspawn         ; spawn(fun() -> ackermann:calc(M, N) end)
+  pushi #1
+  pushi #10
+  pushstr "fac"
+  loadri r1 #10
+  mspawn         ; spawn(fun() -> fac:calc(10) end)
   ret
 ```
 
-## Message passing
+## Example: Message passing
 
 ```
 ; Run: sa -l ./ message_passing 0 7
