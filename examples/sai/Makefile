@@ -1,4 +1,4 @@
-EXAMPLES = hello_world fac tfac module_calls ackermannr message_passing ackermann
+EXAMPLES = hello_world fac tfac module_calls ackermannr message_passing mspawn
 SAB_FILES = $(EXAMPLES:%=%.sab)
 SA=../../bin/sa
 SAC=../../bin/sac
@@ -6,39 +6,39 @@ SAC=../../bin/sac
 all: $(EXAMPLES)
 
 hello_world: build
-	echo "==== Example: hello_world"
-	$(SAC) hello_world.sai
-	$(SA) hello_world 0
+	@echo "==== Example: $@"
+	$(SAC) $@.sai
+	$(SA) $@ 0
 
 fac: build
-	echo "==== Example: fac"
-	$(SAC) fac.sai
-	$(SA) fac 0 5
+	@echo "==== Example: $@"
+	$(SAC) $@.sai
+	$(SA) $@ 0 5
 
 tfac: build
-	echo "==== Example: tfac"
-	$(SAC) tfac.sai
-	$(SA) tfac 0 5
+	@echo "==== Example: $@"
+	$(SAC) $@.sai
+	$(SA) $@ 0 5
 
 module_calls: build
-	echo "==== Example: module_calls"
-	$(SAC) module_calls.sai
-	$(SA) module_calls 0 5
+	@echo "==== Example: $@"
+	$(SAC) $@.sai
+	$(SA) $@ 0 5
 
 ackermannr: build
-	echo "==== Example: ackermannr"
-	$(SAC) ackermannr.sai
-	$(SA) ackermannr 0 3 6
+	@echo "==== Example: $@"
+	$(SAC) $@.sai
+	$(SA) $@ 0 3 6
 
 message_passing: build
-	echo "==== Example: message_passing"
-	$(SAC) message_passing.sai
-	$(SA) message_passing 0 6
+	@echo "==== Example: $@"
+	$(SAC) $@.sai
+	$(SA) $@ 0 6
 
-ackermann: build
-	echo "==== Example: ackermann"
-	$(SAC) ackermann.sai
-	$(SA) ackermann 0 3 6
+mspawn: build
+	@echo "==== Example: $@"
+	$(SAC) $@.sai
+	$(SA) $@ 0 3 6
 
 build:
 	(cd ../../src/sa; $(MAKE) all)

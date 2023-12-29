@@ -116,19 +116,19 @@ __fac.sai__
 __tfac.sai__
 ```
 
-## Dynamic code loading
+## Example: Dynamic code loading
 
 ```
 __module_calls.sai__
 ```
 
-## Example: Concurrent Ackermann
+## Example: Inter-module spawning
 
 ```
-__ackermann.sai__
+__mspawn.sai__
 ```
 
-## Message passing
+## Example: Message passing
 
 ```
 __message_passing.sai__
