@@ -5,6 +5,12 @@
 ; fac(N) ->
 ;     N * fac(N - 1).
 
+label 10
+  call 0
+  loadrr r1 r0
+  sys display
+  ret
+
 label 0            ; fac(1)
   jmprineq r1 #1 1
   loadri r0 #1

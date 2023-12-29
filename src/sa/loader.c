@@ -102,8 +102,8 @@ void loader_pretty_print_module(loader_t* loader, char* module_name) {
     vm_address_t address = module->start_address;
     while (address <= module->stop_address) {
         fprintf(stderr, "%d: ", address);
-        address += 1 + print_instruction(&loader->bytecode[address],
-                                         &loader->static_data);
+        address += OPCODE_SIZE + print_instruction(&loader->bytecode[address],
+						   &loader->static_data);
     }
 }
 

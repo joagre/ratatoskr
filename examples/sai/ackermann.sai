@@ -6,16 +6,12 @@
 
 label 0
   pushi #2
-  ;pushi #0
-  ;pushstr "ackermannr"
-  ;mspawn         ; spawn(fun() -> ackermann:calc(M, N) end)
-  ;loadrr r1 r0
-  ;sys display
-  ;pushi #1
-  ;pushi #0
-  ;pushstr "fac"
-  ;loadri r1 #10
-  ;mspawn         ; spawn(fun() -> fac:calc(10) end)
-  ;loadrr r1 r0
-  ;sys display
+  pushi #10
+  pushstr "ackermannr"
+  mspawn         ; spawn(fun() -> ackermann:calc(M, N) end)
+  pushi #1
+  pushi #10
+  pushstr "fac"
+  loadri r1 #10
+  mspawn         ; spawn(fun() -> fac:calc(10) end)
   ret

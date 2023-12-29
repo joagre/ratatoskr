@@ -296,12 +296,12 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
                 break;
 	    }
 	    case OPCODE_MSPAWN: {
-		vm_stack_value_t arity = call_stack_pop(&job->call_stack);
-		vm_label_t label = call_stack_pop(&job->call_stack);
 		vm_stack_value_t static_data_index =
 		    call_stack_pop(&job->call_stack);
 		char* module_name = (char*)static_data_lookup(
 		    &interpreter->loader->static_data, static_data_index);
+		vm_label_t label = call_stack_pop(&job->call_stack);
+		vm_stack_value_t arity = call_stack_pop(&job->call_stack);
 		satie_error_t error;
 		uint32_t jid = interpreter_mspawn(interpreter, scheduler,
 						  module_name, label, NULL,

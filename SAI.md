@@ -105,7 +105,8 @@ On to the examples.
 
 label 0
   pushstr "Hello World!"
-  sys display
+  loadrs r1 @0
+  sys println
   ret
 ```
 
@@ -170,127 +171,46 @@ label 2            ; fac(N, Acc)
 ;     io:format("~w\n", [fac:fac(N)]),
 ;     io:format("~w\n", [tfac:fac(N + 2)]).
 
-label 0          ; start(N)
-  push -1
-  load           ; N
-  push 1         ; Arity
-  pushs "fac"    ; Module name
-  push 0
-  mcall          ; fac:fac(N)
-  sys display
-  pop
-  push -1
-  load           ; N
-  push 2
-  add            ; N + 2
-  push 1         ; Acc
-  push 2         ; Arity
-  pushs "tfac"   ; Module name
-  push 0         ; Label
-  mcall          ; tfac:fac(N, 1)
-  sys display
-  ret
+label 0
+   loadrr r3 r1    ; Remember N
+   pushi #0        ; Push label
+   pushstr "fac"   ; Push module name
+   mcall
+   loadrr r1 r0
+   sys display     ; Print result
+   addrri r1 r3 #2 ;
+   pushi #0        ; Push label
+   pushstr "tfac"  ; Push module name
+   mcall
+   loadrr r1 r0
+   sys display     ; Print result
+   ret
 ```
 
 ## Example: Concurrent Ackermann
 
 ```
-; Run: sa -l ./ ackermann 0
-; Run: sa -l ./ ackermann 10
-; Run: sa -l ./ ackermann 1 3 6
+; Run: sa ackermann 0 3 6
 ;
-; start() ->
-;     ackermann(3, 6).
-;
-; start2() ->
-;     spawn(fun() -> ackermann(3, 6) end),
-;     spawn(fun() -> ackermann(3, 7) end),
-;     spawn(fun() -> fac:fac(10) end).
-;
-; ackermann(0, N) ->
-;     N + 1;
-; ackermann(M, 0) when M > 0 ->
-;     ackermann(M - 1, 1);
-; ackermann(M, N) when M > 0, N > 0 ->
-;     ackermann(M - 1, ackermann(M, N - 1)).
+; start(M, N) ->
+;     spawn(fun() -> ackermannr:calc(M, N) end),
+;     spawn(fun() -> fac:calc(10) end).
 
-label 0          ; start()
-  push 3         ; M
-  push 6         ; N
-  call 1 2       ; ackermann(3, 6)
-  dup
-  sys display
-  pop
+label 0
+  pushi #2
+  ;pushi #0
+  ;pushstr "ackermannr"
+  ;mspawn         ; spawn(fun() -> ackermann:calc(M, N) end)
+  ;loadrr r1 r0
+  ;sys display
+  ;pushi #1
+  ;pushi #0
+  ;pushstr "fac"
+  ;loadri r1 #10
+  ;mspawn         ; spawn(fun() -> fac:calc(10) end)
+  ;loadrr r1 r0
+  ;sys display
   ret
-
-label 10         ; start2()
-  push 3         ; M
-  push 6         ; N
-  spawn 1 2      ; spawn(fun() -> ackermann(3, 6) end)
-  pop
-  push 3         ; M
-  push 7         ; N
-  spawn 1 2      ; spawn(fun() -> ackermann(3, 7) end)
-  pop
-  push 10        ; N
-  push 1         ; Arity
-  pushs "fac"    ; Module name
-  push 0         ; Label
-  mspawn         ; spawn(fun() -> fac:fac(10) end)
-  ret
-
-label 1          ; ackermann(0, N)
-  push -2
-  load           ; M
-  push 0
-  neq            ; M == 0?
-  cjump 2
-  push -1
-  load           ; N
-  push 1
-  add            ; N + 1
-  ret
-
-label 2          ; ackermann(M, 0) when M > 0
-  push -1
-  load           ; N
-  push 0
-  neq
-  cjump 3
-  push -2
-  load           ; M
-  push 0
-  gt             ; M > 0 ?
-  not
-  cjump 3
-  push -2        ; M
-  load
-  push 1
-  sub            ; M - 1
-  push -2
-  store          ; Replace parameter M
-  push 1
-  push -1
-  store          ; Replace parameter N
-  jump 1         ; ackermann(M - 1, 1);
-
-label 3          ; ackermann(M, N) when M > 0, N > 0
-  push -2
-  load           ; M
-  push 1
-  sub            ; M - 1
-  push -2
-  load           ; M
-  push -1
-  load           ; N
-  push 1
-  sub            ; N - 1
-  call 1 2       ; ackermann(M, N - 1)
-  push -1
-  store          ; Replace parameter N
-  push -2
-  store          ; Replace parameter M
-  jump 1         ; ackermann(M - 1, ackermann(M, N - 1))
 ```
 
 ## Message passing
@@ -317,75 +237,61 @@ label 3          ; ackermann(M, N) when M > 0, N > 0
 ;             wait_for_all(N - 1)
 ;    end.
 
-label 0          ; start(N)
-  sys self       ; self()
-  push -1
-  load           ; N
-  call 10 2      ; spawn_all(self(), N),
-  pop
-  push -1
-  load           ; N
-  call 20 1      ; wait_for_all(N).
+label 0           ; start(N)
+  pushr r1        ; Remember N
+  sys self        ; self()
+  popr r1
+  loadrs r2 @0    ; N
+  call 10         ; spawn_all(self(), N),
+  popr r1         ; N
+  call 20         ; wait_for_all(N).
   ret
 
-label 10         ; spawn_all(_Self, 0)
-  push -1
-  load           ; N
-  push 0
-  neq
-  cjump 11
-  pushs "All jobs have been started"
+label 10          ; spawn_all(_Self, 0)
+  jmprnze r2 11
+  pushstr "All jobs have been started"
+  popr r1
   sys println
   ret
 
-label 11         ; spawn_all(Self, N)
-  push -2
-  load           ; Self
-  push -1
-  load           ; N
-  spawn 12 2     ; fun() -> Self ! ackermann:ackermann(3, N) end)
-  pop
-  push -2
-  load           ; Self
-  push -1
-  load           ; N
-  push 1
-  sub            ; N - 1
-  call 10 2      ; spawn_all(Self, N - 1)
+label 11          ; spawn_all(Self, N)
+  pushr r2        ; Remember N
+  pushr r1        ; Remember Self
+  pushi #2
+  spawn 12        ; fun() -> Self ! ackermann:ackermann(3, N) end)
+  popr r1         ; Self
+  popr r2         ; N
+  subrri r2 r2 #1 ; N - 1
+  call 10         ; spawn_all(Self, N - 1)
   ret
 
-label 12         ; fun(Self, N)
-  push 3         ; M
-  push -1
-  load           ; N
-  push 2         ; Arity
-  pushs "ackermann"
-  push 1         ; Label
-  mcall          ; ackermann:ackermann(3, N)
-  push -2
-  load           ; Self
-  swap
+label 12          ; fun(Self, N)
+  pushr r1        ; Remember Self
+  pushr r2        ; Remember N
+  loadri r1 #3
+  popr r2
+  pushi #0
+  pushstr "ackermannr"
+  mcall
+  popr r1
+  loadrr r2 r0
   sys send
   ret
 
-label 20         ; wait_for_all(0)
-  push -1
-  load           ; N
-  push 0
-  neq
-  cjump 21
-  pushs "All jobs have returned a result"
+label 20          ; wait_for_all(0)
+  jmprnze r1 21
+  pushstr "All jobs have returned a result"
+  popr r1
   sys println
   ret
 
-label 21         ; wait_for_all(N)
+label 21          ; wait_for_all(N)
+  pushr r1        ; Remember N
   sys recv
+  loadrr r1 r0
   sys display
-  pop
-  push -1
-  load           ; N
-  push 1
-  sub            ; N - 1
-  call 20 1      ; wait_for_all(N - 1)
+  popr r1
+  subrri r1 r1 #1
+  call 20         ; wait_for_all(N - 1)
   ret
 ```

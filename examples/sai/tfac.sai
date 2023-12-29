@@ -1,4 +1,4 @@
-; Run: sa -l ./ tfac 0 10 1
+; Run: sa tfac 0 10 1
 ;
 ; fac(N) when N >= 0 ->
 ;     fac(N, 1).
@@ -7,6 +7,12 @@
 ;     Acc;
 ; fac(N, Acc) when N > 0 ->
 ;     fac(N - 1, N * Acc).
+
+label 10
+  call 0
+  loadrr r1 r0
+  sys display
+  ret
 
 label 0          ; fac(N)
   loadri r2 #1

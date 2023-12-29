@@ -1,3 +1,5 @@
+#define MUTE_LOG_DEBUG 1
+
 #include <log.h>
 #include <utils.h>
 #include "scheduler.h"
