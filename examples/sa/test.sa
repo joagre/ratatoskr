@@ -25,7 +25,16 @@ fn main() {
     {
         ?a := 3
     },
-    ?a := a +. 1,
+
+
+
+    ?b := 2.toFloat() +. 1.0,
+    ?a := 2,
+    ?b := a.toFloat() +. 1.0,
+    ?b := cast(float)a +. 1.0,
+    ?b := if c == 3 { 2 } else { 3 }.toFloat() +. 1.0,
+
+
     ?a := [1, 2, 3],
     ?b := b[a: 4],
     [b: 2],
