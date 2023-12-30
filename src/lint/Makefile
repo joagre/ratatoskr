@@ -5,7 +5,7 @@ LDLIBS = -lm
 
 all: ../../bin/lint no_actions_satie.peg
 
-../../bin/lint: satie.o
+../../bin/lint: satie.o hm.o symbol_table.o satie_auxil.o
 	$(CC) $(LDLIBS) -o $@ $^
 
 no_actions_satie.peg: satie.peg

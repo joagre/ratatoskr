@@ -3,6 +3,9 @@
 %header {
     #include <stdarg.h>
     #include "satie_auxil.h"
+    #include "hm.h"
+    #include "symbol_table.h"
+
     /*
     static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
     #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
@@ -10,6 +13,31 @@
         fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], \
                 rule, pos, (int)(length), buffer)
     */
+
+    static int ROW = 1;
+
+    static int satie_getchar(satie_auxil_t* _auxil) {
+        int c = getchar();
+        if (c == '\n') {
+            ROW++;
+        }
+        return c;
+    }
+
+    static void panic(const char *fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        fprintf(stderr, "\033[31mError:\033[0m ");
+        vfprintf(stderr, fmt, args);
+        fprintf(stderr, "\n");
+        va_end(args);
+        exit(1);
+    }
+
+    static void satie_error(satie_auxil_t* auxil) {
+        panic("Bailing out near line %d", ROW);
+        exit(1);
+    }
 }
 
 %auxil "satie_auxil_t*"
@@ -328,6 +356,8 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
+    symbol_table_t table;
+    add_type_variables(program, &table);
     print_ast(program, 0);
     satie_destroy(context);
     return 0;

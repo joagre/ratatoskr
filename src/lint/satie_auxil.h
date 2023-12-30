@@ -1,13 +1,9 @@
-#ifndef SATIE_AUXIL_H
-#define SATIE_AUXIL_H
+#ifndef __SATIE_AUXIL_H__
+#define __SATIE_AUXIL_H__
 
-#include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <dynarr.h>
-
-static int ROW = 1;
 
 typedef dynarray_t node_array_t;
 
@@ -155,16 +151,11 @@ typedef enum {
 
 #define GENERATE_STRING(STRING) #STRING,
 
-static const char* type_strings[] = {
-    FOREACH_TYPE(GENERATE_STRING)
-};
-
-static const char* type_to_string(node_type_t type) {
-    return type_strings[type];
-}
+typedef uint32_t type_variable_t;
 
 typedef struct {
     node_type_t type;
+    type_variable_t type_variable;
     char *value;
     uint32_t row;
     uint32_t column;
@@ -175,152 +166,20 @@ typedef struct {
     uint32_t row;
 } satie_auxil_t;
 
-static satie_auxil_t* satie_auxil_new() {
-    fprintf(stderr, "** satie_auxil_new\n");
-    satie_auxil_t* auxil = malloc(sizeof(satie_auxil_t));
-    auxil->row = 1;
-    return auxil;
-}
-
-static ast_node_t* new_node(satie_auxil_t* auxil, node_type_t type) {
-    ast_node_t* node = malloc(sizeof(ast_node_t));
-    node->type = type;
-    node->value = NULL;
-    node->row = auxil->row;
-    node->column = 1;
-    node->children = NULL;
-    return node;
-}
-
-static ast_node_t* retype_node(ast_node_t* node, node_type_t type) {
-    fprintf(stderr, "** retype_node\n");
-    if (node == NULL) {
-        fprintf(stderr, "WARNING: An undefined node cannot be retyped to %s\n",
-                type_to_string(type));
-    } else {
-        node->type = type;
-    }
-    return node;
-}
+satie_auxil_t* satie_auxil_new();
+const char* type_to_string(node_type_t type);
+ast_node_t* new_node(satie_auxil_t* auxil, node_type_t type);
+ast_node_t* retype_node(ast_node_t* node, node_type_t type);
+ast_node_t* create_terminal(satie_auxil_t* auxil, node_type_t type,
+			    const char* value);
+ast_node_t* create_node(satie_auxil_t* auxil, node_type_t type,
+			uint16_t n, ...);
+void add_child(satie_auxil_t* auxil, ast_node_t* parent_node, ast_node_t* node);
+void print_ast(ast_node_t* node, uint16_t level);
 
 #define RN(node, type) retype_node(node, type)
-
-static ast_node_t* create_terminal(satie_auxil_t* auxil, node_type_t type,
-                                   const char* value) {
-    fprintf(stderr, "** create_terminal: %s (%s)\n", value,
-            type_to_string(type));
-    ast_node_t* node = new_node(auxil, type);
-    if (value != NULL) {
-        node->value = strdup(value);
-    } else {
-        node->value = NULL;
-    }
-    return node;
-}
-
 #define CT(type, value) create_terminal(auxil, type, value)
-
-static ast_node_t* create_node(satie_auxil_t* auxil, node_type_t type,
-                               uint16_t n, ...) {
-    fprintf(stderr, "** create_children_node: %s\n", type_to_string(type));
-    ast_node_t* node = new_node(auxil, type);
-    node->children = malloc(sizeof(node_array_t));
-    dynarray_init(node->children, NULL, 0, sizeof(ast_node_t));
-    va_list args;
-    va_start(args, n);
-    for (uint16_t i = 0; i < n; i++) {
-        ast_node_t* child_node = va_arg(args, ast_node_t*);
-        if (child_node != NULL) {
-            if (child_node->type == POSTFIX_EXPR &&
-                dynarray_size(child_node->children) == 1) {
-                ast_node_t* grand_child_node =
-                    dynarray_element(child_node->children, 0);
-                free(child_node);
-                child_node = grand_child_node;
-            }
-            dynarray_append(node->children, child_node);
-        } else {
-            fprintf(stderr,
-                    "WARNING: An undefined child node %d is ignored by %s\n",
-                    i, type_to_string(type));
-        }
-    }
-    /*
-    if (dynarray_size(node->children) == 0) {
-        free(node->children);
-        return NULL;
-    }
-    */
-    return node;
-}
-
 #define CN(type, n, ...) create_node(auxil, type, n, __VA_ARGS__)
-
-static void add_child(satie_auxil_t* auxil, ast_node_t* parent_node,
-                      ast_node_t* node) {
-    fprintf(stderr, "** add_child\n");
-    if (node == NULL) {
-        fprintf(stderr, "WARNING: An undefined node cannot be appended to %s\n",
-                type_to_string(parent_node->type));
-    } else {
-        fprintf(stderr, "** add_child1\n");
-        if (node->type == POSTFIX_EXPR &&
-            dynarray_size(node->children) == 1) {
-            fprintf(stderr, "** add_child2\n");
-            ast_node_t* child_node = dynarray_element(node->children, 0);
-            fprintf(stderr, "** add_child3\n");
-            free(node);
-            fprintf(stderr, "** add_child4\n");
-            node = child_node;
-        }
-        dynarray_append(parent_node->children, node);
-    }
-}
-
 #define AC(parent_node, node) add_child(auxil, parent_node, node)
-
-static void print_ast(ast_node_t* node, uint16_t level) {
-    if (node == NULL) {
-        printf("Tree: NULL\n");
-        return;
-    }
-    for (uint16_t i = 0; i < level; i++) {
-        printf("  ");
-    }
-    printf("%s", type_to_string(node->type));
-    if (node->value != NULL) {
-        printf(": %s", node->value);
-    }
-    printf("\n");
-    if (node->children != NULL) {
-        for (uint16_t i = 0; i < dynarray_size(node->children); i++) {
-            ast_node_t* child_node = dynarray_element(node->children, i);
-            print_ast(child_node, level + 1);
-        }
-    }
-}
-
-static int satie_getchar(satie_auxil_t* _auxil) {
-    int c = getchar();
-    if (c == '\n') {
-        ROW++;
-    }
-    return c;
-}
-
-static void panic(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    fprintf(stderr, "\033[31mError:\033[0m ");
-    vfprintf(stderr, fmt, args);
-    fprintf(stderr, "\n");
-    va_end(args);
-    exit(1);
-}
-
-static void satie_error(satie_auxil_t* auxil) {
-    panic("Bailing out near line %d", ROW);
-    exit(1);
-}
 
 #endif

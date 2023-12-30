@@ -18,6 +18,8 @@
 
 ## Version 0.3
 
+* Design the buffer datatype
+* Add strong language support for regular expressions
 * Persistent datatypes
 
 ## Version 0.4

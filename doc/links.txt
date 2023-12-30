@@ -1,1 +1,28 @@
+Profiling
+---------
 http://web.archive.org/web/20141129061523/http://www.cs.utah.edu/dept/old/texinfo/as/gprof.html#SEC2
+
+HM
+--
+https://eli.thegreenplace.net/2018/type-inference/
+https://eli.thegreenplace.net/2018/unification/
+https://arxiv.org/pdf/cs/0603080v1.pdf
+file:///home/jocke/Downloads/download-1.pdf
+https://www.lfcs.inf.ed.ac.uk/reports/02/ECS-LFCS-02-427/ECS-LFCS-02-427.pdf
+https://dspace.library.uu.nl/handle/1874/7297
+
+Bidirectional typing
+--------------------
+
+https://arxiv.org/abs/1908.05839
+     Bidirectional Typing by Jana Dunfield and Neel Krishnaswami. It's
+     an overview of the history, motivation, and implementation of
+     bidirectional type checking.
+
+https://www.davidchristiansen.dk/tutorials/bidirectional.pdf
+    An introduction to bidirectional typing
+
+https://pigworker.wordpress.com/2018/08/06/basics-of-bidirectionalism/
+    The basics of bidirectionalsm
+
+https://github.com/pigworker/TypesWhoSayNi
