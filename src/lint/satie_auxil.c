@@ -104,19 +104,29 @@ void add_child(satie_auxil_t* auxil, ast_node_t* parent_node, ast_node_t* node) 
     }
 }
 
+#define MAX_COLS 80
+
 void print_ast(ast_node_t* node, uint16_t level) {
     if (node == NULL) {
         printf("Tree: NULL\n");
         return;
     }
-    for (uint16_t i = 0; i < level; i++) {
-        printf("  ");
+    int cols = 0;
+    if (level > 0) {
+	printf("%*s", 2 * level, "");
+	cols += 2 * level;
     }
     printf("%s", type_to_string(node->type));
+    cols += strlen(type_to_string(node->type));
     if (node->value != NULL) {
         printf(": %s", node->value);
+	cols += strlen(node->value) + 2;
     }
-    printf("\n");
+    if (cols > MAX_COLS) {
+	printf("    t%d\n", node->type_variable);
+    } else {
+	printf("%*st%d\n", MAX_COLS - cols - 4, "", node->type_variable);
+    }
     if (node->children != NULL) {
         for (uint16_t i = 0; i < dynarray_size(node->children); i++) {
             ast_node_t* child_node = dynarray_element(node->children, i);
