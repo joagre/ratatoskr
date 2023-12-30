@@ -122,10 +122,14 @@ void print_ast(ast_node_t* node, uint16_t level) {
         printf(": %s", node->value);
 	cols += strlen(node->value) + 2;
     }
-    if (cols > MAX_COLS) {
-	printf("    t%d\n", node->type_variable);
+    if (node->type_variable != 0) {
+	if (cols > MAX_COLS) {
+	    printf("    t%d\n", node->type_variable);
+	} else {
+	    printf("%*st%d\n", MAX_COLS - cols - 4, "", node->type_variable);
+	}
     } else {
-	printf("%*st%d\n", MAX_COLS - cols - 4, "", node->type_variable);
+	printf("\n");
     }
     if (node->children != NULL) {
         for (uint16_t i = 0; i < dynarray_size(node->children); i++) {
