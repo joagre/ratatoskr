@@ -5,7 +5,7 @@ int type_variable_counter = 0;
 
 void add_type_variables(ast_node_t *node, symbol_table_t *symbol_table) {
     if (node->type == FUNCTION_DEF ||
-	node->type == NON_DEFAULT_PARAMS ||
+	node->type == NON_DEFAULT_PARAM ||
 	node->type == IF_EXPR ||
 	node->type == EQ ||
 	node->type == BOUND_NAME ||
