@@ -352,11 +352,15 @@ EOF <- _ !.
 
 %%
 int main() {
+#ifdef UNITTEST
+    symbol_table_unit_test();
+#endif
     satie_auxil_t* satie_auxil = satie_auxil_new();
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
     symbol_table_t table;
+    symbol_table_init(&table);
     add_type_variables(program, &table);
     print_ast(program, 0);
     satie_destroy(context);

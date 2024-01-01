@@ -36,7 +36,7 @@ uint32_t module_jump_table_size(module_t* module) {
 
 void module_insert(module_t* module, vm_label_t label, vm_address_t address) {
     lhash_kv_insert(&module->jump_table, (void*)(uintptr_t)label,
-                    (void*)(uintptr_t)address);
+		    (void*)(uintptr_t)address);
 }
 
 vm_address_t module_lookup_address(module_t* module, vm_label_t label) {

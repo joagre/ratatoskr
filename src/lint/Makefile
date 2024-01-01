@@ -1,15 +1,22 @@
 CC = gcc
 PCC = packcc
-CFLAGS = -Wall -Wextra -I../clib -std=c17 -g -D_POSIX_C_SOURCE=200809L -Wno-unused-parameter
-LDLIBS = -lm
+CFLAGS = -Wall -Wextra -I../clib -I../utils -std=c17 -g -D_POSIX_C_SOURCE=200809L -Wno-unused-parameter -DDEBUG -DUNITTEST
+SRCS := $(wildcard *.c)
+OBJS := $(SRCS:.c=.o)
+EXTRA_OBJS := ../utils/log.o \
+              ../utils/satie_error.o
+DEPS := $(SRCS:.c=.d)
+EXEC := ../../bin/lint
 
-all: ../../bin/lint no_actions_satie.peg
+all: build $(EXEC) no_actions_satie.peg
 
-../../bin/lint: satie.o hm.o symbol_table.o satie_auxil.o
-	$(CC) $(LDLIBS) -o $@ $^
+build:
+	cd ../utils && $(MAKE) objs
 
-no_actions_satie.peg: satie.peg
-	cat $^ | ./remove_actions.pl > $@
+objs: $(OBJS)
+
+$(EXEC): $(OBJS) $(EXTRA_OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
 satie.c: satie.peg satie_auxil.h
 	$(PCC) satie.peg
@@ -17,5 +24,8 @@ satie.c: satie.peg satie_auxil.h
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+no_actions_satie.peg: satie.peg
+	cat $^ | ./remove_actions.pl > $@
+
 clean:
-	rm -f ../../bin/lint no_actions_satie.peg satie.o satie.h satie.c
+	rm -f $(OBJS) $(DEPS) $(EXEC) no_actions_satie.peg
