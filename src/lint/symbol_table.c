@@ -47,8 +47,8 @@ void symbol_table_merge(symbol_table_t* table, symbol_table_t* other) {
     lhash_kv_iter_init(&iter, other);
     while (!lhash_kv_iter_end(&iter)) {
 	char* name;
-	type_variable_t variable;
-	lhash_kv_iter_current(&iter, (void**)&name, (void**)&variable);
+	uintptr_t variable;
+	lhash_kv_iter_current(&iter, (void**)&name, (void**)(uintptr_t*)&variable);
 	symbol_table_insert(table, name, variable);
 	lhash_kv_iter_next(&iter);
     }
