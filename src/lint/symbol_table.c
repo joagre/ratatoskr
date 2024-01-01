@@ -76,7 +76,6 @@ static size_t key_hash(void* key, void* arg) {
         hash = c + (hash << 6) + (hash << 16) - hash;
     }
     return hash;
-    //return (size_t)key;
 };
 
 //
