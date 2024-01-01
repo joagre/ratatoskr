@@ -36,18 +36,6 @@ typedef uint32_t vm_stack_offset_t;
 typedef uint16_t vm_data_length_t;
 typedef uint16_t vm_system_call_t;
 
-/*
-    StringCreate: Essential for initializing strings, often tied closely with memory allocation.
-
-    StringConcat: Since string immutability is a key feature, efficient concatenation often requires VM-level support.
-
-    StringIndex: Accessing characters by index in a UTF-8 string can be complex due to variable-length encoding, making it a good candidate for a VM instruction.
-
-    StringLength: Calculating the length in terms of code points is fundamental and used in many other operations.
-
-    StringDispose: Important for memory management, especially if your VM doesn't have automatic garbage collection.
-*/
-
 typedef enum {
     OPCODE_JMPRINEQ = 0,
     OPCODE_JMPRNZE,

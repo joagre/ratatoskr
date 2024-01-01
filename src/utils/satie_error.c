@@ -5,43 +5,25 @@
 // Used to store error messages (see satie.h)
 char satie_error_message[MAX_ERROR_MESSAGE_SIZE];
 
-char* satie_error_type_to_string(satie_error_type_t type) {
-    switch (type) {
-	case ERROR_TYPE_NONE:
-	    return "none";
-	case ERROR_TYPE_CODE:
-	    return "code";
-	case ERROR_TYPE_ERRNO:
-	    return "errno";
-	case ERROR_TYPE_MESSAGE:
-	    return "message";
-	default:
-	    return "unknown";
-    }
+static const char* error_type_strings[] = {
+    FOREACH_ERROR_TYPE(GENERATE_STRING)
+};
+
+static const char* component_strings[] = {
+    FOREACH_COMPONENT(GENERATE_STRING)
+};
+
+const char* satie_error_type_to_string(satie_error_type_t type) {
+    return error_type_strings[type];
 }
 
-char* satie_component_to_string(satie_component_t component) {
-    switch (component) {
-	case COMPONENT_GENERAL:
-	    return "general";
-	case COMPONENT_VM:
-	    return "vm";
-	case COMPONENT_LOADER:
-	    return "loader";
-	case COMPONENT_INTERPRETER:
-	    return "interpreter";
-	case COMPONENT_COMPILER:
-	    return "compiler";
-	case COMPONENT_SCHEDULER:
-	    return "scheduler";
-	default:
-	    return "unknown";
-    }
+const char* satie_component_to_string(satie_component_t component) {
+    return component_strings[component];
 }
 
 char* satie_error_to_string(satie_error_t *error, char* buf, size_t bufsiz) {
     if (error->failed) {
-	char * component = satie_component_to_string(GET_COMPONENT(error));
+	const char* component = satie_component_to_string(GET_COMPONENT(error));
         switch (GET_ERROR_TYPE(error)) {
 	    case ERROR_TYPE_NONE:
 		snprintf(buf, bufsiz, "No error type specified (%s)",

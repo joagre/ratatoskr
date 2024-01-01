@@ -82,8 +82,6 @@ void loader_load_module(loader_t *loader, char* module_name,
         lhash_kv_insert(&loader->modules, (char *)module_name, module);
         CLEAR_ERROR(error);
         LOG_DEBUG("%s has been loaded...", filename);
-	//loader_pretty_print_module(loader, module_name);
-	//module_print_jump_table(module);
     }
 }
 

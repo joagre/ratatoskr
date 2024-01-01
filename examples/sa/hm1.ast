@@ -1,0 +1,25 @@
+   FUNCTION_DEF                                (t0)
+      FUNCTION_NAME: foo
+      NON_DEFAULT_PARAMS
+        NON_DEFAULT_PARAM: f                   (t1)
+        NON_DEFAULT_PARAM: g                   (t2)
+        NON_DEFAULT_PARAM: x                   (t3)
+      BLOCK_EXPR
+        IF_EXPR                                (t4)
+          IF
+            POSTFIX_EXPR                       (t5)
+              BOUND_NAME: f
+              FUNCTION_CALL
+                POSITIONAL_ARGS
+                  EQ                           (t6)
+                    BOUND_NAME: x              (t3)
+                    INTEGRAL: 1                (int)
+            BLOCK_EXPR
+              POSTFIX_EXPR
+                BOUND_NAME: g
+                FUNCTION_CALL                  (t7)
+                  POSITIONAL_ARGS
+                    BOUND_NAME: x              (t3)
+          ELSE
+            BLOCK_EXPR
+              INTEGRAL: 20                     (int)
