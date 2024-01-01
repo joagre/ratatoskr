@@ -28,17 +28,12 @@ void symbol_table_clear(symbol_table_t* table) {
 
 void symbol_table_insert(symbol_table_t* table, char* name,
 			 type_variable_t variable) {
-    fprintf(stderr, "inserting '%s' (%d)\n", name, variable);
     lhash_kv_insert(table, (void*)name, (void*)(uintptr_t)variable);
-    fprintf(stderr, "inserted '%s' (%d)\n", name, variable);
-    symbol_table_print(table);
 }
 
 type_variable_t symbol_table_lookup(symbol_table_t* table, char* name) {
-    fprintf(stderr, "looking up '%s'\n", name);
     uintptr_t variable = 0;
     lhash_kv_find(table, (void*)name, (void**)&variable);
-    fprintf(stderr, "looked up '%s' (%d)\n", name, variable);
     return variable;
 }
 
