@@ -7,6 +7,9 @@
 
 typedef dynarray_t node_array_t;
 
+#define GENERATE_ENUM(ENUM) ENUM,
+#define GENERATE_STRING(STRING) #STRING,
+
 #define FOREACH_TYPE(TYPE) \
         TYPE(ALIAS) \
         TYPE(AND) \
@@ -143,13 +146,9 @@ typedef dynarray_t node_array_t;
         TYPE(UNBOUND_NAME) \
         TYPE(WHEN)
 
-#define GENERATE_ENUM(ENUM) ENUM,
-
 typedef enum {
     FOREACH_TYPE(GENERATE_ENUM)
 } node_type_t;
-
-#define GENERATE_STRING(STRING) #STRING,
 
 typedef uint32_t type_variable_t;
 
