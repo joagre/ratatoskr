@@ -1457,11 +1457,13 @@ Operators in decreasing order of precedence:
     #include "hm.h"
     #include "symbol_table.h"
 
+    /*
     static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
     #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
     if (strcmp(rule, "WS") != 0 && strcmp(rule, "_") != 0 && strcmp(rule, "__") != 0) \
         fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], \
                 rule, pos, (int)(length), buffer)
+    */
 
     static int ROW = 1;
 
@@ -1801,13 +1803,16 @@ EOF <- _ !.
 
 %%
 int main() {
+#ifdef UNITTEST
+    symbol_table_unit_test();
+#endif
     satie_auxil_t* satie_auxil = satie_auxil_new();
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    //symbol_table_t table;
-    //;;symbol_table_init(&table);
-    //add_type_variables(program, &table);
+    symbol_table_t table;
+    symbol_table_init(&table);
+    add_type_variables(program, &table);
     print_ast(program, 0);
     satie_destroy(context);
     return 0;
