@@ -1454,7 +1454,6 @@ Operators in decreasing order of precedence:
 %header {
     #include <stdarg.h>
     #include "satie_auxil.h"
-    #include "hm.h"
     #include "symbol_table.h"
 
     /*
@@ -1812,8 +1811,8 @@ int main() {
     satie_parse(context, &program);
     symbol_table_t table;
     symbol_table_init(&table);
-    add_type_variables(program, &table);
-    print_ast(program, 0);
+    //hm_add_type_variables(program, &table);
+    ast_print(program, 0);
     satie_destroy(context);
     return 0;
 }

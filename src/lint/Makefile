@@ -18,7 +18,7 @@ objs: $(OBJS)
 $(EXEC): $(OBJS) $(EXTRA_OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-satie.c: satie.peg satie_auxil.h
+satie.c: satie.peg satie_auxil.h symbol_table.h ast.h hm.h
 	$(PCC) satie.peg
 
 %.o: %.c
@@ -28,4 +28,4 @@ no_actions_satie.peg: satie.peg
 	cat $^ | ./remove_actions.pl > $@
 
 clean:
-	rm -f $(OBJS) $(DEPS) $(EXEC) no_actions_satie.peg
+	rm -f $(OBJS) $(DEPS) $(EXEC) satie.h satie.c no_actions_satie.peg

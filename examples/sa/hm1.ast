@@ -1,25 +1,42 @@
-   FUNCTION_DEF                                (t0)
+PROGRAM
+  TOP_LEVEL_DEFS
+    FUNCTION_DEF                                                            t1 *
       FUNCTION_NAME: foo
       NON_DEFAULT_PARAMS
-        NON_DEFAULT_PARAM: f                   (t1)
-        NON_DEFAULT_PARAM: g                   (t2)
-        NON_DEFAULT_PARAM: x                   (t3)
+        NON_DEFAULT_PARAM: f                                                t2 *
+        NON_DEFAULT_PARAM: g                                                t3 *
+        NON_DEFAULT_PARAM: x                                                t4 *
       BLOCK_EXPR
-        IF_EXPR                                (t4)
+        IF_EXPR                                                             t5 *
           IF
-            POSTFIX_EXPR                       (t5)
-              BOUND_NAME: f
-              FUNCTION_CALL
+            POSTFIX_EXPR
+              BOUND_NAME: f                                                 t2 *
+              FUNCTION_CALL                                                 t6 *
                 POSITIONAL_ARGS
-                  EQ                           (t6)
-                    BOUND_NAME: x              (t3)
-                    INTEGRAL: 1                (int)
+                  EQ                                                        t7 *
+                    BOUND_NAME: x                                           t4 *
+                    INTEGRAL: 1                                             t8 *
             BLOCK_EXPR
               POSTFIX_EXPR
-                BOUND_NAME: g
-                FUNCTION_CALL                  (t7)
+                BOUND_NAME: g                                               t3 *
+                FUNCTION_CALL                                               t9 *
                   POSITIONAL_ARGS
-                    BOUND_NAME: x              (t3)
+                    BOUND_NAME: x                                           t4 *
           ELSE
             BLOCK_EXPR
-              INTEGRAL: 20                     (int)
+              INTEGRAL: 20                                                  t10 *
+
+
+
+/*
+Lambda([f, g, x], If(App(f, [(x == 1)]), App(g, [x]), 20))   t0         *
+If(App(f, [(x == 1)]), App(g, [x]), 20)                      t4         *
+App(f, [(x == 1)])                                           t5         *
+f                                                            t1         *
+(x == 1)                                                     t6         *
+x                                                            t3         *
+1                                                            Int        *
+App(g, [x])                                                  t7         *
+g                                                            t2         *
+x                                                            t3         *
+20                                                           Int
