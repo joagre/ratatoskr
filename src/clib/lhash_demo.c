@@ -27,14 +27,14 @@ static kvlink_t kv[] = {
 
 size_t key_hash(void* key, void* arg)
 {
-    (void*)arg;
+    (void)arg;
     return (size_t)key;
 }
 
 // a bit different than lhash_hv, cmp = 0 means equal
-int key_cmp(void* key, void* obj, void* arg)
+int key_cmp(void* key, hlink_t* obj, void* arg)
 {
-    (void*)arg;
+    (void)arg;
     return ((size_t) key - (size_t)((kvlink_t*)obj)->key);
 }
 
@@ -50,7 +50,6 @@ int main()
     }
 
     for (i = 0; i < 7; i++) {
-	lhash_value_t hval;
 	kvlink_t* ptr;
 	lhash_find(&h, (void*) kv[i].key, (void**) &ptr);
 	printf("%s -> %s\n", ptr->key, ptr->value);

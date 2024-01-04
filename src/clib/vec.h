@@ -149,7 +149,7 @@ typedef struct
     uint32_t capacity; // number of simd vectors
     uint32_t size;     // number of elements used (< capacity*(VSIZE/width))
     uint32_t n;        // number of elements in n direction
-    uint32_t m;        // number of elements in n direction
+    uint32_t m;        // number of elements in m direction
     uint8_t  width;    // element byte size 1,2,4,8
     uint8_t  wshift;   // width in shifts 0,1,2,3
     uint8_t  type;     // VEC_TYPE/BITS/INT8/INT16/INT32/FLOAT32/FLOAT64
@@ -613,7 +613,7 @@ VEC_LOCAL int vec_init(vec_t* vp, allocator_t* alloc,
 	    base = base0 + ALIGN_OFFS(base0, VEC_ALIGN);
 	}
     }
-    vp->capacity = capacity;  // number of vectors
+    vp->capacity = capacity;  // number of SIMD vectors
     vp->size     = 0;         // number of elements
     vp->n        = 0;         // number of elements
     vp->m        = 0;         // number of elements

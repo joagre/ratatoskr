@@ -3,8 +3,12 @@
 #include <log.h>
 #include "symbol_table.h"
 
+// clib allocator
+static allocator_t allocator;
+
 // Forward declarations of local functions (alphabetical order)
-static int key_cmp(void* key1, void* key2, void*);
+static void dtor(void* ptr);
+static int key_cmp(void* key, hlink_t* link, void* arg);
 static size_t key_hash(void* key, void*);
 
 symbol_table_t* symbol_table_new(void) {
@@ -14,7 +18,9 @@ symbol_table_t* symbol_table_new(void) {
 }
 
 void symbol_table_init(symbol_table_t* table) {
-    lhash_kv_init(table, NULL, key_hash, key_cmp);
+    allocator = std_allocator;
+    allocator.dtor = dtor;
+    lhash_kv_init(table, &allocator, key_hash, key_cmp);
 }
 
 void symbol_table_free(symbol_table_t* table) {
@@ -84,9 +90,10 @@ void symbol_table_print(symbol_table_t* table) {
 // Local functions (alphabetical order)
 //
 
-static int key_cmp(void* key1, void* key2, void* arg) {
-    return (key1 == key2);
-};
+static int key_cmp(void* key, hlink_t* link, void* arg) {
+    hlink_kv_t* link_kv	= (hlink_kv_t*)link;
+    return strcmp((char*)key, (char*)link_kv->key) == 0;
+}
 
 static size_t key_hash(void* key, void* arg) {
     size_t hash = 0;
@@ -96,6 +103,13 @@ static size_t key_hash(void* key, void* arg) {
     }
     return hash;
 };
+
+static void dtor(void* ptr) {
+    hlink_kv_t* link_kv = (hlink_kv_t*)ptr;
+    if (link_kv->data != NULL) {
+        free(link_kv->data);
+    }
+}
 
 //
 // Unit test

@@ -15,7 +15,9 @@ ifeq ($(MACHINE), armv7l)
 TESTS_SIMD = vec_test_neon vec_test_scalar
 endif
 
-CFLAGS = -g -Wall -Wextra
+CFLAGS = -MMD -MP -MF .$<.d 
+CFLAGS += -g -Wall -Wextra
+
 
 TESTS = \
 	lhash_test \
@@ -30,52 +32,89 @@ TESTS = \
 	bignum_test \
 	$(TESTS_SIMD)
 
-all: $(TESTS)
+DEMOS = \
+	lhash_demo \
+	lhash_kv_demo \
+	lhash_kv_demo_int \
+	lhash_kv_demo_dyn
 
-lhash_test: lhash_test.c lhash_kv.h lhash.h slist.h
-	$(CC) -o$@ $(CFLAGS) lhash_test.c
+all: $(TESTS) $(DEMOS)
 
-avl_test: avl_test.c avl_kv.h avl.h allocator.h
-	$(CC) -o$@ $(CFLAGS) avl_test.c
+lhash_test: lhash_test.o
+	$(CC) -o$@ $(CFLAGS) lhash_test.o
 
-dlist_test:	list_test.c dlist.h
-	$(CC) -o$@ $(CFLAGS) -DDLIST list_test.c
+avl_test: avl_test.o
+	$(CC) -o$@ $(CFLAGS) avl_test.o
 
-cdlist_test:	list_test.c cdlist.h
-	$(CC) -o$@ $(CFLAGS) -DCDLIST list_test.c
+dlist_test: CFLAGS += -DDLIST
+dlist_test:	list_test.o
+	$(CC) -o$@ $(CFLAGS) list_test.o
 
-slist_test:	list_test.c dlist.h
-	$(CC) -o$@ $(CFLAGS) -DSLIST list_test.c
+cdlist_test: CFLAGS += -DCDLIST
+cdlist_test:	list_test.o
+	$(CC) -o$@ $(CFLAGS) list_test.o
 
-dynarray_test:	arr_test.c dynarr.h
-	$(CC) -o$@ $(CFLAGS) -DDYNARR arr_test.c
+slist_test: CFLAGS += -DSLIST
+slist_test:	list_test.o
+	$(CC) -o$@ $(CFLAGS) list_test.o
 
-segarray_test:	arr_test.c segarr.h
-	$(CC) -o$@ $(CFLAGS) -DSEGARR arr_test.c
+dynarray_test: CFLAGS += -DDYNARR
+dynarray_test:	arr_test.o
+	$(CC) -o$@ $(CFLAGS) arr_test.o
 
-atom_test: atom_test.c atom.h lhash.h slist.h
-	$(CC) -o$@ $(CFLAGS) atom_test.c
+segarray_test: CFLAGS += -DSEGARR
+segarray_test:	arr_test.o
+	$(CC) -o$@ $(CFLAGS) arr_test.o
 
-pred_test: pred_test.c atom.h pred.h pred_format.h pred_parse.h
-	$(CC) -o$@ $(CFLAGS) pred_test.c
+atom_test: atom_test.o
+	$(CC) -o$@ $(CFLAGS) atom_test.o
 
-bignum_test: bignum_test.c bignum.h
-	$(CC) -o$@ $(CFLAGS) bignum_test.c
+pred_test: pred_test.o 
+	$(CC) -o$@ $(CFLAGS) pred_test.o
+
+bignum_test: bignum_test.o
+	$(CC) -o$@ $(CFLAGS) bignum_test.o
 
 ##vec_test_mmx: vec_test.c vec.h
 ##	$(CC) -o$@  -O1 -mmmx -mno-sse  $(CFLAGS) vec_test.c
 
-vec_test_sse: vec_test.c vec.h
-	$(CC) -o$@  -O1 -msse4.1 $(CFLAGS) vec_test.c
+vec_test_sse: CFLAGS += -msse4.1
+vec_test_sse: vec_test.o
+	$(CC) -o$@  -O1 $(CFLAGS) vec_test.o
 
-vec_test_avx: vec_test.c vec.h
-	$(CC) -o$@  -O1 -mavx2 $(CFLAGS) vec_test.c
+vec_test_avx: CFLAGS += -mavx2
+vec_test_avx: vec_test.o
+	$(CC) -o$@  -O1 $(CFLAGS) vec_test.o
 
-vec_test_neon: vec_test.c vec.h
-	$(CC) -o$@  -O1 -mfpu=neon -mfloat-abi=hard -flax-vector-conversions $(CFLAGS) vec_test.c
+vec_test_neon: CFLAGS += -mfpu=neon -mfloat-abi=hard -flax-vector-conversions
+vec_test_neon: vec_test.o
+	$(CC) -o$@  -O1 $(CFLAGS) vec_test.o
 
-vec_test_scalar: vec_test.c vec.h
-	$(CC) -o$@ -DNOSIMD -O1 $(CFLAGS) vec_test.c
+vec_test_scalar: CFLAGS += -DNOSIMD
+vec_test_scalar: vec_test.o
+	$(CC) -o$@ -O1 $(CFLAGS) vec_test.o
+
+## Demo programs
+
+lhash_demo: lhash_demo.o
+	$(CC) -o$@ $(CFLAGS) lhash_demo.o
+
+lhash_kv_demo: lhash_kv_demo.o
+	$(CC) -o$@ $(CFLAGS) lhash_kv_demo.o
+
+lhash_kv_demo_int: lhash_kv_demo_int.o
+	$(CC) -o$@ $(CFLAGS) lhash_kv_demo_int.o
+
+lhash_kv_demo_dyn: lhash_kv_demo_dyn.o
+	$(CC) -o$@ $(CFLAGS) lhash_kv_demo_dyn.o
+
+
+%.o:	%.c
+	$(CC) $(CFLAGS) -c $<
 
 clean:
 	rm $(TESTS)
+
+.%.d:	;
+
+-include .*.d

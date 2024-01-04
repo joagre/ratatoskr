@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BIGNUM_DEBUG  // bifnum_printf
+#define BIGNUM_DEBUG  // bignum_printf
 #include "bignum.h"
 
 // numbers used in some tests below

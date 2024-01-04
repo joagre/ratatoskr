@@ -13,8 +13,8 @@ typedef struct _avl_node_t
     int ht;
 } avl_node_t;
 
-typedef int (*avl_cmp_t)(void* key, void* obj);
-typedef void* (*avl_key_t)(void* obj);
+typedef int (*avl_cmp_t)(void* key, avl_node_t* obj);
+typedef void* (*avl_key_t)(avl_node_t* obj);
 
 typedef struct _avl_t
 {

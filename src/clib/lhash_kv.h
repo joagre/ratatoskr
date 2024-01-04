@@ -5,21 +5,25 @@
 
 #include "lhash.h"
 
+#ifndef LHASH_KV_KEY_TYPE
+#define LHASH_KV_KEY_TYPE void*
+#endif
+#ifndef LHASH_KV_VALUE_TYPE
+#define LHASH_KV_VALUE_TYPE void*
+#endif
+
+typedef LHASH_KV_KEY_TYPE lhash_kv_key_t;
+typedef LHASH_KV_VALUE_TYPE lhash_kv_value_t;
+
 typedef struct _hlink_kv_t // :hlink_t in lhash_t
 {
     hlink_t h;
-    void* key;
-    void* data;
+    lhash_kv_key_t key;
+    lhash_kv_value_t data;
 } hlink_kv_t;
 
 typedef lhash_t lhash_kv_t;
 typedef lhash_iter_t lhash_kv_iter_t;
-
-#ifndef LHASH_KV_ALLOC
-#define LHASH_KV_ALLOC(n) malloc((n))
-#define LHASH_KV_REALLOC(ptr,n) realloc((ptr),(n))
-#define LHASH_KV_FREE(ptr) free((ptr))
-#endif
 
 #define LHASH_KV_LOCAL static
 #if defined(__WIN32__) || defined(_WIN32)
@@ -32,15 +36,15 @@ LHASH_KV_LOCAL void lhash_kv_init(lhash_kv_t*, allocator_t* alloc,
 				  lhash_hash_t, lhash_cmp_t) LHASH_KV_API;
 LHASH_KV_LOCAL void lhash_kv_clear(lhash_kv_t*) LHASH_KV_API;
 LHASH_KV_LOCAL void lhash_kv_reset(lhash_kv_t* lhk) LHASH_KV_API;
-LHASH_KV_LOCAL int lhash_kv_find(lhash_kv_t*, void* key, void** data) LHASH_KV_API;
-LHASH_KV_LOCAL int lhash_kv_insert(lhash_kv_t*, void* key, void* data) LHASH_KV_API;
-LHASH_KV_LOCAL int lhash_kv_remove(lhash_kv_t* lhash, void* key, void** data) LHASH_KV_API;
+LHASH_KV_LOCAL int lhash_kv_find(lhash_kv_t*, lhash_kv_key_t key, lhash_kv_value_t* data) LHASH_KV_API;
+LHASH_KV_LOCAL int lhash_kv_insert(lhash_kv_t*, lhash_kv_key_t key, lhash_kv_value_t data) LHASH_KV_API;
+LHASH_KV_LOCAL int lhash_kv_remove(lhash_kv_t* lhash, lhash_kv_key_t key, lhash_kv_value_t* data) LHASH_KV_API;
 LHASH_KV_LOCAL size_t lhash_kv_size(lhash_kv_t*)  LHASH_KV_API;
 LHASH_KV_LOCAL int lhash_kv_is_empty(lhash_kv_t*)  LHASH_KV_API;
 
 // iterator
 LHASH_KV_LOCAL void lhash_kv_iter_init(lhash_kv_iter_t*, lhash_kv_t*) LHASH_KV_API;
-LHASH_KV_LOCAL int lhash_kv_iter_current(lhash_kv_iter_t*, void** key, void** data) LHASH_KV_API;
+LHASH_KV_LOCAL int lhash_kv_iter_current(lhash_kv_iter_t*, lhash_kv_key_t* key, lhash_kv_value_t* data) LHASH_KV_API;
 LHASH_KV_LOCAL int lhash_kv_iter_end(lhash_kv_iter_t*) LHASH_KV_API;
 LHASH_KV_LOCAL int lhash_kv_iter_next(lhash_kv_iter_t*) LHASH_KV_API;
 LHASH_KV_LOCAL int lhash_kv_iter_remove(lhash_kv_iter_t*) LHASH_KV_API;
@@ -80,7 +84,8 @@ LHASH_KV_LOCAL void lhash_kv_clear(lhash_kv_t* lhk)
 	    while(!slist_iter_end(&iter)) {
 		hlink_kv_t* hpk = slist_iter_current(&iter);
 		slist_iter_remove(&iter);
-		LHASH_KV_FREE(hpk);
+		allocator_dtor(lh->alloc,hpk);		
+		allocator_free(lh->alloc,hpk);
 		lh->size--;
 	    }
 	}
@@ -94,37 +99,37 @@ LHASH_KV_LOCAL void lhash_kv_reset(lhash_kv_t* lhk)
     lhash_reset((lhash_t*)lhk);
 }
     
-LHASH_LOCAL int lhash_kv_find(lhash_kv_t* lhk, void* key, void** data)
+LHASH_LOCAL int lhash_kv_find(lhash_kv_t* lhk, lhash_kv_key_t key, lhash_kv_value_t* data)
 {
     hlink_kv_t* p;
-    if (lhash_find((lhash_t*)lhk, key, (void**)&p)) {
+    if (lhash_find((lhash_t*)lhk, (void*)((uintptr_t)key), (void**)&p)) {
 	if (data) *data = p->data;
 	return 1;
     }
     return 0;
 }
 
-LHASH_LOCAL int lhash_kv_insert(lhash_kv_t* lhk, void* key, void* data)
+LHASH_LOCAL int lhash_kv_insert(lhash_kv_t* lhk, lhash_kv_key_t key, lhash_kv_value_t data)
 {
     hlink_kv_t* p;
     if ((p = allocator_alloc(lhk->alloc, sizeof(hlink_kv_t))) == NULL)
 	return -1;
     p->key = key;
     p->data = data;
-    if (!lhash_insert((lhash_t*) lhk, key, p)) {
+    if (!lhash_insert((lhash_t*) lhk, (void*)(uintptr_t)key, p)) {
 	allocator_free(lhk->alloc,p);
 	return 0;
     }
     return 1;
 }
 
-LHASH_LOCAL int lhash_kv_remove(lhash_t* lhk, void* key, void** data)
+LHASH_LOCAL int lhash_kv_remove(lhash_t* lhk, lhash_kv_key_t key, lhash_kv_value_t* data)
 {
     hlink_kv_t* p;
-    if (!lhash_remove((lhash_t*) lhk, key, (void**)&p))
+    if (!lhash_remove((lhash_t*) lhk, (void*)(uintptr_t)key, (void**)&p))
 	return 0; // not found
     if (data) *data = p->data;
-    LHASH_KV_FREE(p);
+    allocator_free(lhk->alloc,p);
     return 1;
 }
 
@@ -134,7 +139,7 @@ LHASH_KV_LOCAL void lhash_kv_iter_init(lhash_kv_iter_t* iter, lhash_kv_t* lhk)
     lhash_iter_init(iter, (lhash_t*) lhk);
 }
 
-LHASH_KV_LOCAL int lhash_kv_iter_current(lhash_kv_iter_t* iter, void** key, void** data)
+LHASH_KV_LOCAL int lhash_kv_iter_current(lhash_kv_iter_t* iter, lhash_kv_key_t* key, lhash_kv_value_t* data)
 {
     hlink_kv_t* p;
     if (lhash_iter_current(iter, (void**) &p)) {
@@ -160,7 +165,7 @@ LHASH_KV_LOCAL int lhash_kv_iter_remove(lhash_kv_iter_t* iter)
     hlink_kv_t* p;
     if (lhash_iter_current(iter, (void**) &p)) {
 	lhash_iter_remove(iter);
-	LHASH_KV_FREE(p);
+	allocator_free(iter->lh->alloc,p);
 	return 1;
     }
     return 0;

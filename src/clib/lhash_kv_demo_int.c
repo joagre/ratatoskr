@@ -1,8 +1,13 @@
 #include <assert.h>
-#include "lhash_kv.h"
+#include <stdint.h>
 
 typedef uint32_t vm_label_t;
 typedef uint32_t vm_address_t;
+
+#define LHASH_KV_KEY_TYPE   vm_label_t
+#define LHASH_KV_VALUE_TYPE vm_address_t
+
+#include "lhash_kv.h"
 
 typedef struct {
     vm_address_t start_address;
@@ -14,8 +19,8 @@ static size_t key_hash(void* key, void*) {
     return (size_t)((uintptr_t)key);
 };
 
-static int key_cmp(void* key1, void* key2, void*) {
-    return (uintptr_t)key1 == (uintptr_t)key2;
+static int key_cmp(void* key, hlink_t* obj, void*) {
+    return (uintptr_t)key - ((hlink_kv_t*)obj)->key;
 };
 
 module_t* module_new(vm_address_t start_address) {
@@ -27,13 +32,12 @@ module_t* module_new(vm_address_t start_address) {
 
 void module_insert_label(module_t* module, vm_label_t label,
                          vm_address_t address) {
-    lhash_kv_insert(&module->jump_table, (void*)(uintptr_t)label,
-		    (void*)(uintptr_t)address);
+    lhash_kv_insert(&module->jump_table, label, address);
 }
 
 vm_address_t module_lookup_address(module_t* module, vm_label_t label) {
-    uintptr_t address;
-    lhash_kv_find(&module->jump_table, &label, (void **)&address);
+    vm_address_t address;
+    lhash_kv_find(&module->jump_table, label, &address);
     return address;
 }
 

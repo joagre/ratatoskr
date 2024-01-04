@@ -80,14 +80,31 @@ BIGNUM_LOCAL char* bignum_to_string(bignum_t* x, char* ptr, int sz) BIGNUM_API;
 BIGNUM_LOCAL char* bignum_to_xstring(bignum_t* x, char* ptr, int sz) BIGNUM_API;
 
 // advanced or less useful
-BIGNUM_LOCAL digit_t* bignum_hsave(void);
-BIGNUM_LOCAL void bignum_hrestore(digit_t* saved);
-BIGNUM_LOCAL int bignum_push_htop(void);
-BIGNUM_LOCAL int bignum_pop_htop(void);
-BIGNUM_LOCAL int bignum_halloc(bignum_t* xp, int ndigits);
-BIGNUM_LOCAL int bignum_halloc_copy(bignum_t* src, bignum_t* dst);
-BIGNUM_LOCAL int bignum_init(bignum_t* bp, digit_t* ds, int ndigits);
-BIGNUM_LOCAL int bignum_const(bignum_t* bp, const digit_t* ds, int ndigits);
+BIGNUM_LOCAL digit_t* bignum_hsave(void) BIGNUM_API;
+BIGNUM_LOCAL void bignum_hrestore(digit_t* saved) BIGNUM_API;
+BIGNUM_LOCAL int bignum_push_htop(void) BIGNUM_API;
+BIGNUM_LOCAL int bignum_pop_htop(void) BIGNUM_API;
+BIGNUM_LOCAL int bignum_halloc(bignum_t* xp, int ndigits) BIGNUM_API;
+BIGNUM_LOCAL int bignum_halloc_copy(bignum_t* src, bignum_t* dst) BIGNUM_API;
+BIGNUM_LOCAL int bignum_init(bignum_t* bp, digit_t* ds, int ndigits) BIGNUM_API;
+BIGNUM_LOCAL int bignum_const(bignum_t* bp, const digit_t* ds, int ndigits) BIGNUM_API;
+// digit/byte api
+BIGNUM_LOCAL int bignum_digit_set(bignum_t* x, unsigned pos, digit_t d, bignum_t* r) BIGNUM_API;
+BIGNUM_LOCAL digit_t bignum_digit_get(bignum_t* x, unsigned pos) BIGNUM_API;
+BIGNUM_LOCAL int bignum_byte_set(bignum_t* x, unsigned pos, uint8_t b, bignum_t* r) BIGNUM_API;
+BIGNUM_LOCAL uint8_t bignum_byte_get(bignum_t* x, unsigned pos) BIGNUM_API;
+
+
+#ifdef BIGNUM_DEBUG
+BIGNUM_LOCAL void bignum_fprintf(FILE* f, char* fmt, bignum_t* x) BIGNUM_API;
+BIGNUM_LOCAL void bignum_xfprintf(FILE* f, char* fmt, bignum_t* x) BIGNUM_API;
+BIGNUM_LOCAL void bignum_xprintf(char* fmt, bignum_t* x) BIGNUM_API;
+BIGNUM_LOCAL void bignum_printf(char* fmt, bignum_t* x) BIGNUM_API;
+BIGNUM_LOCAL void bignum_print(bignum_t* x) BIGNUM_API;
+BIGNUM_LOCAL void bignum_println(bignum_t* x) BIGNUM_API;
+#endif
+    
+
 
 #define CAT_HELPER2(x,y) x ## y
 #define CAT2(x,y) CAT_HELPER2(x,y)
@@ -150,7 +167,7 @@ static int bignum_max_hsp = -1;
 static digit_t* bignum_max_htop = bignum_heap;
 #endif
 
-BIGNUM_SMALL(bignum_zer0, 0);
+BIGNUM_SMALL(bignum_zero, 0);
 BIGNUM_SMALL(bignum_one,  1);
 BIGNUM_SMALL(bignum_two,  2);
 BIGNUM_SMALL(bignum_ten,  10);
@@ -160,8 +177,8 @@ BIGNUM_SMALL(bignum_ten,  10);
 
 /* add a and b with carry in + out */
 #define DSUMc(a,b,c,s) do {						\
-	digit_t ___cr = (c);					\
-	digit_t ___xr = (a)+(___cr);				\
+	digit_t ___cr = (c);						\
+	digit_t ___xr = (a)+(___cr);					\
 	digit_t ___yr = (b);						\
 	___cr = (___xr < ___cr);					\
 	___xr = ___yr + ___xr;						\
@@ -172,7 +189,7 @@ BIGNUM_SMALL(bignum_ten,  10);
 
 /* add a and b with carry out */
 #define DSUM(a,b,c,s) do {						\
-	digit_t ___xr = (a);					\
+	digit_t ___xr = (a);						\
 	digit_t ___yr = (b);						\
 	___xr = ___yr + ___xr;						\
 	s = ___xr;							\
@@ -302,11 +319,11 @@ static digit_t* bignum_halloc_digits(int n)
 	return xs;
     }
     DBGPRINT("bignum heap out of memory, alloc %d digit", n);
-break_here();
+    break_here();
     return NULL;
 }
 
-int bignum_halloc(bignum_t* x, int n)
+static int bignum_halloc(bignum_t* x, int n)
 {
     digit_t* xs = bignum_halloc_digits(n);
     if (xs != NULL) {
@@ -388,7 +405,7 @@ int bignum_is_even(bignum_t* x)
 }
 
 // n is number of digits
-int bignum_init(bignum_t* bp, digit_t* ds, int n)
+static int bignum_init(bignum_t* bp, digit_t* ds, int n)
 {
     bp->size = 0;
     bp->asize = n;
@@ -399,7 +416,7 @@ int bignum_init(bignum_t* bp, digit_t* ds, int n)
 }
 
 // n is number of digits
-int bignum_const(bignum_t* bp, const digit_t* ds, int n)
+static int bignum_const(bignum_t* bp, const digit_t* ds, int n)
 {
     bp->size = n;
     bp->asize = 0;
@@ -410,7 +427,7 @@ int bignum_const(bignum_t* bp, const digit_t* ds, int n)
 }
 
 // setup bignum as a small constant
-int bignum_small(bignum_t* x, digit_t d)
+static int bignum_small(bignum_t* x, digit_t d)
 {
     if (bignum_resize(x, 1) < 0) return -1;
     x->sign  = 0;
@@ -431,7 +448,7 @@ static void b_copy(digit_t* src, digit_t* dst, int n)
     for (i = 0; i < n; i++) dst[i] = src[i];
 }
 
-int bignum_copy(bignum_t* src, bignum_t* dst)
+static int bignum_copy(bignum_t* src, bignum_t* dst)
 {
     if (dst == NULL)
 	return 0;
@@ -444,7 +461,7 @@ int bignum_copy(bignum_t* src, bignum_t* dst)
     return src->size;
 }
 
-int bignum_copy_resize(bignum_t* src, bignum_t* dst, int min_size)
+static int bignum_copy_resize(bignum_t* src, bignum_t* dst, int min_size)
 {
     digit_t* xp = src->digits;  // save digit pointer & size
     int xl      = src->size;
@@ -462,7 +479,7 @@ int bignum_copy_resize(bignum_t* src, bignum_t* dst, int min_size)
 }
 
 // allocate a new copy of dst
-int bignum_halloc_copy(bignum_t* src, bignum_t* dst)
+static int bignum_halloc_copy(bignum_t* src, bignum_t* dst)
 {
     digit_t* xp = src->digits;
     int xl      = src->size;
@@ -1175,7 +1192,7 @@ static int b_lshift(digit_t* x, int xl, int y, int sign, digit_t* r)
 	    digit_t* r0 = r;
 	    int add_one = 0;
 
-	    if (xl <= bw) {
+	    if (xl <= (int)bw) {
 		if (sign)
 		    *r = 1;
 		else
@@ -1412,19 +1429,19 @@ static int b_rem(digit_t* xp, int xl, digit_t* yp, int yl, digit_t* r)
 }
 
 
-int bignum_add(bignum_t* x, bignum_t* y, bignum_t* r)
+static int bignum_add(bignum_t* x, bignum_t* y, bignum_t* r)
 {
     return b_addsub(x->digits, x->sign, x->size,
 		    y->digits, y->sign, y->size, r);
 }
 
-int bignum_subtract(bignum_t* x, bignum_t* y, bignum_t* r)
+static int bignum_subtract(bignum_t* x, bignum_t* y, bignum_t* r)
 {
     return b_addsub(x->digits, x->sign, x->size,
 		    y->digits, !y->sign, y->size, r);
 }
 
-int bignum_multiply(bignum_t* x, bignum_t* y, bignum_t* r)
+static int bignum_multiply(bignum_t* x, bignum_t* y, bignum_t* r)
 {
     int rsz;
     int rsign = 0;
@@ -1461,7 +1478,7 @@ int bignum_multiply(bignum_t* x, bignum_t* y, bignum_t* r)
     return 1;
 }
 
-int bignum_divrem(bignum_t* x, bignum_t* y, bignum_t* q, bignum_t* r)
+static int bignum_divrem(bignum_t* x, bignum_t* y, bignum_t* q, bignum_t* r)
 {
     int qsz, rsz, cmp;
 
@@ -1509,7 +1526,7 @@ int bignum_divrem(bignum_t* x, bignum_t* y, bignum_t* q, bignum_t* r)
 }
 
 // fixme check for  y = 2^n  then q = bignum_bsl(x, n, q)
-int bignum_div(bignum_t* x, bignum_t* y, bignum_t* q)
+static int bignum_div(bignum_t* x, bignum_t* y, bignum_t* q)
 {
     int qsz, cmp;
 
@@ -1550,7 +1567,7 @@ int bignum_div(bignum_t* x, bignum_t* y, bignum_t* q)
 }
 
 // fixme check for  y = 2^n  then r = x & (y-1)
-int bignum_rem(bignum_t* x, bignum_t* y, bignum_t* r)
+static int bignum_rem(bignum_t* x, bignum_t* y, bignum_t* r)
 {
     int rsz, cmp;
 
@@ -1580,7 +1597,7 @@ int bignum_rem(bignum_t* x, bignum_t* y, bignum_t* r)
     return 0;
 }
 
-int bignum_mod(bignum_t* x, bignum_t* y, bignum_t* r)
+static int bignum_mod(bignum_t* x, bignum_t* y, bignum_t* r)
 {
     int res;
     AUTO_BEGIN {	
@@ -1596,7 +1613,7 @@ int bignum_mod(bignum_t* x, bignum_t* y, bignum_t* r)
 }
 
 // FIXME: x == r
-int bignum_bsl(bignum_t* x, int y, bignum_t* r)
+static int bignum_bsl(bignum_t* x, int y, bignum_t* r)
 {
     int need_bits = x->size*DEXP;
     int need;
@@ -1612,7 +1629,7 @@ int bignum_bsl(bignum_t* x, int y, bignum_t* r)
 }
 
 // FIXME: x == r
-int bignum_bsr(bignum_t* x, int y, bignum_t* r)
+static int bignum_bsr(bignum_t* x, int y, bignum_t* r)
 {
     int need_bits = x->size*DEXP;
     int need;
@@ -1627,7 +1644,7 @@ int bignum_bsr(bignum_t* x, int y, bignum_t* r)
     return 0;
 }
 
-int bignum_negate(bignum_t* x, bignum_t* r)
+static int bignum_negate(bignum_t* x, bignum_t* r)
 {
     if (x != r) {
 	if (bignum_copy(x, r) < 0) return -1;
@@ -1636,7 +1653,7 @@ int bignum_negate(bignum_t* x, bignum_t* r)
     return 0;    
 }
 
-int bignum_abs(bignum_t* x, bignum_t* r)
+static int bignum_abs(bignum_t* x, bignum_t* r)
 {
     if (x != r) {
 	if (bignum_copy(x, r) < 0) return -1;
@@ -1645,7 +1662,7 @@ int bignum_abs(bignum_t* x, bignum_t* r)
     return 0;
 }
 
-int bignum_band(bignum_t* x, bignum_t* y, bignum_t* r)
+static int bignum_band(bignum_t* x, bignum_t* y, bignum_t* r)
 {
     if (x->size >= y->size)
 	return b_band(x->digits, x->sign, x->size, 
@@ -1657,7 +1674,7 @@ int bignum_band(bignum_t* x, bignum_t* y, bignum_t* r)
 		      r);
 }
 
-int bignum_bor(bignum_t* x, bignum_t* y, bignum_t* r)
+static int bignum_bor(bignum_t* x, bignum_t* y, bignum_t* r)
 {
     if (x->size >= y->size)
 	return b_bor(x->digits, x->sign, x->size, 
@@ -1669,7 +1686,7 @@ int bignum_bor(bignum_t* x, bignum_t* y, bignum_t* r)
 		     r);
 }
 
-int bignum_bxor(bignum_t* x, bignum_t* y, bignum_t* r)
+static int bignum_bxor(bignum_t* x, bignum_t* y, bignum_t* r)
 {
     if (x->size >= y->size)
 	return b_bxor(x->digits, x->sign, x->size, 
@@ -1681,13 +1698,13 @@ int bignum_bxor(bignum_t* x, bignum_t* y, bignum_t* r)
 		      r);
 }
 
-int bignum_bnot(bignum_t* x, bignum_t* r)
+static int bignum_bnot(bignum_t* x, bignum_t* r)
 {
     return b_bnot(x->digits, x->sign, x->size, r);
 }
 
 // x must be non-negative!
-int bignum_bit_test(bignum_t* x, unsigned pos)
+static int bignum_bit_test(bignum_t* x, unsigned pos)
 {
     int d;
     if (x->sign) bignum_einval();
@@ -1698,7 +1715,7 @@ int bignum_bit_test(bignum_t* x, unsigned pos)
     return (x->digits[d] & (1 << pos)) != 0;
 }
 
-int bignum_bit_set(bignum_t* x, unsigned pos, bignum_t* r)
+static int bignum_bit_set(bignum_t* x, unsigned pos, bignum_t* r)
 {
     int d;
     if (x->sign) bignum_einval();
@@ -1709,7 +1726,7 @@ int bignum_bit_set(bignum_t* x, unsigned pos, bignum_t* r)
     return 0;
 }
 
-int bignum_bit_clear(bignum_t* x, unsigned pos, bignum_t* r)
+static int bignum_bit_clear(bignum_t* x, unsigned pos, bignum_t* r)
 {
     int d;
     if (x->sign) bignum_einval();
@@ -1723,7 +1740,7 @@ int bignum_bit_clear(bignum_t* x, unsigned pos, bignum_t* r)
     return 0;
 }
 
-int bignum_bit_toggle(bignum_t* x, unsigned pos, bignum_t* r)
+static int bignum_bit_toggle(bignum_t* x, unsigned pos, bignum_t* r)
 {
     int d;
     if (x->sign) bignum_einval();
@@ -1736,7 +1753,7 @@ int bignum_bit_toggle(bignum_t* x, unsigned pos, bignum_t* r)
 }
 
 // set byte in digit by pos (not same as set_bit, clear byte first!)
-int bignum_byte_set(bignum_t* x, unsigned pos, uint8_t b, bignum_t* r)
+static int bignum_byte_set(bignum_t* x, unsigned pos, uint8_t b, bignum_t* r)
 {
     int d;
     if (x->sign) bignum_einval();
@@ -1747,7 +1764,7 @@ int bignum_byte_set(bignum_t* x, unsigned pos, uint8_t b, bignum_t* r)
     return 0;
 }
 
-uint8_t bignum_byte_get(bignum_t* x, unsigned pos)
+static uint8_t bignum_byte_get(bignum_t* x, unsigned pos)
 {
     int d;
     d = pos / sizeof(digit_t);       // digit number
@@ -1756,42 +1773,42 @@ uint8_t bignum_byte_get(bignum_t* x, unsigned pos)
     return (x->digits[d] >> pos) & 0xff;
 }
 
-int bignum_digit_set(bignum_t* x, unsigned pos, digit_t d, bignum_t* r)
+static int bignum_digit_set(bignum_t* x, unsigned pos, digit_t d, bignum_t* r)
 {
     if (bignum_copy_resize(x, r, (pos+1)) < 0) return -1;
     r->digits[pos] = d;
     return 0;
 }
 
-digit_t bignum_digit_get(bignum_t* x, unsigned pos)
+static digit_t bignum_digit_get(bignum_t* x, unsigned pos)
 {
     if (pos >= x->size) return 0;
     return x->digits[pos];
 }
 
-static int inline d_ffs(digit_t d)
+inline static int d_ffs(digit_t d)
 {
     return __builtin_ffs(d);
 }
 
-static int inline d_clz(digit_t d)
+inline static int d_clz(digit_t d)
 {
     return __builtin_clz(d)-((sizeof(unsigned)-sizeof(digit_t))*8);
 }
 
-static int inline d_popcount(digit_t d)
+inline static int d_popcount(digit_t d)
 {
     return __builtin_popcount(d);
 }
 
-static int inline d_parity(digit_t d)
+inline static int d_parity(digit_t d)
 {
     return __builtin_parity(d);
 }
 
 // return bit position + 1 to the least significant 1-bit of x
 // or zero if x is zero
-int bignum_ffs(bignum_t* x)
+static int bignum_ffs(bignum_t* x)
 {
     int i;
     if (x->sign) bignum_einval();
@@ -1801,14 +1818,14 @@ int bignum_ffs(bignum_t* x)
     return (i*DEXP) + d_ffs(x->digits[i]);
 }
   
-int bignum_clz(bignum_t* x)
+static int bignum_clz(bignum_t* x)
 {
     if (x->sign) bignum_einval();
     if (bignum_is_zero(x)) return -1;
     return d_clz(x->digits[x->size-1]);
 }
 
-int bignum_ctz(bignum_t* x)
+static int bignum_ctz(bignum_t* x)
 {
     int i;
     if (x->sign) bignum_einval();
@@ -1816,14 +1833,14 @@ int bignum_ctz(bignum_t* x)
     return i-1;
 }
 
-int bignum_clrsb(bignum_t* x)
+static int bignum_clrsb(bignum_t* x)
 {
     if (x->sign) bignum_einval();
     // same as ctz since we only accept non negative number now
     return bignum_ctz(x);
 }
 
-int bignum_popcount(bignum_t* x)
+static int bignum_popcount(bignum_t* x)
 {
     int count = 0;
     int i;
@@ -1833,7 +1850,7 @@ int bignum_popcount(bignum_t* x)
     return count;
 }
 
-int bignum_parity(bignum_t* x)
+static int bignum_parity(bignum_t* x)
 {
     int parity = 0;
     int i;
@@ -1845,7 +1862,7 @@ int bignum_parity(bignum_t* x)
 
 // return byte size of bignum (x must be normalised)
 // fixme: what about negative numbers sizeof two complement form?
-int bignum_byte_size(bignum_t* x)
+static int bignum_byte_size(bignum_t* x)
 {
     if (bignum_is_zero(x))
 	return 1;
@@ -1857,7 +1874,7 @@ int bignum_byte_size(bignum_t* x)
 
 // return bit size of bignum (x must be normalised)
 // fixme: negative numbers
-int bignum_bit_size(bignum_t* x)
+static int bignum_bit_size(bignum_t* x)
 {
     if (bignum_is_zero(x))
 	return 1;
@@ -1867,7 +1884,7 @@ int bignum_bit_size(bignum_t* x)
     }
 }
 
-int bignum_from_strn(char* ptr, int len, bignum_t* x)
+static int bignum_from_strn(char* ptr, int len, bignum_t* x)
 {
     char* ptr1 = ptr + len;
     int sign = 0;
@@ -1890,7 +1907,7 @@ int bignum_from_strn(char* ptr, int len, bignum_t* x)
 
 }
 
-int bignum_from_string(char* ptr, bignum_t* x)
+static int bignum_from_string(char* ptr, bignum_t* x)
 {
     int len = 0;
     char* ptr1 = ptr;
@@ -1899,7 +1916,7 @@ int bignum_from_string(char* ptr, bignum_t* x)
 }
 
 // fixme: range check
-char* bignum_to_string(bignum_t* x, char* ptr, int sz)
+static char* bignum_to_string(bignum_t* x, char* ptr, int sz)
 {
     AUTO_BEGIN {    
 	BIGNUM_AUTO(q, x->size);
@@ -1920,7 +1937,7 @@ char* bignum_to_string(bignum_t* x, char* ptr, int sz)
     return ptr;
 }
 
-char* bignum_to_xstring(bignum_t* x, char* ptr, int sz)
+static char* bignum_to_xstring(bignum_t* x, char* ptr, int sz)
 {
     char* ptr0 = ptr;
     char* ptr1 = ptr + sz - 1;
@@ -1943,7 +1960,7 @@ char* bignum_to_xstring(bignum_t* x, char* ptr, int sz)
 
 #ifdef BIGNUM_DEBUG
 // debug only? (1233 decimal digits are about 4096 bits)
-void bignum_fprintf(FILE* f, char* fmt, bignum_t* x)
+static void bignum_fprintf(FILE* f, char* fmt, bignum_t* x)
 {
     char buf[1240];
     char* ptr;
@@ -1951,7 +1968,7 @@ void bignum_fprintf(FILE* f, char* fmt, bignum_t* x)
     fprintf(f, fmt, ptr);
 }
 
-void bignum_xfprintf(FILE* f, char* fmt, bignum_t* x)
+static void bignum_xfprintf(FILE* f, char* fmt, bignum_t* x)
 {
     char buf[1240];
     char* ptr;
@@ -1960,30 +1977,29 @@ void bignum_xfprintf(FILE* f, char* fmt, bignum_t* x)
 }
 
 // print bignum as hex big-endian format
-void bignum_xprintf(char* fmt, bignum_t* x)
+static void bignum_xprintf(char* fmt, bignum_t* x)
 {
     bignum_xfprintf(stdout, fmt, x);
 }
 
-
-void bignum_printf(char* fmt, bignum_t* x)
+static void bignum_printf(char* fmt, bignum_t* x)
 {
     bignum_fprintf(stdout, fmt, x);
 }
 
-void bignum_print(bignum_t* x)
+static void bignum_print(bignum_t* x)
 {
     bignum_fprintf(stdout, "%s", x);
 }
 
-void bignum_println(bignum_t* x)
+static void bignum_println(bignum_t* x)
 {
     bignum_fprintf(stdout, "%s\n", x);
 }
 #endif
 
 // gcd(x,y)
-int bignum_gcd(bignum_t* x, bignum_t* y, bignum_t* r)
+static int bignum_gcd(bignum_t* x, bignum_t* y, bignum_t* r)
 {
     if (bignum_abs_comp(x,y) < 0)
 	BIGNUM_SWAP(x, y);
@@ -2015,8 +2031,8 @@ int bignum_gcd(bignum_t* x, bignum_t* y, bignum_t* r)
 }
 
 // egcd(a,b,gcd,&x,&y)  gcd = a*x + b*y
-int bignum_egcd(bignum_t* a, bignum_t* b, bignum_t* gcd,
-		bignum_t* x,bignum_t* y)
+static int bignum_egcd(bignum_t* a, bignum_t* b, bignum_t* gcd,
+		       bignum_t* x,bignum_t* y)
 {
     if (bignum_abs_comp(a,b) < 0)
 	BIGNUM_SWAP(a,b);
@@ -2079,7 +2095,7 @@ int bignum_egcd(bignum_t* a, bignum_t* b, bignum_t* gcd,
 }
 
 // calculate r = x^n (mod m)
-int bignum_powmod(bignum_t* x, bignum_t* n, bignum_t* m, bignum_t* r)
+static int bignum_powmod(bignum_t* x, bignum_t* n, bignum_t* m, bignum_t* r)
 {
     AUTO_BEGIN {    
 	BIGNUM_AUTO(p,   m->size);
@@ -2110,7 +2126,7 @@ int bignum_powmod(bignum_t* x, bignum_t* n, bignum_t* m, bignum_t* r)
 // Set b = qp + r ( r = b rem p )
 // a^b = a^(kp+r) = a^(q+r) 
 // 
-int bignum_powmod_prime(bignum_t* a, bignum_t* b, bignum_t* p, bignum_t* r)
+static int bignum_powmod_prime(bignum_t* a, bignum_t* b, bignum_t* p, bignum_t* r)
 {
     if (a->sign || b->sign || p->sign || bignum_is_zero(p))
 	bignum_einval();
@@ -2131,9 +2147,9 @@ int bignum_powmod_prime(bignum_t* a, bignum_t* b, bignum_t* p, bignum_t* r)
 }
 
 // calculate a^b mod p1*p2 (p1 and p2 prime)
-int bignum_powmod_two_prime (bignum_t* a,bignum_t* b,
-			     bignum_t* p1,bignum_t* p2,
-			     bignum_t* r)
+static int bignum_powmod_two_prime (bignum_t* a,bignum_t* b,
+				    bignum_t* p1,bignum_t* p2,
+				    bignum_t* r)
 {
     int res;
     AUTO_BEGIN {    

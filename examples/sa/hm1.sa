@@ -1,6 +1,8 @@
+
+
 fn foo(f, g, x) {
     if f(x == 1) {
-        g(x)
+        f(x).g(x).k
     } else {
         20
     }

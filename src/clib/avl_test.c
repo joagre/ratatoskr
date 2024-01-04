@@ -78,7 +78,7 @@ void test_samples(long* key, long* data, size_t n)
     int i;
     size_t expect_size;
 
-    avl_kv_init(&store, NULL, cmp_func);
+    avl_kv_init(&store, NULL, (avl_cmp_t) cmp_func);
     
     // insert each sample and check that all samples inserted are found
     // and that size is correct

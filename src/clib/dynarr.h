@@ -1,5 +1,4 @@
 #ifndef __DYNARR_H__
-#define __DYNARR_H__
 
 #include <stdint.h>
 #include <memory.h>
@@ -128,7 +127,7 @@ DYNARR_LOCAL size_t dynarray_size(dynarray_t* dp)
 DYNARR_LOCAL int dynarray_set_capacity(dynarray_t* dp, size_t capacity)
 {
     void* base;
-
+    
     if ((base = allocator_realloc(dp->alloc,dp->base,capacity*dp->width))==NULL)
 	return -1;
     dp->base = base;

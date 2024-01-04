@@ -15,7 +15,7 @@ typedef struct _hlink_t // :slink_t in slist_t
 } hlink_t;
 
 typedef lhash_value_t (*lhash_hash_t)(void* key, void* arg);
-typedef int (*lhash_cmp_t)(void* key, void* obj, void* arg);
+typedef int (*lhash_cmp_t)(void* key, hlink_t* obj, void* arg);
 
 typedef struct _lhash_t
 {

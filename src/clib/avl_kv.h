@@ -4,11 +4,22 @@
 #include "allocator.h"
 #include "avl.h"
 
+#ifndef AVL_KV_KEY_TYPE
+#define AVL_KV_KEY_TYPE void*
+#endif
+#ifndef AVL_KV_VALUE_TYPE
+#define AVL_KV_VALUE_TYPE void*
+#endif
+
+typedef AVL_KV_KEY_TYPE avl_kv_key_t;
+typedef AVL_KV_VALUE_TYPE avl_kv_value_t;
+
+
 typedef struct _avl_kv_node_t // :avk_node_t
 {
     avl_node_t node;
-    void* key;
-    void* data;
+    avl_kv_key_t key;
+    avl_kv_value_t data;
 } avl_kv_node_t;
 
 typedef struct _avl_kv_t
@@ -28,9 +39,9 @@ typedef avl_iter_t avl_kv_iter_t;
 
 AVL_KV_LOCAL void avl_kv_init(avl_kv_t*, allocator_t*, avl_cmp_t) AVL_KV_API;
 AVL_KV_LOCAL void avl_kv_clear(avl_kv_t*) AVL_KV_API;
-AVL_KV_LOCAL int avl_kv_find(avl_kv_t*, void* key, void** data) AVL_KV_API;
-AVL_KV_LOCAL int avl_kv_insert(avl_kv_t*, void* key, void* data) AVL_KV_API;
-AVL_KV_LOCAL int avl_kv_remove(avl_kv_t* avl, void* key, void** data) AVL_KV_API;
+AVL_KV_LOCAL int avl_kv_find(avl_kv_t*, avl_kv_key_t key, avl_kv_value_t* data) AVL_KV_API;
+AVL_KV_LOCAL int avl_kv_insert(avl_kv_t*, avl_kv_key_t key, avl_kv_value_t data) AVL_KV_API;
+AVL_KV_LOCAL int avl_kv_remove(avl_kv_t* avl, avl_kv_key_t key, avl_kv_value_t* data) AVL_KV_API;
 AVL_KV_LOCAL size_t avl_kv_size(avl_kv_t*)  AVL_KV_API;
 AVL_KV_LOCAL int avl_kv_is_empty(avl_kv_t*)  AVL_KV_API;
 AVL_KV_LOCAL int avl_kv_height(avl_kv_t*) AVL_KV_API;
@@ -38,7 +49,7 @@ AVL_KV_LOCAL int avl_kv_height(avl_kv_t*) AVL_KV_API;
 // iterator
 AVL_KV_LOCAL int avl_kv_iter_init(avl_kv_iter_t*, avl_kv_t*) AVL_KV_API;
 AVL_KV_LOCAL int avl_kv_iter_clear(avl_kv_iter_t*) AVL_KV_API;
-AVL_KV_LOCAL int avl_kv_iter_current(avl_kv_iter_t*, void** key, void** data) AVL_KV_API;
+AVL_KV_LOCAL int avl_kv_iter_current(avl_kv_iter_t*, avl_kv_key_t* key, avl_kv_value_t* data) AVL_KV_API;
 AVL_KV_LOCAL int avl_kv_iter_end(avl_kv_iter_t*) AVL_KV_API;
 AVL_KV_LOCAL int avl_kv_iter_next(avl_kv_iter_t*) AVL_KV_API;
 AVL_KV_LOCAL int avl_kv_iter_remove(avl_kv_iter_t* iter) AVL_KV_API;
@@ -46,7 +57,7 @@ AVL_KV_LOCAL int avl_kv_iter_remove(avl_kv_iter_t* iter) AVL_KV_API;
 AVL_KV_LOCAL int avl_kv_BF(avl_kv_node_t *)  AVL_API;
 AVL_KV_LOCAL void avl_kv_node_clear(avl_kv_t*, avl_node_t *) AVL_API;
 
-AVL_KV_LOCAL void* avl_kv_key(void* obj)
+AVL_KV_LOCAL avl_kv_key_t avl_kv_key(void* obj)
 {
     return ((avl_kv_node_t*)obj)->key;
 }
@@ -54,7 +65,7 @@ AVL_KV_LOCAL void* avl_kv_key(void* obj)
 AVL_KV_LOCAL void avl_kv_init(avl_kv_t* avlk,allocator_t* alloc,avl_cmp_t cmp)
 {
     if (alloc == NULL) alloc = allocator_std();
-    avl_init((avl_t*)avlk, cmp, avl_kv_key);
+    avl_init((avl_t*)avlk, cmp, (avl_key_t) avl_kv_key);
     avlk->alloc = alloc;
 }
 
@@ -67,17 +78,17 @@ AVL_KV_LOCAL void avl_kv_clear(avl_kv_t* avlk)
 }
 
 
-AVL_KV_LOCAL int avl_kv_find(avl_kv_t* avlk, void* key, void** data)
+AVL_KV_LOCAL int avl_kv_find(avl_kv_t* avlk, avl_kv_key_t key, avl_kv_value_t* data)
 {
     avl_kv_node_t* n;
-    if (avl_find((avl_t*)avlk, key, (void**) &n)) {
+    if (avl_find((avl_t*)avlk, (void*)key, (void**) &n)) {
 	if (data) *data = n->data;
 	return 1;
     }
     return 0;
 }
 
-AVL_KV_LOCAL int avl_kv_insert(avl_kv_t* avlk, void* key, void* data)
+AVL_KV_LOCAL int avl_kv_insert(avl_kv_t* avlk, avl_kv_key_t key, avl_kv_value_t data)
 {
     avl_kv_node_t* n;
 
@@ -91,7 +102,7 @@ AVL_KV_LOCAL int avl_kv_insert(avl_kv_t* avlk, void* key, void* data)
     return 0;    
 }
 
-AVL_KV_LOCAL int avl_kv_remove(avl_kv_t* avlk, void* key, void** data)
+AVL_KV_LOCAL int avl_kv_remove(avl_kv_t* avlk, avl_kv_key_t key, avl_kv_value_t* data)
 {
     avl_kv_node_t* n;
     if (avl_remove((avl_t*)avlk, key, (void**)&n)) {
@@ -142,7 +153,7 @@ AVL_KV_LOCAL int avl_kv_iter_clear(avl_kv_iter_t* iter)
 }
 
 
-AVL_KV_LOCAL int avl_kv_iter_current(avl_kv_iter_t* iter, void** key, void** data)
+AVL_KV_LOCAL int avl_kv_iter_current(avl_kv_iter_t* iter, avl_kv_key_t* key, avl_kv_value_t* data)
 {
     avl_kv_node_t* n;
     if (avl_iter_current(iter, (void**) &n)) {

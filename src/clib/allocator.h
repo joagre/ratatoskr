@@ -8,6 +8,7 @@ typedef struct _allocator_t
     void* (*alloc)(size_t size);
     void* (*realloc)(void* ptr, size_t size);
     void (*free)(void* ptr);
+    void (*dtor)(void* ptr); // destructor - called before free
 } allocator_t;
 
 #define ALLOCATOR_LOCAL static
@@ -21,12 +22,14 @@ ALLOCATOR_LOCAL allocator_t std_allocator =
 {
     .alloc = malloc,
     .realloc = realloc,
-    .free = free
+    .free = free,
+    .dtor = NULL
 };
 
 ALLOCATOR_LOCAL void* allocator_alloc(allocator_t*, size_t) ALLOCATOR_API;
 ALLOCATOR_LOCAL void* allocator_realloc(allocator_t*, void*, size_t) ALLOCATOR_API;
 ALLOCATOR_LOCAL void  allocator_free(allocator_t*, void*) ALLOCATOR_API;
+ALLOCATOR_LOCAL void  allocator_dtor(allocator_t*, void*) ALLOCATOR_API;
 ALLOCATOR_LOCAL allocator_t* allocator_std(void) ALLOCATOR_API;
 
 ALLOCATOR_LOCAL allocator_t* allocator_std(void)
@@ -47,6 +50,11 @@ ALLOCATOR_LOCAL void* allocator_realloc(allocator_t* ap, void* ptr, size_t size)
 ALLOCATOR_LOCAL void allocator_free(allocator_t* ap, void* ptr)
 {
     return (*ap->free)(ptr);
+}
+
+ALLOCATOR_LOCAL void allocator_dtor(allocator_t* ap, void* ptr)
+{
+    if (ap->dtor != NULL) (*ap->dtor)(ptr);
 }
 
 #endif

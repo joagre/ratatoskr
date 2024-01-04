@@ -34,7 +34,7 @@ lhash_value_t hash_func(void *key, void* arg)
     return (lhash_value_t)((long)key);
 }
 
-int cmp_func(void *key, void *obj, void* arg)
+int cmp_func(void *key, hlink_t* obj, void* arg)
 {
     (void) arg;
     return ((long)key) - ((long)((hlink_kv_t*)obj)->key);
@@ -67,7 +67,7 @@ void test()
 	    void* d;
 	    lhash_kv_iter_current(&iter, &k, &d);
 	    kv.key = (void*)key[i];
-	    if ((*cmp_func)(k, &kv, &store) == 0) {
+	    if ((*cmp_func)(k, (hlink_t*)&kv, &store) == 0) {
 		printf("key[%d] = %ld already present\n", i, key[i]);
 		exit(1);
 	    }
