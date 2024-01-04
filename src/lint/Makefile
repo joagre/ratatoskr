@@ -2,7 +2,7 @@ CC = gcc
 PCC = packcc
 CFLAGS = -Wall -Wextra -I../clib -I../utils -std=c17 -g -D_POSIX_C_SOURCE=200809L -Wno-unused-parameter -DDEBUG -DUNITTEST
 SRCS := $(wildcard *.c)
-OBJS := $(SRCS:.c=.o)
+OBJS := $(SRCS:.c=.o) satie.o
 EXTRA_OBJS := ../utils/log.o \
               ../utils/satie_error.o
 DEPS := $(SRCS:.c=.d)
