@@ -7,7 +7,7 @@
 #include "module.h"
 
 // Forward declarations of local functions (alphabetical order)
-static int key_cmp(void* key1, void* key2, void* arg);
+static int key_cmp(void* key, hlink_t* link, void* arg);
 static size_t key_hash(void* key, void* arg);
 
 void module_init(module_t* module, vm_address_t start_address) {
@@ -88,9 +88,10 @@ void module_print_jump_table(module_t* module) {
 // Local functions (alphabetical order)
 //
 
-static int key_cmp(void* key1, void* key2, void* arg) {
+static int key_cmp(void* key, hlink_t* link, void* arg) {
     (void*)arg;
-    return (uintptr_t)key1 == (uintptr_t)key2;
+    hlink_kv_t* link_kv	= (hlink_kv_t*)link;
+    return (uintptr_t)key == (uintptr_t)link_kv->key ? 0 : 1;
 };
 
 static size_t key_hash(void* key, void* arg) {

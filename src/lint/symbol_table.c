@@ -92,7 +92,7 @@ void symbol_table_print(symbol_table_t* table) {
 
 static int key_cmp(void* key, hlink_t* link, void* arg) {
     hlink_kv_t* link_kv	= (hlink_kv_t*)link;
-    return strcmp((char*)key, (char*)link_kv->key) == 0;
+    return strcmp((char*)key, (char*)link_kv->key);
 }
 
 static size_t key_hash(void* key, void* arg) {

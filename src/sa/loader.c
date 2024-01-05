@@ -13,7 +13,7 @@
 
 // Forward declarations of local functions (alphabetical order)
 static void append_bytes(loader_t* loader, uint8_t* bytes,  uint16_t n);
-static int key_cmp(void* key1, void* key2, void*);
+static int key_cmp(void* key, hlink_t* link, void* arg);
 static size_t key_hash(void* key, void*);
 static void load_bytecode(loader_t* loader, module_t* module, FILE* file,
                           satie_error_t* error);
@@ -114,14 +114,20 @@ static void append_bytes(loader_t* loader, uint8_t* bytes, uint16_t n) {
                &loader->bytecode_size, bytes, n);
 }
 
-static int key_cmp(void* key1, void* key2, void* arg) {
+static int key_cmp(void* key, hlink_t* link, void* arg) {
     (void*)arg;
-    return (key1 == key2);
+    hlink_kv_t* link_kv	= (hlink_kv_t*)link;
+    return strcmp((char*)key, (char*)link_kv->key);
 };
 
 static size_t key_hash(void* key, void* arg) {
     (void*)arg;
-    return (size_t)key;
+    size_t hash = 0;
+    int c;
+    while ((c = *(char*)key++)) {
+        hash = c + (hash << 6) + (hash << 16) - hash;
+    }
+    return hash;
 };
 
 static void load_bytecode(loader_t* loader, module_t* module,
