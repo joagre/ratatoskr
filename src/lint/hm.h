@@ -32,9 +32,11 @@ typedef struct hm_type {
 typedef struct {
     hm_type_t* argument_type;
     hm_type_t* return_type;
-} hm_rule_t;
+    struct ast_node* origin_node;
+    struct ast_node* node;
+} hm_equation_t;
 
-typedef dynarray_t rules_t;
+typedef dynarray_t hm_equations_t;
 
 void hm_infer_types(struct ast_node* node);
 
