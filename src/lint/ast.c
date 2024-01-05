@@ -4,12 +4,12 @@
 
 #define MAX_COLS 80
 
-static const char* type_strings[] = {
-    FOREACH_TYPE(GENERATE_STRING)
+static const char* node_name_strings[] = {
+    FOREACH_NODE_NAME(GENERATE_STRING)
 };
 
-const char* ast_type_to_string(node_type_t type) {
-    return type_strings[type];
+const char* ast_node_name_to_string(node_name_t name) {
+    return node_name_strings[name];
 }
 
 ast_node_t* ast_get_child(ast_node_t* node, uint32_t i) {
@@ -27,29 +27,29 @@ void ast_print(ast_node_t* node, uint16_t level) {
 	printf("%*s", 2 * level, "");
 	cols += 2 * level;
     }
-    printf("%s", ast_type_to_string(node->type));
-    cols += strlen(ast_type_to_string(node->type));
+    printf("%s", ast_node_name_to_string(node->name));
+    cols += strlen(ast_node_name_to_string(node->name));
     if (node->value != NULL) {
         printf(": %s", node->value);
 	cols += strlen(node->value) + 2;
     }
-    if (node->hm_type != NULL) {
+    if (node->type != NULL) {
 	uint16_t indent;
 	if (cols > MAX_COLS) {
 	    indent = 4;
 	} else {
 	    indent = MAX_COLS - cols - 4;
 	}
-	if (node->hm_type->tag == HM_TYPE_TAG_BASIC_TYPE) {
-	    if (node->hm_type->basic_type == HM_TYPE_BOOL) {
+	if (node->type->tag == HM_TYPE_TAG_BASIC_TYPE) {
+	    if (node->type->basic_type == HM_BASIC_TYPE_BOOL) {
 		printf("%*sbool\n", indent, "");
-	    } else if (node->hm_type->basic_type == HM_TYPE_INTEGRAL) {
+	    } else if (node->type->basic_type == HM_BASIC_TYPE_INTEGRAL) {
 		printf("%*sint\n", indent, "");
 	    } else {
 		assert(false);
 	    }
-	} else if (node->hm_type->tag == HM_TYPE_TAG_VARIABLE) {
-	    printf("%*st%d\n", indent, "", node->hm_type->variable);
+	} else if (node->type->tag == HM_TYPE_TAG_VARIABLE) {
+	    printf("%*st%d\n", indent, "", node->type->variable);
 	} else {
 	    assert(false);
 	}

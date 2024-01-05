@@ -358,9 +358,7 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    symbol_table_t table;
-    symbol_table_init(&table);
-    //hm_add_type_variables(program, &table);
+    hm_infer_types(program);
     ast_print(program, 0);
     satie_destroy(context);
     return 0;

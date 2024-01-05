@@ -70,10 +70,10 @@ void symbol_table_print(symbol_table_t* table) {
 	switch (type->tag) {
 	    case HM_TYPE_TAG_BASIC_TYPE:
 		switch (type->basic_type) {
-		    case HM_TYPE_INTEGRAL:
+		    case HM_BASIC_TYPE_INTEGRAL:
 			fprintf(stderr, "integral\n");
 			break;
-		    case HM_TYPE_BOOL:
+		    case HM_BASIC_TYPE_BOOL:
 			fprintf(stderr, "bool\n");
 			break;
 		}
@@ -120,11 +120,11 @@ void symbol_table_unit_test(void) {
     symbol_table_init(&table);
     hm_type_t* type1 = malloc(sizeof(hm_type_t));
     type1->tag = HM_TYPE_TAG_BASIC_TYPE;
-    type1->basic_type = HM_TYPE_INTEGRAL;
+    type1->basic_type = HM_BASIC_TYPE_INTEGRAL;
     symbol_table_insert(&table, "int", type1);
     hm_type_t* type2 = malloc(sizeof(hm_type_t));
     type2->tag = HM_TYPE_TAG_BASIC_TYPE;
-    type2->basic_type = HM_TYPE_BOOL;
+    type2->basic_type = HM_BASIC_TYPE_BOOL;
     symbol_table_insert(&table, "bool", type2);
     hm_type_t* type3 = malloc(sizeof(hm_type_t));
     type3->tag = HM_TYPE_TAG_VARIABLE;

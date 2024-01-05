@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <lhash_kv.h>
+#include <dynarr.h>
 
 // Forward declaration of circular dependency
 struct ast_node;
@@ -14,8 +15,8 @@ typedef enum {
 } hm_type_tag_t;
 
 typedef enum {
-    HM_TYPE_INTEGRAL,
-    HM_TYPE_BOOL
+    HM_BASIC_TYPE_INTEGRAL,
+    HM_BASIC_TYPE_BOOL
 } hm_basic_type_t;
 
 typedef uint32_t hm_type_variable_t;
@@ -31,8 +32,10 @@ typedef struct hm_type {
 typedef struct {
     hm_type_t* argument_type;
     hm_type_t* return_type;
-} constraint_t;
+} hm_rule_t;
 
-void hm_add_type_variables(struct ast_node* node, symbol_table_t* table);
+typedef dynarray_t rules_t;
+
+void hm_infer_types(struct ast_node* node);
 
 #endif

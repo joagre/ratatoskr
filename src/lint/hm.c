@@ -7,51 +7,32 @@
 #include "satie_auxil.h"
 
 // Forward declarations of local functions (alphabetical order)
-static type_variable_t next_type_variable(void);
+static void add_type_variables(ast_node_t* node, symbol_table_t* table);
 static hm_type_t* new_basic_type(hm_basic_type_t basic_type);
 static hm_type_t* new_type_variable(void);
+static type_variable_t next_type_variable(void);
 
-void hm_add_type_variables(ast_node_t *node, symbol_table_t *table) {
-    if (node->type == BOUND_NAME) {
-	node->hm_type = symbol_table_lookup(table, node->value);
-	LOG_ASSERT(node->hm_type != NULL, "Unbound name: '%s'", node->value);
-    } else if (node->type == INTEGRAL) {
-	hm_type_t* hm_type = new_basic_type(HM_TYPE_INTEGRAL);
-	symbol_table_insert(table, node->value, hm_type);
-	node->hm_type = hm_type;
-    } else if (node->type == TRUE || node->type == FALSE) {
-	hm_type_t* hm_type = new_basic_type(HM_TYPE_BOOL);
-	symbol_table_insert(table, node->value, hm_type);
-	node->hm_type = hm_type;
-    } else if (node->type == NON_DEFAULT_PARAM) {
-	hm_type_t* hm_type = new_type_variable();
-	symbol_table_insert(table, node->value, hm_type);
-	node->hm_type = hm_type;
-    } else if (node->type == EQ ||
-	       node->type == IF_EXPR ||
-	       node->type == FUNCTION_DEF ||
-	       node->type == POSTFIX_EXPR ||
-	       node->type == FUNCTION_CALL) {
-	hm_type_t* hm_type = new_type_variable();
-	node->hm_type = hm_type;
-    }
-
-    if (node->children != NULL) {
-        for (uint16_t i = 0; i < dynarray_size(node->children); i++) {
-	    hm_add_type_variables(dynarray_element(node->children, i), table);
-        }
-    }
+void hm_infer_types(ast_node_t* node) {
+//    symbol_table_t table;
+//    symbol_table_init(&table);
+//    add_type_variables(node, &table);
+//    rules_t rules;
+//    rules_init(&rules);
+//    add_constraints(program, &rules);
 }
 
-//void add_constraints(ast_node_t *node, constraints_t *constraints) {
+
 /*
-  if (node->type == INT) {
-	constraint_t constraint = {
-	    .node = node,
-	    .type_variable = node->type_variable,
-	    .type = HM_TYPE_INTEGRAL,
-	};
-	constraints_add(constraints, constraint);
+void hm_add_type_rules(ast_node_t *node, rules_t *rules) {
+    if (node->type == INTEGRAL) {
+	hm_type_t* return_type = hm_new_basic_type(HM_TYPE_INTEGRAL);
+	hm_rule_t rule = rule_new(node->hm_type, return_type, node);
+	rules_add(rules, rule);
+    }
+}
+*/
+
+/*
     } else if (node->type == BOOL) {
 	constraint_t constraint = {
 	    .node = node,
@@ -95,7 +76,7 @@ void hm_add_type_variables(ast_node_t *node, symbol_table_t *table) {
 	constraint_t constraint = {
 	    .argument_type = if_conditional_node->type,
 	    .return_type = {
-		.tag = HM_BASIC_TYPE,
+		.tag = HM_TYPE_TAG_BASIC_TYPE,
 		.basic_type = HM_TYPE_BOOL
 	    },
 	    .node = node
@@ -130,21 +111,53 @@ void hm_add_type_variables(ast_node_t *node, symbol_table_t *table) {
 // Local functions (alphabetical order)
 //
 
-static type_variable_t next_type_variable(void) {
-    static type_variable_t next_type_variable = 0;
-    return next_type_variable++;
+static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
+    if (node->name == BOUND_NAME) {
+	node->type = symbol_table_lookup(table, node->value);
+	LOG_ASSERT(node->type != NULL, "Unbound name: '%s'", node->value);
+    } else if (node->name == EQ ||
+	       node->name == IF_EXPR ||
+	       node->name == FUNCTION_DEF ||
+	       node->name == POSTFIX_EXPR ||
+	       node->name == FUNCTION_CALL) {
+	hm_type_t* type = new_type_variable();
+	node->type = type;
+    } else if (node->name == NON_DEFAULT_PARAM) {
+	hm_type_t* type = new_type_variable();
+	symbol_table_insert(table, node->value, type);
+	node->type = type;
+    } else if (node->name == INTEGRAL) {
+	hm_type_t* type = new_basic_type(HM_BASIC_TYPE_INTEGRAL);
+	symbol_table_insert(table, node->value, type);
+	node->type = type;
+    } else if (node->name == TRUE || node->name == FALSE) {
+	hm_type_t* type = new_basic_type(HM_BASIC_TYPE_BOOL);
+	symbol_table_insert(table, node->value, type);
+	node->type = type;
+    }
+
+    if (node->children != NULL) {
+        for (uint16_t i = 0; i < dynarray_size(node->children); i++) {
+	    add_type_variables(dynarray_element(node->children, i), table);
+        }
+    }
 }
 
 static hm_type_t* new_basic_type(hm_basic_type_t basic_type) {
-    hm_type_t* hm_type = malloc(sizeof(hm_type_t));
-    hm_type->tag = HM_TYPE_TAG_BASIC_TYPE;
-    hm_type->basic_type = basic_type;
-    return hm_type;
+    hm_type_t* type = malloc(sizeof(hm_type_t));
+    type->tag = HM_TYPE_TAG_BASIC_TYPE;
+    type->basic_type = basic_type;
+    return type;
 }
 
 static hm_type_t* new_type_variable(void) {
-    hm_type_t* hm_type = malloc(sizeof(hm_type_t));
-    hm_type->tag = HM_TYPE_TAG_VARIABLE;
-    hm_type->variable = next_type_variable();
-    return hm_type;
+    hm_type_t* type = malloc(sizeof(hm_type_t));
+    type->tag = HM_TYPE_TAG_VARIABLE;
+    type->variable = next_type_variable();
+    return type;
+}
+
+static type_variable_t next_type_variable(void) {
+    static type_variable_t next_type_variable = 0;
+    return next_type_variable++;
 }
