@@ -32,17 +32,17 @@ void symbol_table_clear(symbol_table_t* table) {
     lhash_kv_clear(table);
 }
 
-hm_type_variable_t symbole_table_next_variable(symbol_table_t* table) {
+type_variable_t symbole_table_next_variable(symbol_table_t* table) {
     static uint32_t counter = 0;
     return counter++;
 }
 
-void symbol_table_insert(symbol_table_t* table, char* name, hm_type_t* type) {
+void symbol_table_insert(symbol_table_t* table, char* name, type_t* type) {
     lhash_kv_insert(table, (void*)name, (void*)type);
 }
 
-hm_type_t* symbol_table_lookup(symbol_table_t* table, char* name) {
-    hm_type_t* type = NULL;
+type_t* symbol_table_lookup(symbol_table_t* table, char* name) {
+    type_t* type = NULL;
     lhash_kv_find(table, (void*)name, (void**)&type);
     return type;
 }
@@ -52,7 +52,7 @@ void symbol_table_merge(symbol_table_t* table, symbol_table_t* other) {
     lhash_kv_iter_init(&iter, other);
     while (!lhash_kv_iter_end(&iter)) {
 	char* name;
-	hm_type_t* type;
+	type_t* type;
 	lhash_kv_iter_current(&iter, (void**)&name, (void**)&type);
 	symbol_table_insert(table, name, type);
 	lhash_kv_iter_next(&iter);
@@ -64,22 +64,25 @@ void symbol_table_print(symbol_table_t* table) {
     lhash_kv_iter_init(&iter, table);
     while (!lhash_kv_iter_end(&iter)) {
 	char* name;
-	hm_type_t* type;
+	type_t* type;
 	lhash_kv_iter_current(&iter, (void**)&name, (void**)&type);
 	fprintf(stderr, "%s: ", name);
 	switch (type->tag) {
-	    case HM_TYPE_TAG_BASIC_TYPE:
+	    case TYPE_TAG_BASIC_TYPE:
 		switch (type->basic_type) {
-		    case HM_BASIC_TYPE_INTEGRAL:
+		    case TYPE_BASIC_TYPE_INTEGRAL:
 			fprintf(stderr, "integral\n");
 			break;
-		    case HM_BASIC_TYPE_BOOL:
+		    case TYPE_BASIC_TYPE_BOOL:
 			fprintf(stderr, "bool\n");
 			break;
 		}
 		break;
-	    case HM_TYPE_TAG_VARIABLE:
+	    case TYPE_TAG_VARIABLE:
 		fprintf(stderr, "t%d\n", type->variable);
+		break;
+	    case TYPE_TAG_FUNCTION:
+		fprintf(stderr, "function\n");
 		break;
 	}
 	lhash_kv_iter_next(&iter);
@@ -89,6 +92,13 @@ void symbol_table_print(symbol_table_t* table) {
 //
 // Local functions (alphabetical order)
 //
+
+static void dtor(void* ptr) {
+    hlink_kv_t* link_kv = (hlink_kv_t*)ptr;
+    if (link_kv->data != NULL) {
+        free(link_kv->data);
+    }
+}
 
 static int key_cmp(void* key, hlink_t* link, void* arg) {
     hlink_kv_t* link_kv	= (hlink_kv_t*)link;
@@ -104,13 +114,6 @@ static size_t key_hash(void* key, void* arg) {
     return hash;
 };
 
-static void dtor(void* ptr) {
-    hlink_kv_t* link_kv = (hlink_kv_t*)ptr;
-    if (link_kv->data != NULL) {
-        free(link_kv->data);
-    }
-}
-
 //
 // Unit test
 //
@@ -118,19 +121,13 @@ static void dtor(void* ptr) {
 void symbol_table_unit_test(void) {
     symbol_table_t table;
     symbol_table_init(&table);
-    hm_type_t* type1 = malloc(sizeof(hm_type_t));
-    type1->tag = HM_TYPE_TAG_BASIC_TYPE;
-    type1->basic_type = HM_BASIC_TYPE_INTEGRAL;
+    type_t* type1 = type_new_basic_type(TYPE_BASIC_TYPE_INTEGRAL);
     symbol_table_insert(&table, "int", type1);
-    hm_type_t* type2 = malloc(sizeof(hm_type_t));
-    type2->tag = HM_TYPE_TAG_BASIC_TYPE;
-    type2->basic_type = HM_BASIC_TYPE_BOOL;
+    type_t* type2 = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
     symbol_table_insert(&table, "bool", type2);
-    hm_type_t* type3 = malloc(sizeof(hm_type_t));
-    type3->tag = HM_TYPE_TAG_VARIABLE;
-    type3->variable = 4711;
+    type_t* type3 = type_new_variable();
     symbol_table_insert(&table, "bar", type3);
-    hm_type_t* type = symbol_table_lookup(&table, "int");
-    LOG_ASSERT(type->tag == HM_TYPE_TAG_BASIC_TYPE, "Wrong type");
+    type_t* type = symbol_table_lookup(&table, "int");
+    LOG_ASSERT(type->tag == TYPE_TAG_BASIC_TYPE, "Wrong type");
     LOG_INFO("Unit test passed");
 }

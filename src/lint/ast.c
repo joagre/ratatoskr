@@ -17,6 +17,14 @@ ast_node_t* ast_get_child(ast_node_t* node, uint32_t i) {
     return child_node;
 }
 
+size_t ast_number_of_children(ast_node_t* node) {
+    return dynarray_size(node->children);
+}
+
+ast_node_t* ast_last_child(ast_node_t* node) {
+    return dynarray_element(node->children, dynarray_size(node->children) - 1);
+}
+
 void ast_print(ast_node_t* node, uint16_t level) {
     if (node == NULL) {
         printf("Tree: NULL\n");
@@ -40,18 +48,18 @@ void ast_print(ast_node_t* node, uint16_t level) {
 	} else {
 	    indent = MAX_COLS - cols - 4;
 	}
-	if (node->type->tag == HM_TYPE_TAG_BASIC_TYPE) {
-	    if (node->type->basic_type == HM_BASIC_TYPE_BOOL) {
+	if (node->type->tag == TYPE_TAG_BASIC_TYPE) {
+	    if (node->type->basic_type == TYPE_BASIC_TYPE_BOOL) {
 		printf("%*sbool\n", indent, "");
-	    } else if (node->type->basic_type == HM_BASIC_TYPE_INTEGRAL) {
+	    } else if (node->type->basic_type == TYPE_BASIC_TYPE_INTEGRAL) {
 		printf("%*sint\n", indent, "");
 	    } else {
 		assert(false);
 	    }
-	} else if (node->type->tag == HM_TYPE_TAG_VARIABLE) {
+	} else if (node->type->tag == TYPE_TAG_VARIABLE) {
 	    printf("%*st%d\n", indent, "", node->type->variable);
-	} else {
-	    assert(false);
+	} else if (node->type->tag == TYPE_TAG_FUNCTION) {
+	    printf("%*sfunction\n", indent, "");
 	}
     } else {
 	printf("\n");

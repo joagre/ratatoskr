@@ -5,7 +5,7 @@
 #include <dynarr.h>
 #include <assert.h>
 #include <stdbool.h>
-#include "hm.h"
+#include "type.h"
 
 typedef dynarray_t node_array_t;
 
@@ -153,7 +153,7 @@ typedef uint32_t type_variable_t;
 
 typedef struct ast_node {
     node_name_t name;
-    hm_type_t* type;
+    type_t* type;
     char *value;
     uint32_t row;
     uint32_t column;
@@ -162,6 +162,8 @@ typedef struct ast_node {
 
 const char* ast_node_name_to_string(node_name_t name);
 ast_node_t* ast_get_child(ast_node_t* node, uint32_t i);
+size_t ast_number_of_children(ast_node_t* node);
+ast_node_t* ast_last_child(ast_node_t* node);
 void ast_print(ast_node_t* node, uint16_t level);
 
 #endif
