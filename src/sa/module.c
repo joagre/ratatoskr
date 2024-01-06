@@ -79,7 +79,7 @@ void module_iterate(module_t* module,
 
 void module_print_jump_table(module_t* module) {
     void print(vm_label_t label, vm_address_t address) {
-	fprintf(stderr, "Label %d at address %d\n", label, address);
+	printf("Label %d at address %d\n", label, address);
     }
     module_iterate(module, print);
 }

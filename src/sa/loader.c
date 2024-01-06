@@ -88,7 +88,7 @@ void loader_load_module(loader_t *loader, char* module_name,
 void loader_pretty_print(loader_t* loader) {
     vm_address_t address = 0;
     while (address < loader->bytecode_size) {
-        fprintf(stderr, "%d: ", address);
+        printf("%d: ", address);
         address += OPCODE_SIZE + print_instruction(&loader->bytecode[address],
 						   &loader->static_data);
     }
@@ -99,7 +99,7 @@ void loader_pretty_print_module(loader_t* loader, char* module_name) {
     lhash_kv_find(&loader->modules, module_name, (void**)&module);
     vm_address_t address = module->start_address;
     while (address <= module->stop_address) {
-        fprintf(stderr, "%d: ", address);
+        printf("%d: ", address);
         address += OPCODE_SIZE + print_instruction(&loader->bytecode[address],
 						   &loader->static_data);
     }

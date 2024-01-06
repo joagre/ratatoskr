@@ -66,23 +66,23 @@ void symbol_table_print(symbol_table_t* table) {
 	char* name;
 	type_t* type;
 	lhash_kv_iter_current(&iter, (void**)&name, (void**)&type);
-	fprintf(stderr, "%s: ", name);
+	printf("%s: ", name);
 	switch (type->tag) {
 	    case TYPE_TAG_BASIC_TYPE:
 		switch (type->basic_type) {
 		    case TYPE_BASIC_TYPE_INTEGRAL:
-			fprintf(stderr, "integral\n");
+			printf("integral\n");
 			break;
 		    case TYPE_BASIC_TYPE_BOOL:
-			fprintf(stderr, "bool\n");
+			printf("bool\n");
 			break;
 		}
 		break;
 	    case TYPE_TAG_VARIABLE:
-		fprintf(stderr, "t%d\n", type->variable);
+		printf("t%d\n", type->variable);
 		break;
 	    case TYPE_TAG_FUNCTION:
-		fprintf(stderr, "function\n");
+		printf("function\n");
 		break;
 	}
 	lhash_kv_iter_next(&iter);

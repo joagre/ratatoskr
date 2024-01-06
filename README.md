@@ -1455,6 +1455,7 @@ Operators in decreasing order of precedence:
     #include <stdarg.h>
     #include "satie_auxil.h"
     #include "symbol_table.h"
+    #include "hm.h"
 
     /*
     static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
@@ -1565,9 +1566,9 @@ UnaryMinusExpr <- "-" _ e:PostfixExpr { $$ = CN(UNARY_MINUS, 1, e); } / e:Postfi
 PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX_EXPR, 1, p); }
                 (_ "." _ b:BoundName { AC($$, RN(b, DOT_NAME)); } /
                  _ "[" _ s:Expr _ ".." _ e:Expr _ "]" { AC($$, CN(LIST_SLICE, 2, s, e)); } /
-                 _ "[" _ i:IndexValues _ "]" { AC($$, RN(i, LIST_UPDATE)); } /
-                 _ "[" _ m:MapKeyValues _ "]" { AC($$, RN(m, MAP_UPDATE)); } /
-                 _ "[" _ e:Expr _ "]" { AC($$, RN(e, LIST_LOOKUP)); } /
+                 _ "[" _ i:IndexValues _ "]" { AC($$, CN(LIST_UPDATE, 1, i)); } /
+                 _ "[" _ m:MapKeyValues _ "]" { AC($$, CN(MAP_UPDATE, 1, m)); } /
+                 _ "[" _ e:Expr _ "]" { AC($$, CN(LIST_LOOKUP, 1, e)); } /
                  _ "(" _ a:Args? _ ")" { AC($$, CN(FUNCTION_CALL, 1, a)); })*)
 
 IndexValues <- i:IndexValue { $$ = CN(INDEX_VALUES, 1, i); } (_ "," _ i:IndexValue { AC($$, i); })*
@@ -1602,7 +1603,7 @@ ReceiveExpr <- "receive" __ c:ReceiveChannels { $$ = CN(RECEIVE_EXPR, 1, CN(RECE
 ReceiveChannels <- (c:Channel / "[" _ c:Channels _ "]") { $$ = c; }
 Channel <- (c:ChannelName { $$ = CN(CHANNEL, 1, c); }
                 (_ "." _ n:Name { AC($$, RN(n, DOT_NAME)); } /
-                 _ "[" _ e:Expr _ "]" { AC($$, RN(e, LIST_LOOKUP)); })*)
+                 _ "[" _ e:Expr _ "]" { AC($$, CN(LIST_LOOKUP, 1, e)); })*)
 ChannelName <- Identifier { $$ = CT(CHANNEL_NAME, $0); }
 Channels <- c:Channel { $$ = CN(CHANNELS, 1, c); } (_ "," _ c:Channel { AC($$, c); })*
 
@@ -1809,7 +1810,7 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    hm_infer_types(program);
+    //hm_infer_types(program);
     ast_print(program, 0);
     satie_destroy(context);
     return 0;

@@ -15,12 +15,12 @@ void hm_infer_types(ast_node_t* node) {
     symbol_table_t table;
     symbol_table_init(&table);
     add_type_variables(node, &table);
-    fprintf(stderr, "Type Variables\n--------------\n");
+    printf("Type Variables\n--------------\n");
     ast_print(node, 0);
     equations_t equations;
     equations_init(&equations);
     add_type_equations(node, &equations);
-    fprintf(stderr, "\nType Equations\n--------------\n");
+    printf("\nType Equations\n--------------\n");
     print_equations(&equations);
 }
 
@@ -182,6 +182,26 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	    .node = else_body_node
 	};
 	equations_add(equations, &else_body_equation);
+    } else if (node->name == FUNCTION_DEF) {
+	ast_node_t* function_def_node = ast_get_child(node, 0);
+	assert(function_def_node->name == FUNCTION_NAME);
+	ast_node_t* params_node = ast_get_child(node, 1);
+	assert(params_node->name == NON_DEFAULT_PARAMS);
+	ast_node_t* body_node = ast_get_child(node, 2);
+	assert(body_node->name == BLOCK_EXPR);
+	// Equation: function type
+	types_t* arg_types = types_new();
+	for (uint16_t i = 0; i < ast_number_of_children(params_node); i++) {
+	    ast_node_t* param_node = ast_get_child(params_node, i);
+	    types_add(arg_types, param_node->type);
+	}
+	equation_t function_equation = {
+	    .arg_type = node->type,
+	    .return_type = type_new_function(arg_types, body_node->type),
+	    .origin_node = node,
+	    .node = node
+	};
+	equations_add(equations, &function_equation);
     }
 
     if (node->children != NULL) {

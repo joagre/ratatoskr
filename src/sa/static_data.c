@@ -54,7 +54,7 @@ void static_data_pretty_print(static_data_t* static_data) {
 	printf("  %u: %s\n", i, data_string);
     }
     // Print static data via data
-    fprintf(stderr, "size: %u\n", static_data->size);
+    printf("size: %u\n", static_data->size);
     uint32_t i = 0;
     while (i < static_data->size) {
 	uint32_t j = GET_VALUE(vm_data_length_t, &static_data->data[i]);

@@ -30,26 +30,26 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
     while (true) {
 #ifdef DEBUG
 #ifndef MUTE_LOG_DEBUG
-        fprintf(stderr, "%d: registers = [", job->jid);
+        printf("%d: registers = [", job->jid);
         for (int i = 0; i < 8; i++) {
-            fprintf(stderr, "%ld", job->registers[i]);
+            printf("%ld", job->registers[i]);
             if (i < 7) {
-                fprintf(stderr, ", ");
+                printf(", ");
             }
         }
-        fprintf(stderr, "]\n");
-        fprintf(stderr, "%d: stack = [", job->jid);
+        printf("]\n");
+        printf("%d: stack = [", job->jid);
         size_t n = call_stack_size(&job->call_stack);
         for (size_t i = 0; i < n; i++) {
             vm_stack_value_t value = call_stack_get(&job->call_stack, i);
             if (i < n - 1) {
-                fprintf(stderr, "%ld, ", value);
+                printf("%ld, ", value);
             } else {
-                fprintf(stderr, "%ld", value);
+                printf("%ld", value);
             }
         }
-        fprintf(stderr, "]\n");
-        fprintf(stderr, "==> %d:%d: ", job->jid, job->pc);
+        printf("]\n");
+        printf("==> %d:%d: ", job->jid, job->pc);
         print_instruction(&interpreter->loader->bytecode[job->pc],
 			  &interpreter->loader->static_data);
 #endif
@@ -244,13 +244,13 @@ interpreter_result_t interpreter_run(interpreter_t* interpreter,
 			job->registers[0] = mailbox_dequeue(&job->mailbox);
 			break;
 		    case SYSTEM_CALL_PRINTLN:
-			fprintf(stderr, "%s\n",
+			printf("%s\n",
 				(char*)static_data_lookup(
 				    &interpreter->loader->static_data,
 				    job->registers[1]));
 			break;
 		    case SYSTEM_CALL_DISPLAY:
-			fprintf(stderr, "%ld\n", job->registers[1]);
+			printf("%ld\n", job->registers[1]);
 			break;
 		    case SYSTEM_CALL_EXIT:
 			return INTERPRETER_RESULT_EXIT;
