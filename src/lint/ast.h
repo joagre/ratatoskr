@@ -12,7 +12,6 @@ typedef dynarray_t node_array_t;
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
 #define FOREACH_NODE_NAME(NODE_NAME) \
-        NODE_NAME(ALIAS) \
         NODE_NAME(AND) \
         NODE_NAME(ARGS) \
         NODE_NAME(BIND) \
@@ -34,15 +33,19 @@ typedef dynarray_t node_array_t;
         NODE_NAME(CLASS_DEF) \
         NODE_NAME(CLASS_MEMBERS) \
         NODE_NAME(CLASS_NAME) \
-        NODE_NAME(CONCAT) \
-        NODE_NAME(CONST) \
+        NODE_NAME(CONCAT_LIST) \
+	NODE_NAME(CONCAT_MAP) \
+	NODE_NAME(CONCAT_STRING) \
+	NODE_NAME(CONS) \
+	NODE_NAME(CONST) \
         NODE_NAME(CONSTRUCTOR) \
         NODE_NAME(DEFAULT) \
         NODE_NAME(DEFAULT_PARAM) \
         NODE_NAME(DEFAULT_PARAM_NAME) \
         NODE_NAME(DEFAULT_PARAMS) \
         NODE_NAME(DESTRUCTOR) \
-        NODE_NAME(DIVIDE) \
+        NODE_NAME(DIVIDE_INT) \
+        NODE_NAME(DIVIDE_FLOAT) \
         NODE_NAME(DOT_NAME) \
         NODE_NAME(DOTTED_NAME) \
         NODE_NAME(ELIF) \
@@ -66,8 +69,10 @@ typedef dynarray_t node_array_t;
         NODE_NAME(FUNCTION_DEF) \
         NODE_NAME(FUNCTION_LITERAL) \
         NODE_NAME(FUNCTION_NAME) \
-        NODE_NAME(GT) \
-        NODE_NAME(GTE) \
+        NODE_NAME(GT_INT) \
+        NODE_NAME(GTE_INT) \
+        NODE_NAME(GT_FLOAT) \
+        NODE_NAME(GTE_FLOAT) \
         NODE_NAME(IDENTIFIER) \
         NODE_NAME(IF) \
         NODE_NAME(IF_EXPR) \
@@ -91,8 +96,10 @@ typedef dynarray_t node_array_t;
         NODE_NAME(LIST_LOOKUP) \
         NODE_NAME(LIST_SLICE)   \
         NODE_NAME(LIST_UPDATE) \
-        NODE_NAME(LT) \
-        NODE_NAME(LTE) \
+        NODE_NAME(LT_INT) \
+        NODE_NAME(LTE_INT) \
+        NODE_NAME(LT_FLOAT) \
+        NODE_NAME(LTE_FLOAT) \
         NODE_NAME(MAP_KEY_VALUE) \
         NODE_NAME(MAP_KEY_VALUES) \
         NODE_NAME(MAP_LITERAL) \
@@ -102,11 +109,14 @@ typedef dynarray_t node_array_t;
         NODE_NAME(MATCH_IS) \
         NODE_NAME(MEMBER_METHOD) \
         NODE_NAME(MEMBER_PROPERTY) \
-        NODE_NAME(MINUS) \
+        NODE_NAME(MINUS_INT) \
+        NODE_NAME(MINUS_FLOAT) \
         NODE_NAME(MODULE) \
+        NODE_NAME(MODULE_ALIAS) \
         NODE_NAME(MODULE_COMPONENT) \
         NODE_NAME(MODULUS) \
-        NODE_NAME(MULTIPLY) \
+        NODE_NAME(MULTIPLY_INT) \
+        NODE_NAME(MULTIPLY_FLOAT) \
         NODE_NAME(NAME) \
         NODE_NAME(NAMED_ARG) \
         NODE_NAME(NAMED_ARGS) \
@@ -120,7 +130,8 @@ typedef dynarray_t node_array_t;
         NODE_NAME(NOT_SET) \
         NODE_NAME(OR) \
         NODE_NAME(PARAMS) \
-        NODE_NAME(PLUS) \
+        NODE_NAME(PLUS_INT) \
+        NODE_NAME(PLUS_FLOAT) \
         NODE_NAME(POSITIONAL_ARGS) \
         NODE_NAME(POSTFIX_EXPR) \
         NODE_NAME(PRIVATE) \
@@ -140,8 +151,10 @@ typedef dynarray_t node_array_t;
         NODE_NAME(TOP_LEVEL_DEFS) \
         NODE_NAME(TRUE) \
         NODE_NAME(TUPLE_LITERAL) \
-        NODE_NAME(UNARY_MINUS) \
-        NODE_NAME(UNARY_PLUS) \
+        NODE_NAME(UNARY_MINUS_INT) \
+        NODE_NAME(UNARY_MINUS_FLOAT) \
+        NODE_NAME(UNARY_PLUS_INT) \
+        NODE_NAME(UNARY_PLUS_FLOAT) \
         NODE_NAME(UNBOUND_NAME) \
         NODE_NAME(WHEN)
 

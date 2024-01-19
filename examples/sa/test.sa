@@ -20,18 +20,33 @@ class Foo {
 
 }
 
+fn lengthvec((?x, ?y)) {
+    Math.sqrt(x^^2, y^^2)
+}
+
+fn lengthvec(a, b = (?x, ?y)) { // Default param
+    Math.sqrt(x^^2, y^^2)
+}
+
+fn bonk(a, b, (c, d), e = f, g = ("foo", "bar")) {
+    42
+}
+
 fn main() {
     ?a := receive [this.foo, bar],
     {
         ?a := 3
     },
 
-
+    (a, b),
+    (c),
+    (1 + 2) * 3,
+    (),
 
     ?b := 2.toFloat() +. 1.0,
     ?a := 2,
     ?b := a.toFloat() +. 1.0,
-    ?b := if c == 3 { 2 } else { 3 }.toFloat() +. 1.0,
+    ?b := if c ==int= 3 { 2 } else { 3 }.toFloat() +. 1.0,
 
 
     ?a := [1, 2, 3],
@@ -45,17 +60,20 @@ fn main() {
     ackermann := startJobs(3, 10),
     a[1],
     1 := 1,
+    ?a := b :: c,
     switch a {
+        case ?a :: ?b:
+           snuva
         case b when true:
             c
         case e:
             d
     },
     switch a {
-        case <?b, a>, <?b, a>:
+        case (?b, a), (?b, a):
             c
     },
-    <1, 2>,
+    (1, 2),
     receive foo {
         case a:
             stdio.writeln("Oh no! Compute job $job died: $reason"),
@@ -63,7 +81,7 @@ fn main() {
     },
     lists.foreach(fn () { stdio.writeln(item.toString())}, items),
     a := 1,
-    <1, 2> := a,
+    (1, 2) := a,
     a := 1 + (2 + a) + 1,
     foo(),
     foo[1].baz.bonk,

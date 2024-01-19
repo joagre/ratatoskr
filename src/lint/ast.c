@@ -2,7 +2,7 @@
 
 #include "ast.h"
 
-#define MAX_COLS 80
+#define MAX_COLS 60
 
 static const char* node_name_strings[] = {
     FOREACH_NODE_NAME(GENERATE_STRING)

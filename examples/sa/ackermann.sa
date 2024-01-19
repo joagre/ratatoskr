@@ -1,5 +1,5 @@
 import std.satie
-import std.jobs : JobStatus, SpawnOption
+import std.jobs: JobStatus, SpawnOption
 import std.channels: ChannelOption
 import std.stdio
 
@@ -15,31 +15,31 @@ class Ackermann {
 
     this() {
         this(resultChannel: satie.makeChannel(
-                                onCrowding: <ChannelOption#block, 4>))
+                                onCrowding: (ChannelOption#block, 4)))
     }
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {
-        if i lt n {
+        if i < n {
             fn computeAckermann(m, n) {
                 ?result := ackermann(m, n),
-                resultChannel.send(<self, m, n, result>)
+                resultChannel.send((self, m, n, result))
             },
             ?job := satie.spawn(fn () {
                         computeAckermann(m, i)
                     }, [SpawnOption#monitor: true]),
-            startJobs(m, n, i + 1, job ~ startedJobs)
+            startJobs(m, n, i + 1, job @ startedJobs)
         } else {
             this(jobs: startedJobs)}
     }
 
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
-            if jobs.length gt 0 {
+            if jobs.length > 0 {
                 receive [systemChannel, satie.systemChannel] {
-                    case <?job, ?m, ?n, ?result> :
+                    case (?job, ?m, ?n, ?result):
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))
-                    case <JobStatus#died, ?job, ?reason> :
+                    case (JobStatus#died, ?job, ?reason):
                         stdio.writeln("Oh no! Compute job $job died: $reason"),
                         waitForJobs(jobs.delete(job))
                 }
@@ -51,9 +51,9 @@ class Ackermann {
     }
 
     private fn ackermann(m, n) {
-        if m == 0 {
+        if m ==int= 0 {
             n + 1
-        } elif n == 0 {
+        } elif n ==int= 0 {
             ackermann(m - 1, 1)
         } else {
             ackermann(m - 1, ackermann(m, n - 1))

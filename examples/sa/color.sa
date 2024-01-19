@@ -1,4 +1,4 @@
-import std.stdio : writeln
+import std.stdio: writeln
 
 enum Color {
     red
@@ -11,7 +11,7 @@ interface Iterator {
     public fn hasNext()
 }
 
-class ColorIterator : Iterator {
+class ColorIterator: Iterator {
     private colors
     private graffiti
 
@@ -23,7 +23,7 @@ class ColorIterator : Iterator {
         if !hasNext() {
             false
         } else {
-            <this(colors: colors.rest()), colors.first()>
+            (this(colors: colors.rest()), colors.first())
         }
     }
 
@@ -37,7 +37,7 @@ export fn main() {
     ?iterator := new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
-            <?iterator, ?color> := iterator.next(),
+            (?iterator, ?color) := iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
         } else {

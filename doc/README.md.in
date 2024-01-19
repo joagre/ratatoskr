@@ -424,6 +424,8 @@ else
 switch
 default
 in
+is
+as
 class
 new
 interface
@@ -435,8 +437,9 @@ this
 receive
 timeout
 self
-nil
 ```
+
+(no nil!)
 
 Operators are normally not identifiers but the following reserved
 symbolic operators are exceptions:

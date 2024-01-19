@@ -35,12 +35,12 @@ export fn main(args) {
 }
 
 fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
-    if n lt numberOfTributes {
+    if n < numberOfTributes {
         ?job := satie.spawn(fn () {
                     ?message := receive channel,
                     writeln("$n: $message")
                 }),
-        startTributes(channel, numberOfTributes, n + 1, job ~ jobs)
+        startTributes(channel, numberOfTributes, n + 1, job @ jobs)
     } else {
         jobs
     }
@@ -56,7 +56,7 @@ fade: N
 sync: Bool
     Should the sender block until the receiver has read the message
     (defaults to false)?
-size: <Type, Size>
+size: (Type, Size)
     Set the number of messages allowed in a channel to Size. If this
     threshold is reached the sender blocks or the message is ignored,
     depending on Type (which can either be the enum
@@ -191,7 +191,7 @@ Here follows yet another premature Satie example but read it through
 and an explanation will follow:
 
 ```
-import std.stdio : writeln
+import std.stdio: writeln
 
 enum Color {
     red
@@ -204,7 +204,7 @@ interface Iterator {
     public fn hasNext()
 }
 
-class ColorIterator : Iterator {
+class ColorIterator: Iterator {
     private colors
     private graffiti
 
@@ -216,7 +216,7 @@ class ColorIterator : Iterator {
         if !hasNext() {
             false
         } else {
-            <this(colors: colors.rest()), colors.first()>
+            (this(colors: colors.rest()), colors.first())
         }
     }
 
@@ -230,7 +230,7 @@ export fn main() {
     ?iterator := new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
-            <?iterator, ?color> := iterator.next(),
+            (?iterator, ?color) := iterator.next(),
             writeln("Color: $color"),
             iterate(iterator)
         } else {
@@ -508,6 +508,8 @@ else
 switch
 default
 in
+is
+alias
 class
 new
 interface
@@ -519,8 +521,9 @@ this
 receive
 timeout
 self
-nil
 ```
+
+(no nil!)
 
 Operators are normally not identifiers but the following reserved
 symbolic operators are exceptions:
@@ -1271,7 +1274,7 @@ Study this and do not despair:
 
 ```
 import std.satie
-import std.jobs : JobStatus, SpawnOption
+import std.jobs: JobStatus, SpawnOption
 import std.channels: ChannelOption
 import std.stdio
 
@@ -1287,31 +1290,31 @@ class Ackermann {
 
     this() {
         this(resultChannel: satie.makeChannel(
-                                onCrowding: <ChannelOption#block, 4>))
+                                onCrowding: (ChannelOption#block, 4)))
     }
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {
-        if i lt n {
+        if i < n {
             fn computeAckermann(m, n) {
                 ?result := ackermann(m, n),
-                resultChannel.send(<self, m, n, result>)
+                resultChannel.send((self, m, n, result))
             },
             ?job := satie.spawn(fn () {
                         computeAckermann(m, i)
                     }, [SpawnOption#monitor: true]),
-            startJobs(m, n, i + 1, job ~ startedJobs)
+            startJobs(m, n, i + 1, job @ startedJobs)
         } else {
             this(jobs: startedJobs)}
     }
 
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
-            if jobs.length gt 0 {
+            if jobs.length > 0 {
                 receive [systemChannel, satie.systemChannel] {
-                    case <?job, ?m, ?n, ?result> :
+                    case (?job, ?m, ?n, ?result):
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))
-                    case <JobStatus#died, ?job, ?reason> :
+                    case (JobStatus#died, ?job, ?reason):
                         stdio.writeln("Oh no! Compute job $job died: $reason"),
                         waitForJobs(jobs.delete(job))
                 }
@@ -1323,9 +1326,9 @@ class Ackermann {
     }
 
     private fn ackermann(m, n) {
-        if m == 0 {
+        if m ==int= 0 {
             n + 1
-        } elif n == 0 {
+        } elif n ==int= 0 {
             ackermann(m - 1, 1)
         } else {
             ackermann(m - 1, ackermann(m, n - 1))
@@ -1516,8 +1519,8 @@ TopLevelDefError <- ("," / ";") {
 #
 
 Imports <- i:Import { $$ = CN(IMPORTS, 1, i); } (__ i:Import { AC($$, i); })*
-Import <- "import" __ (a:Alias _ "=" _)? _ m:Module (_ ":" _ i:ImportedNames)? { $$ = CN(IMPORT, 3, a, m, i); }
-Alias <- Identifier { $$ = CT(ALIAS, $0); }
+Import <- "import" __ (a:ModuleAlias _ "=" _)? _ m:Module (_ ":" _ i:ImportedNames)? { $$ = CN(IMPORT, 3, a, m, i); }
+ModuleAlias <- Identifier { $$ = CT(MODULE_ALIAS, $0); }
 Module <- m:ModuleComponent {$$ = CN(MODULE, 1, m); } ( "." m:ModuleComponent { AC($$, m); })*
 ModuleComponent <- Identifier { $$ = CT(MODULE_COMPONENT, $0); }
 ImportedNames <- m:ImportedName { $$ = CN(IMPORTED_NAMES, 1, m); } (_ "," _ m:ImportedName { AC($$, m); })*
@@ -1528,41 +1531,43 @@ ImportedName <- Identifier { $$ = CT(IMPORTED_NAME, $0); }
 #
 
 Expr <- e:BindExpr { $$ = e; }
-BindExpr <- m:MatchExpr _ ":=" _ e:Expr { $$ = CN(BIND, 2, m, e); } / e:LogicalOrExpr { $$ = e; }
-LogicalOrExpr <- l:LogicalOrExpr _ "||" _ e:LogicalAndExpr { $$ = CN(OR, 2, l, e); } / e:LogicalAndExpr { $$ = e; }
-LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ e:BitwiseAndExpr { $$ = CN(AND, 2, l, e); } / e:BitwiseAndExpr { $$ = e; }
-BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ e:BitwiseXorExpr { $$ = CN(BITWISE_AND, 2, l, e); } / e:BitwiseXorExpr { $$ = e; }
-BitwiseXorExpr <- l:BitwiseXorExpr _ "^" _ e:BitwiseOrExpr { $$ = CN(BITWISE_XOR, 2, l, e); } / e:BitwiseOrExpr { $$ = e; }
-BitwiseOrExpr <- l:BitwiseOrExpr _ "|" _ e:GreaterThanEqualExpr { $$ = CN(BITWISE_OR, 2, l, e); } /
-                 e:GreaterThanEqualExpr { $$ = e; }
-GreaterThanEqualExpr <- l:GreaterThanEqualExpr _ "gte" _ e:GreaterThanExpr { $$ = CN(GTE, 2, l, e); } /
-                        e:GreaterThanExpr { $$ = e; }
-GreaterThanExpr <- l:GreaterThanExpr _ "gt" _ e:LessThanEqualExpr { $$ = CN(GT, 2, l, e); } /
-                   e:LessThanEqualExpr { $$ = e; }
-LessThanEqualExpr <- l:LessThanEqualExpr _ "lte" _ e:LessThanExpr { $$ = CN(LTE, 2, l, e); } / e:LessThanExpr { $$ = e; }
-LessThanExpr <- l:LessThanExpr _ "lt" _ e:NotEqualExpr { $$ = CN(LT, 2, l, e); } / e:NotEqualExpr { $$ = e; }
-NotEqualExpr <- l:NotEqualExpr _ "!=" _ e:EqualExpr { $$ = CN(NE, 2, l, e); } / e:EqualExpr { $$ = e; }
-EqualExpr <- l:EqualExpr _ "==" _ e:InExpr { $$ = CN(EQ, 2, l, e); } / e:InExpr { $$ = e; }
+BindExpr <- l:MatchExpr _ ":=" _ r:Expr { $$ = CN(BIND, 2, l, r); } / e:LogicalOrExpr { $$ = e; }
+LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r); } / e:LogicalAndExpr { $$ = e; }
+LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
+BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
+BitwiseOrExpr <- l:BitwiseOrExpr _ "|" _ r:GTEIntExpr { $$ = CN(BITWISE_OR, 2, l, r); } / e:GTEIntExpr { $$ = e; }
+GTEIntExpr <- l:GTEIntExpr _ ">=" _ r:GTEFloatExpr { $$ = CN(GTE_INT, 2, l, r); } / e:GTEFloatExpr { $$ = e; }
+GTEFloatExpr <- l:GTEFloatExpr _ ">=." _ r:GTIntExpr { $$ = CN(GTE_FLOAT, 2, l, r); } / e:GTIntExpr { $$ = e; }
+GTIntExpr <- l:GTIntExpr _ ">" _ r:GTFloatExpr { $$ = CN(GT_INT, 2, l, r); } / e:GTFloatExpr { $$ = e; }
+GTFloatExpr <- l:GTFloatExpr _ ">." _ r:LTEIntExpr { $$ = CN(GT_FLOAT, 2, l, r); } / e:LTEIntExpr { $$ = e; }
+LTEIntExpr <- l:LTEIntExpr _ "<=" _ r:LTEFloatExpr { $$ = CN(LTE_INT, 2, l, r); } / e:LTEFloatExpr { $$ = e; }
+LTEFloatExpr <- l:LTEFloatExpr _ "<=." _ r:LTIntExpr { $$ = CN(LTE_FLOAT, 2, l, r); } / e:LTIntExpr { $$ = e; }
+LTIntExpr <- l:LTIntExpr _ "<" _ r:LTFloatExpr { $$ = CN(LT_INT, 2, l, r); } / e:LTFloatExpr { $$ = e; }
+LTFloatExpr <- l:LTFloatExpr _ "<." _ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l, r); } / e:NotEqualExpr { $$ = e; }
+NotEqualExpr <- l:NotEqualExpr _ "!=" t:Name "=" _ r:EqualExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualExpr { $$ = e; }
+EqualExpr <- l:EqualExpr _ "==" t:Name "=" _ r:InExpr { $$ = CN(EQ, 3, l, t, r); } / e:InExpr { $$ = e; }
 InExpr <- l:InExpr _ "in" _ e:RightShiftExpr { $$ = CN(IN, 2, l, e); } / e:RightShiftExpr { $$ = e; }
-RightShiftExpr <- l:RightShiftExpr _ "bsr" _ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
-LeftShiftExpr <- l:LeftShiftExpr _ "bsl" _ e:ConcatExpr { $$ = CN(BSL, 2, l, e); } / e:ConcatExpr { $$ = e; }
-ConcatExpr <- l:ConcatExpr _ "~" _ e:MinusExpr { $$ = CN(CONCAT, 2, l, e); } / e:MinusExpr { $$ = e; }
-MinusExpr <- l:MinusExpr _ "-" _ e:PlusExpr { $$ = CN(MINUS, 2, l, e); } / e:PlusExpr { $$ = e; }
-PlusExpr <- l:PlusExpr _ "+" _ e:ModulusExpr { $$ = CN(PLUS, 2, l, e); } / e:ModulusExpr { $$ = e; }
-ModulusExpr <- l:ModulusExpr _ "%" _ e:DivideExpr { $$ = CN(MODULUS, 2, l, e); } / e:DivideExpr { $$ = e; }
-DivideExpr <- l:DivideExpr _ "/" _ e:MultiplicateExpr { $$ = CN(DIVIDE, 2, l, e); } / e:MultiplicateExpr { $$ = e; }
-MultiplicateExpr <- l:MultiplicateExpr _ "*" _ e:FloatMinusExpr { $$ = CN(MULTIPLY, 2, l, e); } /
-                    e:FloatMinusExpr { $$ = e; }
-FloatMinusExpr <- l:FloatMinusExpr _ "-." _ e:FloatPlusExpr { $$ = CN(MINUS, 2, l, e); } / e:FloatPlusExpr { $$ = e; }
-FloatPlusExpr <- l:FloatPlusExpr _ "+." _ e:FloatDivideExpr { $$ = CN(PLUS, 2, l, e); } / e:FloatDivideExpr { $$ = e; }
-FloatDivideExpr <- l:FloatDivideExpr _ "/." _ e:FloatMultiplicateExpr { $$ = CN(DIVIDE, 2, l, e); } / e:FloatMultiplicateExpr { $$ = e; }
-FloatMultiplicateExpr <- l:FloatMultiplicateExpr _ "*." _ e:ExponentiationExpr { $$ = CN(MULTIPLY, 2, l, e); } /
-                    e:ExponentiationExpr { $$ = e; }
-ExponentiationExpr <- l:ExponentiationExpr _ "^^" _ e:BitwiseComplementExpr { $$ = CN(EXPONENTIATE, 2, l, e); } / e:BitwiseComplementExpr { $$ = e; }
-BitwiseComplementExpr <- "~" _ e:NotExpr { $$ = CN(BITWISE_COMPLEMENT, 1, e); } / e:NotExpr { $$ = e; }
-NotExpr <- "!" _ e:UnaryPlusExpr { $$ = CN(NOT, 1, e); } / e:UnaryPlusExpr { $$ = e; }
-UnaryPlusExpr <- "+" _ e:UnaryMinusExpr { $$ = CN(UNARY_PLUS, 1, e); } / e:UnaryMinusExpr { $$ = e; }
-UnaryMinusExpr <- "-" _ e:PostfixExpr { $$ = CN(UNARY_MINUS, 1, e); } / e:PostfixExpr { $$ = e; }
+RightShiftExpr <- l:RightShiftExpr _ ">>" _ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
+LeftShiftExpr <- l:LeftShiftExpr _ "<<" _ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
+ConsExpr <- l:ConsExpr _ "::" _ r:ListConcatExpr { $$ = CN(CONS, 2, l, r); } / e:ListConcatExpr { $$ = e; }
+ListConcatExpr <- l:ListConcatExpr _ "@" _ r:MapConcatExpr { $$ = CN(CONCAT_LIST, 2, l, r); } / e:MapConcatExpr { $$ = e; }
+MapConcatExpr <- l:MapConcatExpr _ "$" _ r:StringConcatExpr { $$ = CN(CONCAT_MAP, 2, l, r); } / e:StringConcatExpr { $$ = e; }
+StringConcatExpr <- l:StringConcatExpr _ "^" _ r:MinusIntExpr { $$ = CN(CONCAT_STRING, 2, l, r); } / e:MinusIntExpr { $$ = e; }
+MinusIntExpr <- l:MinusIntExpr _ "-" _ r:MinusFloatExpr { $$ = CN(MINUS_INT, 2, l, r); } / e:MinusFloatExpr { $$ = e; }
+MinusFloatExpr <- l:MinusFloatExpr _ "-." _ r:PlusIntExpr { $$ = CN(MINUS_FLOAT, 2, l, r); } / e:PlusIntExpr { $$ = e; }
+PlusIntExpr <- l:PlusIntExpr _ "+" _ r:PlusFloatExpr { $$ = CN(PLUS_INT, 2, l, r); } / e:PlusFloatExpr { $$ = e; }
+PlusFloatExpr <- l:PlusFloatExpr _ "+." _ r:ModulusExpr { $$ = CN(PLUS_FLOAT, 2, l, r); } / e:ModulusExpr { $$ = e; }
+ModulusExpr <- l:ModulusExpr _ "%" _ r:DivideIntExpr { $$ = CN(MODULUS, 2, l, r); } / e:DivideIntExpr { $$ = e; }
+DivideIntExpr <- l:DivideIntExpr _ "/" _ r:DivideFloatExpr { $$ = CN(DIVIDE_INT, 2, l, r); } / e:DivideFloatExpr { $$ = e; }
+DivideFloatExpr <- l:DivideFloatExpr _ "/." _ r:MultiplyIntExpr { $$ = CN(DIVIDE_FLOAT, 2, l, r); } / e:MultiplyIntExpr { $$ = e; }
+MultiplyIntExpr <- l:MultiplyIntExpr _ "*" _ r:MultiplyFloatExpr { $$ = CN(MULTIPLY_INT, 2, l, r); } / e:MultiplyFloatExpr { $$ = e; }
+MultiplyFloatExpr <- l:MultiplyFloatExpr _ "*." _ r:ExponentiationExpr { $$ = CN(MULTIPLY_FLOAT, 2, l, r); } / e:ExponentiationExpr { $$ = e; }
+ExponentiationExpr <- l:ExponentiationExpr _ "^^" _ r:NotExpr { $$ = CN(EXPONENTIATE, 2, l, r); } / e:NotExpr { $$ = e; }
+NotExpr <- "!" _ l:UnaryPlusIntExpr { $$ = CN(NOT, 1, l); } / e:UnaryPlusIntExpr { $$ = e; }
+UnaryPlusIntExpr <- "+" _ l:UnaryPlusFloatExpr { $$ = CN(UNARY_PLUS_INT, 1, l); } / e:UnaryPlusFloatExpr { $$ = e; }
+UnaryPlusFloatExpr <- "+." _ l:UnaryMinusIntExpr { $$ = CN(UNARY_PLUS_FLOAT, 1, l); } / e:UnaryMinusIntExpr { $$ = e; }
+UnaryMinusIntExpr <- "-" _ l:UnaryMinusFloatExpr { $$ = CN(UNARY_MINUS_INT, 1, l); } / e:UnaryMinusFloatExpr { $$ = e; }
+UnaryMinusFloatExpr <- "-." _ l:PostfixExpr { $$ = CN(UNARY_PLUS_FLOAT, 1, l); } / e:PostfixExpr { $$ = e; }
 PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX_EXPR, 1, p); }
                 (_ "." _ b:BoundName { AC($$, RN(b, DOT_NAME)); } /
                  _ "[" _ s:Expr _ ".." _ e:Expr _ "]" { AC($$, CN(LIST_SLICE, 2, s, e)); } /
@@ -1659,10 +1664,11 @@ FunctionLiteral <- "fn" _ "(" _ p:Params? _ ")" _ e:BlockExpr { $$ = CN(FUNCTION
 
 EnumLiteral <- edn:EnumDefName _ "#" _ en:EnumName { $$ = CN(ENUM_LITERAL, 2, edn, en); }
 
-TupleLiteral <- "<" _ ">" { $$ = CT(TUPLE_LITERAL, NULL); } / "<" _ e:Exprs? _ ">" { $$ = RN(e, TUPLE_LITERAL); }
-Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
+TupleLiteral <- "(" _ ")" { $$ = CT(TUPLE_LITERAL, NULL); } / "(" _ e:TupleExprs _ ")" { $$ = RN(e, TUPLE_LITERAL); }
+TupleExprs <- e1:Expr _ "," _ e2:Expr { $$ = CN(EXPRS, 2, e1, e2); } (_ "," _ e:Expr { AC($$, e); })*
 
 ListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } / "[" _ e:Exprs? _ "]" { $$ = RN(e, LIST_LITERAL); }
+Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
 MapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyValues? _ "]" { $$ = RN(k, MAP_LITERAL); }
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
@@ -1672,9 +1678,11 @@ MapKeyValue <- (k:Literal / k:Name) _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k
 # Match expression
 #
 
-MatchExpr <- (m:MatchLiteral / m:UnboundName / m:BoundName) { $$ = m; } (_ "is" _ u:UnboundName { AC($$, RN(u, MATCH_IS)); })?
+MatchExpr <- (m:MatchLiteral / m:UnboundName / m:BoundName / m:MatchCons) { $$ = m; } (_ "as" _ u:UnboundName { AC($$, RN(u, MATCH_IS)); })?
 
 MatchLiteral <- (m:MatchBaseLiteral / m:MatchCompositeLiteral) { $$ = m; }
+
+MatchCons <- l:MatchExpr _ "::" _ r:MatchExpr { $$ = CN(CONS, 2, l, r); }
 
 MatchBaseLiteral <- (m:BooleanLiteral /
                      m:NumberLiteral /
@@ -1686,12 +1694,13 @@ MatchCompositeLiteral <- (m:MatchTupleLiteral /
                           m:MatchListLiteral /
                           m:MatchMapLiteral) { $$ = m; }
 
-MatchTupleLiteral <- "<" _ ">" { $$ = CT(TUPLE_LITERAL, NULL); } / "<" _ m:MatchExprs? _ ">" { $$ = RN(m, TUPLE_LITERAL); }
-MatchExprs <- m:MatchExpr { $$ = CN(MATCH_EXPRS, 1, m); } (_ "," _ m:MatchExpr { AC($$, m); })*
+MatchTupleLiteral <- "(" _ ")" { $$ = CT(TUPLE_LITERAL, NULL); } / "(" _ m:MatchTupleExprs _ ")" { $$ = RN(m, TUPLE_LITERAL); }
+MatchTupleExprs <- m1:MatchExpr _ "," _ m2:MatchExpr { $$ = CN(MATCH_EXPRS, 2, m1, m2); } (_ "," _ m:MatchExpr { AC($$, m); })*
 
 MatchListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } /
                     b:BoundName "[" _ m:MatchExpr? _ "]" { $$ = CN(LIST_LOOKUP, 2, b, m); } /
                     "[" _ m:MatchExprs? _ "]" { $$ = RN(m, LIST_LITERAL); }
+MatchExprs <- m:MatchExpr { $$ = CN(MATCH_EXPRS, 1, m); } (_ "," _ m:MatchExpr { AC($$, m); })*
 
 MatchMapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyValues? _ "]" { $$ = RN(m, MAP_LITERAL); }
 MatchMapKeyValues <- m:MatchMapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MatchMapKeyValue { AC($$, m); })*
@@ -1760,11 +1769,10 @@ Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d);
           d:DefaultParams { $$ = d; }
 NonDefaultParams <- n:NonDefaultParam { $$ = CN(NON_DEFAULT_PARAMS, 1, n); }
                     (_ "," _ n:NonDefaultParam { AC($$, n); })*
-NonDefaultParam <- Identifier !(_ "=") { $$ = CT(NON_DEFAULT_PARAM, $0); }
+NonDefaultParam <- m:MatchExpr !(_ "=") { $$ = RN(m, NON_DEFAULT_PARAM); }
 DefaultParams <- d:DefaultParam { $$ = CN(DEFAULT_PARAMS, 1, d); } (_ "," _ d:DefaultParam {AC($$, d); })*
-DefaultParam <- i:DefaultParamName _ "=" _ e:Expr { $$ = CN(DEFAULT_PARAM, 2, i, e); }
+DefaultParam <- i:DefaultParamName _ "=" _ m:MatchExpr { $$ = CN(DEFAULT_PARAM, 2, i, m); }
 DefaultParamName <- Identifier { $$ = CT(DEFAULT_PARAM_NAME, $0); }
-
 BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
 BlockLevelExprs <- b:BlockLevelExpr { $$ = CN(BLOCK_EXPR, 1, b); } (_ Comma _ b:BlockLevelExpr { AC($$, b); })*
 BlockLevelExpr <- (b:FunctionDef / b:Expr) { $$ = b; }
@@ -1845,12 +1853,12 @@ class TodoList {
 
     public fn addItem(tag, description) {
         ?item := new TodoItem(description),
-        this(items: [tag : item] ~ items)
+        this(items: [tag : item] $ items)
     }
 
     public fn markItemCompleted(tag) {
         ?item := items[tag].setCompleted(true),
-        this(items: item ~ items.delete(tag))
+        this(items: item $ items.delete(tag))
     }
 
     public fn displayItems() {
@@ -1861,16 +1869,16 @@ class TodoList {
 export fn main() {
     fn loopUntilQuit(todoList) {
         ?input := readInput(), // implemented elsewhere
-        if input.command == "add" {
-            <?todoList, ?a> := todoList.addItem(input.tag, input.description),
+        if input.command ==string= "add" {
+            (?todoList, ?a) := todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
-        } elif input.command == "complete" {
+        } elif input.command ==string= "complete" {
             ?todoList := todoList.markItemCompleted(input.tag),
             loopUntilQuit(todoList)
-        } elif input.command == "show" {
+        } elif input.command ==string= "show" {
             todoList.displayItems(),
             loopUntilQuit(todoList)
-        } elif input.command == "quit" {
+        } elif input.command ==string= "quit" {
             true
         } else {
           stdio.writeln("Unknown command: $input.command"),
