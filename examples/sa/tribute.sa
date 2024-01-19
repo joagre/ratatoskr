@@ -1,5 +1,5 @@
 import std.satie
-import std.stdio : writeln
+import std.stdio: writeln
 
 export fn main(args) {
     ?numberOfTributes := args[1],
