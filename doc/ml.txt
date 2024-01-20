@@ -1,0 +1,190 @@
+Let tuples be () instead of <>.
+Remove gte etc.
+
+==
+
+This is strict:
+
+fn square(x) {
+   x *. x
+}
+
+This is strict and verbose:
+
+fn square(x is float) {
+   x *. x
+}
+
+fn square(x) is float {
+   x *. x
+}
+
+fn square(x) {
+   x *. x is float
+}
+
+Do not implement "is" to start with.
+
+==
+
+User defined types:
+
+type Tuple = (int, int)
+type Map = [string: string]
+type ListWithTuples = [(int, int)]
+type ListWithMaps = [[int: string]]
+
+Do not implement user defined types to start with.
+
+==
+
+No operator overloading to start with:
+
+@ list concat
+^ string concat
+$ map concat
+
++ int addition
++. float addition
+
+- int subtraction
+-. float subtraction
+
+* int multiplication
+*. float multiplication
+
+/ int division
+/. float division
+
+% int modulo
+
+=X= equality where X is a built-in types or user defined types
+!X= inequality where X is a built-in types or user defined types
+
+> int gt
+>. float gt
+>= int gte
+>=. float gte
+< int lt
+<. float lt
+<= int lte
+<=. float lte
+
+Example:
+
+[1] @ [2]
+["foo": 1, "bar": 42] $ ["baz": 0]
+"a" ^ "b"
+
+type foo = int
+
+?a := 1 is foo
+?b := 2 is foo
+a == foo b // false
+
+(X can later on be a first order object. Not now.)
+
+==
+
+Rename the old use of "is" with "as":
+
+switch (a) {
+    case (?c, a) as ?d:
+      d
+}
+
+==
+
+Remember to shortcut && and ||
+
+==
+
+I will allow matching in function heads but not support multiple
+function clauses:
+
+fn lengthvec((?x, ?y)) {
+    Math.sqrt(x^^2, y^^2)
+}
+
+fn lengthvec(a, b = (?x, ?y)) { // Default param
+    Math.sqrt(x^^2, y^^2)
+}
+
+==
+
+Stop using the new keyword to instantiate a new object:
+
+class Foo {
+  this(person, salary) { } // If no constructor a default one is defined
+  person is string
+  salary is int
+}
+
+Foo(person: a, salary: b)
+
+Foo should also be possibe to use as a pattern. Like this:
+
+Foo(person: ?a, salary: ?b) := c
+
+ML has this shortcut:
+
+Foo(person: ?person, salary: ?salary) := c equals
+Foo(?person, ?salary) := c
+
+Nice
+
+==
+
+Lists - see above as well
+
+Introduce :: (cons)
+
+?a := 1
+[?a :: ?rest] := c
+?d := a :: rest,
+true := c == d
+
+[a] ~list b equals a :: b
+
+switch a {
+    case []:
+        [true]
+    case ?a :: ?rest:
+        rest ~list [a]
+}
+
+==
+
+Satie has lists. Not arrays.
+
+==
+
+Should it complain:
+
+fn max(l is [int]) is int {
+    switch l {
+        case [?m]:
+            m
+        case [?m, ?n :: ?rest]:
+            if m > n {
+                max(m :: rest)
+            } else {
+                max(n :: rest)
+            }
+    }
+}
+
+No
+
+==
+
+Misc:
+
+Strings.explode("foobar") is [char]
+Lists.implode(['f', 'o', 'o', 'r']) is string
+Strings.concat(a, b) is the same as a ~ b.
+
+(?_, ?a) := b equals (_, ?a) := b (maybe)
+(?_a, ?b) := c
+
+==

@@ -1,0 +1,40 @@
+import std.stdio: writeln
+
+type Result(T) = Success(T) or Error(String)
+
+fn sort(c, l) {
+    if !l.isEmpty() {
+        Result:Success(qsort(c, l))
+    } else {
+        Result:Error("Empty List")
+    }
+}
+
+fn qsort(c, l) {
+    switch l {
+        case []:
+            []
+        case ?x :: ?xs:
+            (?smaller, ?larger) := l.partition(fn (y) { c(y, x) }, xs),
+            qsort(c, smaller) @ [x] @ qsort(c, larger)
+    }
+}
+
+export fn main(_args) {
+    fn c(x, y) { x < y }, // < is only defined for ints (<. is defined for floats)
+    switch qsort(c, [3, 1, 32, 0]) {
+        case Reason:Error(?reason):
+            writeln("Error: $reason")
+        case Reason:Success(?l):
+            writeln("Success: $l")
+    }
+}
+
+/*
+Kommentar:
+
+fn qsort(c, l) { ... ovan skulle kunnat ha skrivits så här men det "behövs inte":
+
+alias Compare(T) = (T, T) -> Bool
+fn qsort(c is Compare(T), l is List[T]) is Result(List[T]) { ...
+*/

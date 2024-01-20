@@ -1,0 +1,66 @@
+import Std.Stdio: writeln
+import Std.Int
+
+type Tree(T) = Leaf() or Branch(T, Tree(T), Tree(T))
+
+fn export(_args) {
+    ?t := Tree:Branch("The"
+                      Tree:Leaf(),
+                      Tree:Branch("wood",
+                                  Tree:Branch("of",
+                                              Tree:Branch("Birnam",
+                                                          Tree:Leaf(),
+                                                          Tree:Leaf())))),
+    writeln("Size: ${size(t)}"),
+    writeln("Depth: ${depth(t)}"),
+    writeln("Complete Tree: ${completeTree(1, 8)}"),
+    writeln("Tree Mirror: ${mirror(t)}")
+    writeln("Traversal: ${traverse(t)}")
+}
+
+fn size(t) {
+    switch t {
+        case Tree:Leaf():
+            0
+        case Tree:Branch(_, ?left, ?right):
+            1 + size(left) + size(right)
+    }
+}
+
+fn depth(t) {
+    switch t {
+        case Tree:Leaf():
+            0
+        case Tree:Branch(_, ?left, ?right):
+            1 + Int.max(depth(left), depth(right))
+    }
+}
+
+fn completeTree(k, n) {
+    if n ==int= 0 {
+        Tree:Leaf()
+    } else {
+        Tree:Branch(k, completeTree(2 * k, n - 1),
+                       completeTree(2 * k + 1, n - 1))
+    }
+}
+
+fn mirror(t) {
+    switch t {
+        case Tree:Leaf():
+            t
+        case Tree:Branch(?label, ?left, ?right):
+            Tree:Branch(label, mirror(right), mirror(left))
+    }
+}
+
+fn traverse(t) {
+    switch t {
+        case Tree:Leaf() {
+            []
+        case Tree:Branch(?label, ?left, ?right):
+            label :: traverse(left) @ traverse(right)
+    }
+}
+
+// etc
