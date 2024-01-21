@@ -1,11 +1,5 @@
 type Result(Value, Reason) = Ok(Value) or Error(Reason)
 
-export fn main(_args) {
-    ?a := Queue(Float)(0.1),
-    ?b := a.enqueue(3.14),
-    Result:Ok(0.1) := b.hd()
-}
-
 enum ErrorStatus {
    emptyQueue
 }
@@ -46,4 +40,10 @@ class Queue(T) {
             }
         }
     }
+}
+
+export fn main(_args) {
+    ?a := Queue(Float)(0.1),
+    ?b := a.enqueue(3.14),
+    Result:Ok(0.1) := b.hd()
 }
