@@ -5,12 +5,12 @@ enum ErrorStatus {
 }
 
 interface QueueInterface(T) {
-    private queue is [T]
-    this(x is T) is Queue(T)
-    public fn enqueue(x is T) is Queue(T)
-    public fn null() is Bool
-    public fn hd() is Result(ErrorStatus, T)
-    public fn dequeue() is Result(ErrorStatus, Queue(T))
+    private queue : [T]
+    this(x : T) : Queue(T)
+    public fn enqueue(x : T) : Queue(T)
+    public fn null() : Bool
+    public fn hd() : Result(ErrorStatus, T)
+    public fn dequeue() : Result(ErrorStatus, Queue(T))
 }
 
 class Queue implements QueueInterface {

@@ -315,10 +315,11 @@ Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d);
           d:DefaultParams { $$ = d; }
 NonDefaultParams <- n:NonDefaultParam { $$ = CN(NON_DEFAULT_PARAMS, 1, n); }
                     (_ "," _ n:NonDefaultParam { AC($$, n); })*
-NonDefaultParam <- m:MatchExpr !(_ "=") { $$ = RN(m, NON_DEFAULT_PARAM); }
+NonDefaultParam <- Identifier !(_ "=") { $$ = CT(NON_DEFAULT_PARAM, $0); }
 DefaultParams <- d:DefaultParam { $$ = CN(DEFAULT_PARAMS, 1, d); } (_ "," _ d:DefaultParam {AC($$, d); })*
-DefaultParam <- i:DefaultParamName _ "=" _ m:MatchExpr { $$ = CN(DEFAULT_PARAM, 2, i, m); }
+DefaultParam <- i:DefaultParamName _ "=" _ m:ParamExpr { $$ = CN(DEFAULT_PARAM, 2, i, m); }
 DefaultParamName <- Identifier { $$ = CT(DEFAULT_PARAM_NAME, $0); }
+ParamExpr <- (m:MatchLiteral / m:BoundName) { $$ = m; }
 BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
 BlockLevelExprs <- b:BlockLevelExpr { $$ = CN(BLOCK_EXPR, 1, b); } (_ Comma _ b:BlockLevelExpr { AC($$, b); })*
 BlockLevelExpr <- (b:FunctionDef / b:Expr) { $$ = b; }

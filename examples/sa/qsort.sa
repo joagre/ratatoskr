@@ -34,5 +34,5 @@ Kommentar:
 fn qsort(c, l) { ... ovan skulle kunnat ha skrivits så här men det "behövs inte":
 
 alias Compare(T) = (T, T) -> Bool
-fn qsort(c is Compare(T), l is [T]) is Result([T], String) { ...
+fn qsort(c : Compare(T), l : [T]) : Result([T], String) { ...
 */

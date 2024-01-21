@@ -25,7 +25,7 @@ All rise. Here is a tribute and a premature Satie example:
 
 ```
 import std.satie
-import std.stdio: writeln
+import std.stdio : writeln
 
 export fn main(args) {
     ?numberOfTributes := args[1],
@@ -191,7 +191,7 @@ Here follows yet another premature Satie example but read it through
 and an explanation will follow:
 
 ```
-import std.stdio: writeln
+import std.stdio : writeln
 
 enum Color {
     red
@@ -204,7 +204,7 @@ interface Iterator {
     public fn hasNext()
 }
 
-class ColorIterator: Iterator {
+class ColorIterator implements Iterator {
     private colors
     private graffiti
 
@@ -1712,7 +1712,7 @@ MatchMapKeyValue <- (k:Literal / k:Name) _ ":" _ v:MatchExpr { $$ = CN(MAP_KEY_V
 # Class definition
 #
 
-ClassDef <- "class" __ cn:ClassName _ ( ":" _ i:Interfaces _ )? "{" _
+ClassDef <- "class" __ cn:ClassName _ ( "implements" _ i:Interfaces _ )? "{" _
             c:ClassMembers _
             "}" { $$ = CN(CLASS_DEF, 3, cn, i, c); }
 ClassName <- Identifier { $$ = CT(CLASS_NAME, $0); }
@@ -1771,10 +1771,11 @@ Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d);
           d:DefaultParams { $$ = d; }
 NonDefaultParams <- n:NonDefaultParam { $$ = CN(NON_DEFAULT_PARAMS, 1, n); }
                     (_ "," _ n:NonDefaultParam { AC($$, n); })*
-NonDefaultParam <- m:MatchExpr !(_ "=") { $$ = RN(m, NON_DEFAULT_PARAM); }
+NonDefaultParam <- Identifier !(_ "=") { $$ = CT(NON_DEFAULT_PARAM, $0); }
 DefaultParams <- d:DefaultParam { $$ = CN(DEFAULT_PARAMS, 1, d); } (_ "," _ d:DefaultParam {AC($$, d); })*
-DefaultParam <- i:DefaultParamName _ "=" _ m:MatchExpr { $$ = CN(DEFAULT_PARAM, 2, i, m); }
+DefaultParam <- i:DefaultParamName _ "=" _ m:ParamExpr { $$ = CN(DEFAULT_PARAM, 2, i, m); }
 DefaultParamName <- Identifier { $$ = CT(DEFAULT_PARAM_NAME, $0); }
+ParamExpr <- (m:MatchLiteral / m:BoundName) { $$ = m; }
 BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
 BlockLevelExprs <- b:BlockLevelExpr { $$ = CN(BLOCK_EXPR, 1, b); } (_ Comma _ b:BlockLevelExpr { AC($$, b); })*
 BlockLevelExpr <- (b:FunctionDef / b:Expr) { $$ = b; }
@@ -1830,7 +1831,7 @@ int main() {
 # Appendix C: A todo list example
 
 ```
-import std.stdio: writeln
+import std.stdio : writeln
 import std.lists
 
 class TodoItem {

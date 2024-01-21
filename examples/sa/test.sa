@@ -20,18 +20,6 @@ class Foo {
 
 }
 
-fn lengthvec((?x, ?y)) {
-    Math.sqrt(x^^2, y^^2)
-}
-
-fn lengthvec(a, b = (?x, ?y)) { // Default param
-    Math.sqrt(x^^2, y^^2)
-}
-
-fn bonk(a, b, (c, d), e = f, g = ("foo", "bar")) {
-    42
-}
-
 fn main() {
     ?a := receive [this.foo, bar],
     {

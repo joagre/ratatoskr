@@ -19,6 +19,20 @@ export fn concat(l : [[T]]) : [T] {
     }
 }
 
+export fn partition(list : [T], pred : (T) -> Bool, pos = [] : [T],
+                    neg = [] : [T]) : ([T], [T]) {
+    case list {
+        [] { (pos.reverse(), neg.reverse()) }
+        [?x :: ?xs] {
+            if pred(x) {
+                partition(xs, pred, x :: pos, neg)
+            } else {
+                partition(xs, pred, pos, x :: neg)
+            }
+        }
+    }
+}
+
 
 
 
