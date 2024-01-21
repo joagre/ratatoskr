@@ -11,22 +11,26 @@ fn sort(c, l) {
 }
 
 fn qsort(c, l) {
-    switch l {
-        case []:
+    case l {
+        [] {
             []
-        case ?x :: ?xs:
+        }
+        ?x :: ?xs {
             (?smaller, ?larger) := l.partition(fn (y) { c(y, x) }, xs),
             qsort(c, smaller) @ [x] @ qsort(c, larger)
+        }
     }
 }
 
 export fn main(_args) {
-    fn c(x, y) { x < y }, // < is only defined for ints (<. is defined for floats)
-    switch qsort(c, [3, 1, 32, 0]) {
-        case Reason:Error(?reason):
+    fn compare(x, y) { x < y }, // NOTE: < is only defined for ints
+    case qsort(compare, [3, 1, 32, 0]) {
+        Reason:Error(?reason) {
             writeln("Error: $reason")
-        case Reason:Success(?l):
+        }
+        Reason:Success(?l) {
             writeln("Success: $l")
+        }
     }
 }
 

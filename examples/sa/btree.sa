@@ -19,20 +19,24 @@ fn export(_args) {
 }
 
 fn size(t) {
-    switch t {
-        case Tree:Leaf():
+    case t {
+        Tree:Leaf() {
             0
-        case Tree:Branch(_, ?left, ?right):
+        }
+        Tree:Branch(_, ?left, ?right) {
             1 + size(left) + size(right)
+        }
     }
 }
 
 fn depth(t) {
-    switch t {
-        case Tree:Leaf():
+    case t {
+        Tree:Leaf() {
             0
-        case Tree:Branch(_, ?left, ?right):
+        }
+        Tree:Branch(_, ?left, ?right) {
             1 + depth(left).max(depth(right))
+        }
     }
 }
 
@@ -46,20 +50,24 @@ fn completeTree(k, n) {
 }
 
 fn mirror(t) {
-    switch t {
-        case Tree:Leaf():
+    case t {
+        Tree:Leaf() {
             t
-        case Tree:Branch(?label, ?left, ?right):
+        }
+        Tree:Branch(?label, ?left, ?right) {
             Tree:Branch(label, mirror(right), mirror(left))
+        }
     }
 }
 
 fn traverse(t) {
-    switch t {
-        case Tree:Leaf() {
+    case t {
+        Tree:Leaf() {
             []
-        case Tree:Branch(?label, ?left, ?right):
+        }
+        Tree:Branch(?label, ?left, ?right) {
             label :: traverse(left) @ traverse(right)
+        }
     }
 }
 

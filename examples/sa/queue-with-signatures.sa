@@ -1,7 +1,7 @@
 type Result(Value, Reason) = Ok(Value) or Error(Reason)
 
 export fn main(_args) {
-    ?a := $Queue(Float)(0.1),
+    ?a := Queue(Float)(0.1),
     ?b := a.enqueue(3.14),
     Result:Ok(0.1) := b.hd()
 }
@@ -26,20 +26,24 @@ class Queue(T) {
     }
 
     public hd() is Result(ErrorStatus, T) {
-        switch queue {
-            case []:
+        case queue {
+            [] {
                 Error(ErrorStatus#emptyQueue)
-            case [?x :: _]:
+            }
+            [?x :: _] {
                 Ok(x)
+            }
         }
     }
 
     public dequeue() is Result(ErrorStatus, Queue(T)) {
-        switch queue {
-            case []:
+        case queue {
+            [] {
                 Error(ErrorStatus#emptyQueue)
-            case [_ :: ?xs]:
+            }
+            [_ :: ?xs] {
                 Ok(this(queue: xs))
+            }
         }
     }
 }
