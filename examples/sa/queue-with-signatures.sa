@@ -1,4 +1,10 @@
-type Result(T1, T2) = Ok(T1) or Error(T2)
+type Result(Value, Reason) = Ok(Value) or Error(Reason)
+
+export fn main(_args) {
+    ?a := Queue(Float)([0.1]),
+    ?b := a.enqueue(3.14),
+    Result:Ok(0.1) := b.hd()
+}
 
 enum ErrorStatus {
    emptyQueue
@@ -7,8 +13,8 @@ enum ErrorStatus {
 class Queue(T) {
     private queue is [T]
 
-    this() is Queue(T) {
-        this(queue: [])
+    this(xs is [T]) is Queue(T) {
+        this(queue: xs) // this breaks the abstraction barrier
     }
 
     public enqueue(x is T) is Queue(T) {

@@ -1,6 +1,6 @@
 import std.stdio: writeln
 
-type Result(T1, T2) = Ok(T1) or Error(T2)
+type Result(Value, Reason) = Ok(Value) or Error(Reason)
 
 fn sort(c, l) {
     if !l.isEmpty() {

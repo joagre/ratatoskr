@@ -1,7 +1,7 @@
-import Std.Stdio: writeln
-import Std.Int
+import std.stdio: writeln
+import std.Int
 
-type Tree(T) = Leaf() or Branch(T, Tree(T), Tree(T))
+type Tree(Label) = Leaf() or Branch(Label, Tree(Label), Tree(Label))
 
 fn export(_args) {
     ?t := Tree:Branch("The"
