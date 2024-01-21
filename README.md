@@ -25,7 +25,7 @@ All rise. Here is a tribute and a premature Satie example:
 
 ```
 import std.satie
-import std.stdio : writeln
+import std.stdio: writeln
 
 export fn main(args) {
     ?numberOfTributes := args[1],
@@ -509,7 +509,7 @@ switch
 default
 in
 is
-alias
+as
 class
 new
 interface
@@ -1311,12 +1311,14 @@ class Ackermann {
         fn waitForJobs(jobs) {
             if jobs.length > 0 {
                 receive [systemChannel, satie.systemChannel] {
-                    case (?job, ?m, ?n, ?result):
+                    (?job, ?m, ?n, ?result) {
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))
-                    case (JobStatus#died, ?job, ?reason):
+                    }
+                    (JobStatus#died, ?job, ?reason) {
                         stdio.writeln("Oh no! Compute job $job died: $reason"),
                         waitForJobs(jobs.delete(job))
+                    }
                 }
             } else {
                 this(jobs: [])
@@ -1460,13 +1462,13 @@ Operators in decreasing order of precedence:
     #include "symbol_table.h"
     #include "hm.h"
 
-    /*
+/*
     static const char *dbg_str[] = { "Evaluating rule", "Matched rule", "Abandoning rule" };
     #define PCC_DEBUG(auxil, event, rule, level, pos, buffer, length) \
     if (strcmp(rule, "WS") != 0 && strcmp(rule, "_") != 0 && strcmp(rule, "__") != 0) \
         fprintf(stderr, "%*s%s %s @%zu [%.*s]\n", (int)((level) * 2), "", dbg_str[event], \
                 rule, pos, (int)(length), buffer)
-    */
+*/
 
     static int ROW = 1;
 
@@ -1551,7 +1553,7 @@ RightShiftExpr <- l:RightShiftExpr _ ">>" _ e:LeftShiftExpr { $$ = CN(BSR, 2, l,
 LeftShiftExpr <- l:LeftShiftExpr _ "<<" _ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
 ConsExpr <- l:ConsExpr _ "::" _ r:ListConcatExpr { $$ = CN(CONS, 2, l, r); } / e:ListConcatExpr { $$ = e; }
 ListConcatExpr <- l:ListConcatExpr _ "@" _ r:MapConcatExpr { $$ = CN(CONCAT_LIST, 2, l, r); } / e:MapConcatExpr { $$ = e; }
-MapConcatExpr <- l:MapConcatExpr _ "$" _ r:StringConcatExpr { $$ = CN(CONCAT_MAP, 2, l, r); } / e:StringConcatExpr { $$ = e; }
+MapConcatExpr <- l:MapConcatExpr _ "~" _ r:StringConcatExpr { $$ = CN(CONCAT_MAP, 2, l, r); } / e:StringConcatExpr { $$ = e; }
 StringConcatExpr <- l:StringConcatExpr _ "^" _ r:MinusIntExpr { $$ = CN(CONCAT_STRING, 2, l, r); } / e:MinusIntExpr { $$ = e; }
 MinusIntExpr <- l:MinusIntExpr _ "-" _ r:MinusFloatExpr { $$ = CN(MINUS_INT, 2, l, r); } / e:MinusFloatExpr { $$ = e; }
 MinusFloatExpr <- l:MinusFloatExpr _ "-." _ r:PlusIntExpr { $$ = CN(MINUS_FLOAT, 2, l, r); } / e:PlusIntExpr { $$ = e; }
@@ -1589,20 +1591,20 @@ PrimaryExpr <- "nil" { $$ = CT(NIL, NULL); } /
                e:BoundName { $$ = e; } /
                "(" _ e:Expr _ ")" { $$ = e; }
 
-ControlFlowExpr <- (c:IfExpr / c:SwitchExpr / c:ReceiveExpr / c:BlockExpr) { $$ = c; }
+ControlFlowExpr <- (c:IfExpr / c:CaseExpr / c:ReceiveExpr / c:BlockExpr) { $$ = c; }
 
 IfExpr <- "if" __ ie:Expr _ b:BlockExpr { $$ = CN(IF_EXPR, 1, CN(IF, 2, ie, b)); }
           (_ "elif" __ ee:Expr _ b:BlockExpr { AC($$, CN(ELIF, 2, ee, b)); })*
           (_ "else" _ e:BlockExpr { AC($$, CN(ELSE, 1, e)); })
 
-SwitchExpr <- "switch" __ e:Expr { $$ = CN(SWITCH_EXPR, 1, CN(SWITCH, 1, e)); } _ "{"
-              (_ "case" __ m:MatchExprs _ ("when" _ we:Expr { AC($$, CN(WHEN, 1, we)); } _)? ":" _ b:BlockLevelExprs { AC($$, CN(CASE, 2, m, b)); })+
-              (_ "default" _ ":" _ b:BlockLevelExprs { AC($$, CN(DEFAULT, 1, b)); })? _
+CaseExpr <- "case" __ e:Expr { $$ = CN(CASE_EXPR, 1, CN(CASE, 1, e)); } _ "{"
+              (_ m:MatchExprs _ ("when" _ we:Expr { AC($$, CN(WHEN, 1, we)); } _)? _ b:BlockExpr { AC($$, CN(CASE_BRANCH, 2, m, b)); })+
+              (_ "default" _ b:BlockExpr { AC($$, CN(DEFAULT, 1, b)); })? _
               "}"
 
 ReceiveExpr <- "receive" __ c:ReceiveChannels { $$ = CN(RECEIVE_EXPR, 1, CN(RECEIVE, 1, c)); } (_ "{"
-               (_ "case" __ m:MatchExprs _ ":" _ b:BlockLevelExprs _ { AC($$, CN(CASE, 2, m, b)); })+
-               (_ "timeout" _ ":" _ d:DecimalIntegral _ b:BlockLevelExpr { AC($$, CN(TIMEOUT, 2, d, b)); })? _
+               (_ m:MatchExprs _ b:BlockExpr _ { AC($$, CN(CASE, 2, m, b)); })+
+               (_ "timeout" _ d:DecimalIntegral _ b:BlockExpr { AC($$, CN(TIMEOUT, 2, d, b)); })? _
                "}")?
 
 ReceiveChannels <- (c:Channel / "[" _ c:Channels _ "]") { $$ = c; }
@@ -1678,11 +1680,11 @@ MapKeyValue <- (k:Literal / k:Name) _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k
 # Match expression
 #
 
-MatchExpr <- (m:MatchLiteral / m:UnboundName / m:BoundName / m:MatchCons) { $$ = m; } (_ "as" _ u:UnboundName { AC($$, RN(u, MATCH_IS)); })?
-
-MatchLiteral <- (m:MatchBaseLiteral / m:MatchCompositeLiteral) { $$ = m; }
+MatchExpr <- (m:MatchCons / m:MatchLiteral / m:UnboundName / m:BoundName) { $$ = m; } (_ "as" _ u:UnboundName { AC($$, RN(u, MATCH_IS)); })?
 
 MatchCons <- l:MatchExpr _ "::" _ r:MatchExpr { $$ = CN(CONS, 2, l, r); }
+
+MatchLiteral <- (m:MatchBaseLiteral / m:MatchCompositeLiteral) { $$ = m; }
 
 MatchBaseLiteral <- (m:BooleanLiteral /
                      m:NumberLiteral /
@@ -1828,7 +1830,7 @@ int main() {
 # Appendix C: A todo list example
 
 ```
-import std.stdio : writeln
+import std.stdio: writeln
 import std.lists
 
 class TodoItem {
@@ -1853,12 +1855,12 @@ class TodoList {
 
     public fn addItem(tag, description) {
         ?item := new TodoItem(description),
-        this(items: [tag : item] $ items)
+        this(items: [tag: item] ~ items)
     }
 
     public fn markItemCompleted(tag) {
         ?item := items[tag].setCompleted(true),
-        this(items: item $ items.delete(tag))
+        this(items: item ~ items.delete(tag))
     }
 
     public fn displayItems() {

@@ -11,15 +11,15 @@ class Queue(T) {
         this(queue: [x])
     }
 
-    public enqueue(x is T) is Queue(T) {
+    public fn enqueue(x is T) is Queue(T) {
         this(queue: queue @ [x])
     }
 
-    public null() is Bool {
+    public fn null() is Bool {
         queue.isEmpty()
     }
 
-    public hd() is Result(ErrorStatus, T) {
+    public fn hd() is Result(ErrorStatus, T) {
         case queue {
             [] {
                 Error(ErrorStatus#emptyQueue)
@@ -30,7 +30,7 @@ class Queue(T) {
         }
     }
 
-    public dequeue() is Result(ErrorStatus, Queue(T)) {
+    public fn dequeue() is Result(ErrorStatus, Queue(T)) {
         case queue {
             [] {
                 Error(ErrorStatus#emptyQueue)

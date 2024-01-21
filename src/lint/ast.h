@@ -25,6 +25,8 @@ typedef dynarray_t node_array_t;
         NODE_NAME(BSL) \
         NODE_NAME(BSR) \
         NODE_NAME(CASE) \
+        NODE_NAME(CASE_BRANCH) \
+        NODE_NAME(CASE_EXPR) \
         NODE_NAME(CAST) \
         NODE_NAME(CHANNEL) \
         NODE_NAME(CHANNEL_NAME) \
@@ -144,8 +146,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(REGULAR_STRING) \
         NODE_NAME(SELF) \
         NODE_NAME(SLICE_LENGTH) \
-        NODE_NAME(SWITCH) \
-        NODE_NAME(SWITCH_EXPR) \
         NODE_NAME(THIS) \
         NODE_NAME(TIMEOUT) \
         NODE_NAME(TOP_LEVEL_DEFS) \

@@ -61,23 +61,28 @@ fn main() {
     a[1],
     1 := 1,
     ?a := b :: c,
-    switch a {
-        case ?a :: ?b:
+    case a {
+        ?a :: ?b {
            snuva
-        case b when true:
+        }
+        b when true {
             c
-        case e:
+        }
+        e {
             d
+        }
     },
-    switch a {
-        case (?b, a), (?b, a):
+    case a {
+        (?b, a), (?b, a) {
             c
+        }
     },
     (1, 2),
     receive foo {
-        case a:
+        a {
             stdio.writeln("Oh no! Compute job $job died: $reason"),
             b
+        }
     },
     lists.foreach(fn () { stdio.writeln(item.toString())}, items),
     a := 1,

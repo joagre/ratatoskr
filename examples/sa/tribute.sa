@@ -36,34 +36,3 @@ size: (Type, Size)
     depending on Type (which can either be the enum
     ChannelOption@block or ChannelOption@ignore).
 */
-
-
-
-
-
-
-
-
-
-type Compare(T) = (T, T) -> Bool
-type Result(T) = Success(T) or Error(String)
-
-
-
-fn sort(c is Compare(T), l is List[T]) is Result(List[T]) {
-    if l.isEmpty() {
-        Error("Empty List")
-    } else {
-        Success(qsort(c, l))
-    }
-}
-
-fn qsort(c is Compare(T), l is List[T]) is List[T] {
-    switch l {
-        case []:
-            []
-        case ?x :: ?xs:
-            (?smaller, ?larger) := l.partition(fn (y) { c(y, x) }, xs),
-            qsort(smaller @ [x] @ qsort(larger))
-    }
-}

@@ -36,12 +36,14 @@ class Ackermann {
         fn waitForJobs(jobs) {
             if jobs.length > 0 {
                 receive [systemChannel, satie.systemChannel] {
-                    case (?job, ?m, ?n, ?result):
+                    (?job, ?m, ?n, ?result) {
                         stdio.writeln("ackermann($m, $n) = $result"),
                         waitForJobs(jobs.delete(job))
-                    case (JobStatus#died, ?job, ?reason):
+                    }
+                    (JobStatus#died, ?job, ?reason) {
                         stdio.writeln("Oh no! Compute job $job died: $reason"),
                         waitForJobs(jobs.delete(job))
+                    }
                 }
             } else {
                 this(jobs: [])

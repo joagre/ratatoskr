@@ -23,12 +23,12 @@ class TodoList {
 
     public fn addItem(tag, description) {
         ?item := new TodoItem(description),
-        this(items: [tag: item] $ items)
+        this(items: [tag: item] ~ items)
     }
 
     public fn markItemCompleted(tag) {
         ?item := items[tag].setCompleted(true),
-        this(items: item $ items.delete(tag))
+        this(items: item ~ items.delete(tag))
     }
 
     public fn displayItems() {
