@@ -1,4 +1,4 @@
-import std.stdio: writeln
+import std.stdio : writeln
 
 type Result(Value, Reason) = Ok(Value) or Error(Reason)
 
@@ -12,9 +12,7 @@ fn sort(c, l) {
 
 fn qsort(c, l) {
     case l {
-        [] {
-            []
-        }
+        [] { [] }
         ?x :: ?xs {
             (?smaller, ?larger) := l.partition(fn (y) { c(y, x) }, xs),
             qsort(c, smaller) @ [x] @ qsort(c, larger)
@@ -25,12 +23,8 @@ fn qsort(c, l) {
 export fn main(_args) {
     fn compare(x, y) { x < y }, // NOTE: < is only defined for ints
     case qsort(compare, [3, 1, 32, 0]) {
-        Reason:Error(?reason) {
-            writeln("Error: $reason")
-        }
-        Reason:Success(?l) {
-            writeln("Success: $l")
-        }
+        Reason:Error(?reason) { writeln("Error: $reason") }
+        Reason:Success(?l) { writeln("Success: $l") }
     }
 }
 

@@ -1,4 +1,4 @@
-import std.stdio: writeln
+import std.stdio : writeln
 
 enum Color {
     red
@@ -11,7 +11,7 @@ interface Iterator {
     public fn hasNext()
 }
 
-class ColorIterator: Iterator {
+class ColorIterator implements Iterator {
     private colors
     private graffiti
 

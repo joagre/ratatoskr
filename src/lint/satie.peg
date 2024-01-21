@@ -256,7 +256,7 @@ MatchMapKeyValue <- (k:Literal / k:Name) _ ":" _ v:MatchExpr { $$ = CN(MAP_KEY_V
 # Class definition
 #
 
-ClassDef <- "class" __ cn:ClassName _ ( ":" _ i:Interfaces _ )? "{" _
+ClassDef <- "class" __ cn:ClassName _ ( "implements" _ i:Interfaces _ )? "{" _
             c:ClassMembers _
             "}" { $$ = CN(CLASS_DEF, 3, cn, i, c); }
 ClassName <- Identifier { $$ = CT(CLASS_NAME, $0); }

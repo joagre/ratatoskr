@@ -1,4 +1,4 @@
-//type Result(Value, Reason) = Ok(Value) or Error(Reason)
+type Result(Value, Reason) = Ok(Value) or Error(Reason)
 
 enum ErrorStatus {
    emptyQueue
@@ -21,27 +21,15 @@ class Queue {
 
     public fn hd() {
         case queue {
-            [] {
-                ok
-                //Result:Error(ErrorStatus#emptyQueue)
-            }
-            [?x :: _] {
-                ok
-                //Result:Ok(x)
-            }
+            [] { Result:Error(ErrorStatus#emptyQueue) }
+            [?x :: _] { Result:Ok(x) }
         }
     }
 
     public fn dequeue() {
         case queue {
-            [] {
-                ok
-                //Result:Error(ErrorStatus#emptyQueue)
-            }
-            [_ :: ?xs] {
-                ok
-                //Result:Ok(this(queue: xs))
-            }
+            [] { Result:Error(ErrorStatus#emptyQueue) }
+            [_ :: ?xs] { Result:Ok(this(queue: xs)) }
         }
     }
 }

@@ -1,3 +1,30 @@
+export fn null(l : [T]) : Bool {
+    case l {
+        [] { true }
+        _ { false }
+    }
+}
+
+export fn length(l : [T]) : Int {
+    case l {
+        [] { 0 }
+        [?x :: ?xs] { 1 + length(xs) }
+    }
+}
+
+export fn concat(l : [[T]]) : [T] {
+    case l {
+        [] { [] }
+        [?l :: ?ls] { l @ concat(ls) }
+    }
+}
+
+
+
+
+
+....
+
 export reverse(list, reversedList) {
     if list.isEmpty() {
         reversedList

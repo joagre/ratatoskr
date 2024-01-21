@@ -4,46 +4,48 @@ enum ErrorStatus {
    emptyQueue
 }
 
-class Queue(T) {
+interface QueueInterface(T) {
     private queue is [T]
+    this(x is T) is Queue(T)
+    public fn enqueue(x is T) is Queue(T)
+    public fn null() is Bool
+    public fn hd() is Result(ErrorStatus, T)
+    public fn dequeue() is Result(ErrorStatus, Queue(T))
+}
 
-    this(x is T) is Queue(T) {
+class Queue implements QueueInterface {
+    private queue
+
+    this(x) {
         this(queue: [x])
     }
 
-    public fn enqueue(x is T) is Queue(T) {
+    public fn enqueue(x) {
         this(queue: queue @ [x])
     }
 
-    public fn null() is Bool {
+    public fn null() {
         queue.isEmpty()
     }
 
-    public fn hd() is Result(ErrorStatus, T) {
+    public fn hd() {
         case queue {
-            [] {
-                Error(ErrorStatus#emptyQueue)
-            }
-            [?x :: _] {
-                Ok(x)
-            }
+            [] { Result:Error(ErrorStatus#emptyQueue) }
+            [?x :: _] { Result:Ok(x) }
         }
     }
 
-    public fn dequeue() is Result(ErrorStatus, Queue(T)) {
+    public fn dequeue() {
         case queue {
-            [] {
-                Error(ErrorStatus#emptyQueue)
-            }
-            [_ :: ?xs] {
-                Ok(this(queue: xs))
-            }
+            [] { Result:Error(ErrorStatus#emptyQueue) }
+            [_ :: ?xs] { Result:Ok(this(queue: xs)) }
         }
     }
 }
 
 export fn main(_args) {
     ?a := Queue(Float)(0.1),
+    ?a1 := Queue(0.1), // would work as well
     ?b := a.enqueue(3.14),
     Result:Ok(0.1) := b.hd()
 }
