@@ -1,0 +1,39 @@
+type Result(T1, T2) = Ok(T1) or Error(T2)
+
+enum ErrorStatus {
+   emptyQueue
+}
+
+class Queue {
+    private queue
+
+    this() {
+        this(queue: [])
+    }
+
+    public enqueue(x) {
+        this(queue: queue @ [x])
+    }
+
+    public null() {
+        queue.isEmpty()
+    }
+
+    public hd() {
+        switch queue {
+            case []:
+                Result:Error(ErrorStatus#emptyQueue)
+            case [?x :: _]:
+                Result:Ok(x)
+        }
+    }
+
+    public dequeue() {
+        switch queue {
+            case []:
+                Result:Error(ErrorStatus#emptyQueue)
+            case [_ :: ?xs]:
+                Result:Ok(this(queue: xs))
+        }
+    }
+}

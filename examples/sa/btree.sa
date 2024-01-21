@@ -32,12 +32,12 @@ fn depth(t) {
         case Tree:Leaf():
             0
         case Tree:Branch(_, ?left, ?right):
-            1 + Int.max(depth(left), depth(right))
+            1 + depth(left).max(depth(right))
     }
 }
 
 fn completeTree(k, n) {
-    if n ==int= 0 {
+    if n ==Int= 0 {
         Tree:Leaf()
     } else {
         Tree:Branch(k, completeTree(2 * k, n - 1),

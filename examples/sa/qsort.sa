@@ -1,10 +1,10 @@
 import std.stdio: writeln
 
-type Result(T) = Success(T) or Error(String)
+type Result(T1, T2) = Ok(T1) or Error(T2)
 
 fn sort(c, l) {
     if !l.isEmpty() {
-        Result:Success(qsort(c, l))
+        Result:Ok(qsort(c, l))
     } else {
         Result:Error("Empty List")
     }
@@ -36,5 +36,5 @@ Kommentar:
 fn qsort(c, l) { ... ovan skulle kunnat ha skrivits så här men det "behövs inte":
 
 alias Compare(T) = (T, T) -> Bool
-fn qsort(c is Compare(T), l is List[T]) is Result(List[T]) { ...
+fn qsort(c is Compare(T), l is [T]) is Result([T], String) { ...
 */

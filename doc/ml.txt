@@ -11,72 +11,76 @@ fn square(x) {
 
 This is strict and verbose:
 
-fn square(x is float) {
+fn square(x is Float) {
    x *. x
 }
 
-fn square(x) is float {
+fn square(x) is Float {
    x *. x
 }
 
 fn square(x) {
-   x *. x is float
+   x *. x is Float
 }
 
 Do not implement "is" to start with.
 
 ==
 
-User defined types:
+Type aliases:
 
-type Tuple = (int, int)
-type Map = [string: string]
-type ListWithTuples = [(int, int)]
-type ListWithMaps = [[int: string]]
+alias FooTuple = (Int, Int)
+alias BarMap = String[String]
+alias ListWithTuples = [(Int, Int)]
+alias ListWithMaps = [Int[String]]
 
-Do not implement user defined types to start with.
+User defined types (with type contructors):
+
+type Tree(T) = Leaf() or Branch(T, Tree(T), Tree(T))
+
+Do not implement alias and user defined types to start with.
 
 ==
 
 No operator overloading to start with:
 
-@ list concat
-^ string concat
-$ map concat
+@ is List concat
+^ is String concat
+~ map concat
 
-+ int addition
-+. float addition
++ is Int addition
++. is Float addition
 
-- int subtraction
--. float subtraction
+- is Int subtraction
+-. is Float subtraction
 
-* int multiplication
-*. float multiplication
+* is Int multiplication
+*. is Float multiplication
 
-/ int division
-/. float division
+/ is Int division
+/. is Float division
 
-% int modulo
+% is Int modulo
 
 =X= equality where X is a built-in types or user defined types
 !X= inequality where X is a built-in types or user defined types
 
-> int gt
->. float gt
->= int gte
->=. float gte
-< int lt
-<. float lt
-<= int lte
-<=. float lte
+> is Int gt
+>. is Float gt
+>= is Int gte
+>=. is Float gte
+< is Int lt
+<. is Float lt
+<= is Int lte
+<=. is Float lte
 
 Example:
 
 [1] @ [2]
-["foo": 1, "bar": 42] $ ["baz": 0]
+["foo": 1, "bar": 42] ~ ["baz": 0]
 "a" ^ "b"
 
-type foo = int
+alias foo = Int
 
 ?a := 1 is foo
 ?b := 2 is foo
@@ -116,8 +120,8 @@ Stop using the new keyword to instantiate a new object:
 
 class Foo {
   this(person, salary) { } // If no constructor a default one is defined
-  person is string
-  salary is int
+  person is String
+  salary is Int
 }
 
 Foo(person: a, salary: b)
@@ -144,13 +148,13 @@ Introduce :: (cons)
 ?d := a :: rest,
 true := c == d
 
-[a] ~list b equals a :: b
+[a] @ b equals a :: b
 
 switch a {
     case []:
         [true]
     case ?a :: ?rest:
-        rest ~list [a]
+        rest @ [a]
 }
 
 ==
@@ -161,7 +165,7 @@ Satie has lists. Not arrays.
 
 Should it complain:
 
-fn max(l is [int]) is int {
+fn max(l is [Int]) is Int {
     switch l {
         case [?m]:
             m
@@ -180,9 +184,14 @@ No
 
 Misc:
 
-Strings.explode("foobar") is [char]
-Lists.implode(['f', 'o', 'o', 'r']) is string
-Strings.concat(a, b) is the same as a ~ b.
+Strings.explode("foobar") (becomes [Char])
+"foobar".explode() (becomes [Char])
+Lists.implode(['f', 'o', 'o', 'r']) (becomes String)
+['f', 'o', 'o', 'r'].implode() (becomes String)
+
+Strings.concat(a, b)
+  is the same as a @ b
+    is the same as a.concat(b)
 
 (?_, ?a) := b equals (_, ?a) := b (maybe)
 (?_a, ?b) := c
