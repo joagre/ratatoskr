@@ -1,5 +1,4 @@
-import std.stdio : writeln
-import std.Int
+import std.Stdio : writeln
 
 type Tree(Label) = Leaf() or Branch(Label, Tree(Label), Tree(Label))
 
@@ -12,7 +11,7 @@ fn export(_args) {
                                                               Tree:Leaf(),
                                                               Tree:Leaf())),
                                       Tree:leaf())),
-    writeln("Size: ${size(treww)}"),
+    writeln("Size: ${size(tree)}"),
     writeln("Depth: ${depth(tree)}"),
     writeln("Complete Tree: ${completeTree(1, 8)}"),
     writeln("Tree Mirror: ${mirror(tree)}")

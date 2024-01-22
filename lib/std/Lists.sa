@@ -1,37 +1,54 @@
-export fn null(l : [T]) : Bool {
-    case l {
+export fn isEmpty(list : [T]) : Bool {
+    case list {
         [] { true }
         _ { false }
     }
 }
 
-export fn length(l : [T]) : Int {
-    case l {
+export fn length(list : [T]) : Int {
+    case likst {
         [] { 0 }
-        [?x :: ?xs] { 1 + length(xs) }
+        [_ :: ?rest] { 1 + length(rest) }
     }
 }
 
-export fn concat(l : [[T]]) : [T] {
-    case l {
+export fn concat(list : [[T]]) : [T] {
+    case list {
         [] { [] }
-        [?l :: ?ls] { l @ concat(ls) }
+        [?first :: ?rest] { first @ concat(rest) }
     }
 }
 
-export fn partition(list : [T], pred : (T) -> Bool, pos = [] : [T],
+export fn partition(list : [T], predicate : (T) -> Bool, pos = [] : [T],
                     neg = [] : [T]) : ([T], [T]) {
     case list {
-        [] { (pos.reverse(), neg.reverse()) }
-        [?x :: ?xs] {
-            if pred(x) {
-                partition(xs, pred, x :: pos, neg)
+        [] { (positive.reverse(), negative.reverse()) }
+        [?first :: ?rest] {
+            if predicate(first) {
+                partition(rest, predicate, first :: positive, negative)
             } else {
-                partition(xs, pred, pos, x :: neg)
+                partition(rest, predicate, positive, first :: negative)
             }
         }
     }
 }
+
+
+partition([1, 2, 3, 1, 2, 3, 2, 4], fn (x) { x > 2 })
+
+or
+
+fn foo() { [1, 2, 3, 1, 2, 3, 2, 4] }
+foo().partition(fn (x) { x > 2 })
+
+or
+
+[1, 2, 3, 1, 2, 3, 2, 4].partition(fn (x) { x > 2 })
+
+etc
+
+
+export fn foo() __NATIVE
 
 
 

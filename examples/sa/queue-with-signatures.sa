@@ -5,23 +5,22 @@ enum ErrorStatus {
 }
 
 interface QueueInterface(T) {
-    private queue : [T]
-    this(x : T) : Queue(T)
-    public fn enqueue(x : T) : Queue(T)
+    this(element : T) : QueueInterface(T)
+    public fn enqueue(element : T) : QueueInterface(T)
     public fn null() : Bool
-    public fn hd() : Result(ErrorStatus, T)
-    public fn dequeue() : Result(ErrorStatus, Queue(T))
+    public fn hd() : Result(T, ErrorStatus)
+    public fn dequeue() : Result(QueueInterface(T), ErrorStatus)
 }
 
-class Queue implements QueueInterface {
-    private queue
+class Queue(T) implements QueueInterface(T) {
+    private queue : [T]
 
-    this(x) {
-        this(queue: [x])
+    this(element) {
+        this(queue: [element])
     }
 
-    public fn enqueue(x) {
-        this(queue: queue @ [x])
+    public fn enqueue(element) {
+        this(queue: queue @ [element])
     }
 
     public fn null() {
@@ -31,21 +30,21 @@ class Queue implements QueueInterface {
     public fn hd() {
         case queue {
             [] { Result:Error(ErrorStatus#emptyQueue) }
-            [?x :: _] { Result:Ok(x) }
+            [?first :: _] { Result:Ok(first) }
         }
     }
 
     public fn dequeue() {
         case queue {
             [] { Result:Error(ErrorStatus#emptyQueue) }
-            [_ :: ?xs] { Result:Ok(this(queue: xs)) }
+            [_ :: ?rest] { Result:Ok(this(queue: rest)) }
         }
     }
 }
 
 export fn main(_args) {
     ?a := Queue(Float)(0.1),
-    ?a1 := Queue(0.1), // would work as well
+    ?a1 := Queue(0.1), // the Float type can be left out in this case
     ?b := a.enqueue(3.14),
     Result:Ok(0.1) := b.hd()
 }
