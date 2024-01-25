@@ -237,23 +237,19 @@ bind_variables(UT, Sx, Sy, Bindings) ->
 
 is_free_variable(Bindings, I) -> not(maps:is_key(I, Bindings)).
 
-bind_variable(Bindings, I, OtherI) ->
-    maps:put(I, OtherI, Bindings).
+bind_variable(Bindings, I, OtherI) -> maps:put(I, OtherI, Bindings).
 
 dereference_variable(Bindings, I) ->
     case maps:get(I, Bindings, unknown_index) of
-        unknown_index ->
-            I;
-        OtherI ->
-            dereference_variable(Bindings, OtherI)
+        unknown_index -> I;
+        OtherI -> dereference_variable(Bindings, OtherI)
     end.
 
 %% Unification table
 
 lookup_entry(UT, I) -> maps:get(I, UT).
 
-insert_entry(UT, I, Entry) ->
-    maps:put(I, Entry, UT).
+insert_entry(UT, I, Entry) -> maps:put(I, Entry, UT).
 
 find_term_index(UT, Term) ->
     Iterator = maps:iterator(UT),
@@ -261,18 +257,14 @@ find_term_index(UT, Term) ->
 
 lookup_term_index(Iterator, Term) ->
     case maps:next(Iterator) of
-        none ->
-            not_found;
-        {I, #entry{term = Term}, _} ->
-            I;
-        {_I, _Entry, NextIterator} ->
-            lookup_term_index(NextIterator, Term)
+        none -> not_found;
+        {I, #entry{term = Term}, _} -> I;
+        {_I, _Entry, NextIterator} -> lookup_term_index(NextIterator, Term)
     end.
 
 termify_components(UT, Bindings, DI) ->
     case lookup_entry(UT, DI) of
-        #entry{functor = Functor, arity = 0} ->
-            Functor;
+        #entry{functor = Functor, arity = 0} -> Functor;
         #entry{functor = Functor, components = Components} ->
             TermifiedComponentIndiices =
                 termify_component_indices(UT, Bindings, Components),
