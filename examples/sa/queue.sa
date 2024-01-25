@@ -21,15 +21,15 @@ class Queue {
 
     public fn hd() {
         case queue {
-            [] { Result:Error(ErrorStatus#emptyQueue) }
-            [?first :: _] { Result:Ok(first) }
+            [] { Error(ErrorStatus#emptyQueue) }
+            [?first :: _] { Ok(first) }
         }
     }
 
     public fn dequeue() {
         case queue {
-            [] { Result:Error(ErrorStatus#emptyQueue) }
-            [_ :: ?rest] { Result:Ok(this(queue: rest)) }
+            [] { Error(ErrorStatus#emptyQueue) }
+            [_ :: ?rest] { Ok(this(queue: rest)) }
         }
     }
 }
@@ -37,5 +37,5 @@ class Queue {
 export fn main(_args) {
     ?a := Queue(0.1),
     ?b := a.enqueue(3.14)
-    Result:Ok(0.1) := b.hd()
+    Ok(0.1) := b.hd()
 }

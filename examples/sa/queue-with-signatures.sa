@@ -29,22 +29,23 @@ class Queue(T) implements QueueInterface(T) {
 
     public fn hd() {
         case queue {
-            [] { Result:Error(ErrorStatus#emptyQueue) }
-            [?first :: _] { Result:Ok(first) }
+            [] { Error(ErrorStatus#emptyQueue) }
+            [?first :: _] { Ok(first) }
         }
     }
 
     public fn dequeue() {
         case queue {
-            [] { Result:Error(ErrorStatus#emptyQueue) }
-            [_ :: ?rest] { Result:Ok(this(queue: rest)) }
+            [] { Error(ErrorStatus#emptyQueue) }
+            [_ :: ?rest] { Ok(this(queue: rest)) }
         }
     }
 }
 
 export fn main(_args) {
     ?a := Queue(Float)(0.1),
-    ?a1 := Queue(0.1), // the Float type can be left out in this case
+    ?a2 := Queue(0.1), // the Float type can be left out
+    true := a ==Queue= a2
     ?b := a.enqueue(3.14),
-    Result:Ok(0.1) := b.hd()
+    Ok(0.1) := b.hd()
 }

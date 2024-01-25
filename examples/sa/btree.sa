@@ -2,15 +2,14 @@ import std.Stdio : writeln
 
 type Tree(Label) = Leaf() or Branch(Label, Tree(Label), Tree(Label))
 
-fn export(_args) {
-    ?tree := Tree:Branch("The"
-                          Tree:Leaf(),
-                          Tree:Branch("wood",
-                                      Tree:Branch("of",
-                                                  Tree:Branch("Birnam",
-                                                              Tree:Leaf(),
-                                                              Tree:Leaf())),
-                                      Tree:leaf())),
+export fn main(_args) {
+    ?tree := Branch("The",
+                    Leaf(),
+                    Branch("wood",
+                           Branch("of",
+                                  Branch("Birnam",
+                                  Leaf(),
+                           Leaf())))),
     writeln("Size: ${size(tree)}"),
     writeln("Depth: ${depth(tree)}"),
     writeln("Complete Tree: ${completeTree(1, 8)}"),
@@ -19,41 +18,40 @@ fn export(_args) {
 }
 
 fn size(tree) {
-    case t {
-        Tree:Leaf() { 0 }
-        Tree:Branch(_, ?left, ?right) { 1 + size(left) + size(right) }
+    case tree {
+        Leaf() { 0 }
+        Branch(_, ?left, ?right) { 1 + size(left) + size(right) }
     }
 }
 
 fn depth(tree) {
     case tree {
-        Tree:Leaf() { 0 }
-        Tree:Branch(_, ?left, ?right) { 1 + depth(left).max(depth(right)) }
+        Leaf() { 0 }
+        Branch(_, ?left, ?right) { 1 + depth(left).max(depth(right)) }
     }
 }
 
 fn completeTree(k, n) {
     if n ==Int= 0 {
-        Tree:Leaf()
+        Leaf()
     } else {
-        Tree:Branch(k, completeTree(2 * k, n - 1),
-                       completeTree(2 * k + 1, n - 1))
+        Branch(k, completeTree(2 * k, n - 1), completeTree(2 * k + 1, n - 1))
     }
 }
 
 fn mirror(tree) {
     case tree {
-        Tree:Leaf() { tree }
-        Tree:Branch(?label, ?left, ?right) {
-            Tree:Branch(label, mirror(right), mirror(left))
+        Leaf() { tree }
+        Branch(?label, ?left, ?right) {
+            Branch(label, mirror(right), mirror(left))
         }
     }
 }
 
 fn traverse(tree) {
-    case t {
-        Tree:Leaf() { [] }
-        Tree:Branch(?label, ?left, ?right) {
+    case tree {
+        Leaf() { [] }
+        Branch(?label, ?left, ?right) {
             label :: traverse(left) @ traverse(right)
         }
     }

@@ -2,11 +2,13 @@ import std.stdio : writeln
 
 type Result(Value, Reason) = Ok(Value) or Error(Reason)
 
-fn sort(compare, list) {
+alias Compare(T) = (T, T) -> Bool
+
+fn sort(compare : Compare(T), list : [T]) : Result([T], String) {
     if !list.isEmpty() {
-        Result:Ok(qsort(compare, list))
+        Ok(qsort(compare, list))
     } else {
-        Result:Error("Empty List")
+        Error("Empty List")
     }
 }
 
@@ -14,7 +16,8 @@ fn qsort(compare, list) {
     case list {
         [] { [] }
         ?first :: ?rest {
-            (?smaller, ?larger) := l.partition(fn (x) { c(x, first) }, rest),
+            (?smaller, ?larger) :=
+                l.partition(fn (x) { compare(x, first) }, rest),
             qsort(compare, smaller) @ [first] @ qsort(compare, larger)
         }
     }
@@ -23,16 +26,7 @@ fn qsort(compare, list) {
 export fn main(_args) {
     fn compare(x, y) { x < y }, // NOTE: < is only defined for ints
     case sort(compare, [3, 1, 32, 0]) {
-        Reason:Error(?reason) { writeln("Error: $reason") }
-        Reason:Success(?l) { writeln("Success: $l") }
+        Error(?reason) { writeln("Error: $reason") }
+        Success(?l) { writeln("Success: $l") }
     }
 }
-
-/*
-Kommentar:
-
-fn qsort(compare, list) { ... ovan skulle kunnat ha skrivits så här men det "behövs inte":
-
-alias Compare(T) = (T, T) -> Bool
-fn qsort(compare : Compare(T), list : [T]) : Result([T], String) { ...
-*/
