@@ -266,10 +266,10 @@ termify_components(UT, Bindings, DI) ->
     case lookup_entry(UT, DI) of
         #entry{functor = Functor, arity = 0} -> Functor;
         #entry{functor = Functor, components = Components} ->
-            TermifiedComponentIndiices =
+            TermifiedComponentIndices =
                 termify_component_indices(UT, Bindings, Components),
             Functor ++ "(" ++
-                lists:flatten(add_commas(TermifiedComponentIndiices)) ++ ")"
+                lists:flatten(add_commas(TermifiedComponentIndices)) ++ ")"
     end.
 
 termify_component_indices(_UT, _Bindings, []) -> [];
