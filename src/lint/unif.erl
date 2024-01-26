@@ -178,7 +178,7 @@ bind_variables(UT, Sx, Sy, Bindings) ->
                 true ->
                     NewBindings = bind_variable(Bindings, Iy, Ix),
                     bind_variables(UT, PoppedSx, PoppedSy, NewBindings);
-                false-> % iy is bound
+                false-> % y is bound
                     DIy = dereference_variable(Bindings, Iy),
                     #entry{type = DYType} = lookup_entry(UT, DIy),
                     if
@@ -186,7 +186,7 @@ bind_variables(UT, Sx, Sy, Bindings) ->
                             PushedSx = push(Ix, PoppedSx),
                             PushedSy = push(DIy, PoppedSy),
                             bind_variables(UT, PushedSx, PushedSy, Bindings);
-                        true -> % iy is bound to a free variable
+                        true -> % y is bound to a free variable
                             NewBindings = bind_variable(Bindings, DIy, Ix),
                             bind_variables(UT, PoppedSx, PoppedSy, NewBindings)
                     end
@@ -197,7 +197,7 @@ bind_variables(UT, Sx, Sy, Bindings) ->
                 true ->
                     NewBindings = bind_variable(Bindings, Ix, Iy),
                     bind_variables(UT, PoppedSx, PoppedSy, NewBindings);
-                false -> % ix is bound
+                false -> % x is bound
                     DIx = dereference_variable(Bindings, Ix),
                     #entry{type = DXType} = lookup_entry(UT, DIx),
                     if
@@ -205,7 +205,7 @@ bind_variables(UT, Sx, Sy, Bindings) ->
                             PushedSx = push(DIx, PoppedSx),
                             PushedSy = push(Iy, PoppedSy),
                             bind_variables(UT, PushedSx, PushedSy, Bindings);
-                        true -> % ix is bound to a free variable
+                        true -> % x is bound to a free variable
                             NewBindings = bind_variable(Bindings, DIx, Iy),
                             bind_variables(UT, PoppedSx, PoppedSy, NewBindings)
                     end
@@ -242,7 +242,7 @@ bind_variable(Bindings, I, OtherI) -> maps:put(I, OtherI, Bindings).
 dereference_variable(Bindings, I) ->
     case maps:get(I, Bindings, unknown_index) of
         unknown_index -> I;
-        OtherI -> dereference_variable(Bindings, OtherI)
+        DI -> dereference_variable(Bindings, DI)
     end.
 
 %% Unification table
