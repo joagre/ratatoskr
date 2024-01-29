@@ -1,5 +1,5 @@
 fn foo(f, g, x) {
-    if f(x == 1) {
+    if f(x ==Int= 1) {
         g(x)
     } else {
         20
