@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -Wextra -I../clib -I../utils -I ../sa -Wfatal-errors -std=c17 -g -D_GNU_SOURCE -Wno-unused-variable -DDEBUG
+CFLAGS := -Wall -Wextra -I../clib -I../utils -I ../sa -Wfatal-errors -std=gnu17 -g -D_GNU_SOURCE -Wno-unused-variable -DDEBUG
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
 EXTRA_OBJS := ../utils/log.o \

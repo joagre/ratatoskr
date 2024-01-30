@@ -43,7 +43,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(CONSTRUCTOR) \
         NODE_NAME(DEFAULT) \
         NODE_NAME(DEFAULT_PARAM) \
-        NODE_NAME(DEFAULT_PARAM_NAME) \
         NODE_NAME(DEFAULT_PARAMS) \
         NODE_NAME(DESTRUCTOR) \
         NODE_NAME(DIVIDE_INT) \
@@ -60,6 +59,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(ENUMS) \
         NODE_NAME(ENUM_VALUE) \
         NODE_NAME(EQ) \
+        NODE_NAME(EQ_TYPE) \
         NODE_NAME(ESCAPE_CHARACTER) \
         NODE_NAME(EXPONENTIATE) \
         NODE_NAME(EXPORT) \
@@ -85,7 +85,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(IN) \
         NODE_NAME(INDEX_VALUE) \
         NODE_NAME(INDEX_VALUES)        \
-        NODE_NAME(INTEGRAL) \
+        NODE_NAME(INT) \
         NODE_NAME(INTERFACE) \
         NODE_NAME(INTERFACE_DEF) \
         NODE_NAME(INTERFACE_MEMBER_METHOD) \
@@ -125,12 +125,12 @@ typedef dynarray_t node_array_t;
         NODE_NAME(NE) \
         NODE_NAME(NEW_EXPR) \
         NODE_NAME(NIL) \
-        NODE_NAME(NON_DEFAULT_PARAM) \
         NODE_NAME(NON_DEFAULT_PARAMS) \
         NODE_NAME(NON_QUOTE_CHARACTER) \
         NODE_NAME(NOT) \
         NODE_NAME(NOT_SET) \
         NODE_NAME(OR) \
+        NODE_NAME(PARAM_NAME) \
         NODE_NAME(PARAMS) \
         NODE_NAME(PLUS_INT) \
         NODE_NAME(PLUS_FLOAT) \

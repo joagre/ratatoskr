@@ -1,4 +1,4 @@
-type Result(Value, Reason) = Ok(Value) or Error(Reason)
+type Result(value, reason) = Ok(value) or Error(reason)
 
 enum ErrorStatus {
    emptyQueue

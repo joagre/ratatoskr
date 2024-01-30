@@ -12,7 +12,7 @@ typedef enum {
 } type_tag_t;
 
 typedef enum {
-    TYPE_BASIC_TYPE_INTEGRAL,
+    TYPE_BASIC_TYPE_INT,
     TYPE_BASIC_TYPE_BOOL
 } type_basic_type_t;
 

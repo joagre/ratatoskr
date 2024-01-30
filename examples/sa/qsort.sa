@@ -1,8 +1,8 @@
 import std.stdio : writeln
 
-type Result(Value, Reason) = Ok(Value) or Error(Reason)
+type Result(value, reason) = Ok(value) or Error(reason)
 
-alias Compare(T) = (T, T) -> Bool
+alias Compare(t) = (t, t) -> Bool
 
 fn sort(compare : Compare(T), list : [T]) : Result([T], String) {
     if !list.isEmpty() {

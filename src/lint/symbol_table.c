@@ -70,7 +70,7 @@ void symbol_table_print(symbol_table_t* table) {
 	switch (type->tag) {
 	    case TYPE_TAG_BASIC_TYPE:
 		switch (type->basic_type) {
-		    case TYPE_BASIC_TYPE_INTEGRAL:
+		    case TYPE_BASIC_TYPE_INT:
 			printf("integral\n");
 			break;
 		    case TYPE_BASIC_TYPE_BOOL:
@@ -121,7 +121,7 @@ static size_t key_hash(void* key, void* arg) {
 void symbol_table_unit_test(void) {
     symbol_table_t table;
     symbol_table_init(&table);
-    type_t* type1 = type_new_basic_type(TYPE_BASIC_TYPE_INTEGRAL);
+    type_t* type1 = type_new_basic_type(TYPE_BASIC_TYPE_INT);
     symbol_table_insert(&table, "int", type1);
     type_t* type2 = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
     symbol_table_insert(&table, "bool", type2);

@@ -13,8 +13,10 @@ typedef enum {
     LOG_LEVEL_PANIC
 } log_level_t;
 
+void log_entry_variadic(log_level_t log_level, char* file, uint32_t line,
+			char* format, ...);
 void log_entry(log_level_t log_level, char* file, uint32_t line, char* format,
-               ...);
+               va_list args);
 void log_satie_error(log_level_t log_level, char* file, uint32_t line,
 		     satie_error_t* error);
 void log_abort(char* file, uint32_t line, char* message, ...);
@@ -24,7 +26,7 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 
 // LOG_SATIE_ERROR
 #ifndef MUTE_LOG_SATIE_ERROR
-#define LOG_SATIE_ERROR(log_level, error) ({			   \
+#define LOG_SATIE_ERROR(log_level, error) ({		   \
 	    log_satie_error(log_level, __FILE__, __LINE__, error); \
 })
 #else
@@ -34,7 +36,8 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 // LOG_DEBUG
 #ifndef MUTE_LOG_DEBUG
 #define LOG_DEBUG(message, ...) ({ \
-    log_entry(LOG_LEVEL_DEBUG, __FILE__ , __LINE__, message, ##__VA_ARGS__); \
+    log_entry_variadic(LOG_LEVEL_DEBUG, __FILE__ , __LINE__, \
+		       message, ##__VA_ARGS__); \
 })
 #else
 #define LOG_DEBUG(message, ...) ((void)0)
@@ -43,7 +46,8 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 // LOG_INFO
 #ifndef MUTE_LOG_INFO
 #define LOG_INFO(message, ...) ({ \
-    log_entry(LOG_LEVEL_INFO, __FILE__ , __LINE__, message, ##__VA_ARGS__); \
+    log_entry_variadic(LOG_LEVEL_INFO, __FILE__ , __LINE__, message, \
+		       ##__VA_ARGS__); \
 })
 #else
 #define LOG_INFO(message, ...) ((void)0)
@@ -52,7 +56,8 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 // LOG_WARNING
 #ifndef MUTE_LOG_WARNING
 #define LOG_WARNING(message, ...) ({ \
-    log_entry(LOG_LEVEL_WARNING, __FILE__, __LINE__, message, ##__VA_ARGS__); \
+    log_entry_variadic(LOG_LEVEL_WARNING, __FILE__, __LINE__, message, \
+		       ##__VA_ARGS__); \
 })
 #else
 #define LOG_WARNING(message, ...) ((void)0)
@@ -60,12 +65,14 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...);
 
 // LOG_ERROR
 #define LOG_ERROR(message, ...) ({ \
-    log_entry(LOG_LEVEL_ERROR, __FILE__, __LINE__, message, ##__VA_ARGS__); \
+    log_entry_variadic(LOG_LEVEL_ERROR, __FILE__, __LINE__, message, \
+		       ##__VA_ARGS__); \
 })
 
 // LOG_PANIC
 #define LOG_PANIC(message, ...) ({ \
-    log_entry(LOG_LEVEL_PANIC, __FILE__, __LINE__, message, ##__VA_ARGS__); \
+    log_entry_variadic(LOG_LEVEL_PANIC, __FILE__, __LINE__, message, \
+		       ##__VA_ARGS__); \
 })
 
 // LOG_ABORT

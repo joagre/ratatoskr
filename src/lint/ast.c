@@ -51,7 +51,7 @@ void ast_print(ast_node_t* node, uint16_t level) {
 	if (node->type->tag == TYPE_TAG_BASIC_TYPE) {
 	    if (node->type->basic_type == TYPE_BASIC_TYPE_BOOL) {
 		printf("%*sbool\n", indent, "");
-	    } else if (node->type->basic_type == TYPE_BASIC_TYPE_INTEGRAL) {
+	    } else if (node->type->basic_type == TYPE_BASIC_TYPE_INT) {
 		printf("%*sint\n", indent, "");
 	    } else {
 		assert(false);

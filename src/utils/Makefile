@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -Wextra -I../clib -Wfatal-errors -std=c17 -g -D_GNU_SOURCE -DDEBUG
+CFLAGS := -Wall -Wextra -I../clib -Wfatal-errors -std=gnu17 -g -D_GNU_SOURCE -DDEBUG
 
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)

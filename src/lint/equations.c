@@ -40,7 +40,7 @@ static void print_type(type_t* type) {
     switch (type->tag) {
 	case TYPE_TAG_BASIC_TYPE:
 	    switch (type->basic_type) {
-		case TYPE_BASIC_TYPE_INTEGRAL:
+		case TYPE_BASIC_TYPE_INT:
 		    printf("integral");
 		    break;
 		case TYPE_BASIC_TYPE_BOOL:
