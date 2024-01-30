@@ -1,22 +1,22 @@
--module(parse2).
--export([indented_tree/1]).
+-module(parse_tree).
+-export([indented2tree/1]).
 
 -record(node, {name, value, children = []}).
 
-indented_tree(Filename) ->
+indented2tree(Filename) ->
     {ok, Content} = file:read_file(Filename),
     {[Node], _} =
-        indented_tree(string:split(binary_to_list(Content), "\n", all), 0),
+        indented2tree(string:split(binary_to_list(Content), "\n", all), 0),
     Node.
 
-indented_tree([], _Level) -> {[], []};
-indented_tree([""|Rest], Level) ->
-    indented_tree(Rest, Level);
-indented_tree([Line|Rest] = Lines, Level) ->
+indented2tree([], _Level) -> {[], []};
+indented2tree([""|Rest], Level) ->
+    indented2tree(Rest, Level);
+indented2tree([Line|Rest] = Lines, Level) ->
     case parse_line(Line) of
         {Level, Name, Value} ->
-            {Children, SiblingLines} = indented_tree(Rest, Level + 1),
-            {Siblings, RestLines} = indented_tree(SiblingLines, Level),
+            {Children, SiblingLines} = indented2tree(Rest, Level + 1),
+            {Siblings, RestLines} = indented2tree(SiblingLines, Level),
             {[#node{name = Name, value = Value, children = Children}|
               Siblings], RestLines};
         _ ->
