@@ -90,6 +90,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	equation_t equation = {
 	    .arg_type = node->type,
 	    .return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
+	    .info = NULL,
 	    .origin_node = node,
 	    .node = node
 	};
@@ -109,6 +110,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	equation_t eq_equation = {
 	    .arg_type = node->type,
 	    .return_type = type_new_basic_type(eq_type),
+	    .info = NULL,
 	    .origin_node = node,
 	    .node = node
 	};
@@ -118,6 +120,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	equation_t left_equation = {
 	    .arg_type = left_node->type,
 	    .return_type = type_new_basic_type(eq_type),
+	    .info = NULL,
 	    .origin_node = node,
 	    .node = left_node
 	};
@@ -127,6 +130,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	equation_t right_equation = {
 	    .arg_type = right_node->type,
 	    .return_type = type_new_basic_type(eq_type),
+	    .info = NULL,
 	    .origin_node = node,
 	    .node = right_node
 	};
@@ -137,6 +141,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	equation_t equation = {
 	    .arg_type = node->type,
 	    .return_type = last_block_expr_node->type,
+	    .info = NULL,
 	    .origin_node = node,
 	    .node = node
 	};
@@ -161,6 +166,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	    .arg_type = name_node->type,
 	    .return_type =
 	        type_new_function(arg_types, function_call_node->type),
+	    .info = NULL,
 	    .origin_node = node,
 	    .node = node
 	};
@@ -169,6 +175,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	equation_t postfix_expr_equation = {
 	    .arg_type = node->type,
 	    .return_type = function_call_node->type,
+	    .info = NULL,
 	    .origin_node = node,
 	    .node = node
 	};
@@ -199,6 +206,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	equation_t if_body_equation = {
 	    .arg_type = if_body_node->type,
 	    .return_type = node->type,
+	    .info = NULL,
 	    .origin_node = node,
 	    .node = if_body_node
 	};
@@ -207,6 +215,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	equation_t else_body_equation = {
 	    .arg_type = else_body_node->type,
 	    .return_type = node->type,
+	    .info = NULL,
 	    .origin_node = node,
 	    .node = else_body_node
 	};
@@ -227,6 +236,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	equation_t function_equation = {
 	    .arg_type = node->type,
 	    .return_type = type_new_function(arg_types, body_node->type),
+	    .info = NULL,
 	    .origin_node = node,
 	    .node = node
 	};

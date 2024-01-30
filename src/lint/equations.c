@@ -17,17 +17,25 @@ equation_t* equations_lookup(equations_t* equations, size_t i) {
 }
 
 void print_equations(equations_t* equations) {
+    // ORIGIN_NODE_NAME:Row:ErrorMessage:Value?: T1 -> T2
+
+
     for (uint16_t i = 0; i < equations->size; i++) {
 	equation_t* equation = equations_lookup(equations, i);
-	printf("%s", ast_node_name_to_string(equation->origin_node->name));
-	if (equation->node->value != NULL) {
-	    printf(" (%s): ", equation->node->value);
-	} else {
-	    printf(": ");
-	}
 	print_type(equation->arg_type);
 	printf(" -> ");
 	print_type(equation->return_type);
+	printf(":%s:%d:%d",
+	       ast_node_name_to_string(equation->origin_node->name),
+	       equation->origin_node->row, equation->node->row);
+	if(equation->info != NULL) {
+	    printf(":%s", equation->info);
+	} else {
+	    printf(":");
+	}
+	if (equation->node->value != NULL) {
+	    printf(":%s", equation->node->value);
+	}
 	printf("\n");
     }
 }
@@ -41,7 +49,7 @@ static void print_type(type_t* type) {
 	case TYPE_TAG_BASIC_TYPE:
 	    switch (type->basic_type) {
 		case TYPE_BASIC_TYPE_INT:
-		    printf("integral");
+		    printf("int");
 		    break;
 		case TYPE_BASIC_TYPE_BOOL:
 		    printf("bool");
