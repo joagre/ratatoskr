@@ -61,7 +61,7 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	node->type = type;
     } else if (node->name == TRUE || node->name == FALSE) {
 	type_t* type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
-	symbol_table_insert(table, node->value, type);
+	//symbol_table_insert(table, node->value, type);
 	node->type = type;
     }
 

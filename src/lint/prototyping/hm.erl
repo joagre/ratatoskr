@@ -4,14 +4,14 @@
 %% foo f g x = if f(x == 1) then g(x) else 20
 ex() ->
     Equations = [{int, int},
-                 {t3, int},
-                 {t6, bool},
-                 {t1, {[t6], t5}},
-                 {t2, {[t3], t7}},
-                 {t5, bool},
-                 {t4, t7},
-                 {t4, int},
-                 {t0, {[t1, t2, t3], t4}}],
+                 {3, int},
+                 {6, bool},
+                 {1, {[6], 5}},
+                 {2, {[3], 7}},
+                 {5, bool},
+                 {4, 7},
+                 {4, int},
+                 {0, {[1, 2, 3], 4}}],
     Substitutions = unify_all_equations(Equations, maps:new()),
     {[{[bool],bool},{[int],int},int],int} =
         dereference(Substitutions, 0).
