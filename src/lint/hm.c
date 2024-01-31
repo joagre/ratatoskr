@@ -39,7 +39,6 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	// Ignore
     } else if (node->name == NAME) {
 	node->type = symbol_table_lookup(table, node->value);
-	//fprintf(stderr, "name: %s\n", node->value);
 	LOG_ASSERT(node->type != NULL, "Name '%s' is not in symbol table",
 		   node->value);
     } else if (node->name == PARAM_NAME) {

@@ -32,14 +32,11 @@ void ast_print(ast_node_t* node, uint16_t level) {
     }
     int cols = 0;
     if (level > 0) {
-	printf("%*s", 2 * level, "");
-	cols += 2 * level;
+	cols += printf("%*s", 2 * level, "");
     }
-    printf("%s", ast_node_name_to_string(node->name));
-    cols += strlen(ast_node_name_to_string(node->name));
+    cols += printf("%d:%s", node->row, ast_node_name_to_string(node->name));
     if (node->value != NULL) {
-        printf(": %s", node->value);
-	cols += strlen(node->value) + 2;
+        cols += printf(": %s", node->value);
     }
     if (node->type != NULL) {
 	uint16_t indent;

@@ -1,4 +1,5 @@
 #include "type.h"
+#include <stdio.h>
 
 // Forward declarations of local functions (alphabetical order)
 static type_variable_t next_type_variable(void);

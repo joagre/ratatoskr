@@ -1,6 +1,8 @@
 #include "equations.h"
 #include "types.h"
 
+#define MAX_COLS 30
+
 // Forward declarations of local functions (alphabetical order)
 static void print_type(type_t* type);
 
@@ -22,20 +24,24 @@ void print_equations(equations_t* equations) {
 
     for (uint16_t i = 0; i < equations->size; i++) {
 	equation_t* equation = equations_lookup(equations, i);
+	uint16_t n = 0;
+	n += printf("%s:%d:%d",
+		    ast_node_name_to_string(equation->origin_node->name),
+		    equation->origin_node->row, equation->node->row);
+	if(equation->info != NULL) {
+	    n += printf(":%s", equation->info);
+	} else {
+	    n += printf(":");
+	}
+	if (equation->node->value != NULL) {
+	    n += printf(":%s:", equation->node->value);
+	} else {
+	    n += printf("::");
+	}
+	printf("%*s", MAX_COLS - n, "");
 	print_type(equation->arg_type);
 	printf(" -> ");
 	print_type(equation->return_type);
-	printf(":%s:%d:%d",
-	       ast_node_name_to_string(equation->origin_node->name),
-	       equation->origin_node->row, equation->node->row);
-	if(equation->info != NULL) {
-	    printf(":%s", equation->info);
-	} else {
-	    printf(":");
-	}
-	if (equation->node->value != NULL) {
-	    printf(":%s", equation->node->value);
-	}
 	printf("\n");
     }
 }

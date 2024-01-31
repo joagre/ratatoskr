@@ -350,7 +350,7 @@ WS <- [ \t\r\n] {
 }
 Comments <- SingleLineComment / BlockComment
 SingleLineComment <- "//" (!EOL .)* EOL?
-EOL <- "\r\n" / "\n" / "\r" { auxil->row++; }
+EOL <- ("\r\n" / "\n" / "\r") { auxil->row++; }
 BlockComment <- "/*" (BlockCommentContent / EOL)* "*/"
 BlockCommentContent <- (!("*/" / EOL) .)
 EOF <- _ !.
