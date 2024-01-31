@@ -106,7 +106,7 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	}
 	equation_t eq_equation = {
 	    .arg_type = node->type,
-	    .return_type = type_new_basic_type(eq_type),
+	    .return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
 	    .info = NULL,
 	    .origin_node = node,
 	    .node = node

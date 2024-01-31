@@ -19,30 +19,29 @@ equation_t* equations_lookup(equations_t* equations, size_t i) {
 }
 
 void print_equations(equations_t* equations) {
-    // ORIGIN_NODE_NAME:Row:ErrorMessage:Value?: T1 -> T2
-
-
     for (uint16_t i = 0; i < equations->size; i++) {
 	equation_t* equation = equations_lookup(equations, i);
 	uint16_t n = 0;
 	n += printf("%s:%d:%d",
 		    ast_node_name_to_string(equation->origin_node->name),
-		    equation->origin_node->row, equation->node->row);
+		    equation->origin_node->row,
+		    equation->node->row);
 	if(equation->info != NULL) {
 	    n += printf(":%s", equation->info);
 	} else {
-	    n += printf(":");
+	    n += printf(":-");
 	}
 	if (equation->node->value != NULL) {
 	    n += printf(":%s:", equation->node->value);
 	} else {
-	    n += printf("::");
+	    n += printf(":-:");
 	}
 	printf("%*s", MAX_COLS - n, "");
+	printf("{");
 	print_type(equation->arg_type);
-	printf(" -> ");
+	printf(", ");
 	print_type(equation->return_type);
-	printf("\n");
+	printf("}\n");
     }
 }
 
@@ -63,13 +62,11 @@ static void print_type(type_t* type) {
 	    }
 	    break;
 	case TYPE_TAG_VARIABLE:
-	    printf("t%d", type->variable);
+	    printf("%d", type->variable);
 	    break;
 	case TYPE_TAG_FUNCTION:
-	    printf("(");
-	    if (type->function_type.arg_types->size > 1) {
-		printf("(");
-	    }
+	    printf("{");
+	    printf("[");
 	    for (size_t i = 0; i < type->function_type.arg_types->size; i++) {
 		type_t* arg_type =
 		    types_lookup(type->function_type.arg_types, i);
@@ -78,12 +75,9 @@ static void print_type(type_t* type) {
 		    printf(", ");
 		}
 	    }
-	    if (type->function_type.arg_types->size > 1) {
-		printf(")");
-	    }
-	    printf(" -> ");
+	    printf("], ");
 	    print_type(type->function_type.return_type);
-	    printf(")");
+	    printf("}");
 	    break;
     }
 }

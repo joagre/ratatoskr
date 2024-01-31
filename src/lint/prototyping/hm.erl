@@ -1,20 +1,50 @@
 -module(hm).
--export([ex/0]).
+-export([ex/0, hm1/0]).
 
 %% foo f g x = if f(x == 1) then g(x) else 20
 ex() ->
     Equations = [{int, int},
-                 {3, int},
-                 {6, bool},
-                 {1, {[6], 5}},
-                 {2, {[3], 7}},
-                 {5, bool},
-                 {4, 7},
-                 {4, int},
-                 {0, {[1, 2, 3], 4}}],
+                 {t3, int},
+                 {t6, bool},
+                 {t1, {[t6], t5}},
+                 {t2, {[t3], t7}},
+                 {t5, bool},
+                 {t4, t7},
+                 {t4, int},
+                 {t0, {[t1, t2, t3], t4}}],
     Substitutions = unify_all_equations(Equations, maps:new()),
     {[{[bool],bool},{[int],int},int],int} =
         dereference(Substitutions, 0).
+
+hm1() ->
+    CEquations = parse_equations("../../../examples/sa/hm1.sa"),
+    Equations =
+        lists:map(fun({_, _, _, _, _, Equation}) ->
+                          Equation end,
+                  CEquations),
+    Substitutions = unify_all_equations(Equations, maps:new()),
+    dereference(Substitutions, 0).
+
+parse_equations(Filename) ->
+    parse_equation_lines(
+      string:split(os:cmd("../../../bin/lint < " ++ Filename), "\n",all)).
+
+parse_equation_lines([]) ->
+    [];
+parse_equation_lines([""|Rest]) ->
+    parse_equation_lines(Rest);
+parse_equation_lines([Line|Rest]) ->
+    [OriginNode, OriginRow, Row, Info, Value, Type] =
+        string:split(Line, ":", all),
+    [{OriginNode, OriginRow, Row, Info, Value, parse_type(string:trim(Type))}|
+     parse_equation_lines(Rest)].
+
+parse_type(Line) ->
+    {ok, Tokens, _} = erl_scan:string(Line ++ "."),
+    {ok, Parsed} = erl_parse:parse_exprs(Tokens),
+    [Expr] = Parsed,
+    {value, Result, _} = erl_eval:exprs([Expr], erl_eval:new_bindings()),
+    Result.
 
 dereference(_Substitutions, BaseType) when is_atom(BaseType) ->
     BaseType;
