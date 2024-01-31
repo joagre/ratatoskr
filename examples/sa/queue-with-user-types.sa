@@ -4,29 +4,29 @@ enum ErrorStatus {
    emptyQueue
 }
 
-class Queue {
+class Queue(t) {
     private queue
 
-    this(element) {
+    this(element : t) : Queue(t) {
         this(queue: [element])
     }
 
-    public fn enqueue(element) {
+    public fn enqueue(element : t) : Queue(t)  {
         this(queue: queue @ [element])
     }
 
-    public fn null() {
+    public fn null() : Bool {
         queue.isEmpty()
     }
 
-    public fn hd() {
+    public fn hd() : Result(t, ErrorStatus) {
         case queue {
             [] { Error(ErrorStatus#emptyQueue) }
             [?first :: _] { Ok(first) }
         }
     }
 
-    public fn dequeue() {
+    public fn dequeue() : Result(QueueInterface(t), ErrorStatus) {
         case queue {
             [] { Error(ErrorStatus#emptyQueue) }
             [_ :: ?rest] { Ok(this(queue: rest)) }

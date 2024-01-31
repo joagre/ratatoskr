@@ -4,16 +4,16 @@ enum ErrorStatus {
    emptyQueue
 }
 
-interface QueueInterface(T) {
-    this(element : T) : QueueInterface(T)
-    public fn enqueue(element : T) : QueueInterface(T)
+interface QueueInterface(t) {
+    this(element : t) : QueueInterface(t)
+    public fn enqueue(element : t) : QueueInterface(t)
     public fn null() : Bool
-    public fn hd() : Result(T, ErrorStatus)
-    public fn dequeue() : Result(QueueInterface(T), ErrorStatus)
+    public fn hd() : Result(t, ErrorStatus)
+    public fn dequeue() : Result(QueueInterface(t), ErrorStatus)
 }
 
-class Queue(T) implements QueueInterface(T) {
-    private queue : [T]
+class Queue(t) implements QueueInterface(t) {
+    private queue : [t]
 
     this(element) {
         this(queue: [element])
@@ -43,9 +43,10 @@ class Queue(T) implements QueueInterface(T) {
 }
 
 export fn main(_args) {
-    ?a := Queue(Float)(0.1),
-    ?a2 := Queue(0.1), // the Float type can be left out
-    true := a ==Queue= a2
-    ?b := a.enqueue(3.14),
-    Ok(0.1) := b.hd()
+    ?a := Queue(42),
+    ?a := a.enqueue(4711),
+    Ok(42) := b.hd(),
+    ?b := Queue(42),
+    ?b := a.enqueue(4711),
+    true := (a ==Queue= b)
 }
