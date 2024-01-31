@@ -1,4 +1,5 @@
 #define MUTE_LOG_DEBUG 1
+#define MUTE_LOG_WARNING 1
 
 #include <assert.h>
 #include <log.h>
@@ -57,9 +58,8 @@ ast_node_t* satie_auxil_create_node(satie_auxil_t* auxil, node_name_t name,
             }
             dynarray_append(node->children, child_node);
         } else {
-            fprintf(stderr,
-                    "WARNING: An undefined child node %d is ignored by %s\n",
-                    i, ast_node_name_to_string(name));
+            LOG_WARNING("An undefined child node %d is ignored by %s\n",
+			i, ast_node_name_to_string(name));
         }
     }
     /*

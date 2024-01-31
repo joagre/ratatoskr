@@ -15,12 +15,10 @@ void hm_infer_types(ast_node_t* node) {
     symbol_table_t table;
     symbol_table_init(&table);
     add_type_variables(node, &table);
-    printf("Type Variables\n--------------\n");
-    ast_print(node, 0);
+    //ast_print(node, 0);
     equations_t equations;
     equations_init(&equations);
     add_type_equations(node, &equations);
-    printf("\nType Equations\n--------------\n");
     print_equations(&equations);
 }
 
