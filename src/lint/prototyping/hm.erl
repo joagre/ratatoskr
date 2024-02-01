@@ -47,7 +47,8 @@ hm1() ->
             {mismatch, TypeStack};
         Substitutions ->
             %%io:format("==== Substitutions:\n~p\n", [Substitutions]),
-            "t0 -> " ++ type_to_string(dereference(Substitutions, 0))
+            io:format("==== Solution:\nt0 -> ~s\n",
+                      [type_to_string(dereference(Substitutions, 0))])
     end.
 
 %%
