@@ -27,16 +27,17 @@ ast_node_t* ast_last_child(ast_node_t* node) {
 
 void ast_print(ast_node_t* node, uint16_t level) {
     if (node == NULL) {
-        printf("Tree: NULL\n");
         return;
     }
     int cols = 0;
     if (level > 0) {
 	cols += printf("%*s", 2 * level, "");
     }
-    cols += printf("%d:%s", node->row, ast_node_name_to_string(node->name));
+    cols += printf("%s:%d", ast_node_name_to_string(node->name), node->row);
     if (node->value != NULL) {
-        cols += printf(": %s", node->value);
+        cols += printf(":%s:", node->value);
+    } else {
+	cols += printf("::");
     }
     if (node->type != NULL) {
 	uint16_t indent;
@@ -55,8 +56,6 @@ void ast_print(ast_node_t* node, uint16_t level) {
 	    }
 	} else if (node->type->tag == TYPE_TAG_VARIABLE) {
 	    printf("%*st%d\n", indent, "", node->type->variable);
-	} else if (node->type->tag == TYPE_TAG_FUNCTION) {
-	    printf("%*sfunction\n", indent, "");
 	}
     } else {
 	printf("\n");

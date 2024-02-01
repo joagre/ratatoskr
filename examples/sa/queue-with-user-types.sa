@@ -12,7 +12,7 @@ class Queue(t) {
     }
 
     public fn enqueue(element : t) : Queue(t)  {
-        this(queue: queue @ [element])
+        this(queue : queue @ [element])
     }
 
     public fn null() : Bool {

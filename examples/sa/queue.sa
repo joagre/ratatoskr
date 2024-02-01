@@ -8,11 +8,11 @@ class Queue {
     private queue
 
     this(element) {
-        this(queue: [element])
+        this(queue : [element])
     }
 
     public fn enqueue(element) {
-        this(queue: queue @ [element])
+        this(queue : queue @ [element])
     }
 
     public fn null() {

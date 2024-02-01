@@ -16,11 +16,11 @@ class Queue(t) implements QueueInterface(t) {
     private queue : [t]
 
     this(element) {
-        this(queue: [element])
+        this(queue : [element])
     }
 
     public fn enqueue(element) {
-        this(queue: queue @ [element])
+        this(queue : queue @ [element])
     }
 
     public fn null() {

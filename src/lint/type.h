@@ -33,5 +33,7 @@ typedef struct type {
 type_t* type_new_basic_type(type_basic_type_t basic_type);
 type_t* type_new_variable(void);
 type_t* type_new_function(types_t* arg_types, type_t* return_type);
+char* type_basic_type_to_string(type_basic_type_t basic_type);
+void type_print_type(type_t* type);
 
 #endif
