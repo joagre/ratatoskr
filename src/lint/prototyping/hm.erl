@@ -37,10 +37,11 @@ hm1() ->
         lists:map(fun(#equation{type = Type}) ->  Type end, AdornedEquations),
     %%io:format("==== Equations:\n~p\n", [Equations]),
     io:format("==== Pretty printed equations:\n"),
-    lists:foreach(fun(#equation{type = {X, Y}}) ->
-                          io:format("~s -> ~s\n",
-                                    [type_to_string(X), type_to_string(Y)])
-                  end, AdornedEquations),
+    lists:foreach(
+      fun(#equation{type = {Left, Right}}) ->
+              io:format("~s -> ~s\n",
+                        [type_to_string(Left), type_to_string(Right)])
+      end, AdornedEquations),
     io:format("\n"),
     case unify_all_equations(Equations, Node, maps:new()) of
         {mismatch, TypeStack} ->
@@ -57,8 +58,8 @@ hm1() ->
 
 unify_all_equations([], _Node, Substitutions) ->
     Substitutions;
-unify_all_equations([{X, Y}|Rest], Node, Substitutions) ->
-    case unify(X, Y, [{X, Y}], Node, Substitutions) of
+unify_all_equations([{Left, Right}|Rest], Node, Substitutions) ->
+    case unify(Left, Right, [{Left, Right}], Node, Substitutions) of
         {mismatch, TypeStack} ->
             {mismatch, TypeStack};
         UpdatedSubstitutions ->

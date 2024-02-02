@@ -4,6 +4,7 @@
 #include <log.h>
 #include "hm.h"
 #include "types.h"
+#include "equation.h"
 #include "equations.h"
 #include "symbol_table.h"
 
@@ -62,11 +63,9 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	node->type = type;
     } else if (node->name == TRUE) {
 	type_t* type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
-	symbol_table_insert(table, "true", type);
 	node->type = type;
     } else if (node->name == FALSE) {
 	type_t* type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
-	symbol_table_insert(table, "false", type);
 	node->type = type;
     }
 
@@ -80,30 +79,21 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 void add_type_equations(ast_node_t *node, equations_t* equations) {
     if (node->name == INT) {
 	// Equation: Int constant
-	equation_t equation = {
-	    .arg_type = node->type,
-	    .return_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
-	    .origin_node = node,
-	    .node = node
-	};
+	equation_t equation =
+	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_INT),
+			 node, node);
 	equations_add(equations, &equation);
     } else if (node->name == TRUE || node->name == FALSE) {
 	// Equation: Bool constant
-	equation_t equation = {
-	    .arg_type = node->type,
-	    .return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
-	    .origin_node = node,
-	    .node = node
-	};
+	equation_t equation =
+	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
+			 node, node);
 	equations_add(equations, &equation);
     } else if (node->name == EQ) {
 	// Equation: eq
-	equation_t eq_equation = {
-	    .arg_type = node->type,
-	    .return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
-	    .origin_node = node,
-	    .node = node
-	};
+	equation_t eq_equation =
+	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
+			 node, node);
 	equations_add(equations, &eq_equation);
         // Equation: left operand
 	ast_node_t* eq_type_node = ast_get_child(node, 1);
@@ -117,31 +107,21 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	    LOG_ABORT("Unknown eq type: %s", eq_type_node->value);
 	}
 	ast_node_t* left_node = ast_get_child(node, 0);
-	equation_t left_equation = {
-	    .arg_type = left_node->type,
-	    .return_type = type_new_basic_type(eq_type),
-	    .origin_node = node,
-	    .node = left_node
-	};
+	equation_t left_equation =
+	    equation_new(left_node->type, type_new_basic_type(eq_type),
+			 node, left_node);
 	equations_add(equations, &left_equation);
 	// Equation: right operand
 	ast_node_t* right_node = ast_get_child(node, 2);
-	equation_t right_equation = {
-	    .arg_type = right_node->type,
-	    .return_type = type_new_basic_type(eq_type),
-	    .origin_node = node,
-	    .node = right_node
-	};
+	equation_t right_equation =
+	    equation_new(right_node->type, type_new_basic_type(eq_type),
+			 node, right_node);
 	equations_add(equations, &right_equation);
     } else if (node->name == BLOCK_EXPR) {
 	// Equation: block expression
 	ast_node_t* last_block_expr_node = ast_last_child(node);
-	equation_t equation = {
-	    .arg_type = node->type,
-	    .return_type = last_block_expr_node->type,
-	    .origin_node = node,
-	    .node = node
-	};
+	equation_t equation =
+	    equation_new(node->type, last_block_expr_node->type, node, node);
 	equations_add(equations, &equation);
     } else if (node->name == POSTFIX_EXPR) {
 	ast_node_t* name_node = ast_get_child(node, 0);
@@ -159,21 +139,14 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	    ast_node_t* arg_node = ast_get_child(positional_args_node, i);
 	    types_add(arg_types, arg_node->type);
 	}
-	equation_t function_equation = {
-	    .arg_type = name_node->type,
-	    .return_type =
-	        type_new_function(arg_types, function_call_node->type),
-	    .origin_node = node,
-	    .node = node
-	};
+	equation_t function_equation =
+	    equation_new(name_node->type,
+			 type_new_function(arg_types, function_call_node->type),
+			 node, node);
 	equations_add(equations, &function_equation);
 	// Equation: postfix expression
-	equation_t postfix_expr_equation = {
-	    .arg_type = node->type,
-	    .return_type = function_call_node->type,
-	    .origin_node = node,
-	    .node = node
-	};
+	equation_t postfix_expr_equation =
+	    equation_new(node->type, function_call_node->type, node, node);
 	equations_add(equations, &postfix_expr_equation);
     } else if (node->name == IF_EXPR) {
 	ast_node_t* if_node = ast_get_child(node, 0);
@@ -190,28 +163,19 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	LOG_ASSERT(else_body_node->name == BLOCK_EXPR,
 		   "Expected a BLOCK_EXPR node");
 	// Equation: if conditional
-	equation_t if_conditional_equation = {
-	    .arg_type = if_conditional_node->type,
-	    .return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
-	    .origin_node = node,
-	    .node = if_conditional_node
-	};
+	equation_t if_conditional_equation =
+	    equation_new(if_conditional_node->type,
+			 type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
+			 node, if_conditional_node);
 	equations_add(equations, &if_conditional_equation);
         // Equation: if body
-	equation_t if_body_equation = {
-	    .arg_type = if_body_node->type,
-	    .return_type = node->type,
-	    .origin_node = node,
-	    .node = if_body_node
-	};
+	equation_t if_body_equation =
+	    equation_new(if_body_node->type, node->type, node, if_body_node);
 	equations_add(equations, &if_body_equation);
 	// Equation: else body
-	equation_t else_body_equation = {
-	    .arg_type = else_body_node->type,
-	    .return_type = node->type,
-	    .origin_node = node,
-	    .node = else_body_node
-	};
+	equation_t else_body_equation =
+	    equation_new(else_body_node->type, node->type, node,
+			 else_body_node);
 	equations_add(equations, &else_body_equation);
     } else if (node->name == FUNCTION_DEF) {
 	ast_node_t* params_node = ast_get_child(node, 1);
@@ -226,12 +190,10 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	    ast_node_t* param_node = ast_get_child(params_node, i);
 	    types_add(arg_types, param_node->type);
 	}
-	equation_t function_equation = {
-	    .arg_type = node->type,
-	    .return_type = type_new_function(arg_types, body_node->type),
-	    .origin_node = node,
-	    .node = node
-	};
+	equation_t function_equation =
+	    equation_new(node->type,
+			 type_new_function(arg_types, body_node->type),
+			 node, node);
 	equations_add(equations, &function_equation);
     }
 

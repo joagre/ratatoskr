@@ -30,9 +30,9 @@ void equations_print(equations_t* equations) {
 	}
 	printf("%*s", MAX_COLS - n, "");
 	printf("{");
-	type_print_type(equation->arg_type);
+	type_print_type(equation->left);
 	printf(", ");
-	type_print_type(equation->return_type);
+	type_print_type(equation->right);
 	printf("}\n");
     }
 }
