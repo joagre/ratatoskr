@@ -45,7 +45,10 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	type_t* type = type_new_variable();
 	symbol_table_insert(table, node->value, type);
 	node->type = type;
-    } else if (node->name == EQ ||
+    } else if (node->name == INT ||
+	       node->name == TRUE ||
+	       node->name == FALSE ||
+	       node->name == EQ ||
 	       node->name == IF_EXPR ||
 	       node->name == FUNCTION_DEF ||
 	       node->name == BLOCK_EXPR ||
@@ -57,6 +60,9 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	type_t* type = type_new_variable();
 	symbol_table_insert(table, node->value, type);
 	node->type = type;
+    }
+
+	/*
     } else if (node->name == INT) {
 	type_t* type = type_new_basic_type(TYPE_BASIC_TYPE_INT);
 	symbol_table_insert(table, node->value, type);
@@ -68,6 +74,7 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	type_t* type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
 	node->type = type;
     }
+	*/
 
     if (node->children != NULL) {
         for (uint16_t i = 0; i < ast_number_of_children(node); i++) {
