@@ -1,12 +1,12 @@
-import std.stdio : writeln
+import Std.stdio: writeln
 
-type Result(value, reason) = Ok(value) or Error(reason)
+type Either<$t1, $t2> = Left<$t1> or Right<$t2>
 
 fn sort(compare, list) {
     if !list.isEmpty() {
-        Ok(qsort(compare, list))
+        Left<qsort(compare, list)>
     } else {
-        Error("Empty List")
+        Right<"Empty List">
     }
 }
 
@@ -22,10 +22,10 @@ fn qsort(compare, list) {
 }
 
 export fn main(_args) {
-    // NOTE: < is only defined for int operands. Use <. for float operands.
-    fn compare(x, y) { x < y },
+    fn compare(x, y) { x lt y },
     case sort(compare, [3, 1, 32, 0]) {
-        Error(?reason) { writeln("Error: $reason") }
-        Success(?l) { writeln("Success: $l") }
+        Left<?l> { writeln("Success: %l") }
+        Right<?reason> { writeln("Error: %reason") }
+
     }
 }

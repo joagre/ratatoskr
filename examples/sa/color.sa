@@ -1,6 +1,6 @@
 import Std.stdio: writeln
 
-type Either<$t1, $t2> = Left<$t1> or Right <$t2>
+type Either<$t1, $t2> = Left<$t1> or Right<$t2>
 
 enum Color {
     red
@@ -14,8 +14,8 @@ interface Iterator<$t> {
 }
 
 class ColorIterator implements Iterator<Color> {
-    private colors is [Color]
-    private graffiti is String
+    private colors
+    private graffiti
 
     this(colors) {
         this(colors: colors, graffiti: "Kilroy was here")

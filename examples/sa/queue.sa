@@ -1,4 +1,4 @@
-type Result(value, reason) = Ok(value) or Error(reason)
+type Either<$t1, $t2> = Left<$t1> or Right<$t2>
 
 enum ErrorStatus {
    emptyQueue
@@ -8,11 +8,11 @@ class Queue {
     private queue
 
     this(element) {
-        this(queue : [element])
+        this(queue: [element])
     }
 
     public fn enqueue(element) {
-        this(queue : queue @ [element])
+        this(queue: queue @ [element])
     }
 
     public fn null() {
@@ -21,15 +21,16 @@ class Queue {
 
     public fn hd() {
         case queue {
-            [] { Error(ErrorStatus#emptyQueue) }
-            [?first :: _] { Ok(first) }
+            [?first :: _] { Left<first> }
+            [] { Right<ErrorStatus#emptyQueue> }
+
         }
     }
 
     public fn dequeue() {
         case queue {
-            [] { Error(ErrorStatus#emptyQueue) }
-            [_ :: ?rest] { Ok(this(queue: rest)) }
+            [_ :: ?rest] { Left<this(queue: rest)> }
+            [] { Right<ErrorStatus#emptyQueue> }
         }
     }
 }
@@ -37,8 +38,8 @@ class Queue {
 export fn main(_args) {
     ?a := Queue(42),
     ?a := a.enqueue(4711),
-    Ok(42) := b.hd(),
+    Left<42> := b.hd(),
     ?b := Queue(42),
-    ?b := a.enqueue(4711),
-    true := (a ==Queue= b)
+    ?b := b.enqueue(4711),
+    true := (a =Queue= b)
 }

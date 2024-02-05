@@ -15,6 +15,7 @@
 ## Version 0.2
 
 * GC
+* Add values to enums
 
 ## Version 0.3
 

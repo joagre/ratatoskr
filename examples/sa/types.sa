@@ -1,41 +1,27 @@
-type Result<$value, $reason> = Ok<$value> or Error<$reason>
+type Either<$t1, $t2> = Left<$t1> or Right<$t2>
 alias Baz = Int
 
 fn foo(x, y, compare) {
     ?first :: ?rest := x,
     if compare(first, y) {
-        Result<rest>
+        Left<rest>
     } else {
-        Error<"%x is an invalid value">
+        Right<"%x is an invalid value">
     }
 }
 
-fn foo2<$t>(x is [$], y is $t, compare is ($t, $t) -> bool)
+fn foo2<$t>(x is [$t], y is $t, compare is ($t, $t) -> bool)
   is Result<$t, string> {
     ?first is $t :: ?rest := x,
     if compare(first, y) {
-        Result<rest>
+        Left<rest>
     } else {
-        Error<"%x is an invalid value">
+        Right<"%x is an invalid value">
     }
 }
 
 export fn main(_args) {
-    ?compare := fn f(a, b) { a =Int= b }),
-    ?w = foo([12, 13], 42, compare),
-    w := foo2<int>([12, 13], 42, compare), // explicit type
+    fn compare(a, b) { a =Int= b },
+    ?w := foo([12, 13], 42, compare),
+    w := foo2<int>([12, 13], 42, compare)
 }
-
-/*
-$X
-(a, b) -> c
-Bool
-Int
-Float
-String
-(Float, Int)
-[Int]
-[Int: Float]
-Queue(Int, Float)
-Queue(Int)(foo: bar)
-*/

@@ -1,19 +1,19 @@
-type Result(value, reason) = Ok(value) or Error(reason)
+type Either<$t1, $t2> = Left<$t1> or Right<$t2>
 
 enum ErrorStatus {
    emptyQueue
 }
 
-interface QueueInterface(t) {
-    this(element : t) : QueueInterface(t)
-    public fn enqueue(element : t) : QueueInterface(t)
-    public fn null() : Bool
-    public fn hd() : Result(t, ErrorStatus)
-    public fn dequeue() : Result(QueueInterface(t), ErrorStatus)
+interface QueueInterface<$t> {
+    this(element is $t) is QueueInterface<$t>
+    public fn enqueue(element is $t) is QueueInterface<$t>
+    public fn null() is Bool
+    public fn hd() is Either<$t, ErrorStatus>
+    public fn dequeue() is Either<QueueInterface<$t>, ErrorStatus>
 }
 
-class Queue(t) implements QueueInterface(t) {
-    private queue : [t]
+class Queue<$t> implements QueueInterface<$t> {
+    private queue is [$t]
 
     this(element) {
         this(queue : [element])
@@ -45,8 +45,8 @@ class Queue(t) implements QueueInterface(t) {
 export fn main(_args) {
     ?a := Queue(42),
     ?a := a.enqueue(4711),
-    Ok(42) := b.hd(),
+    Left<42> := b.hd(),
     ?b := Queue(42),
-    ?b := a.enqueue(4711),
+    ?b := b.enqueue(4711),
     true := (a =Queue= b)
 }
