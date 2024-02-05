@@ -1,4 +1,4 @@
-import Std.stdio : writeln
+import Std.stdio: writeln
 
 type Either<$t1, $t2> = Left<$t1> or Right <$t2>
 
@@ -9,11 +9,11 @@ enum Color {
 }
 
 interface Iterator<$t> {
-    public fn next() is Either<false, (ColorIterator<$t>, $t)>
+    public fn next() is Either<false, (Iterator<$t>, $t)>
     public fn hasNext() is Bool
 }
 
-class ColorIterator implements Iterator {
+class ColorIterator implements Iterator<Color> {
     private colors is [Color]
     private graffiti is String
 
@@ -25,7 +25,7 @@ class ColorIterator implements Iterator {
         if !hasNext() {
             Left<false>
         } else {
-            Right<this(colors: colors.rest()), colors.first()>
+            Right<(this(colors: colors.rest()), colors.first())>
         }
     }
 
