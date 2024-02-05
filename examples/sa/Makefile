@@ -2,7 +2,7 @@ SOURCES := $(wildcard *.sa)
 LINT := ../../bin/lint
 LINT_SOURCE_DIR := ../../src/lint
 
-lint: build
+all: build
 	@$(foreach src,$(SOURCES),echo "Linting $(src)"; $(LINT) < $(src) || exit 1;)
 
 build:

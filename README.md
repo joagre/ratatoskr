@@ -24,8 +24,8 @@ programming languages.
 All rise. Here is a tribute and a premature Satie example:
 
 ```
-import std.satie
-import std.stdio : writeln
+import Std.satie
+import Std.stdio : writeln
 
 export fn main(args) {
     ?numberOfTributes := args[1],
@@ -35,7 +35,7 @@ export fn main(args) {
 }
 
 fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
-    if n < numberOfTributes {
+    if n lt numberOfTributes {
         ?job := satie.spawn(fn () {
                     ?message := receive channel,
                     writeln("$n: $message")
@@ -191,7 +191,9 @@ Here follows yet another premature Satie example but read it through
 and an explanation will follow:
 
 ```
-import std.stdio : writeln
+import Std.stdio: writeln
+
+type Either<$t1, $t2> = Left<$t1> or Right<$t2>
 
 enum Color {
     red
@@ -199,12 +201,12 @@ enum Color {
     blue
 }
 
-interface Iterator {
-    public fn next()
-    public fn hasNext()
+interface Iterator<$t> {
+    public fn next() is Either<false, (Iterator<$t>, $t)>
+    public fn hasNext() is Bool
 }
 
-class ColorIterator implements Iterator {
+class ColorIterator implements Iterator<Color> {
     private colors
     private graffiti
 
@@ -214,9 +216,9 @@ class ColorIterator implements Iterator {
 
     public fn next() {
         if !hasNext() {
-            false
+            Left<false>
         } else {
-            (this(colors: colors.rest()), colors.first())
+            Right<(this(colors: colors.rest()), colors.first())>
         }
     }
 
@@ -227,11 +229,11 @@ class ColorIterator implements Iterator {
 
 export fn main() {
     ?colors := [Color#red, Color#red, Color#blue, Color#green],
-    ?iterator := new ColorIterator(colors),
+    ?iterator := ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
             (?iterator, ?color) := iterator.next(),
-            writeln("Color: $color"),
+            writeln("Color: %color"),
             iterate(iterator)
         } else {
             true
@@ -1279,7 +1281,7 @@ import Std.channels: ChannelOption
 import Std.stdio
 
 export fn main(_args) {
-  ?ackermann := new Ackermann(),
+  ?ackermann := Ackermann(),
   ?ackermann := ackermann.startJobs(3, 10),
   ackermann.waitForJobs()
 }
@@ -1294,7 +1296,7 @@ class Ackermann {
     }
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {
-        if i < n {
+        if i lt n {
             fn computeAckermann(m, n) {
                 ?result := ackermann(m, n),
                 resultChannel.send((self, m, n, result))
@@ -1310,7 +1312,7 @@ class Ackermann {
 
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
-            if jobs.length > 0 {
+            if jobs.length gt 0 {
                 receive [systemChannel, satie.systemChannel] {
                     (?job, ?m, ?n, ?result) {
                         stdio.writeln("ackermann(%m, %n) = %result"),
@@ -1511,7 +1513,7 @@ Operators in decreasing order of precedence:
 
 Program <- _ (i:Imports __)? t:TopLevelDefs EOF { $$ = CN(PROGRAM, 2, i, t); }
 TopLevelDefs <- t:TopLevelDef { $$ = CN(TOP_LEVEL_DEFS, 1, t); } (__ t:TopLevelDef { AC($$, t); } / TopLevelDefError)*
-TopLevelDef <- (t:ClassDef / t:InterfaceDef / t:EnumDef / t:FunctionDef) { $$ = t; }
+TopLevelDef <- (t:ClassDef / t:InterfaceDef / t:EnumDef / t:FunctionDef / t:TypeDef / t:AliasDef) { $$ = t; }
 TopLevelDefError <- ("," / ";") {
     panic("Unexpected %s between top level definitions on line %d",
           $0, auxil->row);
@@ -1539,19 +1541,19 @@ LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
 BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
 BitwiseOrExpr <- l:BitwiseOrExpr _ "|" _ r:GTEIntExpr { $$ = CN(BITWISE_OR, 2, l, r); } / e:GTEIntExpr { $$ = e; }
-GTEIntExpr <- l:GTEIntExpr _ ">=" _ r:GTEFloatExpr { $$ = CN(GTE_INT, 2, l, r); } / e:GTEFloatExpr { $$ = e; }
-GTEFloatExpr <- l:GTEFloatExpr _ ">=." _ r:GTIntExpr { $$ = CN(GTE_FLOAT, 2, l, r); } / e:GTIntExpr { $$ = e; }
-GTIntExpr <- l:GTIntExpr _ ">" _ r:GTFloatExpr { $$ = CN(GT_INT, 2, l, r); } / e:GTFloatExpr { $$ = e; }
-GTFloatExpr <- l:GTFloatExpr _ ">." _ r:LTEIntExpr { $$ = CN(GT_FLOAT, 2, l, r); } / e:LTEIntExpr { $$ = e; }
-LTEIntExpr <- l:LTEIntExpr _ "<=" _ r:LTEFloatExpr { $$ = CN(LTE_INT, 2, l, r); } / e:LTEFloatExpr { $$ = e; }
-LTEFloatExpr <- l:LTEFloatExpr _ "<=." _ r:LTIntExpr { $$ = CN(LTE_FLOAT, 2, l, r); } / e:LTIntExpr { $$ = e; }
-LTIntExpr <- l:LTIntExpr _ "<" _ r:LTFloatExpr { $$ = CN(LT_INT, 2, l, r); } / e:LTFloatExpr { $$ = e; }
-LTFloatExpr <- l:LTFloatExpr _ "<." _ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l, r); } / e:NotEqualExpr { $$ = e; }
+GTEIntExpr <- l:GTEIntExpr __ "gte" __ r:GTEFloatExpr { $$ = CN(GTE_INT, 2, l, r); } / e:GTEFloatExpr { $$ = e; }
+GTEFloatExpr <- l:GTEFloatExpr __ "fgte" __ r:GTIntExpr { $$ = CN(GTE_FLOAT, 2, l, r); } / e:GTIntExpr { $$ = e; }
+GTIntExpr <- l:GTIntExpr __ "gt" __ r:GTFloatExpr { $$ = CN(GT_INT, 2, l, r); } / e:GTFloatExpr { $$ = e; }
+GTFloatExpr <- l:GTFloatExpr __ "fgt" __ r:LTEIntExpr { $$ = CN(GT_FLOAT, 2, l, r); } / e:LTEIntExpr { $$ = e; }
+LTEIntExpr <- l:LTEIntExpr __ "lte" __ r:LTEFloatExpr { $$ = CN(LTE_INT, 2, l, r); } / e:LTEFloatExpr { $$ = e; }
+LTEFloatExpr <- l:LTEFloatExpr __ "flte" __ r:LTIntExpr { $$ = CN(LTE_FLOAT, 2, l, r); } / e:LTIntExpr { $$ = e; }
+LTIntExpr <- l:LTIntExpr __ "lt" __ r:LTFloatExpr { $$ = CN(LT_INT, 2, l, r); } / e:LTFloatExpr { $$ = e; }
+LTFloatExpr <- l:LTFloatExpr __ "flt" __ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l, r); } / e:NotEqualExpr { $$ = e; }
 NotEqualExpr <- l:NotEqualExpr _ "!" t:Name "=" _ r:EqualExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualExpr { $$ = e; }
 EqualExpr <- l:EqualExpr _ "=" t:Name "=" _ r:InExpr { $$ = CN(EQ, 3, l, RN(t, EQ_TYPE), r); } / e:InExpr { $$ = e; }
 InExpr <- l:InExpr _ "in" _ e:RightShiftExpr { $$ = CN(IN, 2, l, e); } / e:RightShiftExpr { $$ = e; }
-RightShiftExpr <- l:RightShiftExpr _ ">>" _ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
-LeftShiftExpr <- l:LeftShiftExpr _ "<<" _ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
+RightShiftExpr <- l:RightShiftExpr __ "bsr" __ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
+LeftShiftExpr <- l:LeftShiftExpr __ "bsl" __ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
 ConsExpr <- l:ConsExpr _ "::" _ r:ListConcatExpr { $$ = CN(CONS, 2, l, r); } / e:ListConcatExpr { $$ = e; }
 ListConcatExpr <- l:ListConcatExpr _ "@" _ r:MapConcatExpr { $$ = CN(CONCAT_LIST, 2, l, r); } / e:MapConcatExpr { $$ = e; }
 MapConcatExpr <- l:MapConcatExpr _ "~" _ r:StringConcatExpr { $$ = CN(CONCAT_MAP, 2, l, r); } / e:StringConcatExpr { $$ = e; }
@@ -1587,7 +1589,6 @@ PrimaryExpr <- "nil" { $$ = CT(NIL, NULL); } /
                "self" { $$ = CT(SELF, NULL); } /
                "$" { $$ = CT(SLICE_LENGTH, NULL); } /
                e:ControlFlowExpr { $$ = e; } /
-               e:NewExpr { $$ = e; } /
                e:Literal { $$ = e; } /
                e:Name { $$ = e; } /
                "(" _ e:Expr _ ")" { $$ = e; }
@@ -1615,8 +1616,6 @@ Channel <- (c:ChannelName { $$ = CN(CHANNEL, 1, c); }
 ChannelName <- Identifier { $$ = CT(CHANNEL_NAME, $0); }
 Channels <- c:Channel { $$ = CN(CHANNELS, 1, c); } (_ "," _ c:Channel { AC($$, c); })*
 
-NewExpr <- "new" _ n:Name _ "(" _ a:Args? _ ")" { $$ = CN(NEW_EXPR, 2, n, a); }
-
 #
 # Literal
 #
@@ -1626,7 +1625,7 @@ Literal <- (l:BaseLiteral / l:CompositeLiteral) { $$ = l; }
 BaseLiteral <- (b:BoolLiteral / b:NumberLiteral / b:CharLiteral /
                 b:StringLiteral / b:FunctionLiteral / b:EnumLiteral) { $$ = b; }
 
-CompositeLiteral <- (c:TupleLiteral / c:ListLiteral / c:MapLiteral) { $$ = c; }
+CompositeLiteral <- (c:TupleLiteral / c:ListLiteral / c:MapLiteral / c:TypeConstructorLiteral) { $$ = c; }
 
 BoolLiteral <- "true" { $$ = CT(TRUE, NULL); } / "false" { $$ = CT(FALSE, NULL); }
 
@@ -1677,6 +1676,8 @@ MapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyValues? _ "]
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
 MapKeyValue <- (k:Literal / k:Name) _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
+TypeConstructorLiteral <- Name "<" _ Expr (_ "," _ Expr)* _ ">"
+
 #
 # Match expression
 #
@@ -1695,7 +1696,9 @@ MatchBaseLiteral <- (m:BoolLiteral /
 
 MatchCompositeLiteral <- (m:MatchTupleLiteral /
                           m:MatchListLiteral /
-                          m:MatchMapLiteral) { $$ = m; }
+                          m:MatchMapLiteral /
+                          m:MatchClassLiteral /
+                          m:MatchTypeConstructorLiteral) { $$ = m; }
 
 MatchTupleLiteral <- "(" _ ")" { $$ = CT(TUPLE_LITERAL, NULL); } / "(" _ m:MatchTupleExprs _ ")" { $$ = RN(m, TUPLE_LITERAL); }
 MatchTupleExprs <- m1:MatchExpr _ "," _ m2:MatchExpr { $$ = CN(MATCH_EXPRS, 2, m1, m2); } (_ "," _ m:MatchExpr { AC($$, m); })*
@@ -1709,11 +1712,15 @@ MatchMapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyVa
 MatchMapKeyValues <- m:MatchMapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MatchMapKeyValue { AC($$, m); })*
 MatchMapKeyValue <- (k:Literal / k:Name) _ ":" _ v:MatchExpr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
+MatchClassLiteral <- Name _ "(" _ MatchExpr (_ "," _ MatchExpr)* ")"
+
+MatchTypeConstructorLiteral <- Name "<" _ MatchExpr (_ "," _ MatchExpr)* _ ">"
+
 #
 # Type
 #
 
-Type <- (t:BaseType / t:ListType / t:TupleType / t:MapType / t:ClassType / t:TypeVariable / t:AppType) { $$ = t; }
+Type <- (t:BaseType / t:ListType / t:AppType / t:TupleType / t:MapType / t:ClassType / t:TypeVariable) { $$ = t; }
 BaseType <- (b:BoolType / b:IntType / b:FloatType / b:StringType / b:JobType / b:ChannelType) { $$ = b;}
 BoolType <- "Bool" { $$ = CT(BOOL_TYPE, NULL); }
 IntType <- "Int" { $$ = CT(INT_TYPE, NULL); }
@@ -1722,27 +1729,27 @@ StringType <- "String" { $$ = CT(STRING_TYPE, NULL); }
 JobType <- "Job" { $$ = CT(JOB_TYPE, NULL); }
 ChannelType <- "Channel" { $$ = CT(CHANNEL_TYPE, NULL); }
 ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); }
+AppType <- "(" _ a:ArgTypes? _ ")" _ "->" _ r:Type { $$ = CN(APP_TYPE, 2, a, r); }
+ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")"
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); }
-ClassType <- n:Name { $$ = CN(CLASS_TYPE, 1, n); } _ ("(" _ n:Name { AC($$, n); } (_ "," _ n:Name { AC($$, n); })* ")")?
+ClassType <- n:Name { $$ = CN(CLASS_TYPE, 1, n); } ("<" _ t:Type { AC($$, n); } (_ "," _ t:Type { AC($$, t); })* _ ">")?
 TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
-AppType <- "(" a:ArgTypes? ")" _ "->" _ r:Type { $$ = CN(APP_TYPE, 2, a, r); }
-ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 
 #
 # Class definition
 #
 
-ClassDef <- "class" __ cn:ClassName _ ( "implements" _ i:Interfaces _ )? "{" _
+ClassDef <- "class" __ cn:ClassName ("<" _ TypeVariables _ ">")? _ ( "implements" _ i:Interfaces _ )? "{" _
             c:ClassMembers _
             "}" { $$ = CN(CLASS_DEF, 3, cn, i, c); }
 ClassName <- Identifier { $$ = CT(CLASS_NAME, $0); }
-Interfaces <- i:Interface { $$ = CN(INTERFACES, 1, i); } (_ "," _ i:Interface { AC($$, i); })*
+Interfaces <- i:Interface ("<" _ ArgTypes _ ">")? { $$ = CN(INTERFACES, 1, i); } (_ "," _ i:Interface { AC($$, i); })*
 Interface <- Identifier { $$ = CT(INTERFACE, $0); }
 ClassMembers <- c:ClassMember { $$ = CN(CLASS_MEMBERS, 1, c); } (_ c:ClassMember { AC($$, c); } / ClassMemberError)*
 ClassMember <- (c:Constructor / c:Destructor / c:MemberMethod / c:MemberProperty) { $$ = c; }
-Constructor <- "this" _ "(" _ p:Params? _ ")" _ b:BlockExpr { $$ = CN(CONSTRUCTOR, 2, p, b); }
-Destructor <- "~this" _ "(" _ p:Params? _ ")" _ b:BlockExpr { $$ = CN(DESTRUCTOR, 2, p, b); }
+Constructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(CONSTRUCTOR, 3, p, t, b); }
+Destructor <- "~this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(DESTRUCTOR, 3, p, t, b); }
 MemberMethod <- m:MemberAccess _ f:FunctionDef { $$ = CN(MEMBER_METHOD, 2, m, f); }
 MemberAccess <- "public" { $$ = CT(PUBLIC, NULL); } / "private" { $$ = CT(PRIVATE, NULL); }
 MemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name (_ "is" _ t:Type { AC(n, t); })? (_ "=" _ e:Expr)?) { $$ = CN(MEMBER_PROPERTY, 4, m, c, n, e); }
@@ -1756,13 +1763,17 @@ Readonly <- "readonly" { $$ = CT(READONLY, NULL); }
 # Interface definition
 #
 
-InterfaceDef <- "interface" __ i:InterfaceName _ "{" _ im:InterfaceMembers _ "}" { $$ = CN(INTERFACE_DEF, 2, i, im); }
+InterfaceDef <- "interface" __ i:InterfaceName ("<" _ TypeVariables _ ">")? _ "{" _
+                 im:InterfaceMembers _
+                 "}" { $$ = CN(INTERFACE_DEF, 2, i, im); }
 InterfaceName <- Identifier { $$ = CT(INTERFACE_NAME, $0); }
 InterfaceMembers <- i:InterfaceMember { $$ = CN(INTERFACE_MEMBERS, 1, i); } (_ i:InterfaceMember { AC($$, i); } / InterfaceMemberError)*
-InterfaceMember <- (i:InterfaceMemberMethod / i:InterfaceMemberProperty) { $$ = i; }
+InterfaceMember <- (i:InterfaceConstructor / i:InterfaceDestructor / i:InterfaceMemberMethod / i:InterfaceMemberProperty) { $$ = i; }
+InterfaceConstructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)?
+InterfaceDestructor <- "~this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)?
 InterfaceMemberMethod <- m:MemberAccess _ i:InterfaceMethod { $$ = CN(INTERFACE_MEMBER_METHOD, 2, m, i); }
-InterfaceMethod <- "fn" _ f:FunctionName _ "(" _ p:Params? _ ")" { $$ = CN(INTERFACE_METHOD, 2, f, p); }
-InterfaceMemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name) { $$ = CN(INTERFACE_MEMBER_PROPERTY, 3, m, c, n); }
+InterfaceMethod <- "fn" _ f:FunctionName ("<" _ TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _  ("is" _ t:Type _)? { $$ = CN(INTERFACE_METHOD, 3, f, p, t); }
+InterfaceMemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name  (_ "is" _ t:Type { AC(n, t); })?) { $$ = CN(INTERFACE_MEMBER_PROPERTY, 3, m, c, n); }
 InterfaceMemberError <- ("," / ";") {
     panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
@@ -1784,7 +1795,7 @@ EnumValueError <- ("," / ";") {
 # Function definition
 #
 
-FunctionDef <- e:Export? _ "fn" __ f:FunctionName _ "(" _ p:Params? _ ")" _ ("is" _ t:Type _)? b:BlockExpr { $$ = CN(FUNCTION_DEF, 5, e, f, p, t, b); }
+FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ t:Type _)? b:BlockExpr { $$ = CN(FUNCTION_DEF, 5, e, f, p, t, b); }
 Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
 Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d); } /
@@ -1808,6 +1819,21 @@ Args <- (a:PositionalArgs / a:NamedArgs) { $$ = a; }
 PositionalArgs <- !NamedArg e:Expr { $$ = CN(POSITIONAL_ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 NamedArgs <- n:NamedArg { $$ = CN(NAMED_ARGS, 1, n); } (_ "," _ n:NamedArg { AC($$, n); })*
 NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
+
+#
+# Type definition
+#
+
+TypeDef <- "type" _ Name ("<" _ TypeVariables _ ">")? _ "=" _ TypeConstructor (_ "or" _ TypeConstructor)*
+TypeVariables <- TypeVariable (_ "," _ TypeVariable)*
+TypeConstructor <- Name ("<" _ TypeConstructorTypes _ ">")?
+TypeConstructorTypes <- Type (_ "," _ Type)*
+
+#
+# Alias definition
+#
+
+AliasDef <- "alias" _ Name ("<" _ ArgTypes _ ">")? _ "=" _ Type
 
 #
 # Misc
@@ -1851,8 +1877,8 @@ int main() {
 # Appendix C: A todo list example
 
 ```
-import std.stdio : writeln
-import std.lists
+import Std.stdio : writeln
+import Std.lists
 
 class TodoItem {
     private description
@@ -1875,7 +1901,7 @@ class TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
-        ?item := new TodoItem(description),
+        ?item := TodoItem(description),
         this(items: [tag: item] ~ items)
     }
 
@@ -1908,7 +1934,7 @@ export fn main() {
           loopUntilQuit(todoList)
         }
     },
-    ?todoList := new TodoList(),
+    ?todoList := TodoList(),
     loopUntilQuit(todoList)
 }
 ```

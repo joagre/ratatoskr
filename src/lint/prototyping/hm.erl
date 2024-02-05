@@ -183,9 +183,9 @@ prettify_type_stack(Node, [{X, Y}|Rest]) ->
         prettify_type(Node, X) ++ " -> " ++ prettify_type(Node, Y) ++ "\n".
 
 prettify_type(_Node, int) ->
-    "int";
+    "Int";
 prettify_type(_Node, bool) ->
-    "bool";
+    "Bool";
 prettify_type(Node, TypeVariable) when is_integer(TypeVariable) ->
     case search_by_type(Node, TypeVariable) of
         #node{name = Name, row = Row, value = undefined} ->
@@ -222,17 +222,18 @@ search_children([Child|Rest], Type) ->
     end.
 
 type_to_string(int) ->
-    "int";
+    "Int";
 type_to_string(bool) ->
-    "bool";
+    "Bool";
 type_to_string(TypeVariable) when is_integer(TypeVariable) ->
     "t" ++ integer_to_list(TypeVariable);
-type_to_string({[ArgType], ReturnType}) ->
-    "(" ++ type_to_string(ArgType) ++ " -> " ++
-        type_to_string(ReturnType) ++ ")";
+
+
+%type_to_string({[ArgType], ReturnType}) ->
+%    "(" ++ type_to_string(ArgType) ++ " -> " ++
+%        type_to_string(ReturnType) ++ ")";
 type_to_string({ArgTypes, ReturnType}) ->
-    "(("++ type_to_string(ArgTypes) ++ ") -> " ++
-        type_to_string(ReturnType) ++ ")";
+    "("++ type_to_string(ArgTypes) ++ ") -> " ++ type_to_string(ReturnType);
 type_to_string([]) ->
     "";
 type_to_string([Type]) ->

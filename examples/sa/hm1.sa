@@ -5,3 +5,9 @@ fn foo(f, g, x) {
         20
     }
 }
+
+/*
+fn foo(f is (Bool) -> Bool, g is (Int) -> Int, x is Int)
+  is ((Bool) -> Bool, (Int) -> Int, Int) -> Int {
+...
+*/
