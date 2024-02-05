@@ -7,7 +7,6 @@ fn foo(f, g, x) {
 }
 
 /*
-fn foo(f is (Bool) -> Bool, g is (Int) -> Int, x is Int)
-  is ((Bool) -> Bool, (Int) -> Int, Int) -> Int {
+fn foo(f is (Bool) -> Bool, g is (Int) -> Int, x is Int) is Int {
 ...
 */
