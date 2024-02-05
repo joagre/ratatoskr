@@ -1,6 +1,7 @@
 //#define MUTE_LOG_DEBUG 1
 
 #include <log.h>
+#include <assert.h>
 #include "symbol_table.h"
 
 // clib allocator
@@ -71,19 +72,23 @@ void symbol_table_print(symbol_table_t* table) {
 	    case TYPE_TAG_BASIC_TYPE:
 		switch (type->basic_type) {
 		    case TYPE_BASIC_TYPE_INT:
-			printf("integral\n");
+			printf("Int\n");
 			break;
 		    case TYPE_BASIC_TYPE_BOOL:
-			printf("bool\n");
+			printf("Bool\n");
 			break;
+		    default:
+			assert(false);
 		}
 		break;
-	    case TYPE_TAG_VARIABLE:
-		printf("t%d\n", type->variable);
+	    case TYPE_TAG_TYPE_VARIABLE:
+		printf("t%d\n", type->type_variable);
 		break;
-	    case TYPE_TAG_FUNCTION:
-		printf("function\n");
+	    case TYPE_TAG_APP_TYPE:
+		printf("App\n");
 		break;
+	    default:
+		assert(false);
 	}
 	lhash_kv_iter_next(&iter);
     }
@@ -125,7 +130,7 @@ void symbol_table_unit_test(void) {
     symbol_table_insert(&table, "int", type1);
     type_t* type2 = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
     symbol_table_insert(&table, "bool", type2);
-    type_t* type3 = type_new_variable();
+    type_t* type3 = type_new_type_variable();
     symbol_table_insert(&table, "bar", type3);
     type_t* type = symbol_table_lookup(&table, "int");
     LOG_ASSERT(type->tag == TYPE_TAG_BASIC_TYPE, "Wrong type");

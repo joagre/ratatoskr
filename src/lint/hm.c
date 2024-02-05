@@ -11,6 +11,7 @@
 // Forward declarations of local functions
 static void add_type_variables(ast_node_t* node, symbol_table_t* table);
 static void add_type_equations(ast_node_t* node, equations_t* equations);
+static type_t* extract_type(ast_node_t* type_node);
 
 void hm_infer_types(ast_node_t* node) {
     symbol_table_t table;
@@ -42,7 +43,7 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	LOG_ASSERT(node->type != NULL, "Name '%s' is not in symbol table",
 		   node->value);
     } else if (node->name == PARAM_NAME) {
-	type_t* type = type_new_variable();
+	type_t* type = type_new_type_variable();
 	symbol_table_insert(table, node->value, type);
 	node->type = type;
     } else if (node->name == INT ||
@@ -54,27 +55,13 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	       node->name == BLOCK_EXPR ||
 	       node->name == POSTFIX_EXPR ||
 	       node->name == FUNCTION_CALL) {
-	type_t* type = type_new_variable();
+	type_t* type = type_new_type_variable();
 	node->type = type;
     } else if (node->name == NAME) {
-	type_t* type = type_new_variable();
+	type_t* type = type_new_type_variable();
 	symbol_table_insert(table, node->value, type);
 	node->type = type;
     }
-
-	/*
-    } else if (node->name == INT) {
-	type_t* type = type_new_basic_type(TYPE_BASIC_TYPE_INT);
-	symbol_table_insert(table, node->value, type);
-	node->type = type;
-    } else if (node->name == TRUE) {
-	type_t* type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
-	node->type = type;
-    } else if (node->name == FALSE) {
-	type_t* type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
-	node->type = type;
-    }
-	*/
 
     if (node->children != NULL) {
         for (uint16_t i = 0; i < ast_number_of_children(node); i++) {
@@ -83,7 +70,7 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
     }
 }
 
-void add_type_equations(ast_node_t *node, equations_t* equations) {
+static void add_type_equations(ast_node_t *node, equations_t* equations) {
     if (node->name == INT) {
 	// Equation: Int constant
 	equation_t equation =
@@ -102,7 +89,6 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
 			 node, node);
 	equations_add(equations, &eq_equation);
-        // Equation: left operand
 	ast_node_t* eq_type_node = ast_get_child(node, 1);
 	LOG_ASSERT(eq_type_node->name == EQ_TYPE, "Expected an EQ_TYPE node");
 	type_basic_type_t eq_type;
@@ -114,19 +100,20 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	    LOG_ABORT("Unknown eq type: %s", eq_type_node->value);
 	}
 	ast_node_t* left_node = ast_get_child(node, 0);
+        // Equation: left operand
 	equation_t left_equation =
 	    equation_new(left_node->type, type_new_basic_type(eq_type),
 			 node, left_node);
 	equations_add(equations, &left_equation);
-	// Equation: right operand
 	ast_node_t* right_node = ast_get_child(node, 2);
+	// Equation: right operand
 	equation_t right_equation =
 	    equation_new(right_node->type, type_new_basic_type(eq_type),
 			 node, right_node);
 	equations_add(equations, &right_equation);
     } else if (node->name == BLOCK_EXPR) {
-	// Equation: block expression
 	ast_node_t* last_block_expr_node = ast_last_child(node);
+	// Equation: block expression
 	equation_t equation =
 	    equation_new(node->type, last_block_expr_node->type, node, node);
 	equations_add(equations, &equation);
@@ -139,18 +126,18 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	ast_node_t* positional_args_node = ast_get_child(function_call_node, 0);
 	LOG_ASSERT(positional_args_node->name == POSITIONAL_ARGS,
 		   "Expected a POSITIONAL_ARGS node");
-	// Equation: function type
 	types_t* arg_types = types_new();
 	for (uint16_t i = 0;
 	     i < ast_number_of_children(positional_args_node); i++) {
 	    ast_node_t* arg_node = ast_get_child(positional_args_node, i);
 	    types_add(arg_types, arg_node->type);
 	}
-	equation_t function_equation =
+	// Equation: function call type
+	equation_t app_equation =
 	    equation_new(name_node->type,
-			 type_new_function(arg_types, function_call_node->type),
+			 type_new_app_type(arg_types, function_call_node->type),
 			 node, node);
-	equations_add(equations, &function_equation);
+	equations_add(equations, &app_equation);
 	// Equation: postfix expression
 	equation_t postfix_expr_equation =
 	    equation_new(node->type, function_call_node->type, node, node);
@@ -188,20 +175,42 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	ast_node_t* params_node = ast_get_child(node, 1);
 	LOG_ASSERT(params_node->name == NON_DEFAULT_PARAMS,
 		   "Expected a NON_DEFAULT_PARAMS node");
-	ast_node_t* body_node = ast_get_child(node, 2);
+	ast_node_t* return_type_node = ast_get_child(node, 2);
+	LOG_ASSERT(return_type_node->name == RETURN_TYPE,
+		   "Expected a RETURN_TYPE node");
+	ast_node_t* body_node = ast_get_child(node, 3);
 	LOG_ASSERT(body_node->name == BLOCK_EXPR,
 		   "Expected a BLOCK_EXPR node");
-	// Equation: function type
 	types_t* arg_types = types_new();
 	for (uint16_t i = 0; i < ast_number_of_children(params_node); i++) {
 	    ast_node_t* param_node = ast_get_child(params_node, i);
+	    LOG_ASSERT(param_node->name == PARAM_NAME,
+		       "Expected a PARAM_NAME node");
+	    if (param_node->children != NULL) {
+		ast_node_t* arg_type_node = ast_get_child(param_node, 0);
+		type_t* arg_type = extract_type(arg_type_node);
+                // Equation: arg type (if any)
+		equation_t arg_type_equation =
+		    equation_new(param_node->type, arg_type, node, param_node);
+		equations_add(equations, &arg_type_equation);
+	    }
 	    types_add(arg_types, param_node->type);
 	}
+	// Equation: app type
 	equation_t function_equation =
 	    equation_new(node->type,
-			 type_new_function(arg_types, body_node->type),
+			 type_new_app_type(arg_types, body_node->type),
 			 node, node);
 	equations_add(equations, &function_equation);
+	if (return_type_node->children != NULL) {
+	    ast_node_t* type_node = ast_get_child(return_type_node, 0);
+	    type_t* return_type = extract_type(type_node);
+	    // Equation: return type (if any)
+	    equation_t return_type_equation =
+		equation_new(body_node->type, return_type, node,
+			     return_type_node);
+	    equations_add(equations, &return_type_equation);
+	}
     }
 
     if (node->children != NULL) {
@@ -209,4 +218,43 @@ void add_type_equations(ast_node_t *node, equations_t* equations) {
 	    add_type_equations(ast_get_child(node, i), equations);
 	}
     }
+}
+
+static type_t* extract_type(ast_node_t* type_node) {
+    switch (type_node->name) {
+	case BOOL_TYPE:
+	    return type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
+	case INT_TYPE:
+	    return type_new_basic_type(TYPE_BASIC_TYPE_INT);
+	case FLOAT_TYPE:
+	    return type_new_basic_type(TYPE_BASIC_TYPE_FLOAT);
+	case STRING_TYPE:
+	    return type_new_basic_type(TYPE_BASIC_TYPE_STRING);
+	case JOB_TYPE:
+	    return type_new_basic_type(TYPE_BASIC_TYPE_JOB);
+	case CHANNEL_TYPE:
+	    return type_new_basic_type(TYPE_BASIC_TYPE_CHANNEL);
+	case LIST_TYPE:
+	    return type_new_list_type(
+		extract_type(ast_get_child(type_node, 0)));
+	case APP_TYPE: {
+	    ast_node_t* arg_types_node = ast_get_child(type_node, 0);
+	    LOG_ASSERT(arg_types_node->name == ARG_TYPES,
+		       "Expected an ARG_TYPES node");
+	    types_t* arg_types = types_new();
+	    for (uint16_t i = 0; i < ast_number_of_children(arg_types_node);
+		 i++) {
+		ast_node_t* arg_type_node = ast_get_child(arg_types_node, i);
+		type_t* arg_type = extract_type(arg_type_node);
+		types_add(arg_types, arg_type);
+	    }
+	    ast_node_t* return_type_node = ast_get_child(type_node, 1);
+	    type_t* return_type = extract_type(return_type_node);
+	    return type_new_app_type(arg_types, return_type);
+	}
+	default:
+	    LOG_ABORT("Unknown type node: %s",
+		      ast_node_name_to_string(type_node->name));
+    }
+    assert(false);
 }

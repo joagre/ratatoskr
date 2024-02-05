@@ -10,7 +10,7 @@ fn sort(compare, list) {
     }
 }
 
-fn qsort(compare, list) {
+export fn qsort(compare, list) {
     case list {
         [] {
             []

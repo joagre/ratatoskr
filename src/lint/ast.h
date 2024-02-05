@@ -39,12 +39,12 @@ typedef dynarray_t node_array_t;
         NODE_NAME(CLASS_DEF) \
         NODE_NAME(CLASS_MEMBERS) \
         NODE_NAME(CLASS_NAME) \
-        NODE_NAME(CLASS_TYPE) \
         NODE_NAME(CONCAT_LIST)\
 	NODE_NAME(CONCAT_MAP) \
 	NODE_NAME(CONCAT_STRING) \
 	NODE_NAME(CONS) \
 	NODE_NAME(CONST) \
+        NODE_NAME(CONSTRUCTOR_TYPE ) \
         NODE_NAME(CONSTRUCTOR) \
         NODE_NAME(DEFAULT) \
         NODE_NAME(DEFAULT_PARAM) \
@@ -78,8 +78,8 @@ typedef dynarray_t node_array_t;
         NODE_NAME(FUNCTION_LITERAL) \
         NODE_NAME(FUNCTION_NAME) \
         NODE_NAME(GT_INT) \
-        NODE_NAME(GTE_INT) \
         NODE_NAME(GT_FLOAT) \
+        NODE_NAME(GTE_INT) \
         NODE_NAME(GTE_FLOAT) \
         NODE_NAME(JOB_TYPE) \
         NODE_NAME(IDENTIFIER) \
@@ -154,7 +154,8 @@ typedef dynarray_t node_array_t;
         NODE_NAME(RECEIVE) \
         NODE_NAME(RECEIVE_EXPR) \
         NODE_NAME(REGULAR_STRING) \
-        NODE_NAME(SELF) \
+        NODE_NAME(RETURN_TYPE) \
+        NODE_NAME(SELF)	\
         NODE_NAME(SLICE_LENGTH) \
 	NODE_NAME(STRING_TYPE) \
         NODE_NAME(THIS) \

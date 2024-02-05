@@ -161,10 +161,10 @@ Channels <- c:Channel { $$ = CN(CHANNELS, 1, c); } (_ "," _ c:Channel { AC($$, c
 # Literal
 #
 
-Literal <- (l:BaseLiteral / l:CompositeLiteral) { $$ = l; }
+Literal <- (l:BasicLiteral / l:CompositeLiteral) { $$ = l; }
 
-BaseLiteral <- (b:BoolLiteral / b:NumberLiteral / b:CharLiteral /
-                b:StringLiteral / b:FunctionLiteral / b:EnumLiteral) { $$ = b; }
+BasicLiteral <- (b:BoolLiteral / b:NumberLiteral / b:CharLiteral /
+                 b:StringLiteral / b:FunctionLiteral / b:EnumLiteral) { $$ = b; }
 
 CompositeLiteral <- (c:TupleLiteral / c:ListLiteral / c:MapLiteral / c:TypeConstructorLiteral) { $$ = c; }
 
@@ -227,13 +227,13 @@ MatchExpr <- (m:MatchCons / m:MatchLiteral / (m:UnboundName (_ "is" _ t:Type { A
 
 MatchCons <- l:MatchExpr _ "::" _ r:MatchExpr { $$ = CN(CONS, 2, l, r); }
 
-MatchLiteral <- (m:MatchBaseLiteral / m:MatchCompositeLiteral) { $$ = m; }
+MatchLiteral <- (m:MatchBasicLiteral / m:MatchCompositeLiteral) { $$ = m; }
 
-MatchBaseLiteral <- (m:BoolLiteral /
-                     m:NumberLiteral /
-                     m:CharLiteral /
-                     m:StringLiteral /
-                     m:EnumLiteral) { $$ = m; }
+MatchBasicLiteral <- (m:BoolLiteral /
+                      m:NumberLiteral /
+                      m:CharLiteral /
+                      m:StringLiteral /
+                      m:EnumLiteral) { $$ = m; }
 
 MatchCompositeLiteral <- (m:MatchTupleLiteral /
                           m:MatchListLiteral /
@@ -261,8 +261,8 @@ MatchTypeConstructorLiteral <- Name "<" _ MatchExpr (_ "," _ MatchExpr)* _ ">"
 # Type
 #
 
-Type <- (t:BaseType / t:ListType / t:AppType / t:TupleType / t:MapType / t:ClassType / t:TypeVariable) { $$ = t; }
-BaseType <- (b:BoolType / b:IntType / b:FloatType / b:StringType / b:JobType / b:ChannelType) { $$ = b;}
+Type <- (t:BasicType / t:ListType / t:AppType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable) { $$ = t; }
+BasicType <- (b:BoolType / b:IntType / b:FloatType / b:StringType / b:JobType / b:ChannelType) { $$ = b;}
 BoolType <- "Bool" { $$ = CT(BOOL_TYPE, NULL); }
 IntType <- "Int" { $$ = CT(INT_TYPE, NULL); }
 FloatType <- "Float" { $$ = CT(FLOAT_TYPE, NULL); }
@@ -274,7 +274,7 @@ AppType <- "(" _ a:ArgTypes? _ ")" _ "->" _ r:Type { $$ = CN(APP_TYPE, 2, a, r);
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")"
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); }
-ClassType <- n:Name { $$ = CN(CLASS_TYPE, 1, n); } ("<" _ t:Type { AC($$, n); } (_ "," _ t:Type { AC($$, t); })* _ ">")?
+ConstructorType <- n:Name { $$ = CN(CONSTRUCTOR_TYPE, 1, n); } ("<" _ t:Type { AC($$, n); } (_ "," _ t:Type { AC($$, t); })* _ ">")?
 TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 
 #
@@ -336,7 +336,7 @@ EnumValueError <- ("," / ";") {
 # Function definition
 #
 
-FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ t:Type _)? b:BlockExpr { $$ = CN(FUNCTION_DEF, 5, e, f, p, t, b); }
+FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ rt:Type _)? b:BlockExpr { $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, CN(RETURN_TYPE, 1, rt), b); }
 Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
 Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d); } /
@@ -367,6 +367,10 @@ NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
 
 TypeDef <- "type" _ Name ("<" _ TypeVariables _ ">")? _ "=" _ TypeConstructor (_ "or" _ TypeConstructor)*
 TypeVariables <- TypeVariable (_ "," _ TypeVariable)*
+
+
+
+
 TypeConstructor <- Name ("<" _ TypeConstructorTypes _ ">")?
 TypeConstructorTypes <- Type (_ "," _ Type)*
 

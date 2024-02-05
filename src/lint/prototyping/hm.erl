@@ -20,7 +20,7 @@ ex() ->
         dereference(Substitutions, 0).
 
 %% fn foo(f, g, x) {
-%%     if f(x ==Int= 1) {
+%%     if f(x =Int= 1) {
 %%         g(x)
 %%     } else {
 %%         20
@@ -36,7 +36,7 @@ hm1() ->
     Equations =
         lists:map(fun(#equation{type = Type}) ->  Type end, AdornedEquations),
     %%io:format("==== Equations:\n~p\n", [Equations]),
-    io:format("==== Pretty printed equations:\n"),
+    io:format("==== Equations:\n"),
     lists:foreach(
       fun(#equation{type = {Left, Right}}) ->
               io:format("~s -> ~s\n",
@@ -47,12 +47,12 @@ hm1() ->
         {mismatch, TypeStack} ->
             io:format("==== Type error:\n~s",
                       [format_type_stack(TypeStack)]),
-            %%io:format("==== Prettified type error:\n~s\n",
+            %%io:format("==== Type error:\n~s\n",
             %%          [prettify_type_stack(TypeStack)]),
             ok;
         Substitutions ->
             %%io:format("==== Substitutions:\n~p\n", [Substitutions]),
-            io:format("==== Pretty printed solutions:\n"),
+            io:format("==== Solutions:\n"),
             lists:foreach(
               fun(#equation{type = {Left, Right}}) ->
                       io:format("~s -> ~s\n",
@@ -227,13 +227,8 @@ type_to_string(bool) ->
     "Bool";
 type_to_string(TypeVariable) when is_integer(TypeVariable) ->
     "t" ++ integer_to_list(TypeVariable);
-
-
-%type_to_string({[ArgType], ReturnType}) ->
-%    "(" ++ type_to_string(ArgType) ++ " -> " ++
-%        type_to_string(ReturnType) ++ ")";
 type_to_string({ArgTypes, ReturnType}) ->
-    "("++ type_to_string(ArgTypes) ++ ") -> " ++ type_to_string(ReturnType);
+    "(("++ type_to_string(ArgTypes) ++ ") -> " ++ type_to_string(ReturnType) ++ ")";
 type_to_string([]) ->
     "";
 type_to_string([Type]) ->
