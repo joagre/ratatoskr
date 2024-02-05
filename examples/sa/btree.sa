@@ -8,15 +8,15 @@ export fn main(_args) {
                     Branch<"wood",
                            Branch<"of",
                                   Branch<"Birnam",
-                                  Leaf,
+                                         Leaf,
+                                         Leaf>,
                                   Leaf>,
-                           Leaf>,
-                    Leaf))),
-    writeln("Size: ${size(tree)}"),
-    writeln("Depth: ${depth(tree)}"),
-    writeln("Complete Tree: ${completeTree(1, 8)}"),
-    writeln("Tree Mirror: ${mirror(tree)}")
-    writeln("Traversal: ${traverse(tree)}")
+                           Leaf>>,
+    writeln("Size: %{size(tree)}"),
+    writeln("Depth: %{depth(tree)}"),
+    writeln("Complete Tree: %{completeTree(1, 8)}"),
+    writeln("Tree Mirror: %{mirror(tree)}"),
+    writeln("Traversal: %{traverse(tree)}")
 }
 
 fn size(tree) {
