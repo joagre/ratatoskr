@@ -13,7 +13,9 @@ fn sort<$t>(compare is Compare<$t>, list is [$t]) is Either<[$t], String> {
 
 fn qsort(compare, list) {
     case list {
-        [] { [] }
+        [] {
+            []
+        }
         ?first :: ?rest {
             (?smaller, ?larger) :=
                 l.partition(fn (x) { compare(x, first) }, rest),
@@ -25,7 +27,11 @@ fn qsort(compare, list) {
 export fn main(_args) {
     fn compare(x, y) { x lt y },
     case sort(compare, [3, 1, 32, 0]) {
-        Left<?l> { writeln("Success: %l") }
-        Right<?reason> { writeln("Error: %reason") }
+        Left<?l> {
+            writeln("Success: %l")
+        }
+        Right<?reason> {
+            writeln("Error: %reason")
+        }
     }
 }

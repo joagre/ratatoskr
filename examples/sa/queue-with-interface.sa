@@ -29,15 +29,23 @@ class Queue<$t> implements QueueInterface<$t> {
 
     public fn hd() {
         case queue {
-            [] { Error(ErrorStatus#emptyQueue) }
-            [?first :: _] { Ok(first) }
+            [?first :: _] {
+                Left<first>
+            }
+            [] {
+                Right<ErrorStatus#emptyQueue>
+            }
         }
     }
 
     public fn dequeue() {
         case queue {
-            [] { Error(ErrorStatus#emptyQueue) }
-            [_ :: ?rest] { Ok(this(queue: rest)) }
+            [_ :: ?rest] {
+                Left<this(queue: rest)>
+            }
+            [] {
+                Right<ErrorStatus#emptyQueue>
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
-import std.stdio : writeln
-import std.lists
+import Std.stdio : writeln
+import Std.lists
 
 class TodoItem {
     private description

@@ -50,12 +50,20 @@ fn main() {
     1 := 1,
     ?a := b :: c,
     case a {
-        ?a :: ?b { snuva }
-        b when true { c }
-        e { d }
+        ?a :: ?b {
+            snuva
+        }
+        b when true {
+            c
+        }
+        e {
+            d
+        }
     },
     case a {
-        (?b, a), (?b, a) { c }
+        (?b, a), (?b, a) {
+            c
+        }
     },
     (1, 2),
     receive foo {

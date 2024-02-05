@@ -19,17 +19,25 @@ class Queue<$t> {
         queue.isEmpty()
     }
 
-    public fn hd() is Result<$t, ErrorStatus> {
+    public fn hd() is Either<$t, ErrorStatus> {
         case queue {
-            [?first :: _] { Left<first> }
-            [] { Right<ErrorStatus#emptyQueue> }
+            [?first :: _] {
+                Left<first>
+            }
+            [] {
+                Right<ErrorStatus#emptyQueue>
+            }
         }
     }
 
-    public fn dequeue() is Result<Queue<$t>, ErrorStatus> {
+    public fn dequeue() is Either<Queue<$t>, ErrorStatus> {
         case queue {
-            [_ :: ?rest] { Left<this(queue: rest)> }
-            [] { Right<ErrorStatus#emptyQueue> }
+            [_ :: ?rest] {
+                Left<this(queue: rest)>
+            }
+            [] {
+                Right<ErrorStatus#emptyQueue>
+            }
         }
     }
 }
