@@ -10,16 +10,6 @@ fn foo(x, y, compare) {
     }
 }
 
-fn foo2<$t>(x is [$t], y is $t, compare is ($t, $t) -> bool)
-  is Either<$t, string> {
-    ?first is $t :: ?rest := x,
-    if compare(first, y) {
-        Left<rest>
-    } else {
-        Right<"%x is an invalid value">
-    }
-}
-
 export fn main(_args) {
     fn compare(a, b) { a =Int= b },
     ?w := foo([12, 13], 42, compare),
