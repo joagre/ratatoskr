@@ -13,6 +13,8 @@ typedef dynarray_t node_array_t;
 #define GENERATE_STRING(STRING) #STRING,
 #define FOREACH_NODE_NAME(NODE_NAME) \
         NODE_NAME(AND) \
+        NODE_NAME(APP_TYPE) \
+        NODE_NAME(ARG_TYPES) \
         NODE_NAME(ARGS) \
         NODE_NAME(BIND) \
         NODE_NAME(BITWISE_AND) \
@@ -21,7 +23,8 @@ typedef dynarray_t node_array_t;
         NODE_NAME(BITWISE_XOR) \
         NODE_NAME(BLOCK_EXPR) \
         NODE_NAME(BLOCK_LEVEL_EXPR) \
-        NODE_NAME(BOUND_NAME) \
+        NODE_NAME(BOOL_TYPE)  \
+        NODE_NAME(BOUND_NAME)  \
         NODE_NAME(BSL) \
         NODE_NAME(BSR) \
         NODE_NAME(CASE) \
@@ -30,12 +33,14 @@ typedef dynarray_t node_array_t;
         NODE_NAME(CAST) \
         NODE_NAME(CHANNEL) \
         NODE_NAME(CHANNEL_NAME) \
+	NODE_NAME(CHANNEL_TYPE) \
         NODE_NAME(CHANNELS) \
         NODE_NAME(CHARACTER_LITERAL) \
         NODE_NAME(CLASS_DEF) \
         NODE_NAME(CLASS_MEMBERS) \
         NODE_NAME(CLASS_NAME) \
-        NODE_NAME(CONCAT_LIST) \
+        NODE_NAME(CLASS_TYPE) \
+        NODE_NAME(CONCAT_LIST)\
 	NODE_NAME(CONCAT_MAP) \
 	NODE_NAME(CONCAT_STRING) \
 	NODE_NAME(CONS) \
@@ -66,7 +71,8 @@ typedef dynarray_t node_array_t;
         NODE_NAME(EXPR) \
         NODE_NAME(EXPRS) \
         NODE_NAME(FALSE) \
-        NODE_NAME(FLOATING_POINT) \
+        NODE_NAME(FLOAT) \
+        NODE_NAME(FLOAT_TYPE) \
         NODE_NAME(FUNCTION_CALL) \
         NODE_NAME(FUNCTION_DEF) \
         NODE_NAME(FUNCTION_LITERAL) \
@@ -75,6 +81,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(GTE_INT) \
         NODE_NAME(GT_FLOAT) \
         NODE_NAME(GTE_FLOAT) \
+        NODE_NAME(JOB_TYPE) \
         NODE_NAME(IDENTIFIER) \
         NODE_NAME(IF) \
         NODE_NAME(IF_EXPR) \
@@ -84,8 +91,9 @@ typedef dynarray_t node_array_t;
         NODE_NAME(IMPORTS) \
         NODE_NAME(IN) \
         NODE_NAME(INDEX_VALUE) \
-        NODE_NAME(INDEX_VALUES)        \
+        NODE_NAME(INDEX_VALUES)\
         NODE_NAME(INT) \
+	NODE_NAME(INT_TYPE) \
         NODE_NAME(INTERFACE) \
         NODE_NAME(INTERFACE_DEF) \
         NODE_NAME(INTERFACE_MEMBER_METHOD) \
@@ -97,6 +105,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(LIST_LITERAL) \
         NODE_NAME(LIST_LOOKUP) \
         NODE_NAME(LIST_SLICE)   \
+        NODE_NAME(LIST_TYPE) \
         NODE_NAME(LIST_UPDATE) \
         NODE_NAME(LT_INT) \
         NODE_NAME(LTE_INT) \
@@ -105,6 +114,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(MAP_KEY_VALUE) \
         NODE_NAME(MAP_KEY_VALUES) \
         NODE_NAME(MAP_LITERAL) \
+        NODE_NAME(MAP_TYPE) \
         NODE_NAME(MAP_UPDATE) \
         NODE_NAME(MATCH_EXPR) \
         NODE_NAME(MATCH_EXPRS) \
@@ -146,11 +156,14 @@ typedef dynarray_t node_array_t;
         NODE_NAME(REGULAR_STRING) \
         NODE_NAME(SELF) \
         NODE_NAME(SLICE_LENGTH) \
+	NODE_NAME(STRING_TYPE) \
         NODE_NAME(THIS) \
         NODE_NAME(TIMEOUT) \
         NODE_NAME(TOP_LEVEL_DEFS) \
         NODE_NAME(TRUE) \
         NODE_NAME(TUPLE_LITERAL) \
+        NODE_NAME(TUPLE_TYPE) \
+        NODE_NAME(TYPE_VARIABLE) \
         NODE_NAME(UNARY_MINUS_INT) \
         NODE_NAME(UNARY_MINUS_FLOAT) \
         NODE_NAME(UNARY_PLUS_INT) \

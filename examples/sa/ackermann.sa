@@ -1,21 +1,21 @@
-import std.satie
-import std.jobs: JobStatus, SpawnOption
-import std.channels: ChannelOption
-import std.stdio
+import Std.satie
+import Std.jobs: JobStatus, SpawnOption
+import Std.channels: ChannelOption
+import Std.stdio
 
-export fn main() {
-  ?ackermann := new Ackermann(),
+export fn main(_args) {
+  ?ackermann := Ackermann(),
   ?ackermann := ackermann.startJobs(3, 10),
   ackermann.waitForJobs()
 }
 
 class Ackermann {
-    private jobs = []
-    private resultChannel
+    private jobs is [Job] = []
+    private resultChannel is Channel
 
     this() {
-        this(resultChannel: satie.makeChannel(
-                                onCrowding: (ChannelOption#block, 4)))
+        this(resultChannel:
+                 satie.makeChannel(onCrowding: (ChannelOption#block, 4)))
     }
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {
@@ -29,7 +29,8 @@ class Ackermann {
                     }, [SpawnOption#monitor: true]),
             startJobs(m, n, i + 1, job @ startedJobs)
         } else {
-            this(jobs: startedJobs)}
+            this(jobs: startedJobs)
+        }
     }
 
     public fn waitForJobs() {
@@ -37,11 +38,11 @@ class Ackermann {
             if jobs.length > 0 {
                 receive [systemChannel, satie.systemChannel] {
                     (?job, ?m, ?n, ?result) {
-                        stdio.writeln("ackermann($m, $n) = $result"),
+                        stdio.writeln("ackermann(%m, %n) = %result"),
                         waitForJobs(jobs.delete(job))
                     }
                     (JobStatus#died, ?job, ?reason) {
-                        stdio.writeln("Oh no! Compute job $job died: $reason"),
+                        stdio.writeln("Oh no! Compute job %job died: %reason"),
                         waitForJobs(jobs.delete(job))
                     }
                 }
@@ -53,9 +54,9 @@ class Ackermann {
     }
 
     private fn ackermann(m, n) {
-        if m ==int= 0 {
+        if m =Int= 0 {
             n + 1
-        } elif n ==int= 0 {
+        } elif n !Int= 0 {
             ackermann(m - 1, 1)
         } else {
             ackermann(m - 1, ackermann(m, n - 1))

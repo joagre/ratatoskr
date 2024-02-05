@@ -1,41 +1,41 @@
-type Result(value, reason) = Ok(value) or Error(reason)
+type Result<$value, $reason> = Ok<$value> or Error<$reason>
 
 enum ErrorStatus {
    emptyQueue
 }
 
-class Queue(t) {
+class Queue<$t> {
     private queue
 
-    this(element : t) : Queue(t) {
+    this(element is $t) is Queue<$t> {
         this(queue: [element])
     }
 
-    public fn enqueue(element : t) : Queue(t)  {
+    public fn enqueue<$t>(element is $t) is Queue<$t>  {
         this(queue : queue @ [element])
     }
 
-    public fn null() : Bool {
+    public fn null() is Bool {
         queue.isEmpty()
     }
 
-    public fn hd() : Result(t, ErrorStatus) {
+    public fn hd() is Result<$t, ErrorStatus> {
         case queue {
             [] { Error(ErrorStatus#emptyQueue) }
-            [?first :: _] { Ok(first) }
+            [?first :: _] { Ok<first> }
         }
     }
 
-    public fn dequeue() : Result(QueueInterface(t), ErrorStatus) {
+    public fn dequeue() is Result<Queue<$t>, ErrorStatus> {
         case queue {
-            [] { Error(ErrorStatus#emptyQueue) }
-            [_ :: ?rest] { Ok(this(queue: rest)) }
+            [] { Error<ErrorStatus#emptyQueue> }
+            [_ :: ?rest] { Ok<this(queue: rest)> }
         }
     }
 }
 
 export fn main(_args) {
-    ?a := Queue(42),
+    ?a := Queue<int>(42),
     ?a := a.enqueue(4711),
     Ok(42) := b.hd(),
     ?b := Queue(42),

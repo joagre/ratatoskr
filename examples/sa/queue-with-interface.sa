@@ -48,5 +48,5 @@ export fn main(_args) {
     Ok(42) := b.hd(),
     ?b := Queue(42),
     ?b := a.enqueue(4711),
-    true := (a ==Queue= b)
+    true := (a =Queue= b)
 }

@@ -22,7 +22,7 @@ class TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
-        ?item := new TodoItem(description),
+        ?item := TodoItem(description),
         this(items: [tag: item] ~ items)
     }
 
@@ -39,22 +39,22 @@ class TodoList {
 export fn main() {
     fn loopUntilQuit(todoList) {
         ?input := readInput(), // implemented elsewhere
-        if input.command ==string= "add" {
+        if input.command =String= "add" {
             (?todoList, ?a) := todoList.addItem(input.tag, input.description),
             loopUntilQuit(todoList)
-        } elif input.command ==string= "complete" {
+        } elif input.command =String= "complete" {
             ?todoList := todoList.markItemCompleted(input.tag),
             loopUntilQuit(todoList)
-        } elif input.command ==string= "show" {
+        } elif input.command =String= "show" {
             todoList.displayItems(),
             loopUntilQuit(todoList)
-        } elif input.command ==string= "quit" {
+        } elif input.command =String= "quit" {
             true
         } else {
           stdio.writeln("Unknown command: $input.command"),
           loopUntilQuit(todoList)
         }
     },
-    ?todoList := new TodoList(),
+    ?todoList := TodoList(),
     loopUntilQuit(todoList)
 }

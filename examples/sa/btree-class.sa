@@ -1,0 +1,72 @@
+import Std.stdio: writeln
+
+type TreeChild<$t> = Tree<$t> or Leaf
+
+class Tree<$t> {
+    this(label is $t, left is TreeChild<$t>, right is TreeChild<$t>)
+      is Tree<$t> {
+        this(label: label, left: left, right: right)
+    }
+    public label is $t
+    public left is TreeChild<$t>
+    public right is TreeChild<$t>
+}
+
+export fn main(_args) {
+    ?tree := Tree("The",
+                  Leaf,
+                  Tree("wood",
+                       Tree("of",
+                            Tree("Birnam",
+                                 Leaf,
+                                 Leaf),
+                            Leaf),
+                       Leaf)),
+    writeln("Size: %{size(tree)}"),
+    writeln("Depth: %{depth(tree)}"),
+    writeln("Complete Tree: %{completeTree(1, 8)}"),
+    writeln("Tree Mirror: %{mirror(tree)}"),
+    writeln("Traversal: %{traverse(tree)}")
+}
+
+fn size(tree) {
+    case tree {
+        Leaf { 0 }
+        Tree(?left, ?right) { 1 + size(left) + size(right) }
+    }
+}
+
+fn depth(tree) {
+    case tree {
+        Leaf { 0 }
+        Tree(?left, ?right) { 1 + depth(left).max(depth(right)) }
+    }
+}
+
+fn completeTree(k, n) {
+    if n =Int= 0 {
+        Leaf
+    } else {
+        Tree(k, completeTree(2 * k, n - 1), completeTree(2 * k + 1, n - 1))
+    }
+}
+
+fn mirror(tree) {
+    case tree {
+        Leaf { tree }
+        Tree(?label, ?left, ?right) {
+            Tree(label, mirror(right), mirror(left))
+        }
+    }
+}
+
+fn traverse(tree) {
+    case tree {
+        Leaf { [] }
+        Tree(?label, ?left, ?right) {
+            label :: traverse(left) @ traverse(right)
+        }
+    }
+}
+
+// etc

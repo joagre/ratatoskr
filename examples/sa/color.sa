@@ -34,7 +34,7 @@ class ColorIterator implements Iterator {
 
 export fn main() {
     ?colors := [Color#red, Color#red, Color#blue, Color#green],
-    ?iterator := new ColorIterator(colors),
+    ?iterator := ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
             (?iterator, ?color) := iterator.next(),

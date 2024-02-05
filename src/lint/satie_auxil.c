@@ -83,6 +83,10 @@ void satie_auxil_add_child(ast_node_t* parent_node, ast_node_t* node) {
             free(node);
             node = child_node;
         }
+        if (parent_node->children == NULL) {
+	    parent_node->children = malloc(sizeof(node_array_t));
+	    dynarray_init(parent_node->children, NULL, 0, sizeof(ast_node_t));
+	}
         dynarray_append(parent_node->children, node);
     }
 }
