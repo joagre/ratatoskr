@@ -19,7 +19,7 @@ class Ackermann {
     }
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {
-        if i < n {
+        if i lt n {
             fn computeAckermann(m, n) {
                 ?result := ackermann(m, n),
                 resultChannel.send((self, m, n, result))
@@ -35,7 +35,7 @@ class Ackermann {
 
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
-            if jobs.length > 0 {
+            if jobs.length gt 0 {
                 receive [systemChannel, satie.systemChannel] {
                     (?job, ?m, ?n, ?result) {
                         stdio.writeln("ackermann(%m, %n) = %result"),
