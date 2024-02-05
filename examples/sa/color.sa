@@ -1,4 +1,6 @@
-import std.stdio : writeln
+import Std.stdio : writeln
+
+type Either<$t1, $t2> = Left<$t1> or Right <$t2>
 
 enum Color {
     red
@@ -6,14 +8,14 @@ enum Color {
     blue
 }
 
-interface Iterator {
-    public fn next()
-    public fn hasNext()
+interface Iterator<$t> {
+    public fn next() is Either<false, (ColorIterator<$t>, $t)>
+    public fn hasNext() is Bool
 }
 
 class ColorIterator implements Iterator {
-    private colors
-    private graffiti
+    private colors is [Color]
+    private graffiti is String
 
     this(colors) {
         this(colors: colors, graffiti: "Kilroy was here")
@@ -21,9 +23,9 @@ class ColorIterator implements Iterator {
 
     public fn next() {
         if !hasNext() {
-            false
+            Left<false>
         } else {
-            (this(colors: colors.rest()), colors.first())
+            Right<this(colors: colors.rest()), colors.first()>
         }
     }
 
@@ -38,7 +40,7 @@ export fn main() {
     fn iterate(iterator) {
         if iterator.hasNext() {
             (?iterator, ?color) := iterator.next(),
-            writeln("Color: $color"),
+            writeln("Color: %color"),
             iterate(iterator)
         } else {
             true
