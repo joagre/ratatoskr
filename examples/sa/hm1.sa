@@ -1,16 +1,20 @@
-/*
-fn foo(f) {
-    f
-}
-*/
-
-//fn foo(f, g, x) {
-fn foo(f is ([Bool] -> Bool),
-       g is ([Int] -> Int),
-       x is Int) is Int {
+fn foo(f, g, x) {
     if f(x =Int= 1) {
         g(x)
     } else {
         20
     }
 }
+
+
+
+
+
+
+
+
+/*
+fn foo(f is ([Bool] -> Bool),
+       g is ([Int] -> Int),
+       x is Int) is Int {
+*/

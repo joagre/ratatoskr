@@ -43,7 +43,7 @@ fn main() {
     c[d: 2],
     [1, 2] := a,
     ?a := a[1 = 2],
-    a[b] := 3,
+    a[b] as ?c := 3,
     ?ackermann := Ackermann(),
     ackermann := startJobs(3, 10),
     a[1],

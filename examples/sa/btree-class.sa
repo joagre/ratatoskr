@@ -3,7 +3,9 @@ import Std.stdio: writeln
 type TreeChild<$t> = Tree<$t> or Leaf
 
 class Tree<$t> {
-    this(label is $t, left is TreeChild<$t>, right is TreeChild<$t>)
+    this(label is $t,
+         left is TreeChild<$t>,
+         right is TreeChild<$t>)
       is Tree<$t> {
         this(label: label, left: left, right: right)
     }
