@@ -188,7 +188,7 @@ static void add_type_equations(ast_node_t *node, equations_t* equations) {
 	    ast_node_t* param_node = ast_get_child(params_node, i);
 	    LOG_ASSERT(param_node->name == PARAM_NAME,
 		       "Expected a PARAM_NAME node");
-	    if (ast_number_of_children(params_node) > 0) {
+	    if (ast_number_of_children(param_node) > 0) {
 		ast_node_t* arg_type_node = ast_get_child(param_node, 0);
 		type_t* arg_type = extract_type(arg_type_node);
                 // Equation: arg type (if any)

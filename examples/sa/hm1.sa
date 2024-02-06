@@ -13,6 +13,10 @@ fn foo(f, g, x) {
 
 
 
+
+
+// t0 -> ([([Bool] -> Bool), ([Int] -> Int), Int] -> Int)
+
 /*
 fn foo(f is ([Bool] -> Bool),
        g is ([Int] -> Int),
