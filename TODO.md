@@ -2,8 +2,8 @@
 
 ## Version 0.1
 
-* [x] Make sure that all examples/*.sai works
-* [ ] Dive into Hindley-Milner type inference
+* [x] Dive into Hindley-Milner type inference
+*
 * [ ] Update `README.md` to a shining condition
 * [ ] Update `SAI.md` to a shining condition
 * [ ] Implement the instructions described in `SAI.md`

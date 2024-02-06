@@ -7,7 +7,7 @@ fn foo(f) {
 //fn foo(f, g, x) {
 fn foo(f is ([Bool] -> Bool),
        g is ([Int] -> Int),
-       x is Int) is [Int : Int] {
+       x is Int) is Int {
     if f(x =Int= 1) {
         g(x)
     } else {
