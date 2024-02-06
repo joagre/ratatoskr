@@ -18,6 +18,9 @@ ast_node_t* ast_get_child(ast_node_t* node, uint32_t i) {
 }
 
 size_t ast_number_of_children(ast_node_t* node) {
+    if (node->children == NULL) {
+	return 0;
+    }
     return dynarray_size(node->children);
 }
 

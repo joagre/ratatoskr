@@ -270,7 +270,7 @@ StringType <- "String" { $$ = CT(STRING_TYPE, NULL); }
 JobType <- "Job" { $$ = CT(JOB_TYPE, NULL); }
 ChannelType <- "Channel" { $$ = CT(CHANNEL_TYPE, NULL); }
 ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); }
-AppType <- "(" _ a:ArgTypes? _ ")" _ "->" _ r:Type { $$ = CN(APP_TYPE, 2, a, r); }
+AppType <- "(" _ "[" _ a:ArgTypes? _ "]" _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, a, r); }
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")"
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); }
@@ -367,10 +367,6 @@ NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
 
 TypeDef <- "type" _ Name ("<" _ TypeVariables _ ">")? _ "=" _ TypeConstructor (_ "or" _ TypeConstructor)*
 TypeVariables <- TypeVariable (_ "," _ TypeVariable)*
-
-
-
-
 TypeConstructor <- Name ("<" _ TypeConstructorTypes _ ">")?
 TypeConstructorTypes <- Type (_ "," _ Type)*
 

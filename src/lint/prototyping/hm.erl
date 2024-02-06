@@ -1,10 +1,10 @@
 -module(hm).
--export([ex/0, hm1/0]).
+-export([ex1/0, ex2/0]).
 
 -include("lint.hrl").
 
 %% foo f g x = if f(x == 1) then g(x) else 20
-ex() ->
+ex1() ->
     Equations = [{int, int},
                  {3, int},
                  {6, bool},
@@ -26,7 +26,7 @@ ex() ->
 %%         20
 %%     }
 %% }
-hm1() ->
+ex2() ->
     {Source, Result, Node, AdornedEquations} =
         lint:start("../../../examples/sa/hm1.sa"),
     io:format("==== Source:\n~s\n", [Source]),
@@ -84,6 +84,15 @@ unify(X, Y, TypeStack, Node, Substitutions) when is_integer(X) ->
     unify_variable(X, Y, TypeStack, Node, Substitutions);
 unify(X, Y, TypeStack, Node, Substitutions) when is_integer(Y) ->
     unify_variable(Y, X, TypeStack, Node, Substitutions);
+unify({list, X}, {list, Y}, TypeStack, Node, Substitutions) ->
+    unify_args([X], [Y], TypeStack, Node, Substitutions);
+unify({tuple, Xs}, {tuple, Ys}, TypeStack, Node, Substitutions) ->
+    unify_args(Xs, Ys, TypeStack, Node, Substitutions);
+unify({map, KeyX, ValueX}, {map, KeyY, ValueY}, TypeStack, Node,
+      Substitutions) ->
+    unify_args([KeyX, ValueX], [KeyY, ValueY], TypeStack, Node, Substitutions);
+unify({constructor, Xs}, {constructor, Ys}, TypeStack, Node, Substitutions) ->
+    unify_args(Xs, Ys, TypeStack, Node, Substitutions);
 unify({ArgsX, ReturnX}, {ArgsY, ReturnY}, TypeStack, Node, Substitutions) ->
     case length(ArgsX) /= length(ArgsY) of
         true ->
@@ -176,62 +185,79 @@ format_type_stack([{X, Y}|Rest]) ->
     format_type_stack(Rest) ++
         type_to_string(X) ++ " -> " ++ type_to_string(Y) ++ "\n".
 
-prettify_type_stack(_Node, []) ->
-    [];
-prettify_type_stack(Node, [{X, Y}|Rest]) ->
-    prettify_type_stack(Node, Rest) ++
-        prettify_type(Node, X) ++ " -> " ++ prettify_type(Node, Y) ++ "\n".
-
-prettify_type(_Node, int) ->
-    "Int";
-prettify_type(_Node, bool) ->
-    "Bool";
-prettify_type(Node, TypeVariable) when is_integer(TypeVariable) ->
-    case search_by_type(Node, TypeVariable) of
-        #node{name = Name, row = Row, value = undefined} ->
-            Name ++ ":" ++ integer_to_list(Row);
-        #node{name = Name, row = Row, value = Value} ->
-            Name ++ ":" ++ integer_to_list(Row) ++ ":" ++ Value
-    end;
-prettify_type(Node, {[ArgType], ReturnType}) ->
-    "(" ++ prettify_type(Node, ArgType) ++ " -> " ++
-        prettify_type(Node, ReturnType) ++ ")";
-prettify_type(Node, {ArgTypes, ReturnType}) ->
-    "((" ++ prettify_type(Node, ArgTypes) ++ ") -> " ++
-        prettify_type(Node, ReturnType) ++ ")";
-prettify_type(_Node, []) ->
-    [];
-prettify_type(Node, [Type]) ->
-    prettify_type(Node, Type);
-prettify_type(Node, [Type|Types]) ->
-    prettify_type(Node, Type) ++ ", " ++ prettify_type(Node, Types).
-
-search_by_type(Node, Type) when Node#node.type =:= Type ->
-    Node;
-search_by_type(Node, Type) ->
-    search_children(Node#node.children, Type).
-
-search_children([], _Type) ->
-    undefined;
-search_children([Child|Rest], Type) ->
-    case search_by_type(Child, Type) of
-        undefined ->
-            search_children(Rest, Type);
-        Node ->
-            Node
-    end.
-
-type_to_string(int) ->
-    "Int";
 type_to_string(bool) ->
     "Bool";
+type_to_string(int) ->
+    "Int";
+type_to_string(float) ->
+    "Float";
+type_to_string(string) ->
+    "String";
+type_to_string(job) ->
+    "Job";
+type_to_string(channel) ->
+    "Channel";
+type_to_string({list, X}) ->
+    "[" ++ type_to_string(X) ++ "]";
+type_to_string({tuple, Xs}) ->
+    "(" ++ type_to_string(Xs) ++ ")";
+type_to_string({map, Key, Value}) ->
+    "[" ++ type_to_string(Key) ++ ": " ++ type_to_string(Value) ++ "]";
+type_to_string({constructor, Xs}) ->
+    "<" ++ type_to_string(Xs) ++ ">";
+type_to_string({ArgTypes, ReturnType}) ->
+    "(["++ type_to_string(ArgTypes) ++ "] -> " ++
+        type_to_string(ReturnType) ++ ")";
 type_to_string(TypeVariable) when is_integer(TypeVariable) ->
     "t" ++ integer_to_list(TypeVariable);
-type_to_string({ArgTypes, ReturnType}) ->
-    "(("++ type_to_string(ArgTypes) ++ ") -> " ++ type_to_string(ReturnType) ++ ")";
 type_to_string([]) ->
     "";
 type_to_string([Type]) ->
     type_to_string(Type);
 type_to_string([Type|Rest]) ->
     type_to_string(Type) ++ ", " ++ type_to_string(Rest).
+
+%% prettify_type_stack(_Node, []) ->
+%%     [];
+%% prettify_type_stack(Node, [{X, Y}|Rest]) ->
+%%     prettify_type_stack(Node, Rest) ++
+%%         prettify_type(Node, X) ++ " -> " ++ prettify_type(Node, Y) ++ "\n".
+
+%% prettify_type(_Node, int) ->
+%%     "Int";
+%% prettify_type(_Node, bool) ->
+%%     "Bool";
+%% prettify_type(Node, TypeVariable) when is_integer(TypeVariable) ->
+%%     case search_by_type(Node, TypeVariable) of
+%%         #node{name = Name, row = Row, value = undefined} ->
+%%             Name ++ ":" ++ integer_to_list(Row);
+%%         #node{name = Name, row = Row, value = Value} ->
+%%             Name ++ ":" ++ integer_to_list(Row) ++ ":" ++ Value
+%%     end;
+%% prettify_type(Node, {[ArgType], ReturnType}) ->
+%%     "(" ++ prettify_type(Node, ArgType) ++ " -> " ++
+%%         prettify_type(Node, ReturnType) ++ ")";
+%% prettify_type(Node, {ArgTypes, ReturnType}) ->
+%%     "((" ++ prettify_type(Node, ArgTypes) ++ ") -> " ++
+%%         prettify_type(Node, ReturnType) ++ ")";
+%% prettify_type(_Node, []) ->
+%%     [];
+%% prettify_type(Node, [Type]) ->
+%%     prettify_type(Node, Type);
+%% prettify_type(Node, [Type|Types]) ->
+%%     prettify_type(Node, Type) ++ ", " ++ prettify_type(Node, Types).
+
+%% search_by_type(Node, Type) when Node#node.type =:= Type ->
+%%     Node;
+%% search_by_type(Node, Type) ->
+%%     search_children(Node#node.children, Type).
+
+%% search_children([], _Type) ->
+%%     undefined;
+%% search_children([Child|Rest], Type) ->
+%%     case search_by_type(Child, Type) of
+%%         undefined ->
+%%             search_children(Rest, Type);
+%%         Node ->
+%%             Node
+%%     end.

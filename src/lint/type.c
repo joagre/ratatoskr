@@ -105,9 +105,9 @@ void type_print_type(type_t* type) {
 	    }
 	    break;
 	case TYPE_TAG_LIST_TYPE:
-	    printf("{list, [");
+	    printf("{list, ");
 	    type_print_type(type->list_type);
-	    printf("]}");
+	    printf("}");
 	    break;
 	case TYPE_TAG_APP_TYPE:
 	    printf("{");

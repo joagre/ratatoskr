@@ -63,8 +63,9 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	node->type = type;
     }
 
-    if (node->children != NULL) {
-        for (uint16_t i = 0; i < ast_number_of_children(node); i++) {
+    size_t n = ast_number_of_children(node);
+    if (n > 0) {
+        for (uint16_t i = 0; i < n; i++) {
 	    add_type_variables(ast_get_child(node, i), table);
         }
     }
@@ -127,8 +128,8 @@ static void add_type_equations(ast_node_t *node, equations_t* equations) {
 	LOG_ASSERT(positional_args_node->name == POSITIONAL_ARGS,
 		   "Expected a POSITIONAL_ARGS node");
 	types_t* arg_types = types_new();
-	for (uint16_t i = 0;
-	     i < ast_number_of_children(positional_args_node); i++) {
+	size_t n = ast_number_of_children(positional_args_node);
+	for (uint16_t i = 0; i < n; i++) {
 	    ast_node_t* arg_node = ast_get_child(positional_args_node, i);
 	    types_add(arg_types, arg_node->type);
 	}
@@ -182,11 +183,12 @@ static void add_type_equations(ast_node_t *node, equations_t* equations) {
 	LOG_ASSERT(body_node->name == BLOCK_EXPR,
 		   "Expected a BLOCK_EXPR node");
 	types_t* arg_types = types_new();
-	for (uint16_t i = 0; i < ast_number_of_children(params_node); i++) {
+	size_t n = ast_number_of_children(params_node);
+	for (uint16_t i = 0; i < n; i++) {
 	    ast_node_t* param_node = ast_get_child(params_node, i);
 	    LOG_ASSERT(param_node->name == PARAM_NAME,
 		       "Expected a PARAM_NAME node");
-	    if (param_node->children != NULL) {
+	    if (ast_number_of_children(params_node) > 0) {
 		ast_node_t* arg_type_node = ast_get_child(param_node, 0);
 		type_t* arg_type = extract_type(arg_type_node);
                 // Equation: arg type (if any)
@@ -202,7 +204,7 @@ static void add_type_equations(ast_node_t *node, equations_t* equations) {
 			 type_new_app_type(arg_types, body_node->type),
 			 node, node);
 	equations_add(equations, &function_equation);
-	if (return_type_node->children != NULL) {
+	if (ast_number_of_children(return_type_node) > 0) {
 	    ast_node_t* type_node = ast_get_child(return_type_node, 0);
 	    type_t* return_type = extract_type(type_node);
 	    // Equation: return type (if any)
@@ -213,10 +215,9 @@ static void add_type_equations(ast_node_t *node, equations_t* equations) {
 	}
     }
 
-    if (node->children != NULL) {
-        for (uint16_t i = 0; i < ast_number_of_children(node); i++) {
-	    add_type_equations(ast_get_child(node, i), equations);
-	}
+    size_t n = ast_number_of_children(node);
+    for (uint16_t i = 0; i < n; i++) {
+	add_type_equations(ast_get_child(node, i), equations);
     }
 }
 
@@ -252,6 +253,35 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    type_t* return_type = extract_type(return_type_node);
 	    return type_new_app_type(arg_types, return_type);
 	}
+	case TUPLE_TYPE: {
+	    types_t* tuple_types = types_new();
+	    for (uint16_t i = 0; i < ast_number_of_children(type_node); i++) {
+		ast_node_t* tuple_type_node = ast_get_child(type_node, i);
+		type_t* tuple_type = extract_type(tuple_type_node);
+		types_add(tuple_types, tuple_type);
+	    }
+	    return type_new_tuple_type(tuple_types);
+	}
+	case MAP_TYPE: {
+	    ast_node_t* key_type_node = ast_get_child(type_node, 0);
+	    type_t* key_type = extract_type(key_type_node);
+	    ast_node_t* value_type_node = ast_get_child(type_node, 1);
+	    type_t* value_type = extract_type(value_type_node);
+	    return type_new_map_type(key_type, value_type);
+	}
+	case CONSTRUCTOR_TYPE: {
+	    ast_node_t* name_node = ast_get_child(type_node, 0);
+	    LOG_ASSERT(name_node->name == NAME, "Expected a NAME node");
+	    types_t* types = types_new();
+	    for (uint16_t i = 1; i < ast_number_of_children(type_node); i++) {
+		ast_node_t* type_node = ast_get_child(type_node, i);
+		type_t* type = extract_type(type_node);
+		types_add(types, type);
+	    }
+	    return type_new_constructor_type(name_node->value, types);
+	}
+	case TYPE_VARIABLE:
+	    return type_new_type_variable();
 	default:
 	    LOG_ABORT("Unknown type node: %s",
 		      ast_node_name_to_string(type_node->name));
