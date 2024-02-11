@@ -39,7 +39,7 @@ ex2() ->
     io:format("==== Equations:\n"),
     lists:foreach(
       fun(#equation{type = {Left, Right}}) ->
-              io:format("~s -> ~s\n",
+              io:format("~s = ~s\n",
                         [type_to_string(Left), type_to_string(Right)])
       end, AdornedEquations),
     io:format("\n"),
@@ -205,8 +205,11 @@ type_to_string({map, Key, Value}) ->
     "[" ++ type_to_string(Key) ++ ": " ++ type_to_string(Value) ++ "]";
 type_to_string({constructor, Xs}) ->
     "<" ++ type_to_string(Xs) ++ ">";
+type_to_string({[ArgType] = ArgTypes, ReturnType}) ->
+    "(" ++ type_to_string(ArgType) ++ " -> " ++
+        type_to_string(ReturnType) ++ ")";
 type_to_string({ArgTypes, ReturnType}) ->
-    "(["++ type_to_string(ArgTypes) ++ "] -> " ++
+    "({"++ type_to_string(ArgTypes) ++ "} -> " ++
         type_to_string(ReturnType) ++ ")";
 type_to_string(TypeVariable) when is_integer(TypeVariable) ->
     "t" ++ integer_to_list(TypeVariable);

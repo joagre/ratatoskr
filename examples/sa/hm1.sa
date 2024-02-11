@@ -1,4 +1,5 @@
 fn foo(f, g, x) {
+    //?x := (?y := 2),
     if f(x =Int= 1) {
         g(x)
     } else {
@@ -15,7 +16,7 @@ fn foo(f, g, x) {
 
 
 
-// t0 -> ([([Bool] -> Bool), ([Int] -> Int), Int] -> Int)
+// t0 -> ({(Bool -> Bool), (Int -> Int), Int} -> Int)
 
 /*
 fn foo(f is ([Bool] -> Bool),

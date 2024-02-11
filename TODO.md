@@ -3,7 +3,9 @@
 ## Version 0.1
 
 * [x] Dive into Hindley-Milner type inference
-*
+      _ Add Bind operator chec
+      _ Add stack of symbol tables
+      _ Figure out if I can reset the t-counter
 * [ ] Update `README.md` to a shining condition
 * [ ] Update `SAI.md` to a shining condition
 * [ ] Implement the instructions described in `SAI.md`

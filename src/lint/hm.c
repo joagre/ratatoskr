@@ -9,11 +9,16 @@
 #include "symbol_table.h"
 
 // Forward declarations of local functions
+static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
+		     satie_error_t* error);
 static void add_type_variables(ast_node_t* node, symbol_table_t* table);
 static void add_type_equations(ast_node_t* node, equations_t* equations);
 static type_t* extract_type(ast_node_t* type_node);
 
-void hm_infer_types(ast_node_t* node) {
+bool hm_infer_types(ast_node_t* node, satie_error_t* error) {
+    if (!is_valid(NULL, node, error)) {
+	return false;
+    }
     symbol_table_t table;
     symbol_table_init(&table);
     add_type_variables(node, &table);
@@ -23,11 +28,36 @@ void hm_infer_types(ast_node_t* node) {
     equations_init(&equations);
     add_type_equations(node, &equations);
     equations_print(&equations);
+    return true;
 }
 
 //
 // Local functions
 //
+
+static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
+		     satie_error_t* error) {
+    if (node->name == BIND &&
+	parent_node != NULL && parent_node->name != BLOCK_EXPR) {
+	SET_ERROR_MESSAGE(
+	    error, COMPONENT_COMPILER,
+	    "%d: The := operator is only allowed as a top-level expression in {...} expressions",
+	    node->row);
+	return false;
+    }
+
+    size_t n = ast_number_of_children(node);
+    if (n > 0) {
+        for (uint16_t i = 0; i < n; i++) {
+	    if (!is_valid(node, ast_get_child(node, i), error)) {
+		return false;
+	    }
+	}
+    }
+
+    CLEAR_ERROR(error);
+    return true;
+}
 
 static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
     if (node->name == PROGRAM ||
@@ -36,19 +66,21 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	node->name == NON_DEFAULT_PARAMS ||
 	node->name == IF ||
 	node->name == ELSE ||
+	node->name == EQ_TYPE ||
 	node->name == POSITIONAL_ARGS) {
 	// Ignore
     } else if (node->name == NAME) {
 	node->type = symbol_table_lookup(table, node->value);
 	LOG_ASSERT(node->type != NULL, "Name '%s' is not in symbol table",
 		   node->value);
-    } else if (node->name == PARAM_NAME) {
+    } else if (node->name == PARAM_NAME || node->name == UNBOUND_NAME) {
 	type_t* type = type_new_type_variable();
 	symbol_table_insert(table, node->value, type);
 	node->type = type;
     } else if (node->name == INT ||
 	       node->name == TRUE ||
 	       node->name == FALSE ||
+	       node->name == BIND ||
 	       node->name == EQ ||
 	       node->name == IF_EXPR ||
 	       node->name == FUNCTION_DEF ||
@@ -61,6 +93,9 @@ static void add_type_variables(ast_node_t* node, symbol_table_t* table) {
 	type_t* type = type_new_type_variable();
 	symbol_table_insert(table, node->value, type);
 	node->type = type;
+    } else {
+	LOG_ASSERT(node->type != NULL, "Not handled node: %s",
+		   ast_node_name_to_string(node->name));
     }
 
     size_t n = ast_number_of_children(node);
@@ -84,6 +119,16 @@ static void add_type_equations(ast_node_t *node, equations_t* equations) {
 	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
 			 node, node);
 	equations_add(equations, &equation);
+    } else if (node->name == BIND) {
+	ast_node_t* left_node = ast_get_child(node, 0);
+	ast_node_t* right_node = ast_get_child(node, 1);
+	// Equation: eq
+	equation_t bind_left_right_equation =
+	    equation_new(left_node->type, right_node->type, node, left_node);
+	equations_add(equations, &bind_left_right_equation);
+	equation_t bind_equation =
+	    equation_new(node->type, right_node->type, node, node);
+	equations_add(equations, &bind_equation);
     } else if (node->name == EQ) {
 	// Equation: eq
 	equation_t eq_equation =
@@ -177,9 +222,13 @@ static void add_type_equations(ast_node_t *node, equations_t* equations) {
 	LOG_ASSERT(params_node->name == NON_DEFAULT_PARAMS,
 		   "Expected a NON_DEFAULT_PARAMS node");
 	ast_node_t* return_type_node = ast_get_child(node, 2);
-	LOG_ASSERT(return_type_node->name == RETURN_TYPE,
-		   "Expected a RETURN_TYPE node");
-	ast_node_t* body_node = ast_get_child(node, 3);
+	ast_node_t* body_node;
+	if (return_type_node->name == RETURN_TYPE) {
+	    body_node = ast_get_child(node, 3);
+	} else {
+	    body_node = return_type_node;
+	    return_type_node = NULL;
+	}
 	LOG_ASSERT(body_node->name == BLOCK_EXPR,
 		   "Expected a BLOCK_EXPR node");
 	types_t* arg_types = types_new();
@@ -204,7 +253,7 @@ static void add_type_equations(ast_node_t *node, equations_t* equations) {
 			 type_new_app_type(arg_types, body_node->type),
 			 node, node);
 	equations_add(equations, &function_equation);
-	if (ast_number_of_children(return_type_node) > 0) {
+	if (return_type_node != NULL) {
 	    ast_node_t* type_node = ast_get_child(return_type_node, 0);
 	    type_t* return_type = extract_type(type_node);
 	    // Equation: return type (if any)

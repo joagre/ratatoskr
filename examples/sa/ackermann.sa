@@ -9,8 +9,11 @@ export fn main(_args) {
   ackermann.waitForJobs()
 }
 
+//type FooChannel = ([Int, Float] => Channel => [Float])
+
 class Ackermann {
     private jobs is [Job] = []
+//    private resultChannel is ([Int, Float] => Channel => [Float])
     private resultChannel is Channel
 
     this() {
@@ -36,7 +39,7 @@ class Ackermann {
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
             if jobs.length gt 0 {
-                receive [systemChannel, satie.systemChannel] {
+                receive [resultChannel, satie.systemChannel] {
                     (?job, ?m, ?n, ?result) {
                         stdio.writeln("ackermann(%m, %n) = %result"),
                         waitForJobs(jobs.delete(job))

@@ -2,6 +2,7 @@
 
 %header {
     #include <stdarg.h>
+    #include <satie_error.h>
     #include "satie_auxil.h"
     #include "symbol_table.h"
     #include "hm.h"
@@ -103,7 +104,7 @@ EnumValueError <- ("," / ";") {
 # Function definition
 #
 
-FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ rt:Type _)? b:BlockExpr { $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, CN(RETURN_TYPE, 1, rt), b); }
+FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ t:Type _)? b:BlockExpr { ast_node_t* rt = NULL; if (t != NULL) { rt = CN(RETURN_TYPE, 1, t); } $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, rt, b); }
 Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
 Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d); } /
@@ -184,7 +185,7 @@ StringType <- "String" { $$ = CT(STRING_TYPE, NULL); }
 JobType <- "Job" { $$ = CT(JOB_TYPE, NULL); }
 ChannelType <- "Channel" { $$ = CT(CHANNEL_TYPE, NULL); }
 ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); }
-AppType <- "(" _ "[" _ a:ArgTypes? _ "]" _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, a, r); }
+AppType <- "(" _ a:Type? _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes _ "}" _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, a, r); }
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")"
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); }
@@ -403,12 +404,27 @@ int main() {
 #ifdef UNITTEST
     symbol_table_unit_test();
 #endif
+    /*
+     * Parse source
+     */
     satie_auxil_t* satie_auxil = satie_auxil_new();
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    hm_infer_types(program);
-    //ast_print(program, 0);
+    /*
+     * Check semantics
+     */
+    ast_print(program, 0);
+    /*
+    satie_error_t error;
+    if (!hm_infer_types(program, &error)) {
+       fprintf(stderr, "%s\n", satie_error_message);
+       return 1;
+    }
+    */
+    /*
+     * Cleanup
+     */
     satie_destroy(context);
     return 0;
 }
