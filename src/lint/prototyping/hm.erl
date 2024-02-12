@@ -34,7 +34,7 @@ ex2() ->
     %%io:format("==== Node:\n~p\n\n", [Node]),
     %%io:format("==== Adorned equations:\n~p\n\n", [AdornedEquations]),
     Equations =
-        lists:map(fun(#equation{type = Type}) ->  Type end, AdornedEquations),
+        lists:map(fun(#equation{type = Type}) -> Type end, AdornedEquations),
     %%io:format("==== Equations:\n~p\n", [Equations]),
     io:format("==== Equations:\n"),
     lists:foreach(
@@ -205,7 +205,7 @@ type_to_string({map, Key, Value}) ->
     "[" ++ type_to_string(Key) ++ ": " ++ type_to_string(Value) ++ "]";
 type_to_string({constructor, Xs}) ->
     "<" ++ type_to_string(Xs) ++ ">";
-type_to_string({[ArgType] = ArgTypes, ReturnType}) ->
+type_to_string({[ArgType], ReturnType}) ->
     "(" ++ type_to_string(ArgType) ++ " -> " ++
         type_to_string(ReturnType) ++ ")";
 type_to_string({ArgTypes, ReturnType}) ->

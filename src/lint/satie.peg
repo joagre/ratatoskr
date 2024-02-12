@@ -414,15 +414,13 @@ int main() {
     /*
      * Check semantics
      */
-    ast_print(program, 0);
-    /*
+    //ast_print(program, 0);
     satie_error_t error;
     if (!hm_infer_types(program, &error)) {
        fprintf(stderr, "%s\n", satie_error_message);
        return 1;
     }
-    */
-    /*
+        /*
      * Cleanup
      */
     satie_destroy(context);

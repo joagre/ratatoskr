@@ -15,7 +15,12 @@ start(Lint, Filename) ->
     Lines = string:split(Result, "\n", all),
     {Tree, Equations} = split_parts(Lines),
     {[Node], []} = parse_tree(Tree, 0),
-    {Source, Result, Node, parse_equations(Equations)}.
+    SortedEquations =
+        lists:sort(fun(#equation{user_defined = X},
+                       #equation{user_defined = Y}) ->
+                           X > Y
+                   end, parse_equations(Equations)),
+    {Source, Result, Node, SortedEquations}.
 
 split_parts(Lines) ->
     split_parts(Lines, []).
@@ -69,13 +74,14 @@ calc_indent(_, N) -> N.
 parse_equations([""]) ->
     [];
 parse_equations([Line|Rest]) ->
-    [OriginNodeName, OriginRow, Row, Value, Type] =
+    [OriginNodeName, OriginRow, Row, UserDefined, Value, Type] =
         string:split(Line, ":", all),
     [#equation{origin_node_name = OriginNodeName,
                origin_row = list_to_integer(OriginRow),
                row = list_to_integer(Row),
                value = Value,
-               type = parse_type(Type)}|
+               type = parse_type(Type),
+               user_defined = parse_user_defined(UserDefined)}|
      parse_equations(Rest)].
 
 parse_type(Line) ->
@@ -84,3 +90,6 @@ parse_type(Line) ->
     [Expr] = Parsed,
     {value, Result, _} = erl_eval:exprs([Expr], erl_eval:new_bindings()),
     Result.
+
+parse_user_defined("0") -> false;
+parse_user_defined("1") -> true.

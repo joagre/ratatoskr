@@ -13,7 +13,8 @@
                    origin_row,
                    row,
                    value,
-                   type
+                   type,
+                   user_defined
                   }).
 
 -endif.
