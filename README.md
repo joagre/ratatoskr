@@ -35,7 +35,7 @@ export fn main(args) {
 }
 
 fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
-    if n lt numberOfTributes {
+    if n <Int< numberOfTributes {
         ?job := satie.spawn(fn () {
                     ?message := receive channel,
                     writeln("$n: $message")
@@ -1286,8 +1286,11 @@ export fn main(_args) {
   ackermann.waitForJobs()
 }
 
+//type FooChannel = ([Int, Float] => Channel => [Float])
+
 class Ackermann {
     private jobs is [Job] = []
+//    private resultChannel is ([Int, Float] => Channel => [Float])
     private resultChannel is Channel
 
     this() {
@@ -1296,7 +1299,7 @@ class Ackermann {
     }
 
     public fn startJobs(m, n, i = 0, startedJobs = []) {
-        if i lt n {
+        if i <Int< n {
             fn computeAckermann(m, n) {
                 ?result := ackermann(m, n),
                 resultChannel.send((self, m, n, result))
@@ -1312,8 +1315,8 @@ class Ackermann {
 
     public fn waitForJobs() {
         fn waitForJobs(jobs) {
-            if jobs.length gt 0 {
-                receive [systemChannel, satie.systemChannel] {
+            if jobs.length >Int> 0 {
+                receive [resultChannel, satie.systemChannel] {
                     (?job, ?m, ?n, ?result) {
                         stdio.writeln("ackermann(%m, %n) = %result"),
                         waitForJobs(jobs.delete(job))
@@ -1461,6 +1464,7 @@ Operators in decreasing order of precedence:
 
 %header {
     #include <stdarg.h>
+    #include <satie_error.h>
     #include "satie_auxil.h"
     #include "symbol_table.h"
     #include "hm.h"
@@ -1562,7 +1566,7 @@ EnumValueError <- ("," / ";") {
 # Function definition
 #
 
-FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ rt:Type _)? b:BlockExpr { $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, CN(RETURN_TYPE, 1, rt), b); }
+FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ t:Type _)? b:BlockExpr { ast_node_t* rt = NULL; if (t != NULL) { rt = CN(RETURN_TYPE, 1, t); } $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, rt, b); }
 Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
 Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d); } /
@@ -1643,7 +1647,7 @@ StringType <- "String" { $$ = CT(STRING_TYPE, NULL); }
 JobType <- "Job" { $$ = CT(JOB_TYPE, NULL); }
 ChannelType <- "Channel" { $$ = CT(CHANNEL_TYPE, NULL); }
 ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); }
-AppType <- "(" _ "[" _ a:ArgTypes? _ "]" _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, a, r); }
+AppType <- "(" _ a:Type? _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes _ "}" _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, a, r); }
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")"
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); }
@@ -1661,19 +1665,19 @@ LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
 BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
 BitwiseOrExpr <- l:BitwiseOrExpr _ "|" _ r:GTEIntExpr { $$ = CN(BITWISE_OR, 2, l, r); } / e:GTEIntExpr { $$ = e; }
-GTEIntExpr <- l:GTEIntExpr __ "gte" __ r:GTEFloatExpr { $$ = CN(GTE_INT, 2, l, r); } / e:GTEFloatExpr { $$ = e; }
-GTEFloatExpr <- l:GTEFloatExpr __ "fgte" __ r:GTIntExpr { $$ = CN(GTE_FLOAT, 2, l, r); } / e:GTIntExpr { $$ = e; }
-GTIntExpr <- l:GTIntExpr __ "gt" __ r:GTFloatExpr { $$ = CN(GT_INT, 2, l, r); } / e:GTFloatExpr { $$ = e; }
-GTFloatExpr <- l:GTFloatExpr __ "fgt" __ r:LTEIntExpr { $$ = CN(GT_FLOAT, 2, l, r); } / e:LTEIntExpr { $$ = e; }
-LTEIntExpr <- l:LTEIntExpr __ "lte" __ r:LTEFloatExpr { $$ = CN(LTE_INT, 2, l, r); } / e:LTEFloatExpr { $$ = e; }
-LTEFloatExpr <- l:LTEFloatExpr __ "flte" __ r:LTIntExpr { $$ = CN(LTE_FLOAT, 2, l, r); } / e:LTIntExpr { $$ = e; }
-LTIntExpr <- l:LTIntExpr __ "lt" __ r:LTFloatExpr { $$ = CN(LT_INT, 2, l, r); } / e:LTFloatExpr { $$ = e; }
-LTFloatExpr <- l:LTFloatExpr __ "flt" __ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l, r); } / e:NotEqualExpr { $$ = e; }
+GTEIntExpr <- l:GTEIntExpr __ ">Int=" __ r:GTEFloatExpr { $$ = CN(GTE_INT, 2, l, r); } / e:GTEFloatExpr { $$ = e; }
+GTEFloatExpr <- l:GTEFloatExpr __ ">Float=" __ r:GTIntExpr { $$ = CN(GTE_FLOAT, 2, l, r); } / e:GTIntExpr { $$ = e; }
+GTIntExpr <- l:GTIntExpr __ ">Int>" __ r:GTFloatExpr { $$ = CN(GT_INT, 2, l, r); } / e:GTFloatExpr { $$ = e; }
+GTFloatExpr <- l:GTFloatExpr __ ">Float>" __ r:LTEIntExpr { $$ = CN(GT_FLOAT, 2, l, r); } / e:LTEIntExpr { $$ = e; }
+LTEIntExpr <- l:LTEIntExpr __ "<Int=" __ r:LTEFloatExpr { $$ = CN(LTE_INT, 2, l, r); } / e:LTEFloatExpr { $$ = e; }
+LTEFloatExpr <- l:LTEFloatExpr __ "<Float=" __ r:LTIntExpr { $$ = CN(LTE_FLOAT, 2, l, r); } / e:LTIntExpr { $$ = e; }
+LTIntExpr <- l:LTIntExpr __ "<Int<" __ r:LTFloatExpr { $$ = CN(LT_INT, 2, l, r); } / e:LTFloatExpr { $$ = e; }
+LTFloatExpr <- l:LTFloatExpr __ "<Float<" __ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l, r); } / e:NotEqualExpr { $$ = e; }
 NotEqualExpr <- l:NotEqualExpr _ "!" t:Name "=" _ r:EqualExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualExpr { $$ = e; }
 EqualExpr <- l:EqualExpr _ "=" t:Name "=" _ r:InExpr { $$ = CN(EQ, 3, l, RN(t, EQ_TYPE), r); } / e:InExpr { $$ = e; }
 InExpr <- l:InExpr _ "in" _ e:RightShiftExpr { $$ = CN(IN, 2, l, e); } / e:RightShiftExpr { $$ = e; }
-RightShiftExpr <- l:RightShiftExpr __ "bsr" __ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
-LeftShiftExpr <- l:LeftShiftExpr __ "bsl" __ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
+RightShiftExpr <- l:RightShiftExpr __ ">>" __ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
+LeftShiftExpr <- l:LeftShiftExpr __ "<<" __ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
 ConsExpr <- l:ConsExpr _ "::" _ r:ListConcatExpr { $$ = CN(CONS, 2, l, r); } / e:ListConcatExpr { $$ = e; }
 ListConcatExpr <- l:ListConcatExpr _ "@" _ r:MapConcatExpr { $$ = CN(CONCAT_LIST, 2, l, r); } / e:MapConcatExpr { $$ = e; }
 MapConcatExpr <- l:MapConcatExpr _ "~" _ r:StringConcatExpr { $$ = CN(CONCAT_MAP, 2, l, r); } / e:StringConcatExpr { $$ = e; }
@@ -1862,12 +1866,27 @@ int main() {
 #ifdef UNITTEST
     symbol_table_unit_test();
 #endif
+    /*
+     * Parse source
+     */
     satie_auxil_t* satie_auxil = satie_auxil_new();
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    //hm_infer_types(program);
+    /*
+     * Check semantics
+     */
     ast_print(program, 0);
+    /*
+    satie_error_t error;
+    if (!hm_infer_types(program, &error)) {
+       fprintf(stderr, "%s\n", satie_error_message);
+       return 1;
+    }
+    */
+    /*
+     * Cleanup
+     */
     satie_destroy(context);
     return 0;
 }

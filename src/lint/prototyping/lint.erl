@@ -11,16 +11,20 @@ start(Filename) ->
 
 start(Lint, Filename) ->
     Source = os:cmd("cat -n " ++ Filename),
-    Result = os:cmd(Lint ++ " < " ++ Filename),
-    Lines = string:split(Result, "\n", all),
-    {Tree, Equations} = split_parts(Lines),
-    {[Node], []} = parse_tree(Tree, 0),
-    SortedEquations =
-        lists:sort(fun(#equation{user_defined = X},
-                       #equation{user_defined = Y}) ->
-                           X > Y
-                   end, parse_equations(Equations)),
-    {Source, Result, Node, SortedEquations}.
+    case os:cmd(Lint ++ " < " ++ Filename) of
+        "Error: " ++ Reason ->
+            {error, Reason};
+        Result ->
+            Lines = string:split(Result, "\n", all),
+            {Tree, Equations} = split_parts(Lines),
+            {[Node], []} = parse_tree(Tree, 0),
+            SortedEquations =
+                lists:sort(fun(#equation{user_defined = X},
+                               #equation{user_defined = Y}) ->
+                                   X > Y
+                           end, parse_equations(Equations)),
+            {Source, Result, Node, SortedEquations}
+    end.
 
 split_parts(Lines) ->
     split_parts(Lines, []).

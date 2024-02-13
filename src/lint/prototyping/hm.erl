@@ -27,8 +27,14 @@ ex1() ->
 %%     }
 %% }
 ex2() ->
-    {Source, Result, Node, AdornedEquations} =
-        lint:start("../../../examples/sa/hm1.sa"),
+    case lint:start("../../../examples/sa/hm1.sa") of
+        {error, Reason} ->
+            Reason;
+        Result ->
+            ex2(Result)
+    end.
+
+ex2({Source, Result, Node, AdornedEquations}) ->
     io:format("==== Source:\n~s\n", [Source]),
     io:format("==== Lint output:\n~s\n", [Result]),
     %%io:format("==== Node:\n~p\n\n", [Node]),

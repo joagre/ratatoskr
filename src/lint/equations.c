@@ -11,8 +11,6 @@ void equations_add(equations_t* equations, equation_t* equation) {
     dynarray_append(equations, equation);
 }
 
-
-
 equation_t* equations_lookup(equations_t* equations, size_t i) {
     return dynarray_element(equations, i);
 }

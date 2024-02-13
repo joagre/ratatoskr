@@ -59,6 +59,8 @@ void ast_print(ast_node_t* node, uint16_t level) {
 	    }
 	} else if (node->type->tag == TYPE_TAG_TYPE_VARIABLE) {
 	    printf("%*st%d\n", indent, "", node->type->type_variable);
+	} else {
+	    assert(false);
 	}
     } else {
 	printf("\n");

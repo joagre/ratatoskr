@@ -1,8 +1,10 @@
-fn foo(f, g, x is Int) is Int {
+fn foo(f, g is (Int -> Int), x is Int) {
     //?x := (?y := 2),
     if f(x =Int= 1) {
+        ?d := 1,
         g(x)
     } else {
+        //d := 1,
         20
     }
 }
@@ -19,6 +21,22 @@ fn foo(f, g, x is Int) is Int {
 // t0 -> ({(Bool -> Bool), (Int -> Int), Int} -> Int)
 
 /*
+function def + lambda
+bind (new symbol table)
+
+blck exprs delimits scope popping
+
+if true {
+  (?a, ?d) := (1, 4),
+  foo()
+  ?b := a + 1
+} else {
+  2
+
+when going into a block expr, give it a unique id
+when going out
+
+
 fn foo(f is ([Bool] -> Bool),
        g is ([Int] -> Int),
        x is Int) is Int {
