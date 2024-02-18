@@ -14,7 +14,7 @@ typedef dynarray_t node_array_t;
 #define FOREACH_NODE_NAME(NODE_NAME) \
         NODE_NAME(ALIAS_DEF) \
 	NODE_NAME(AND) \
-        NODE_NAME(APP_TYPE) \
+        NODE_NAME(FUNCTION_TYPE) \
         NODE_NAME(ARG_TYPES) \
         NODE_NAME(ARGS) \
         NODE_NAME(BIND) \

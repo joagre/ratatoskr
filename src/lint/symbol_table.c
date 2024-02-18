@@ -84,8 +84,8 @@ void symbol_table_print(symbol_table_t* table) {
 	    case TYPE_TAG_TYPE_VARIABLE:
 		printf("t%d\n", type->type_variable);
 		break;
-	    case TYPE_TAG_APP_TYPE:
-		printf("App\n");
+	    case TYPE_TAG_FUNCTION_TYPE:
+		printf("Function\n");
 		break;
 	    default:
 		assert(false);

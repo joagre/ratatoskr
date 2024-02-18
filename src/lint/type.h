@@ -8,12 +8,11 @@ typedef dynarray_t types_t;
 typedef enum {
     TYPE_TAG_BASIC_TYPE,
     TYPE_TAG_LIST_TYPE,
-    TYPE_TAG_APP_TYPE,
+    TYPE_TAG_FUNCTION_TYPE,
     TYPE_TAG_TUPLE_TYPE,
     TYPE_TAG_MAP_TYPE,
     TYPE_TAG_CONSTRUCTOR_TYPE,
-    TYPE_TAG_TYPE_VARIABLE,
-
+    TYPE_TAG_TYPE_VARIABLE
 } type_tag_t;
 
 typedef enum {
@@ -35,7 +34,7 @@ typedef struct type {
 	struct {
 	    types_t* arg_types;
 	    struct type* return_type;
-	} app_type;
+	} function_type;
 	types_t* tuple_types;
 	struct {
 	    struct type* key_type;
@@ -51,7 +50,7 @@ typedef struct type {
 
 type_t* type_new_basic_type(type_basic_type_t basic_type);
 type_t* type_new_list_type(type_t* list_type);
-type_t* type_new_app_type(types_t* arg_types, type_t* return_type);
+type_t* type_new_function_type(types_t* arg_types, type_t* return_type);
 type_t* type_new_tuple_type(types_t* tuple_types);
 type_t* type_new_map_type(type_t* key_type, type_t* value_type);
 type_t* type_new_constructor_type(char* name, types_t* types);

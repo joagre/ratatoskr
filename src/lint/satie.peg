@@ -176,7 +176,7 @@ Readonly <- "readonly" { $$ = CT(READONLY, NULL); }
 #
 
 Types <- t:Type { $$ = CN(TYPES, 1, t); } (_ "," _ t:Type { AC($$, t); })*
-Type <- (t:BasicType / t:ListType / t:AppType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable) { $$ = t; }
+Type <- (t:BasicType / t:ListType / t:FunctionType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable) { $$ = t; }
 BasicType <- (b:BoolType / b:IntType / b:FloatType / b:StringType / b:JobType / b:ChannelType) { $$ = b;}
 BoolType <- "Bool" { $$ = CT(BOOL_TYPE, NULL); }
 IntType <- "Int" { $$ = CT(INT_TYPE, NULL); }
@@ -185,7 +185,7 @@ StringType <- "String" { $$ = CT(STRING_TYPE, NULL); }
 JobType <- "Job" { $$ = CT(JOB_TYPE, NULL); }
 ChannelType <- "Channel" { $$ = CT(CHANNEL_TYPE, NULL); }
 ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); }
-AppType <- "(" _ a:Type? _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes _ "}" _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, a, r); }
+FunctionType <- "(" _ a:Type? _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes _ "}" _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, a, r); }
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")"
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); }

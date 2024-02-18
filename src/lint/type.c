@@ -21,11 +21,11 @@ type_t* type_new_list_type(type_t* list_type) {
     return type;
 }
 
-type_t* type_new_app_type(types_t* arg_types, type_t* return_type) {
+type_t* type_new_function_type(types_t* arg_types, type_t* return_type) {
     type_t* type = malloc(sizeof(type_t));
-    type->tag = TYPE_TAG_APP_TYPE;
-    type->app_type.arg_types = arg_types;
-    type->app_type.return_type = return_type;
+    type->tag = TYPE_TAG_FUNCTION_TYPE;
+    type->function_type.arg_types = arg_types;
+    type->function_type.return_type = return_type;
     return type;
 }
 
@@ -109,19 +109,19 @@ void type_print_type(type_t* type) {
 	    type_print_type(type->list_type);
 	    printf("}");
 	    break;
-	case TYPE_TAG_APP_TYPE:
+	case TYPE_TAG_FUNCTION_TYPE:
 	    printf("{");
 	    printf("[");
-	    for (size_t i = 0; i < type->app_type.arg_types->size; i++) {
+	    for (size_t i = 0; i < type->function_type.arg_types->size; i++) {
 		type_t* arg_type =
-		    types_lookup(type->app_type.arg_types, i);
+		    types_lookup(type->function_type.arg_types, i);
 		type_print_type(arg_type);
-		if (i < type->app_type.arg_types->size - 1) {
+		if (i < type->function_type.arg_types->size - 1) {
 		    printf(", ");
 		}
 	    }
 	    printf("], ");
-	    type_print_type(type->app_type.return_type);
+	    type_print_type(type->function_type.return_type);
 	    printf("}");
 	    break;
 	case TYPE_TAG_TUPLE_TYPE:
@@ -159,6 +159,7 @@ void type_print_type(type_t* type) {
 	    printf("%d", type->type_variable);
 	    break;
 	default:
+	    printf("default\n");
 	    assert(false);
     }
 }
