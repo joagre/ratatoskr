@@ -235,22 +235,23 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 
 static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 			       equations_t* equations) {
-    if(node->name == FUNCTION_TYPE ||
-       node->name == ARG_TYPES ||
-       node->name == BOOL_TYPE ||
-       node->name == ELSE ||
-       node->name == EQ_TYPE ||
-       node->name == FUNCTION_CALL ||
-       node->name == FUNCTION_NAME ||
-       node->name == IF ||
-       node->name == INT_TYPE ||
-       node->name == NON_DEFAULT_PARAMS ||
-       node->name == NAME ||
-       node->name == PARAM_NAME ||
-       node->name == POSITIONAL_ARGS ||
-       node->name == PROGRAM ||
-       node->name == RETURN_TYPE ||
-       node->name == TOP_LEVEL_DEFS) {
+    if (node->name == FUNCTION_TYPE ||
+	node->name == ARG_TYPES ||
+	node->name == BOOL_TYPE ||
+	node->name == ELSE ||
+	node->name == EQ_TYPE ||
+	node->name == FUNCTION_CALL ||
+	node->name == FUNCTION_NAME ||
+	node->name == IF ||
+	node->name == INT_TYPE ||
+	node->name == NON_DEFAULT_PARAMS ||
+	node->name == NAME ||
+	node->name == PARAM_NAME ||
+	node->name == POSITIONAL_ARGS ||
+	node->name == PROGRAM ||
+	node->name == RETURN_TYPE ||
+	node->name == TOP_LEVEL_DEFS ||
+	node->name == UNBOUND_NAME) {
 	// These nodes do not produce any equations
     } else if (node->name == INT) {
 	// Equation: Int constant

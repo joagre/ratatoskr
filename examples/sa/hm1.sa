@@ -1,4 +1,4 @@
-fn foo(f is (Bool -> Bool), g is (Int -> Int), x is Int) is Int {
+fn foo(f is (Bool -> Bool), g, x) {
     if f(x =Int= 1) {
         g(x),
         baz(1)
@@ -7,8 +7,9 @@ fn foo(f is (Bool -> Bool), g is (Int -> Int), x is Int) is Int {
     }
 }
 
-fn baz(z is Int) {
-    1
+fn baz(z) {
+    (z, ?a) := (1, true),
+    a
 }
 
 

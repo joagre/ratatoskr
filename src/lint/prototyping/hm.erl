@@ -93,7 +93,12 @@ unify(X, Y, TypeStack, Node, Substitutions) when is_integer(Y) ->
 unify({list, X}, {list, Y}, TypeStack, Node, Substitutions) ->
     unify_args([X], [Y], TypeStack, Node, Substitutions);
 unify({tuple, Xs}, {tuple, Ys}, TypeStack, Node, Substitutions) ->
-    unify_args(Xs, Ys, TypeStack, Node, Substitutions);
+    case length(Xs) /= length(Ys) of
+        true ->
+            {mismatch, TypeStack};
+        false ->
+            unify_args(Xs, Ys, TypeStack, Node, Substitutions)
+    end;
 unify({map, KeyX, ValueX}, {map, KeyY, ValueY}, TypeStack, Node,
       Substitutions) ->
     unify_args([KeyX, ValueX], [KeyY, ValueY], TypeStack, Node, Substitutions);
@@ -177,6 +182,10 @@ dereference(_Substitutions, BaseType) when is_atom(BaseType) ->
     BaseType;
 dereference(Substitutions, Variable) when is_integer(Variable) ->
     dereference(Substitutions, maps:get(Variable, Substitutions));
+dereference(Substitutions, {tuple, Xs}) ->
+    {tuple, lists:map(fun(Type) -> dereference(Substitutions, Type) end, Xs)};
+dereference(Substitutions, {list, X}) ->
+    {list, dereference(Substitutions, X)};
 dereference(Substitutions, {ArgTypes, ReturnType}) ->
     {lists:map(fun(Type) -> dereference(Substitutions, Type) end, ArgTypes),
      dereference(Substitutions, ReturnType)}.

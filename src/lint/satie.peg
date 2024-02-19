@@ -411,15 +411,17 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    //ast_print(program, 0);
+    ast_print(program, 0);
     /*
      * Check semantics
      */
+   /*
     satie_error_t error;
     if (!hm_infer_types(program, &error)) {
        fprintf(stderr, "Error: %s\n", satie_error_message);
        return 1;
     }
+    */
     /*
      * Cleanup
      */

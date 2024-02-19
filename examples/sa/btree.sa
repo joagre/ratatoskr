@@ -24,7 +24,7 @@ fn size(tree) {
         Leaf {
             0
         }
-        Branch(_, ?left, ?right) {
+        Branch<_, ?left, ?right> {
             1 + size(left) + size(right)
         }
     }
@@ -35,7 +35,7 @@ fn depth(tree) {
         Leaf {
             0
         }
-        Branch(_, ?left, ?right) {
+        Branch<_, ?left, ?right> {
             1 + depth(left).max(depth(right))
         }
     }
@@ -45,7 +45,7 @@ fn completeTree(k, n) {
     if n =Int= 0 {
         Leaf
     } else {
-        Branch(k, completeTree(2 * k, n - 1), completeTree(2 * k + 1, n - 1))
+        Branch<k, completeTree(2 * k, n - 1), completeTree(2 * k + 1, n - 1)>
     }
 }
 
@@ -54,8 +54,8 @@ fn mirror(tree) {
         Leaf {
             tree
         }
-        Branch(?label, ?left, ?right) {
-            Branch(label, mirror(right), mirror(left))
+        Branch<?label, ?left, ?right> {
+            Branch<label, mirror(right), mirror(left)>
         }
     }
 }
@@ -65,7 +65,7 @@ fn traverse(tree) {
         Leaf {
             []
         }
-        Branch(?label, ?left, ?right) {
+        Branch<?label, ?left, ?right> {
             label :: traverse(left) @ traverse(right)
         }
     }
