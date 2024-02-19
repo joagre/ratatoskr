@@ -1,17 +1,21 @@
 import Std.stdio: writeln
 
-type Tree<$label> = Leaf or Branch<$label, Tree<$label>, Tree<$label>>
+type Tree<$label> = Leaf<> or Branch<$label, Tree<$label>, Tree<$label>>
 
 export fn main(_args) {
     ?tree := Branch<"The",
-                    Leaf,
+                    Leaf<>,
                     Branch<"wood",
                            Branch<"of",
                                   Branch<"Birnam",
-                                         Leaf,
-                                         Leaf>,
-                                  Leaf>,
-                           Leaf>>,
+                                         Leaf<>,
+                                         Leaf<>
+                                        >,
+                                  Leaf<>
+                                 >,
+                           Leaf<>
+                          >
+                   >,
     writeln("Size: %{size(tree)}"),
     writeln("Depth: %{depth(tree)}"),
     writeln("Complete Tree: %{completeTree(1, 8)}"),
@@ -21,7 +25,7 @@ export fn main(_args) {
 
 fn size(tree) {
     case tree {
-        Leaf {
+        Leaf<> {
             0
         }
         Branch<_, ?left, ?right> {
@@ -32,7 +36,7 @@ fn size(tree) {
 
 fn depth(tree) {
     case tree {
-        Leaf {
+        Leaf<> {
             0
         }
         Branch<_, ?left, ?right> {
@@ -43,7 +47,7 @@ fn depth(tree) {
 
 fn completeTree(k, n) {
     if n =Int= 0 {
-        Leaf
+        Leaf<>
     } else {
         Branch<k, completeTree(2 * k, n - 1), completeTree(2 * k + 1, n - 1)>
     }
@@ -51,7 +55,7 @@ fn completeTree(k, n) {
 
 fn mirror(tree) {
     case tree {
-        Leaf {
+        Leaf<> {
             tree
         }
         Branch<?label, ?left, ?right> {
@@ -62,7 +66,7 @@ fn mirror(tree) {
 
 fn traverse(tree) {
     case tree {
-        Leaf {
+        Leaf<> {
             []
         }
         Branch<?label, ?left, ?right> {

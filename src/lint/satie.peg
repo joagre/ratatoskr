@@ -85,7 +85,7 @@ AliasDef <- "alias" _ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ t:Type { $$
 
 TypeDef <- "type" _ n:Name ("<" _ t:TypeVariables _ ">")? _ "=" _ tc:TypeConstructors { $$ = CN(TYPE_DEF, 3, n, t, tc); }
 TypeConstructors <- t:TypeConstructor { $$ = CN(TYPE_CONSTRUCTORS, 1, t); } (_ "or" _ t:TypeConstructor { AC($$, t); })*
-TypeConstructor <- n:Name ("<" _ t:Types _ ">")? { $$ = CN(TYPE_CONSTRUCTOR, 2, n, t); }
+TypeConstructor <- n:Name "<" _ t:Types? _ ">" { $$ = CN(TYPE_CONSTRUCTOR, 2, n, t); }
 
 #
 # Enumeration definition
@@ -158,6 +158,9 @@ ClassDef <- "class" __ cn:ClassName ("<" _ t:TypeVariables _ ">")? _ ( "implemen
 ClassName <- Identifier { $$ = CT(CLASS_NAME, $0); }
 Interfaces <- i:Interface { $$ = CN(INTERFACES, 1, i); } (_ "," _ i:Interface { AC($$, i); })*
 Interface <- n:Name ("<" _ t:Types _ ">")? { $$ = CN(INTERFACE, 2, n, t); }
+
+
+
 ClassMembers <- c:ClassMember { $$ = CN(CLASS_MEMBERS, 1, c); } (_ c:ClassMember { AC($$, c); } / ClassMemberError)*
 ClassMember <- (c:Constructor / c:Destructor / c:MemberMethod / c:MemberProperty) { $$ = c; }
 Constructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(CLASS_CONSTRUCTOR, 3, p, t, b); }
@@ -176,7 +179,7 @@ Readonly <- "readonly" { $$ = CT(READONLY, NULL); }
 #
 
 Types <- t:Type { $$ = CN(TYPES, 1, t); } (_ "," _ t:Type { AC($$, t); })*
-Type <- (t:BasicType / t:ListType / t:FunctionType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable) { $$ = t; }
+Type <- (t:BasicType / t:ListType / t:FunctionType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable / t:Name) { $$ = t; }
 BasicType <- (b:BoolType / b:IntType / b:FloatType / b:StringType / b:JobType / b:ChannelType) { $$ = b;}
 BoolType <- "Bool" { $$ = CT(BOOL_TYPE, NULL); }
 IntType <- "Int" { $$ = CT(INT_TYPE, NULL); }
@@ -189,7 +192,7 @@ FunctionType <- "(" _ a:Type? _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, 
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")"
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); }
-ConstructorType <- n:Name ("<" _ t:Types _ ">")? { $$ = CN(CONSTRUCTOR_TYPE, 2, n, t); }
+ConstructorType <- n:Name "<" _ t:Types? _ ">" { $$ = CN(CONSTRUCTOR_TYPE, 2, n, t); }
 TypeVariables <- t:TypeVariable {$$ = CN(TYPE_VARIABLES, 1, t); } (_ "," _ t:TypeVariable { AC($$, t); })*
 TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 
@@ -241,7 +244,7 @@ PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX_EXPR, 1, p); }
                  _ "[" _ i:IndexValues _ "]" { AC($$, CN(LIST_UPDATE, 1, i)); } /
                  _ "[" _ m:MapKeyValues _ "]" { AC($$, CN(MAP_UPDATE, 1, m)); } /
                  _ "[" _ e:Expr _ "]" { AC($$, CN(LIST_LOOKUP, 1, e)); } /
-                 _ ("<" _ e:Expr _ ">")? "(" _ a:Args? _ ")" { AC($$, CN(FUNCTION_CALL, 2, e, a)); })*)
+                 _ ("<" _ e:Exprs? _ ">")? "(" _ a:Args? _ ")" { AC($$, CN(FUNCTION_CALL, 2, e, a)); })*)
 
 IndexValues <- i:IndexValue { $$ = CN(INDEX_VALUES, 1, i); } (_ "," _ i:IndexValue { AC($$, i); })*
 IndexValue <- i:Int _ "=" _ v:Expr { $$ = CN(INDEX_VALUE, 2, i, v); }
@@ -334,7 +337,7 @@ MapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyValues? _ "]
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
 MapKeyValue <- (k:Literal / k:Name) _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
-TypeConstructorLiteral <- n:Name "<" _ e:Exprs _ ">" { $$ = CN(TYPE_CONSTRUCTOR_LITERAL, 2, n, e); }
+TypeConstructorLiteral <- n:Name "<" _ e:Exprs? _ ">" { $$ = CN(TYPE_CONSTRUCTOR_LITERAL, 2, n, e); }
 
 #
 # Match expression
@@ -374,7 +377,7 @@ MatchClassLiteral <- n:Name _ "(" _ m:NamedMatchArgs _ ")" { $$ = CN(MATCH_CLASS
 NamedMatchArgs <- n:NamedMatchArg { $$ = CN(NAMED_MATCH_ARGS, 1, n); } (_ "," _ n:NamedMatchArg { AC($$, n); })*
 NamedMatchArg <- u:UnboundName { $$ = CN(NAMED_MATCH_ARG, 1, u); } / n:Name _ ":" _ r:MatchExpr { $$ = CN(NAMED_MATCH_ARG, 2, n, r); }
 
-MatchTypeConstructorLiteral <- n:Name "<" _ m:MatchExprs _ ">" { $$ = CN(MATCH_TYPE_CONSTRUCTOR_LITERAL, 2, n, m); }
+MatchTypeConstructorLiteral <- n:Name "<" _ m:MatchExprs? _ ">" { $$ = CN(MATCH_TYPE_CONSTRUCTOR_LITERAL, 2, n, m); }
 
 #
 # Misc
@@ -411,15 +414,17 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    //ast_print(program, 0);
+    ast_print(program, 0);
     /*
      * Check semantics
      */
+    /*
     satie_error_t error;
     if (!hm_infer_types(program, &error)) {
        fprintf(stderr, "Error: %s\n", satie_error_message);
        return 1;
     }
+    */
     /*
      * Cleanup
      */

@@ -2,7 +2,20 @@ fn zap() {
    ?a := 1.9,
    a >Float> 2.0
    //1.3 =Float= 1.0
+
+/*
+   ?b is [Int: Int] := [1: 2],
+   case 1 in b {
+       None<> {
+           42
+       }
+       Some<?value> {
+           value
+       }
+   }
+*/
 }
+
 /*
 fn foo(f is (Bool -> Bool), g, x) {
     if f(x =Int= 1) {

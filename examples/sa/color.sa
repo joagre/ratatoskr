@@ -9,7 +9,7 @@ enum Color {
 }
 
 interface Iterator<$t> {
-    public fn next() is Either<false, (Iterator<$t>, $t)>
+    public fn next() is Either<Bool, (Iterator<$t>, $t)>
     public fn hasNext() is Bool
 }
 
