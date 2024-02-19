@@ -20,6 +20,7 @@ static void add_type_equations(ast_node_t* node, symbol_tables_t* tables,
 			       equations_t* equations);
 static void add_return_type_equations(ast_node_t *node, symbol_tables_t* tables,
 				      equations_t* equations);
+static operator_types_t get_operator_types(node_name_t name);
 static type_t* extract_type(ast_node_t* type_node);
 static uint32_t unique_id(void);
 
@@ -133,12 +134,14 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == GT_INT ||
 	       node->name == GT_FLOAT ||
 	       node->name == IF_EXPR ||
+	       node->name == FLOAT ||
 	       node->name == IN ||
 	       node->name == INT ||
 	       node->name == LTE_INT ||
 	       node->name == LTE_FLOAT ||
 	       node->name == LT_INT ||
 	       node->name == LT_FLOAT ||
+	       node->name == NE ||
 	       node->name == NEG_INT ||
 	       node->name == NEG_FLOAT ||
 	       node->name == MUL_INT ||
@@ -293,16 +296,22 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == TOP_LEVEL_DEFS ||
 	node->name == UNBOUND_NAME) {
 	// These nodes do not produce any equations
+    } else if (node->name == FALSE || node->name == TRUE) {
+	// Equation: Bool constant
+	equation_t equation =
+	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
+			 node, node, false);
+	equations_add(equations, &equation);
     } else if (node->name == INT) {
 	// Equation: Int constant
 	equation_t equation =
 	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_INT),
 			 node, node, false);
 	equations_add(equations, &equation);
-    } else if (node->name == FALSE || node->name == TRUE) {
-	// Equation: Bool constant
+    } else if (node->name == FLOAT) {
+	// Equation: Float constant
 	equation_t equation =
-	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
+	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
 			 node, node, false);
 	equations_add(equations, &equation);
     } else if (node->name == TUPLE_LITERAL) {
@@ -317,8 +326,8 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(node->type, type_new_tuple_type(tuple_types), node,
 			 node, false);
 	equations_add(equations, &tuple_literal_equation);
-    } else if (node->name == EQ) {
-	// Equation: eq
+    } else if (node->name == EQ || node->name == NE) {
+	// Equation: eq or ne
 	equation_t eq_equation =
 	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
 			 node, node, false);
@@ -340,6 +349,24 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	equation_t right_equation =
 	    equation_new(right_node->type, type_new_basic_type(eq_type),
 			 node, right_node, false);
+	equations_add(equations, &right_equation);
+    } else if (node->name == GT_FLOAT) {
+	operator_types_t types = get_operator_types(node->name);
+	// Equation: operator type
+	equation_t gt_float_equation =
+	    equation_new(node->type, types.return_type, node, node, false);
+	equations_add(equations, &gt_float_equation);
+	// Equation: left operand
+	ast_node_t* left_node = ast_get_child(node, 0);
+	equation_t left_equation =
+	    equation_new(left_node->type, types.operand_type, node, left_node,
+			 false);
+	equations_add(equations, &left_equation);
+	// Equation: right operand
+	ast_node_t* right_node = ast_get_child(node, 1);
+	equation_t right_equation =
+	    equation_new(right_node->type, types.operand_type, node,
+			 right_node, false);
 	equations_add(equations, &right_equation);
     } else if (node->name == IF_EXPR) {
 	// Extract all nodes constituting the if expression
@@ -611,6 +638,64 @@ static type_t* extract_type(ast_node_t* type_node) {
 	default:
 	    LOG_ABORT("Unknown type node: %s",
 		      ast_node_name_to_string(type_node->name));
+    }
+    assert(false);
+}
+
+// FIXME: in, cons, concat_*, not, POS_*, NEG_*
+
+static operator_types_t get_operator_types(node_name_t name) {
+    switch (name) {
+	case OR:
+	case AND:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
+	    };
+	case BITWISE_AND:
+	case BITWISE_OR:
+	case BSL:
+	case BSR:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
+	    };
+	case GTE_INT:
+	case GT_INT:
+	case LTE_INT:
+	case LT_INT:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
+	    };
+	case GTE_FLOAT:
+	case GT_FLOAT:
+	case LTE_FLOAT:
+	case LT_FLOAT:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
+	    };
+	case SUB_INT:
+	case ADD_INT:
+	case MUL_INT:
+	case DIV_INT:
+	case MOD:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_INT)
+	    };
+	case SUB_FLOAT:
+	case ADD_FLOAT:
+	case MUL_FLOAT:
+	case DIV_FLOAT:
+	case EXP:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT)
+	    };
+	default:
+	    assert(false);
     }
     assert(false);
 }
