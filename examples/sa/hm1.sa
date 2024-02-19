@@ -1,6 +1,7 @@
 fn foo(f is (Bool -> Bool), g, x) {
     if f(x =Int= 1) {
         g(x),
+        //1 := g(x),
         baz(1)
     } else {
         20
@@ -8,9 +9,11 @@ fn foo(f is (Bool -> Bool), g, x) {
 }
 
 fn baz(z) {
-    (z, ?a) := (1, true),
+    (z, ?a) := (1, 42),
     a
 }
+
+
 
 
 

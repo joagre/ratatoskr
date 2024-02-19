@@ -78,6 +78,24 @@ char* type_basic_type_to_string(type_basic_type_t basic_type) {
     }
 }
 
+type_basic_type_t type_string_to_basic_type(const char* string) {
+    if (strcmp(string, "Bool") == 0) {
+	return TYPE_BASIC_TYPE_BOOL;
+    } else if (strcmp(string, "Int") == 0) {
+	return TYPE_BASIC_TYPE_INT;
+    } else if (strcmp(string, "Float") == 0) {
+	return TYPE_BASIC_TYPE_FLOAT;
+    } else if (strcmp(string, "String") == 0) {
+	return TYPE_BASIC_TYPE_STRING;
+    } else if (strcmp(string, "Job") == 0) {
+	return TYPE_BASIC_TYPE_JOB;
+    } else if (strcmp(string, "Channel") == 0) {
+	return TYPE_BASIC_TYPE_CHANNEL;
+    } else {
+	assert(false);
+    }
+}
+
 void type_print_type(type_t* type) {
     switch (type->tag) {
 	case TYPE_TAG_BASIC_TYPE:

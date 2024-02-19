@@ -181,7 +181,12 @@ occurs_check(_Variable, _Type, _Substitutions) ->
 dereference(_Substitutions, BaseType) when is_atom(BaseType) ->
     BaseType;
 dereference(Substitutions, Variable) when is_integer(Variable) ->
-    dereference(Substitutions, maps:get(Variable, Substitutions));
+    case maps:get(Variable, Substitutions, undefined) of
+        undefined ->
+            '_';
+        Substitution ->
+            dereference(Substitutions, Substitution)
+    end;
 dereference(Substitutions, {tuple, Xs}) ->
     {tuple, lists:map(fun(Type) -> dereference(Substitutions, Type) end, Xs)};
 dereference(Substitutions, {list, X}) ->
@@ -200,6 +205,8 @@ format_type_stack([{X, Y}|Rest]) ->
     format_type_stack(Rest) ++
         type_to_string(X) ++ " -> " ++ type_to_string(Y) ++ "\n".
 
+type_to_string('_') ->
+    "_";
 type_to_string(bool) ->
     "Bool";
 type_to_string(int) ->

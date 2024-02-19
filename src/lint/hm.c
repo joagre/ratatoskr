@@ -18,6 +18,8 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 			       uint32_t block_expr_id, satie_error_t* error);
 static void add_type_equations(ast_node_t* node, symbol_tables_t* tables,
 			       equations_t* equations);
+static void add_return_type_equations(ast_node_t *node, symbol_tables_t* tables,
+				      equations_t* equations);
 static type_t* extract_type(ast_node_t* type_node);
 static uint32_t unique_id(void);
 
@@ -44,6 +46,8 @@ bool hm_infer_types(ast_node_t* node, satie_error_t* error) {
     equations_t equations;
     equations_init(&equations);
     add_type_equations(node, &tables, &equations);
+    // Add return type equations
+    add_return_type_equations(node, &tables, &equations);
     // Print equations
     equations_print(&equations);
     return true;
@@ -105,13 +109,49 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	node->name == PROGRAM ||
 	node->name == TOP_LEVEL_DEFS) {
 	// These nodes have no type variable
-    } else if (node->name == BIND ||
+    } else if (node->name == ADD_INT ||
+	       node->name == ADD_FLOAT ||
+     	       node->name == AND ||
+	       node->name == BIND ||
+	       node->name == BITWISE_AND ||
+	       node->name == BITWISE_OR ||
+	       node->name == BSL ||
+	       node->name == BSR ||
+	       node->name == CONS ||
+	       node->name == CONCAT_LIST ||
+	       node->name == CONCAT_MAP ||
+	       node->name == CONCAT_STRING ||
+	       node->name == DIV_INT ||
+	       node->name == DIV_FLOAT ||
 	       node->name == EQ ||
+	       node->name == EXP ||
 	       node->name == FALSE ||
 	       node->name == FUNCTION_CALL ||
+	       node->name == GTE_INT ||
+	       node->name == GT_INT ||
+	       node->name == GTE_FLOAT ||
+	       node->name == GT_INT ||
+	       node->name == GT_FLOAT ||
 	       node->name == IF_EXPR ||
+	       node->name == IN ||
 	       node->name == INT ||
+	       node->name == LTE_INT ||
+	       node->name == LTE_FLOAT ||
+	       node->name == LT_INT ||
+	       node->name == LT_FLOAT ||
+	       node->name == NEG_INT ||
+	       node->name == NEG_FLOAT ||
+	       node->name == MUL_INT ||
+	       node->name == MUL_FLOAT ||
+	       node->name == NOT ||
+	       node->name == MOD ||
+	       node->name == NE ||
+	       node->name == OR ||
+	       node->name == POS_INT ||
+	       node->name == POS_FLOAT ||
 	       node->name == POSTFIX_EXPR ||
+	       node->name == SUB_INT ||
+	       node->name == SUB_FLOAT ||
 	       node->name == TUPLE_LITERAL ||
 	       node->name == TRUE) {
 	// Assign a type variable
@@ -286,15 +326,10 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
         // Extract the eq type
 	ast_node_t* eq_type_node = ast_get_child(node, 1);
 	LOG_ASSERT(eq_type_node->name == EQ_TYPE, "Expected an EQ_TYPE node");
-	type_basic_type_t eq_type;
-	if (strcmp(eq_type_node->value, "Int") == 0) {
-	    eq_type = TYPE_BASIC_TYPE_INT;
-	} else if (strcmp(eq_type_node->value, "Bool") == 0) {
-	    eq_type = TYPE_BASIC_TYPE_BOOL;
-	} else {
-	    LOG_ABORT("Unknown eq type: %s", eq_type_node->value);
-	}
-	// Equation: left operand
+	// NOTE: Only supports basic types for now
+	type_basic_type_t eq_type =
+	    type_string_to_basic_type(eq_type_node->value);
+        // Equation: left operand
 	ast_node_t* left_node = ast_get_child(node, 0);
 	equation_t left_equation =
 	    equation_new(left_node->type, type_new_basic_type(eq_type),
@@ -403,7 +438,7 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_t return_type_equation =
 		equation_new(block_expr_node->type, return_type, node,
 			     return_type_node, true);
-	    equations_add(equations, &return_type_equation);
+	    	    equations_add(equations, &return_type_equation);
 	}
     } else if (node->name == BIND) {
 	// Extract all nodes constituting the bind expression
@@ -422,7 +457,7 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	equations_add(equations, &bind_equation);
     } else if (node->name == POSTFIX_EXPR) {
 	/*
-	 * NOTE: This is hardwired only handle function calls
+	 * NOTE: This POSTFIX_EXPR is hardwired to only handle function calls
 	 */
 	// Extract all nodes constituting the function call
 	ast_node_t* name_node = ast_get_child(node, 0);
@@ -441,23 +476,6 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		ast_node_t* arg_node = ast_get_child(positional_args_node, i);
 		types_add(arg_types, arg_node->type);
 	    }
-	}
-	// Add a return type equation if the function name is known
-	type_t* function_name_type =
-	    symbol_tables_lookup(tables, name_node->value);
-	if (function_name_type != NULL) {
-	    LOG_ASSERT(function_name_type->tag == TYPE_TAG_TYPE_VARIABLE,
-		       "Expected a type variable");
-	    equation_t* signature_equation =
-		equations_lookup(equations, function_name_type->type_variable);
-	    LOG_ASSERT(signature_equation->right->tag == TYPE_TAG_FUNCTION_TYPE,
-		       "Expected an function type");
-	    type_t* return_type =
-		signature_equation->right->function_type.return_type;
-	    equation_t return_type_equation =
-		equation_new(function_call_node->type, return_type,
-			     node, node, false);
-	    equations_add(equations, &return_type_equation);
 	}
         // Equation: function call type
 	equation_t function_equation =
@@ -482,6 +500,44 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
     } else {
 	LOG_ABORT("Not handled node: %s\n",
 		  ast_node_name_to_string(node->name));
+    }
+
+    // Traverse children (if any)
+    size_t n = ast_number_of_children(node);
+    for (uint16_t i = 0; i < n; i++) {
+	add_type_equations(ast_get_child(node, i), tables, equations);
+    }
+}
+
+static void add_return_type_equations(ast_node_t *node, symbol_tables_t* tables,
+				      equations_t* equations) {
+    if (node->name == POSTFIX_EXPR) {
+	/*
+	 * NOTE: This POSTFIX_EXPR is hardwired to only handle function calls
+	 */
+	// Extract all nodes constituting the function call
+	ast_node_t* name_node = ast_get_child(node, 0);
+	LOG_ASSERT(name_node->name == NAME, "Expected a NAME node");
+	ast_node_t* function_call_node = ast_get_child(node, 1);
+	LOG_ASSERT(function_call_node->name == FUNCTION_CALL,
+		   "Expected a FUNCTION_CALL node");
+	// Add a return type equation if the function name is known
+	type_t* function_name_type =
+	    symbol_tables_lookup(tables, name_node->value);
+	if (function_name_type != NULL) {
+	    LOG_ASSERT(function_name_type->tag == TYPE_TAG_TYPE_VARIABLE,
+		       "Expected a type variable");
+	    equation_t* signature_equation =
+		equations_lookup(equations, function_name_type->type_variable);
+	    LOG_ASSERT(signature_equation->right->tag == TYPE_TAG_FUNCTION_TYPE,
+		       "Expected a function type");
+	    type_t* return_type =
+		signature_equation->right->function_type.return_type;
+	    equation_t return_type_equation =
+		equation_new(function_call_node->type, return_type,
+			     node, node, false);
+	    equations_add(equations, &return_type_equation);
+	}
     }
 
     // Traverse children (if any)

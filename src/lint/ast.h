@@ -51,8 +51,8 @@ typedef dynarray_t node_array_t;
         NODE_NAME(DEFAULT) \
         NODE_NAME(DEFAULT_PARAM) \
         NODE_NAME(DEFAULT_PARAMS) \
-        NODE_NAME(DIVIDE_INT) \
-        NODE_NAME(DIVIDE_FLOAT) \
+        NODE_NAME(DIV_INT) \
+        NODE_NAME(DIV_FLOAT) \
         NODE_NAME(DOT_NAME) \
         NODE_NAME(DOTTED_NAME) \
         NODE_NAME(ELIF) \
@@ -67,7 +67,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(EQ) \
         NODE_NAME(EQ_TYPE) \
         NODE_NAME(ESCAPE_CHARACTER) \
-        NODE_NAME(EXPONENTIATE) \
+        NODE_NAME(EXP) \
         NODE_NAME(EXPORT) \
         NODE_NAME(EXPR) \
         NODE_NAME(EXPRS) \
@@ -126,20 +126,22 @@ typedef dynarray_t node_array_t;
         NODE_NAME(MATCH_TYPE_CONSTRUCTOR_LITERAL) \
 	NODE_NAME(MEMBER_METHOD) \
         NODE_NAME(MEMBER_PROPERTY) \
-        NODE_NAME(MINUS_INT) \
-        NODE_NAME(MINUS_FLOAT) \
+        NODE_NAME(SUB_INT) \
+        NODE_NAME(SUB_FLOAT) \
         NODE_NAME(MODULE) \
         NODE_NAME(MODULE_ALIAS) \
         NODE_NAME(MODULE_COMPONENT) \
-        NODE_NAME(MODULUS) \
-        NODE_NAME(MULTIPLY_INT) \
-        NODE_NAME(MULTIPLY_FLOAT) \
+        NODE_NAME(MOD) \
+        NODE_NAME(MUL_INT) \
+        NODE_NAME(MUL_FLOAT) \
         NODE_NAME(NAME) \
         NODE_NAME(NAMED_ARG) \
         NODE_NAME(NAMED_MATCH_ARG) \
         NODE_NAME(NAMED_ARGS) \
         NODE_NAME(NAMED_MATCH_ARGS) \
         NODE_NAME(NE) \
+        NODE_NAME(NEG_INT) \
+        NODE_NAME(NEG_FLOAT) \
         NODE_NAME(NEW_EXPR) \
         NODE_NAME(NIL) \
         NODE_NAME(NON_DEFAULT_PARAMS) \
@@ -149,8 +151,10 @@ typedef dynarray_t node_array_t;
         NODE_NAME(OR) \
         NODE_NAME(PARAM_NAME) \
         NODE_NAME(PARAMS) \
-        NODE_NAME(PLUS_INT) \
-        NODE_NAME(PLUS_FLOAT) \
+	NODE_NAME(POS_INT) \
+        NODE_NAME(POS_FLOAT) \
+	NODE_NAME(ADD_INT) \
+        NODE_NAME(ADD_FLOAT) \
         NODE_NAME(POSITIONAL_ARGS) \
         NODE_NAME(POSTFIX_EXPR) \
         NODE_NAME(PRIVATE) \
@@ -178,10 +182,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(TYPE_CONSTRUCTORS) \
         NODE_NAME(TYPE_VARIABLE) \
         NODE_NAME(TYPE_VARIABLES) \
-        NODE_NAME(UNARY_MINUS_INT) \
-        NODE_NAME(UNARY_MINUS_FLOAT) \
-        NODE_NAME(UNARY_PLUS_INT) \
-        NODE_NAME(UNARY_PLUS_FLOAT) \
         NODE_NAME(UNBOUND_NAME) \
 	NODE_NAME(UNBOUND_NO_NAME) \
         NODE_NAME(WHEN)

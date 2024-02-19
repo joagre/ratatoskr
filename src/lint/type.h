@@ -56,6 +56,7 @@ type_t* type_new_map_type(type_t* key_type, type_t* value_type);
 type_t* type_new_constructor_type(char* name, types_t* types);
 type_t* type_new_type_variable(void);
 char* type_basic_type_to_string(type_basic_type_t basic_type);
+type_basic_type_t type_string_to_basic_type(const char* string);
 void type_print_type(type_t* type);
 
 #endif
