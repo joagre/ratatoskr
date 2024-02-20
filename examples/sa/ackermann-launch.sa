@@ -1,15 +1,19 @@
 import Std.stdio
 
+// Note:
+// -> is a cast
+// <-> is a call
+
 export fn main(_args) {
-  ?master := launch AckermannMaster(),
+  ?master := launch Master(),
   true := master<->startSlaves(3, 10)
 }
 
-record AckermannMaster {
+record Master {
     private slaves is [Task] = []
     public fn startSlaves(m, n, i = 0) {
         if i <Int< n {
-            ?slave := launch AckermannSlave(self),
+            ?slave := launch Slave(self),
             slave->start(m, i),
             startSlaves(m, n, i + 1)
         } else {
@@ -26,23 +30,23 @@ record AckermannMaster {
     }
 }
 
-record AckermannSlave {
+record Slave {
     private master is Task
     this(master) {
         this(master: master)
     }
     public fn start(m, n) {
         master->slaveStarted(self, m, n),
-        ?result := ackermannFunction(m, n),
+        ?result := ackermann(m, n),
         master->slaveDone(self, m, n, result)
     }
-    private fn ackermannFunction(m, n) {
+    private fn ackermann(m, n) {
         if m =Int= 0 {
             n + 1
         } elif n =Int= 0 && m >Int> 0 {
-            ackermannFunction(m - 1, 1)
+            ackermann(m - 1, 1)
         } else {
-            ackermannFunction(m - 1, ackermannFunction(m, n - 1))
+            ackermann(m - 1, ackermann(m, n - 1))
         }
     }
 }
