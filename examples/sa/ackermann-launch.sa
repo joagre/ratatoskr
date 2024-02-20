@@ -1,0 +1,48 @@
+import Std.stdio
+
+export fn main(_args) {
+  ?master := launch AckermannMaster(),
+  true := master<->startSlaves(3, 10)
+}
+
+record AckermannMaster {
+    private slaves is [Task] = []
+    public fn startSlaves(m, n, i = 0) {
+        if i <Int< n {
+            ?slave := launch AckermannSlave(self),
+            slave->start(m, i),
+            startSlaves(m, n, i + 1)
+        } else {
+            true
+        }
+    }
+    public fn slaveStarted(slave, m, n) {
+        writeln("Slave %m:%n started"),
+        this(slaves: slave :: slaves)
+    }
+    public fn slaveDone(slave, m, n, result) {
+        writeln("Slave calculated %m:%n = %result"),
+        this(slaves: slaves.delete(slave))
+    }
+}
+
+record AckermannSlave {
+    private master is Task
+    this(master) {
+        this(master: master)
+    }
+    public fn start(m, n) {
+        master->slaveStarted(self, m, n),
+        ?result := ackermannFunction(m, n),
+        master->slaveDone(self, m, n, result)
+    }
+    private fn ackermannFunction(m, n) {
+        if m =Int= 0 {
+            n + 1
+        } elif n =Int= 0 && m >Int> 0 {
+            ackermannFunction(m - 1, 1)
+        } else {
+            ackermannFunction(m - 1, ackermannFunction(m, n - 1))
+        }
+    }
+}

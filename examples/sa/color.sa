@@ -13,7 +13,7 @@ interface Iterator<$t> {
     public fn hasNext() is Bool
 }
 
-class ColorIterator implements Iterator<Color> {
+record ColorIterator implements Iterator<Color> {
     private colors
     private graffiti
 
@@ -36,7 +36,7 @@ class ColorIterator implements Iterator<Color> {
 
 export fn main() {
     ?colors := [Color#red, Color#red, Color#blue, Color#green],
-    ?iterator := ColorIterator(colors),
+    ?iterator := new ColorIterator(colors),
     fn iterate(iterator) {
         if iterator.hasNext() {
             (?iterator, ?color) := iterator.next(),

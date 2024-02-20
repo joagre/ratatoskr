@@ -2,7 +2,7 @@ import Std.stdio: writeln
 
 type TreeChild<$t> = Tree<$t> or Leaf<>
 
-class Tree<$t> {
+record Tree<$t> {
     this(label is $t,
          left is TreeChild<$t>,
          right is TreeChild<$t>)
@@ -15,15 +15,15 @@ class Tree<$t> {
 }
 
 export fn main(_args) {
-    ?tree := Tree("The",
-                  Leaf<>,
-                  Tree("wood",
-                       Tree("of",
-                            Tree("Birnam",
-                                 Leaf<>,
-                                 Leaf<>),
-                            Leaf<>),
-                       Leaf<>)),
+    ?tree := new Tree("The",
+                      Leaf<>,
+                      Tree("wood",
+                           Tree("of",
+                                Tree("Birnam",
+                                     Leaf<>,
+                                     Leaf<>),
+                                Leaf<>),
+                           Leaf<>)),
     writeln("Size: %{size(tree)}"),
     writeln("Depth: %{depth(tree)}"),
     writeln("Complete Tree: %{completeTree(1, 8)}"),
@@ -33,23 +33,15 @@ export fn main(_args) {
 
 fn size(tree) {
     case tree {
-        Leaf<> {
-            0
-        }
-        Tree(?left, ?right) {
-            1 + size(left) + size(right)
-        }
+        Leaf<> => 0
+        Tree(?left, ?right) => 1 + size(left) + size(right)
     }
 }
 
 fn depth(tree) {
     case tree {
-        Leaf<> {
-            0
-        }
-        Tree(?left, ?right) {
-            1 + depth(left).max(depth(right))
-        }
+        Leaf<> => 0
+        Tree(?left, ?right) => 1 + depth(left).max(depth(right))
     }
 }
 
@@ -63,23 +55,15 @@ fn completeTree(k, n) {
 
 fn mirror(tree) {
     case tree {
-        Leaf<> {
-            tree
-        }
-        Tree(?label, ?left, ?right) {
-            Tree(label, mirror(right), mirror(left))
-        }
+        Leaf<> => tree
+        Tree(?label, ?left, ?right) => Tree(label, mirror(right), mirror(left))
     }
 }
 
 fn traverse(tree) {
     case tree {
-        Leaf<> {
-            []
-        }
-        Tree(?label, ?left, ?right) {
-            label :: traverse(left) @ traverse(right)
-        }
+        Leaf<> => []
+        Tree(?label, ?left, ?right) => label :: traverse(left) @ traverse(right)
     }
 }
 

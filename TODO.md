@@ -18,6 +18,8 @@
 
 * GC
 * Add values to enums
+* Partial evauation of constant values
+* Multi module compiling
 
 ## Version 0.3
 

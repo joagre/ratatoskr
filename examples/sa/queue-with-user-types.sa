@@ -4,7 +4,7 @@ enum ErrorStatus {
    emptyQueue
 }
 
-class Queue<$t> {
+record Queue<$t> {
     private queue is [$t]
 
     this(element is $t) is Queue<$t> {
@@ -21,33 +21,24 @@ class Queue<$t> {
 
     public fn hd() is Either<$t, ErrorStatus> {
         case queue {
-            [?first :: _] {
-                Left<first>
-            }
-            [] {
-                Right<ErrorStatus#emptyQueue>
-            }
+            [?first :: _] => Left<first>
+            [] => Right<ErrorStatus#emptyQueue>
         }
     }
 
     public fn dequeue() is Either<Queue<$t>, ErrorStatus> {
         case queue {
-            [_ :: ?rest] {
-                Left<this(queue: rest)>
-            }
-            [] {
-                Right<ErrorStatus#emptyQueue>
-            }
+            [_ :: ?rest] => Left<this(queue: rest)>
+            [] => Right<ErrorStatus#emptyQueue>
         }
     }
 }
 
-
 export fn main(_args) {
-    ?a := Queue(42),
+    ?a := new Queue(42),
     ?a := a.enqueue(4711),
     Left<42> := b.hd(),
-    ?b := Queue(42),
+    ?b := new Queue(42),
     ?b := b.enqueue(4711),
     true := (a =Queue= b)
 }

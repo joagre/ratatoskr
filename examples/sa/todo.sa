@@ -1,7 +1,7 @@
 import Std.stdio : writeln
 import Std.lists
 
-class TodoItem {
+record TodoItem {
     private description
     private completed
 
@@ -18,7 +18,7 @@ class TodoItem {
     }
 }
 
-class TodoList {
+record TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {

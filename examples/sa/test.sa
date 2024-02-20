@@ -2,7 +2,7 @@ import a.b.c
 import d = a.b.c
 import a.b.c : Type
 
-class Foo {
+record Foo {
     this(a) {
         a
     }
@@ -50,27 +50,18 @@ fn main() {
     1 := 1,
     ?a := b :: c,
     case a {
-        ?a :: ?b {
-            snuva
-        }
-        b when true {
-            c
-        }
-        e {
-            d
-        }
+        ?a :: ?b => snuva
+        b when true => c
+        e => d
     },
     case a {
-        (?b, a), (?b, a) {
-            c
-        }
+        (?b, a), (?b, a) =>  c
     },
     (1, 2),
     receive foo {
-        a {
+        a =>
             stdio.writeln("Oh no! Compute job $job died: $reason"),
             b
-        }
     },
     lists.foreach(fn () { stdio.writeln(item.toString())}, items),
     a := 1,

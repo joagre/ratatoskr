@@ -12,7 +12,7 @@ interface QueueInterface<$t> {
     public fn dequeue() is Either<QueueInterface<$t>, ErrorStatus>
 }
 
-class Queue<$t> implements QueueInterface<$t> {
+record Queue<$t> implements QueueInterface<$t> {
     private queue is [$t]
 
     this(element) {
@@ -29,32 +29,24 @@ class Queue<$t> implements QueueInterface<$t> {
 
     public fn hd() {
         case queue {
-            [?first :: _] {
-                Left<first>
-            }
-            [] {
-                Right<ErrorStatus#emptyQueue>
-            }
+            [?first :: _] => Left<first>
+            [] => Right<ErrorStatus#emptyQueue>
         }
     }
 
     public fn dequeue() {
         case queue {
-            [_ :: ?rest] {
-                Left<this(queue: rest)>
-            }
-            [] {
-                Right<ErrorStatus#emptyQueue>
-            }
+            [_ :: ?rest] => Left<this(queue: rest)>
+            [] => Right<ErrorStatus#emptyQueue>
         }
     }
 }
 
 export fn main(_args) {
-    ?a := Queue(42),
+    ?a := new Queue(42),
     ?a := a.enqueue(4711),
     Left<42> := b.hd(),
-    ?b := Queue(42),
+    ?b := new Queue(42),
     ?b := b.enqueue(4711),
     true := (a =Queue= b)
 }
