@@ -1,0 +1,62 @@
+import Std.satie
+import Std.jobs: JobStatus, SpawnOption
+import Std.channels: ChannelOption
+import Std.stdio
+
+export fn main(_args) {
+  ?ackermann := Ackermann(),
+  ackermann.startJobs(3, 10)
+}
+
+record Ackermann {
+    private jobs is [Job] = []
+    private resultChannel is Channel
+
+    this() {
+        this(resultChannel:
+                 satie.makeChannel(onCrowding: (ChannelOption#block, 4)))
+    }
+
+    public fn startJobs(m, n, i = 0, startedJobs = []) {
+        if i <Int< n {
+            fn computeAckermann(m, n) {
+                ?result := ackermann(m, n),
+                resultChannel.send((self, m, n, result))
+            },
+            ?job := satie.spawn(fn () {
+                        computeAckermann(m, i)
+                    }, [SpawnOption#monitor: true]),
+            startJobs(m, n, i + 1, job @ startedJobs)
+        } else {
+            this(jobs: startedJobs)
+        }
+    }
+
+    public fn waitForJobs() {
+        fn waitForJobs(jobs) {
+            if jobs.length >Int> 0 {
+                receive [resultChannel, satie.systemChannel] {
+                    (?job, ?m, ?n, ?result) =>
+                        stdio.writeln("ackermann(%m, %n) = %result"),
+                        waitForJobs(jobs.delete(job))
+                    (JobStatus#died, ?job, ?reason) =>
+                        stdio.writeln("Oh no! Compute job %job died: %reason"),
+                        waitForJobs(jobs.delete(job))
+                }
+            } else {
+                this(jobs: [])
+            }
+        },
+        waitForJobs(jobs)
+    }
+
+    private fn ackermann(m, n) {
+        if m =Int= 0 {
+            n + 1
+        } elif n !Int= 0 {
+            ackermann(m - 1, 1)
+        } else {
+            ackermann(m - 1, ackermann(m, n - 1))
+        }
+    }
+}
