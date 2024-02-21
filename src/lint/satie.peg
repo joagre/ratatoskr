@@ -261,7 +261,7 @@ PrimaryExpr <- "nil" { $$ = CT(NIL, NULL); } /
                "(" _ e:Expr _ ")" { $$ = e; }
 
 NewRecord <- "new" _ n:Name _ "(" a:Args? ")" { $$ = CN(NEW_RECORD, 2, n, a); }
-LaunchRecord <- "launch" _ n:Name _ "(" a:Args? ")" { $$ = CN(LAUNCH_RECORD, 2, n, a); }
+LaunchRecord <- "launch" _ n:Name _ ("(" a:Args? ")")? { $$ = CN(LAUNCH_RECORD, 2, n, a); }
 
 ControlFlowExpr <- (c:IfExpr / c:CaseExpr / c:ReceiveExpr / c:BlockExpr) { $$ = c; }
 

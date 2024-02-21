@@ -1,35 +1,45 @@
-// Note:
-// -> is a cast (not used in the example below)
-// <-> is a call
+export fn test() {
+    // Create record and calculate a few values in the local process context
+    ?ackermann := new Ackermann(),
+    (?x, ?ackermann) := ackermann.calc(3, 12),
+    writeln("Ackermann(3, 12) = %x"),
+    (?y, ?ackermann) := ackermann.calc(3, 13),
+    writeln("Ackermann(3, 13) = %y"),
+    writeln("Saved calculations: %{ackermann.savedCalculations}"),
+    ?ackermann := ackermann.resetCalculatedValues(),
 
-export fn main(_args) {
-  // Calculate in same process
-  ?calculator := new Calculator(),
-  ?x := calculator.ackermann(3, 12),
-  ?y := calculator.fac(4),
+    // Create a task from the already existing and calculate the same values
+    // in another process context
+    ?task := launch ackermann,
+    (x, task) := task<->calc(3, 12),
+    writeln("Ackermann(3, 12) = %x"),
+    (y, task) := task<->calc(3, 13),
+    writeln("Ackermann(3, 13) = %y"),
+    writeln("Saved calculations: %{task<->savedCalculations}"),
+    task := task<->resetCalculatedValues(),
 
-  // Calculate in a launched (not animated) record task
-  ?calculator := launch Calculator(),
-  x := calculator<->ackermann(3, 12),
-  y := calculator<->fac(4)
+    // etc
+
+    // Maybe it should be possible to cast as well (not waiting for a result)
+    task->resetCalculatedValues()
 }
 
-record Calculator {
-    public fn ackermann(m, n) {
+record Ackermann {
+    public savedCalculations is (Int, Int, Int) = []
+    public fn calc(m, n) {
+        ?result := ackermann(m, n),
+        (result, this(savedCalculations: (m, n, result) :: savedCalculations))
+    }
+    public fn resetCalculatedValues() {
+        this(savedCalculatedValues: [])
+    }
+    private fn ackermann(m, n) {
         if m =Int= 0 {
             n + 1
-        } elif n =Int= 0 && m >Int> 0 {
-            ackermannFunction(m - 1, 1)
+        } elif n =Int= 0 {
+            ackermann(m - 1, 1)
         } else {
-            ackermannFunction(m - 1, ackermannFunction(m, n - 1))
-        }
-    }
-
-    public fn fac(n) {
-        if n =Int= 0 {
-            1
-        } else {
-            n * fac(n -1)
+            ackermann(m - 1, ackermann(m, n - 1))
         }
     }
 }
