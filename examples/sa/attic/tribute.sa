@@ -1,0 +1,38 @@
+import Std.satie
+import Std.stdio : writeln
+
+export fn main(args) {
+    ?numberOfTributes := args[1],
+    ?channel := satie.makeChannel(copies: numberOfTributes),
+    ?jobs := startTributes(channel, numberOfTributes),
+    channel.send("Standing on the shoulders of ${jobs.length} giants")
+}
+
+fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
+    if n <Int< numberOfTributes {
+        ?job := satie.spawn(fn () {
+                    ?message := receive channel,
+                    writeln("$n: $message")
+                }),
+        startTributes(channel, numberOfTributes, n + 1, job @ jobs)
+    } else {
+        jobs
+    }
+}
+
+/*
+A channel can be created with the following modifiers:
+
+copies: N
+    Keep a message in the mailbox until N instances has read it
+fade: N
+    If a message hasn't been read in N milliseconds it fades away
+sync: Bool
+    Should the sender block until the receiver has read the message
+    (defaults to false)?
+size: (Type, Size)
+    Set the number of messages allowed in a channel to Size. If this
+    threshold is reached the sender blocks or the message is ignored,
+    depending on Type (which can either be the enum
+    ChannelOption@block or ChannelOption@ignore).
+*/

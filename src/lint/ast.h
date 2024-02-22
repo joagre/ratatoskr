@@ -32,16 +32,11 @@ typedef dynarray_t node_array_t;
         NODE_NAME(CASE_BRANCH) \
         NODE_NAME(CASE_EXPR) \
         NODE_NAME(CAST) \
-        NODE_NAME(CHANNEL) \
-        NODE_NAME(CHANNEL_NAME) \
-	NODE_NAME(CHANNEL_TYPE) \
-        NODE_NAME(CHANNELS) \
         NODE_NAME(CHARACTER_LITERAL) \
         NODE_NAME(RECORD_CONSTRUCTOR) \
         NODE_NAME(RECORD_DESTRUCTOR) \
         NODE_NAME(RECORD_DEF) \
         NODE_NAME(RECORD_MEMBERS) \
-        NODE_NAME(RECORD_NAME) \
         NODE_NAME(CONCAT_LIST)\
 	NODE_NAME(CONCAT_MAP) \
 	NODE_NAME(CONCAT_STRING) \
@@ -82,7 +77,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(GT_FLOAT) \
         NODE_NAME(GTE_INT) \
         NODE_NAME(GTE_FLOAT) \
-        NODE_NAME(JOB_TYPE) \
         NODE_NAME(IDENTIFIER) \
         NODE_NAME(IF) \
         NODE_NAME(IF_EXPR) \
@@ -105,7 +99,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(INTERFACE_METHOD) \
         NODE_NAME(INTERFACE_NAME) \
         NODE_NAME(INTERFACES) \
-	NODE_NAME(LAUNCH_RECORD) \
+	NODE_NAME(LAUNCH_TASK) \
         NODE_NAME(LIST_LITERAL) \
         NODE_NAME(LIST_LOOKUP) \
         NODE_NAME(LIST_SLICE)   \
@@ -164,15 +158,13 @@ typedef dynarray_t node_array_t;
         NODE_NAME(PUBLIC) \
         NODE_NAME(RAW_STRING) \
         NODE_NAME(READONLY) \
-	NODE_NAME(RECORD_CAST) \
-	NODE_NAME(RECORD_CALL) \
-        NODE_NAME(RECEIVE) \
-        NODE_NAME(RECEIVE_EXPR) \
         NODE_NAME(REGULAR_STRING) \
         NODE_NAME(RETURN_TYPE) \
-        NODE_NAME(SELF)	\
         NODE_NAME(SLICE_LENGTH) \
 	NODE_NAME(STRING_TYPE) \
+        NODE_NAME(TASK_CALL) \
+	NODE_NAME(TASK_CAST) \
+        NODE_NAME(TASK_DEF) \
         NODE_NAME(TASK_TYPE) \
         NODE_NAME(THIS) \
         NODE_NAME(TIMEOUT) \

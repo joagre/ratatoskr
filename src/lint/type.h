@@ -7,11 +7,11 @@ typedef dynarray_t types_t;
 
 typedef enum {
     TYPE_TAG_BASIC_TYPE,
-    TYPE_TAG_LIST_TYPE,
-    TYPE_TAG_FUNCTION_TYPE,
-    TYPE_TAG_TUPLE_TYPE,
-    TYPE_TAG_MAP_TYPE,
     TYPE_TAG_CONSTRUCTOR_TYPE,
+    TYPE_TAG_FUNCTION_TYPE,
+    TYPE_TAG_LIST_TYPE,
+    TYPE_TAG_MAP_TYPE,
+    TYPE_TAG_TUPLE_TYPE,
     TYPE_TAG_TYPE_VARIABLE
 } type_tag_t;
 
@@ -20,8 +20,7 @@ typedef enum {
     TYPE_BASIC_TYPE_INT,
     TYPE_BASIC_TYPE_FLOAT,
     TYPE_BASIC_TYPE_STRING,
-    TYPE_BASIC_TYPE_JOB,
-    TYPE_BASIC_TYPE_CHANNEL
+    TYPE_BASIC_TYPE_TASK
 } type_basic_type_t;
 
 typedef uint32_t type_variable_t;

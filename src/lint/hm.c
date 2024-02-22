@@ -350,12 +350,55 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(right_node->type, type_new_basic_type(eq_type),
 			 node, right_node, false);
 	equations_add(equations, &right_equation);
-    } else if (node->name == GT_FLOAT) {
+    } else if (node->name == NEG_FLOAT ||
+	       node->name == NEG_INT ||
+	       node->name == NOT ||
+	       node->name == POS_FLOAT ||
+	       node->name == POS_INT) {
 	operator_types_t types = get_operator_types(node->name);
 	// Equation: operator type
-	equation_t gt_float_equation =
+	equation_t operator_equation =
 	    equation_new(node->type, types.return_type, node, node, false);
-	equations_add(equations, &gt_float_equation);
+	equations_add(equations, &operator_equation);
+	// Equation: operand
+	ast_node_t* operand_node = ast_get_child(node, 0);
+	equation_t operand_equation =
+	    equation_new(operand_node->type, types.operand_type, node,
+			 operand_node, false);
+	equations_add(equations, &operand_equation);
+    } else if (node->name == ADD_FLOAT ||
+	       node->name == ADD_INT ||
+	       node->name == AND ||
+	       node->name == BITWISE_AND ||
+	       node->name == BITWISE_OR ||
+	       node->name == BSL ||
+	       node->name == BSR ||
+	       node->name == CONCAT_LIST ||
+	       node->name == CONCAT_MAP ||
+	       node->name == CONCAT_STRING ||
+	       node->name == CONS ||
+	       node->name == DIV_FLOAT ||
+	       node->name == DIV_INT ||
+	       node->name == EXP ||
+	       node->name == GTE_FLOAT ||
+	       node->name == GTE_INT ||
+	       node->name == GT_FLOAT ||
+	       node->name == GT_INT ||
+	       node->name == LTE_FLOAT ||
+	       node->name == LTE_INT ||
+	       node->name == LT_FLOAT ||
+	       node->name == LT_INT ||
+	       node->name == MOD ||
+	       node->name == MUL_FLOAT ||
+	       node->name == MUL_INT ||
+	       node->name == OR ||
+	       node->name == SUB_INT ||
+	       node->name == SUB_FLOAT) {
+	operator_types_t types = get_operator_types(node->name);
+	// Equation: operator type
+	equation_t operator_equation =
+	    equation_new(node->type, types.return_type, node, node, false);
+	equations_add(equations, &operator_equation);
 	// Equation: left operand
 	ast_node_t* left_node = ast_get_child(node, 0);
 	equation_t left_equation =
@@ -368,6 +411,21 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(right_node->type, types.operand_type, node,
 			 right_node, false);
 	equations_add(equations, &right_equation);
+    } else if (node->name == CONS) { // DONE
+	ast_node_t* left_node = ast_get_child(node, 0);
+	// Equation: operator type
+	equation_t operator_type_equation =
+	    equation_new(node->type, type_new_list_type(left_node->type),
+			 node, node, false);
+	equations_add(equations, &operator_type_equation);
+	// Equation: right operand
+	ast_node_t* right_node = ast_get_child(node, 1);
+	equation_t right_equation =
+	    equation_new(right_node->type, type_new_list_type(left_node->type),
+			 node, right_node, false);
+	equations_add(equations, &right_equation);
+    } else if (node->name == IN) {
+	// FIXME: Implement
     } else if (node->name == IF_EXPR) {
 	// Extract all nodes constituting the if expression
 	ast_node_t* if_node = ast_get_child(node, 0);
@@ -584,10 +642,6 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    return type_new_basic_type(TYPE_BASIC_TYPE_FLOAT);
 	case STRING_TYPE:
 	    return type_new_basic_type(TYPE_BASIC_TYPE_STRING);
-	case JOB_TYPE:
-	    return type_new_basic_type(TYPE_BASIC_TYPE_JOB);
-	case CHANNEL_TYPE:
-	    return type_new_basic_type(TYPE_BASIC_TYPE_CHANNEL);
 	case LIST_TYPE:
 	    return type_new_list_type(
 		extract_type(ast_get_child(type_node, 0)));
@@ -642,12 +696,38 @@ static type_t* extract_type(ast_node_t* type_node) {
     assert(false);
 }
 
-// FIXME: in, cons, concat_*, not, POS_*, NEG_*
-
 static operator_types_t get_operator_types(node_name_t name) {
     switch (name) {
-	case OR:
+	case CONCAT_STRING:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_STRING),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_STRING)
+	    };
+	case CONCAT_LIST:
+	    // FIXME: Add as own
+	    break;
+	case CONCAT_MAP:
+	    // FIXME: Add as own
+	    break;
+	case NEG_FLOAT:
+	case POS_FLOAT:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT)
+	    };
+	case NEG_INT:
+	case POS_INT:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_INT)
+	    };
+	case NOT:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
+	    };
 	case AND:
+	case OR:
 	    return (operator_types_t) {
 		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
 		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
@@ -660,36 +740,36 @@ static operator_types_t get_operator_types(node_name_t name) {
 		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
 		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
 	    };
-	case GTE_INT:
 	case GT_INT:
-	case LTE_INT:
+	case GTE_INT:
 	case LT_INT:
+	case LTE_INT:
 	    return (operator_types_t) {
 		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
 		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
 	    };
-	case GTE_FLOAT:
 	case GT_FLOAT:
-	case LTE_FLOAT:
+	case GTE_FLOAT:
 	case LT_FLOAT:
+	case LTE_FLOAT:
 	    return (operator_types_t) {
 		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
 		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
 	    };
-	case SUB_INT:
 	case ADD_INT:
-	case MUL_INT:
 	case DIV_INT:
 	case MOD:
+	case MUL_INT:
+	case SUB_INT:
 	    return (operator_types_t) {
 		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
 		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_INT)
 	    };
-	case SUB_FLOAT:
 	case ADD_FLOAT:
-	case MUL_FLOAT:
-	case DIV_FLOAT:
 	case EXP:
+	case DIV_FLOAT:
+	case SUB_FLOAT:
+	case MUL_FLOAT:
 	    return (operator_types_t) {
 		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
 		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT)

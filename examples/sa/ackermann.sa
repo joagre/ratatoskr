@@ -7,7 +7,7 @@ export fn main(_args) {
   2 := masterTask<->startedSlaves // <-> is a call
 }
 
-record Master {
+task Master {
     public startedSlaves = 0
     public fn startSlave(m, n) {
         ?slaveTask := launch Slave(this),
@@ -22,7 +22,7 @@ record Master {
     }
 }
 
-record Slave {
+task Slave {
     private masterTask is Task
     this(masterTask) {
         this(masterTask: masterTask)

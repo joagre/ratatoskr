@@ -69,10 +69,8 @@ char* type_basic_type_to_string(type_basic_type_t basic_type) {
 	    return "Float";
 	case TYPE_BASIC_TYPE_STRING:
 	    return "String";
-	case TYPE_BASIC_TYPE_JOB:
-	    return "Job";
-	case TYPE_BASIC_TYPE_CHANNEL:
-	    return "Channel";
+	case TYPE_BASIC_TYPE_TASK:
+	    return "Task";
 	default:
 	    assert(false);
     }
@@ -87,10 +85,8 @@ type_basic_type_t type_string_to_basic_type(const char* string) {
 	return TYPE_BASIC_TYPE_FLOAT;
     } else if (strcmp(string, "String") == 0) {
 	return TYPE_BASIC_TYPE_STRING;
-    } else if (strcmp(string, "Job") == 0) {
-	return TYPE_BASIC_TYPE_JOB;
-    } else if (strcmp(string, "Channel") == 0) {
-	return TYPE_BASIC_TYPE_CHANNEL;
+    } else if (strcmp(string, "Task") == 0) {
+	return TYPE_BASIC_TYPE_TASK;
     } else {
 	assert(false);
     }
@@ -112,11 +108,8 @@ void type_print_type(type_t* type) {
 		case TYPE_BASIC_TYPE_STRING:
 		    printf("string");
 		    break;
-		case TYPE_BASIC_TYPE_JOB:
-		    printf("job");
-		    break;
-		case TYPE_BASIC_TYPE_CHANNEL:
-		    printf("channel");
+		case TYPE_BASIC_TYPE_TASK:
+		    printf("task");
 		    break;
 		default:
 		    assert(false);

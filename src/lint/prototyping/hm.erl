@@ -215,10 +215,8 @@ type_to_string(float) ->
     "Float";
 type_to_string(string) ->
     "String";
-type_to_string(job) ->
-    "Job";
-type_to_string(channel) ->
-    "Channel";
+type_to_string(task) ->
+    "Task";
 type_to_string({list, X}) ->
     "[" ++ type_to_string(X) ++ "]";
 type_to_string({tuple, Xs}) ->

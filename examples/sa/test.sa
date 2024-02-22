@@ -21,7 +21,6 @@ record Foo {
 }
 
 fn main() {
-    ?a := receive [this.foo, bar],
     {
         ?a := 3
     },
@@ -58,11 +57,6 @@ fn main() {
         (?b, a), (?b, a) =>  c
     },
     (1, 2),
-    receive foo {
-        a =>
-            stdio.writeln("Oh no! Compute job $job died: $reason"),
-            b
-    },
     lists.foreach(fn () { stdio.writeln(item.toString())}, items),
     a := 1,
     (1, 2) := a,
