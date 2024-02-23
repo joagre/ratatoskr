@@ -12,8 +12,8 @@
 // Forward declarations of local functions
 static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
 		     satie_error_t* error);
-static void add_forward_type_variables(ast_node_t* node,
-				       symbol_tables_t* tables);
+static void add_function_type_variables(ast_node_t* node,
+					symbol_tables_t* tables);
 static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 			       uint32_t block_expr_id, satie_error_t* error);
 static void add_type_equations(ast_node_t* node, symbol_tables_t* tables,
@@ -34,8 +34,8 @@ bool hm_infer_types(ast_node_t* node, satie_error_t* error) {
     symbol_tables_init(&tables);
     symbol_table_t* table = symbol_table_new();
     symbol_tables_insert_table(&tables, table, unique_id());
-    // Add forward type variables for function definitions
-    add_forward_type_variables(node, &tables);
+    // Forward declare type variables for function definitions
+    add_function_type_variables(node, &tables);
     // Add all other type variables
     if (!add_type_variables(node, &tables, unique_id(), error)) {
 	return false;
@@ -64,7 +64,7 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
 	parent_node != NULL && parent_node->name != BLOCK_EXPR) {
 	SET_ERROR_MESSAGE(
 	    error, COMPONENT_COMPILER,
-	    "%d: The := operator is only allowed as a top-level expression in {...} expressions",
+	    "%d: The := operator is only allowed as a top-level expression",
 	    node->row);
 	return false;
     }
@@ -80,9 +80,8 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
     return true;
 }
 
-static void add_forward_type_variables(ast_node_t* node,
-				       symbol_tables_t* tables) {
-    LOG_ASSERT(node->name == PROGRAM, "Expected a PROGRAM node");
+static void add_function_type_variables(ast_node_t* node,
+					symbol_tables_t* tables) {
     ast_node_t* top_level_defs_node = ast_get_child(node, 0);
     size_t n = ast_number_of_children(top_level_defs_node);
     for (uint16_t i = 0; i < n; i++) {
@@ -109,7 +108,7 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	node->name == POSITIONAL_ARGS ||
 	node->name == PROGRAM ||
 	node->name == TOP_LEVEL_DEFS) {
-	// These nodes have no type variable
+	// Do not assign a type variable
     } else if (node->name == ADD_INT ||
 	       node->name == ADD_FLOAT ||
      	       node->name == AND ||
@@ -161,7 +160,7 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	type_t* type = type_new_type_variable();
 	node->type = type;
     } else if (node->name == NAME) {
-	// Names should be in a symbol table or else it is an error
+	// Names should already be in a symbol table or else it is an error
 	node->type = symbol_tables_lookup(tables, node->value);
 	if (node->type == NULL) {
 	    SET_ERROR_MESSAGE(error, COMPONENT_COMPILER,
@@ -176,40 +175,42 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	symbol_tables_insert(tables, node->value, type);
     } else if (node->name == FUNCTION_DEF) {
 	/*
-	  A function definition must add its function name to the
-	  top symbol table but its paramaters (if any) must be added
-	  to the same symbol tables as any names bound in the function
-	  block expression. The normal handling of block expressions
-	  is therefore overridden below.
+	  A function definition adds its function name to the top
+	  symbol table but its parameters (if any) are added to the
+	  same symbol table as names (if any) bound in the upcoming
+	  function defintion block expression. The normal handling of
+	  block expressions is therefore overridden here.
 	*/
-        // Handle all possible combinations of function definition nodes
-       	ast_node_t* unknown_node = ast_get_child(node, 1);
+        // Handle all possible combinations of function definition
+        // children nodes
+       	ast_node_t* child_node = ast_get_child(node, 1);
 	ast_node_t* non_default_params_node = NULL;
 	ast_node_t* return_type_node = NULL;
 	ast_node_t* block_expr_node;
-	if (unknown_node->name == BLOCK_EXPR) {
-	    block_expr_node = unknown_node;
-	} else if (unknown_node->name == NON_DEFAULT_PARAMS) {
-	    non_default_params_node = unknown_node;
-	    unknown_node = ast_get_child(node, 2);
-	    if (unknown_node->name == RETURN_TYPE) {
-		return_type_node = unknown_node;
+	if (child_node->name == BLOCK_EXPR) {
+	    block_expr_node = child_node;
+	} else if (child_node->name == NON_DEFAULT_PARAMS) {
+	    non_default_params_node = child_node;
+	    child_node = ast_get_child(node, 2);
+	    if (child_node->name == RETURN_TYPE) {
+		return_type_node = child_node;
 		block_expr_node = ast_get_child(node, 3);
 	    } else {
-		block_expr_node = unknown_node;
+		block_expr_node = child_node;
 	    }
-	} else if (unknown_node->name == RETURN_TYPE) {
-	    return_type_node = unknown_node;
+	} else if (child_node->name == RETURN_TYPE) {
+	    return_type_node = child_node;
 	    block_expr_node = ast_get_child(node, 2);
 	} else {
-	    block_expr_node = unknown_node;
+	    block_expr_node = child_node;
 	}
-	// Create a new symbol table for the function parameters and
-	// the upcoming function defintion block expression
+	// Create a new symbol table for the function definition
+	// parameters (if any) and names (if any) to be bound in the
+	// upcoming function defintion block expression
 	uint32_t block_expr_id = unique_id();
 	symbol_table_t* table = symbol_table_new();
 	symbol_tables_insert_table(tables, table, block_expr_id);
-	// Add type variables for the function parameters (if any)
+	// Assign type variables to the function parameters (if any)
 	if (non_default_params_node != NULL) {
 	    size_t n = ast_number_of_children(non_default_params_node);
 	    for (uint16_t i = 0; i < n; i++) {
@@ -224,7 +225,6 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	}
 	// Assign a type variable to the return type (if any)
 	if (return_type_node != NULL) {
-	    // Add a type variable to the return type
 	    type_t* return_type = type_new_type_variable();
 	    return_type_node->type = return_type;
 	}
@@ -233,7 +233,7 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 				error)) {
 	    return false;
 	}
-	// Remove the symbol table create by the function defintion above
+	// Remove the function definition symbol table created above
 	symbol_tables_delete_by_id(tables, block_expr_id);
 	traverse_children = false;
     } else if(node->name == BLOCK_EXPR) {
@@ -244,7 +244,7 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	symbol_table_t* table = symbol_table_new();
 	block_expr_id = unique_id();
 	symbol_tables_insert_table(tables, table, block_expr_id);
-	// Add type variables to the expression in the block expression
+	// Add type variables to the block expression children nodes
 	size_t n = ast_number_of_children(node);
 	for (uint16_t i = 0; i < n; i++) {
 	    if (!add_type_variables(ast_get_child(node, i), tables,
@@ -253,7 +253,7 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 		return false;
 	    }
 	}
-	// Remove the symbol table adhering to the block expression
+	// Remove the block expression symbol table
 	symbol_tables_delete_by_id(tables, block_expr_id);
 	traverse_children = false;
     } else {
@@ -295,7 +295,7 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == RETURN_TYPE ||
 	node->name == TOP_LEVEL_DEFS ||
 	node->name == UNBOUND_NAME) {
-	// These nodes do not produce any equations
+	// Do not create an equation
     } else if (node->name == FALSE || node->name == TRUE) {
 	// Equation: Bool constant
 	equation_t equation =
@@ -314,6 +314,26 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
 			 node, node, false);
 	equations_add(equations, &equation);
+    } else if (node->name == STRING) {
+	// Equation: String constant
+	equation_t equation =
+	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_STRING),
+			 node, node, false);
+	equations_add(equations, &equation);
+    } else if (node->name == TASK) {
+	// Equation: Task constant
+	equation_t equation =
+	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_TASK),
+			 node, node, false);
+	equations_add(equations, &equation);
+    } else if (node->name == CONSTRUCTOR_TYPE) {
+	LOG_ABORT("Not implemented yet\n");
+    } else if (node->name == FUNCTION_TYPE) {
+	LOG_ABORT("Not implemented yet\n");
+    } else if (node->name == LIST_TYPE) {
+	LOG_ABORT("Not implemented yet\n");
+    } else if (node->name == MAP_TYPE) {
+	LOG_ABORT("Not implemented yet\n");
     } else if (node->name == TUPLE_LITERAL) {
 	// Equation: tuple literal
 	size_t n = ast_number_of_children(node);
@@ -322,10 +342,23 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    ast_node_t* tuple_element_node = ast_get_child(node, i);
 	    types_add(tuple_types, tuple_element_node->type);
 	}
-	equation_t tuple_literal_equation =
+	equation_t equation =
 	    equation_new(node->type, type_new_tuple_type(tuple_types), node,
 			 node, false);
-	equations_add(equations, &tuple_literal_equation);
+	equations_add(equations, &equation);
+    } else if (node->name == TYPE_VARIABLE) {
+	LOG_ABORT("Not implemented yet\n");
+
+
+
+
+
+
+
+
+
+
+
     } else if (node->name == EQ || node->name == NE) {
 	// Equation: eq or ne
 	equation_t eq_equation =
@@ -598,7 +631,7 @@ static void add_return_type_equations(ast_node_t *node, symbol_tables_t* tables,
 				      equations_t* equations) {
     if (node->name == POSTFIX_EXPR) {
 	/*
-	 * NOTE: This POSTFIX_EXPR is hardwired to only handle function calls
+	 * NOTE: This is hardwired to only handle function calls!!!
 	 */
 	// Extract all nodes constituting the function call
 	ast_node_t* name_node = ast_get_child(node, 0);
@@ -606,7 +639,7 @@ static void add_return_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	ast_node_t* function_call_node = ast_get_child(node, 1);
 	LOG_ASSERT(function_call_node->name == FUNCTION_CALL,
 		   "Expected a FUNCTION_CALL node");
-	// Add a return type equation if the function name is known
+	// Add a return type equation if the function name is in a symbol table
 	type_t* function_name_type =
 	    symbol_tables_lookup(tables, name_node->value);
 	if (function_name_type != NULL) {
@@ -642,9 +675,19 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    return type_new_basic_type(TYPE_BASIC_TYPE_FLOAT);
 	case STRING_TYPE:
 	    return type_new_basic_type(TYPE_BASIC_TYPE_STRING);
-	case LIST_TYPE:
-	    return type_new_list_type(
-		extract_type(ast_get_child(type_node, 0)));
+	case TASK_TYPE:
+	    return type_new_basic_type(TYPE_BASIC_TYPE_TASK);
+	case CONSTRUCTOR_TYPE: {
+	    ast_node_t* name_node = ast_get_child(type_node, 0);
+	    LOG_ASSERT(name_node->name == NAME, "Expected a NAME node");
+	    types_t* types = types_new();
+	    for (uint16_t i = 1; i < ast_number_of_children(type_node); i++) {
+		ast_node_t* type_node = ast_get_child(type_node, i);
+		type_t* type = extract_type(type_node);
+		types_add(types, type);
+	    }
+	    return type_new_constructor_type(name_node->value, types);
+	}
 	case FUNCTION_TYPE: {
 	    ast_node_t* arg_types_node = ast_get_child(type_node, 0);
 	    LOG_ASSERT(arg_types_node->name == ARG_TYPES,
@@ -660,6 +703,16 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    type_t* return_type = extract_type(return_type_node);
 	    return type_new_function_type(arg_types, return_type);
 	}
+	case LIST_TYPE:
+	    return type_new_list_type(
+		extract_type(ast_get_child(type_node, 0)));
+	case MAP_TYPE: {
+	    ast_node_t* key_type_node = ast_get_child(type_node, 0);
+	    type_t* key_type = extract_type(key_type_node);
+	    ast_node_t* value_type_node = ast_get_child(type_node, 1);
+	    type_t* value_type = extract_type(value_type_node);
+	    return type_new_map_type(key_type, value_type);
+	}
 	case TUPLE_TYPE: {
 	    types_t* tuple_types = types_new();
 	    for (uint16_t i = 0; i < ast_number_of_children(type_node); i++) {
@@ -668,24 +721,6 @@ static type_t* extract_type(ast_node_t* type_node) {
 		types_add(tuple_types, tuple_type);
 	    }
 	    return type_new_tuple_type(tuple_types);
-	}
-	case MAP_TYPE: {
-	    ast_node_t* key_type_node = ast_get_child(type_node, 0);
-	    type_t* key_type = extract_type(key_type_node);
-	    ast_node_t* value_type_node = ast_get_child(type_node, 1);
-	    type_t* value_type = extract_type(value_type_node);
-	    return type_new_map_type(key_type, value_type);
-	}
-	case CONSTRUCTOR_TYPE: {
-	    ast_node_t* name_node = ast_get_child(type_node, 0);
-	    LOG_ASSERT(name_node->name == NAME, "Expected a NAME node");
-	    types_t* types = types_new();
-	    for (uint16_t i = 1; i < ast_number_of_children(type_node); i++) {
-		ast_node_t* type_node = ast_get_child(type_node, i);
-		type_t* type = extract_type(type_node);
-		types_add(types, type);
-	    }
-	    return type_new_constructor_type(name_node->value, types);
 	}
 	case TYPE_VARIABLE:
 	    return type_new_type_variable();
@@ -698,10 +733,37 @@ static type_t* extract_type(ast_node_t* type_node) {
 
 static operator_types_t get_operator_types(node_name_t name) {
     switch (name) {
-	case CONCAT_STRING:
+	case ADD_FLOAT:
+	case EXP:
+	case DIV_FLOAT:
+	case SUB_FLOAT:
+	case MUL_FLOAT:
 	    return (operator_types_t) {
-		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_STRING),
-		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_STRING)
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT)
+	    };
+	case ADD_INT:
+	case DIV_INT:
+	case MOD:
+	case MUL_INT:
+	case SUB_INT:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_INT)
+	    };
+	case AND:
+	case OR:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
+	    };
+	case BITWISE_AND:
+	case BITWISE_OR:
+	case BSL:
+	case BSR:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
 	    };
 	case CONCAT_LIST:
 	    // FIXME: Add as own
@@ -709,6 +771,27 @@ static operator_types_t get_operator_types(node_name_t name) {
 	case CONCAT_MAP:
 	    // FIXME: Add as own
 	    break;
+	case CONCAT_STRING:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_STRING),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_STRING)
+	    };
+	case GT_FLOAT:
+	case GTE_FLOAT:
+	case LT_FLOAT:
+	case LTE_FLOAT:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
+	    };
+	case GT_INT:
+	case GTE_INT:
+	case LT_INT:
+	case LTE_INT:
+	    return (operator_types_t) {
+		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
+		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
+	    };
 	case NEG_FLOAT:
 	case POS_FLOAT:
 	    return (operator_types_t) {
@@ -725,54 +808,6 @@ static operator_types_t get_operator_types(node_name_t name) {
 	    return (operator_types_t) {
 		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
 		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
-	    };
-	case AND:
-	case OR:
-	    return (operator_types_t) {
-		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
-		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
-	    };
-	case BITWISE_AND:
-	case BITWISE_OR:
-	case BSL:
-	case BSR:
-	    return (operator_types_t) {
-		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
-		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
-	    };
-	case GT_INT:
-	case GTE_INT:
-	case LT_INT:
-	case LTE_INT:
-	    return (operator_types_t) {
-		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
-		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
-	    };
-	case GT_FLOAT:
-	case GTE_FLOAT:
-	case LT_FLOAT:
-	case LTE_FLOAT:
-	    return (operator_types_t) {
-		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
-		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
-	    };
-	case ADD_INT:
-	case DIV_INT:
-	case MOD:
-	case MUL_INT:
-	case SUB_INT:
-	    return (operator_types_t) {
-		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
-		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_INT)
-	    };
-	case ADD_FLOAT:
-	case EXP:
-	case DIV_FLOAT:
-	case SUB_FLOAT:
-	case MUL_FLOAT:
-	    return (operator_types_t) {
-		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
-		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_FLOAT)
 	    };
 	default:
 	    assert(false);

@@ -28,21 +28,28 @@ typedef uint32_t type_variable_t;
 typedef struct type {
     type_tag_t tag;
     union {
+	// Basic type
 	type_basic_type_t basic_type;
-	struct type* list_type;
-	struct {
-	    types_t* arg_types;
-	    struct type* return_type;
-	} function_type;
-	types_t* tuple_types;
-	struct {
-	    struct type* key_type;
-	    struct type* value_type;
-	} map_type;
+	// Constructor type
 	struct {
 	    char* name;
 	    types_t* types;
 	} constructor_type;
+	// Function type
+	struct {
+	    types_t* arg_types;
+	    struct type* return_type;
+	} function_type;
+	// List type
+	struct type* list_type;
+	// Map type
+	struct {
+	    struct type* key_type;
+	    struct type* value_type;
+	} map_type;
+	// Tuple type
+	types_t* tuple_types;
+	// Type variable
 	type_variable_t type_variable;
     };
 } type_t;
