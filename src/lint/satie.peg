@@ -195,7 +195,7 @@ ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); }
 FunctionType <- "(" _ a:Type? _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes _ "}" _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, a, r); }
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")"
-MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); }
+MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); } / "[" _ ":" _ "]" { $$ = CT(EMPTY_MAP_TYPE, NULL); }
 ConstructorType <- n:Name "<" _ t:Types? _ ">" { $$ = CN(CONSTRUCTOR_TYPE, 2, n, t); }
 TypeVariables <- t:TypeVariable {$$ = CN(TYPE_VARIABLES, 1, t); } (_ "," _ t:TypeVariable { AC($$, t); })*
 TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }

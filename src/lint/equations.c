@@ -31,6 +31,7 @@ void equations_print(equations_t* equations) {
 	}
 	printf("%*s", MAX_COLS - n, "");
 	printf("{");
+	fflush(stdout); // TODO: Remove this line
 	type_print_type(equation->left);
 	printf(", ");
 	fflush(stdout);

@@ -1,16 +1,42 @@
-fn mupp(x, y) {
+/*
+fn foo(f, g, x is Int) is Int{
+    if f(x =Int= 1) {
+        g(x)
+    } else {
+        20
+    }
+}
+*/
+
+fn bar(x is [Bool: Bool], y is Int) is [Int: [Bool: Bool]] {
+    ?a is [[Bool: Bool]: Int] := [x: y],
+    [?b is [Bool: Bool]: y] := a,
+    x := b,
+    ?a is [:] := [:],
+    a := [:],
+    [y: x]
+}
+
+fn foo() {
+   [2: [true: ?b is Bool]] := bar([true: false], 2),
+   b
+}
+
+/*
+fn bar(x, y) {
     ?a := [x: y],
     [?b: y] := a,
+    x := b,
     ?a := [:],
     a := [:],
-    [y: b]
+    [y: x]
 }
 
-fn fnurra() {
-   [2: 1] := mupp(1, 2)
+fn foo() {
+   [2: [true: ?b]] := bar([true: false], 2),
+   b
 }
-
-
+*/
 
 /*
 fn bonk(y) {
@@ -95,7 +121,6 @@ fn foo(f, g is (Int -> Int), x is Int) {
     }
 }
 */
-
 
 
 
