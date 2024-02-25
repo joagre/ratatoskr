@@ -28,10 +28,11 @@
     static void panic(const char *fmt, ...) {
         va_list args;
         va_start(args, fmt);
-        fprintf(stderr, "\033[31mError:\033[0m ");
+        printf("\033[31mError:\033[0m ");
         vfprintf(stderr, fmt, args);
-        fprintf(stderr, "\n");
+        printf("\n");
         va_end(args);
+        fflush(stdout);
         exit(1);
     }
 
@@ -340,7 +341,7 @@ TypeConstructorLiteral <- n:Name "<" _ e:Exprs? _ ">" { $$ = CN(TYPE_CONSTRUCTOR
 # Match expression
 #
 
-MatchExpr <- (m:MatchCons / m:MatchLiteral / (m:UnboundName (_ "is" _ t:Type { AC(m, CCN(TYPE, 1, t)); })?) / m:Name) { $$ = m; } (_ "as" _ u:UnboundName { AC($$, RN(u, MATCH_AS)); })?
+MatchExpr <- (m:MatchCons / m:MatchLiteral / m:UnboundName / m:Name) { $$ = m; } (_ "as" _ u:UnboundName { AC($$, RN(u, MATCH_AS)); })?
 
 MatchCons <- l:MatchExpr _ "::" _ r:MatchExpr { $$ = CN(CONS, 2, l, r); }
 
@@ -366,9 +367,9 @@ MatchListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } /
                     "[" _ m:MatchExprs? _ "]" { $$ = RN(m, LIST_LITERAL); }
 MatchExprs <- m:MatchExpr { $$ = CN(MATCH_EXPRS, 1, m); } (_ "," _ m:MatchExpr { AC($$, m); })*
 
-MatchMapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyValues? _ "]" { $$ = RN(m, MAP_LITERAL); }
+MatchMapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyValues _ "]" { $$ = RN(m, MAP_LITERAL); }
 MatchMapKeyValues <- m:MatchMapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MatchMapKeyValue { AC($$, m); })*
-MatchMapKeyValue <- (k:Literal / k:Name) _ ":" _ v:MatchExpr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
+MatchMapKeyValue <- (k:Literal / k:Name / k:UnboundName) _ ":" _ v:MatchExpr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
 MatchRecordLiteral <- n:Name _ "(" _ m:NamedMatchArgs _ ")" { $$ = CN(MATCH_RECORD_LITERAL, 2, n, m); }
 NamedMatchArgs <- n:NamedMatchArg { $$ = CN(NAMED_MATCH_ARGS, 1, n); } (_ "," _ n:NamedMatchArg { AC($$, n); })*
@@ -382,7 +383,8 @@ MatchTypeConstructorLiteral <- n:Name "<" _ m:MatchExprs? _ ">" { $$ = CN(MATCH_
 
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 Name <- Identifier { $$ = CT(NAME, $0); }
-UnboundName <- "?" n:Name { $$ = RN(n, UNBOUND_NAME); } / "_" { $$ = CT(UNBOUND_NO_NAME, $0); }
+UnboundName <- "?" n:Name (_ "is" _ t:Type)? { $$ = RN(n, UNBOUND_NAME); AC($$, CCN(TYPE, 1, t)); } / "_" { $$ = CT(UNBOUND_NO_NAME, $0); }
+
 #_ <- WS*
 #__ <- WS+
 _ <- (WS / Comments)*

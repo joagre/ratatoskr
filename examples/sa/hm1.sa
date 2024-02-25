@@ -1,8 +1,15 @@
 fn mupp(x, y) {
-    ?a := [1: true, 2: false, true: true],
+    ?a := [x: y],
+    [?b: y] := a,
     ?a := [:],
-    a := [:]
+    a := [:],
+    [y: b]
 }
+
+fn fnurra() {
+   [2: 1] := mupp(1, 2)
+}
+
 
 
 /*
@@ -12,9 +19,6 @@ fn bonk(y) {
    c
 }
 
-fn fnurra() {
-   1 := bonk(1)
-}
 */
 
 /*

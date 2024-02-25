@@ -15,23 +15,23 @@ void log_entry(log_level_t log_level, char* file, uint32_t line, char* format,
                va_list args) {
     switch (log_level) {
 	case LOG_LEVEL_DEBUG:
-	    fprintf(stderr, "DEBUG (%s: %d): ", file, line);
+	    printf("DEBUG (%s: %d): ", file, line);
 	    break;
 	case LOG_LEVEL_INFO:
-	    fprintf(stderr, "INFO (%s: %d): ", file, line);
+	    printf("INFO (%s: %d): ", file, line);
 	    break;
 	case LOG_LEVEL_WARNING:
-	    fprintf(stderr, "WARNING (%s: %d): ", file, line);
+	    printf("WARNING (%s: %d): ", file, line);
 	    break;
 	case LOG_LEVEL_ERROR:
-	    fprintf(stderr, "ERROR (%s: %d): ", file, line);
+	    printf("ERROR (%s: %d): ", file, line);
 	    break;
 	case LOG_LEVEL_PANIC:
-	    fprintf(stderr, "PANIC (%s: %d): ", file, line);
+	    printf("PANIC (%s: %d): ", file, line);
 	    break;
     }
     vfprintf(stderr, format, args);
-    fprintf(stderr, "\n");
+    printf("\n");
 }
 
 void log_satie_error(log_level_t log_level, char* file, uint32_t line,
@@ -46,6 +46,7 @@ void log_abort(char* file, uint32_t line, char* message, ...) {
     va_start(args, message);
     log_entry(LOG_LEVEL_PANIC, file, line, message, args);
     va_end(args);
+    fflush(stdout);
     abort();
 }
 
@@ -55,6 +56,7 @@ void log_assert(char* file, uint32_t line, bool condition, char* message, ...) {
         va_start(args, message);
         log_entry(LOG_LEVEL_PANIC, file, line, message, args);
         va_end(args);
+	fflush(stdout);
         abort();
     }
 }
