@@ -1,3 +1,23 @@
+fn mupp(x, y) {
+    ?a := [1: true, 2: false, true: true],
+    ?a := [:],
+    a := [:]
+}
+
+
+/*
+fn bonk(y) {
+   ?b := (y, false),
+   (?c, true) := b,
+   c
+}
+
+fn fnurra() {
+   1 := bonk(1)
+}
+*/
+
+/*
 fn foo(f is (Bool -> Bool), g, x) {
     if f(x =Int= 1) {
         g(x),
@@ -12,7 +32,7 @@ fn baz(z) {
     (z, ?a) := (1, 42),
     a
 }
-
+*/
 
 /*
 fn zap() {

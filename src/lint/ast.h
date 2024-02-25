@@ -159,7 +159,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(RAW_STRING) \
         NODE_NAME(READONLY) \
         NODE_NAME(REGULAR_STRING) \
-        NODE_NAME(RETURN_TYPE) \
         NODE_NAME(SLICE_LENGTH) \
 	NODE_NAME(STRING) \
 	NODE_NAME(STRING_TYPE) \
@@ -174,6 +173,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(TRUE) \
         NODE_NAME(TUPLE_LITERAL) \
         NODE_NAME(TUPLE_TYPE) \
+        NODE_NAME(TYPE) \
         NODE_NAME(TYPE_DEF) \
         NODE_NAME(TYPES) \
         NODE_NAME(TYPE_CONSTRUCTOR_LITERAL) \

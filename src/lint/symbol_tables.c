@@ -45,28 +45,25 @@ void symbol_tables_insert(symbol_tables_t* tables, char* name, type_t* type) {
     symbol_table_insert(entry->table, name, type);
 }
 
-uint16_t symbol_tables_delete_by_id(symbol_tables_t* tables, uint32_t id) {
-    //fprintf(stderr, "symbol_tables_delete_by_id\n");
+void symbol_tables_delete_by_id(symbol_tables_t* tables, uint32_t id) {
+    //fprintf(stderr, "** symbol_tables_delete_by_id: %d\n", id);
     size_t n = dynarray_size(tables);
-    uint16_t deleted_entries = 0;
-    for (size_t i = 0; i < n; i++) {
-	symbol_tables_entry_t* entry = dynarray_element(tables, i);
+    while (n-- > 0) {
+	symbol_tables_entry_t* entry = dynarray_element(tables, n);
+	dynarray_delete(tables, n);
 	if (entry->id == id) {
-	    //symbol_table_free(entry->table);
-	    dynarray_delete(tables, i);
-	    deleted_entries++;
+	    break;
 	}
     }
-    return deleted_entries;
 }
 
 void symbol_tables_print(symbol_tables_t* tables) {
     //fprintf(stderr, "symbol_tables_print\n");
     size_t n = dynarray_size(tables);
-    fprintf(stderr, "====\n");
+    printf("====\n");
     for (size_t i = 0; i < n; i++) {
 	symbol_tables_entry_t* entry = dynarray_element(tables, i);
-	fprintf(stderr, "== %d\n", entry->id);
+	printf("== %d\n", entry->id);
 	symbol_table_print(entry->table);
     }
 }

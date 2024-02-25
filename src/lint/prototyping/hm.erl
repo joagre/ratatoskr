@@ -180,20 +180,22 @@ occurs_check(_Variable, _Type, _Substitutions) ->
 
 dereference(_Substitutions, BaseType) when is_atom(BaseType) ->
     BaseType;
+dereference(Substitutions, {list, X}) ->
+    {list, dereference(Substitutions, X)};
+dereference(Substitutions, {map, Key, Value}) ->
+    {map, dereference(Substitutions, Key), dereference(Substitutions, Value)};
+dereference(Substitutions, {tuple, Xs}) ->
+    {tuple, lists:map(fun(Type) -> dereference(Substitutions, Type) end, Xs)};
+dereference(Substitutions, {ArgTypes, ReturnType}) ->
+    {lists:map(fun(Type) -> dereference(Substitutions, Type) end, ArgTypes),
+     dereference(Substitutions, ReturnType)};
 dereference(Substitutions, Variable) when is_integer(Variable) ->
     case maps:get(Variable, Substitutions, undefined) of
         undefined ->
             '_';
         Substitution ->
             dereference(Substitutions, Substitution)
-    end;
-dereference(Substitutions, {tuple, Xs}) ->
-    {tuple, lists:map(fun(Type) -> dereference(Substitutions, Type) end, Xs)};
-dereference(Substitutions, {list, X}) ->
-    {list, dereference(Substitutions, X)};
-dereference(Substitutions, {ArgTypes, ReturnType}) ->
-    {lists:map(fun(Type) -> dereference(Substitutions, Type) end, ArgTypes),
-     dereference(Substitutions, ReturnType)}.
+    end.
 
 %%
 %% Format type error
@@ -223,6 +225,8 @@ type_to_string({tuple, Xs}) ->
     "(" ++ type_to_string(Xs) ++ ")";
 type_to_string({map, Key, Value}) ->
     "[" ++ type_to_string(Key) ++ ": " ++ type_to_string(Value) ++ "]";
+type_to_string(empty_map) ->
+    "[:]";
 type_to_string({constructor, Xs}) ->
     "<" ++ type_to_string(Xs) ++ ">";
 type_to_string({[ArgType], ReturnType}) ->

@@ -104,7 +104,7 @@ EnumValueError <- ("," / ";") {
 # Function definition
 #
 
-FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ t:Type _)? b:BlockExpr { ast_node_t* rt = NULL; if (t != NULL) { rt = CN(RETURN_TYPE, 1, t); } $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, rt, b); }
+FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ t:Type _)? b:BlockExpr { $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, CCN(TYPE, 1, t), b); }
 Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
 Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d); } /
@@ -112,9 +112,9 @@ Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d);
           d:DefaultParams { $$ = d; }
 NonDefaultParams <- n:NonDefaultParam { $$ = CN(NON_DEFAULT_PARAMS, 1, n); }
                     (_ "," _ n:NonDefaultParam { AC($$, n); })*
-NonDefaultParam <- n:Name (_ "is" _ t:Type)? !(_ "=") { $$ = RN(n, PARAM_NAME); AC($$, t);}
+NonDefaultParam <- n:Name (_ "is" _ t:Type)? !(_ "=") { $$ = RN(n, PARAM_NAME); AC($$, CCN(TYPE, 1, t));}
 DefaultParams <- d:DefaultParam { $$ = CN(DEFAULT_PARAMS, 1, d); } (_ "," _ d:DefaultParam {AC($$, d); })*
-DefaultParam <- i:DefaultParamName (_ "is" _ t:Type { AC(i, t); })? _ "=" _ m:ParamExpr { $$ = CN(DEFAULT_PARAM, 2, i, m); }
+DefaultParam <- i:DefaultParamName (_ "is" _ t:Type { AC(i, CCN(TYPE, 1, t)); })? _ "=" _ m:ParamExpr { $$ = CN(DEFAULT_PARAM, 2, i, m); }
 DefaultParamName <- Identifier { $$ = CT(PARAM_NAME, $0); }
 ParamExpr <- (m:MatchLiteral / m:Name) { $$ = m; }
 BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
@@ -139,11 +139,11 @@ InterfaceDef <- "interface" __ i:InterfaceName ("<" _ t:TypeVariables _ ">")? _ 
 InterfaceName <- Identifier { $$ = CT(INTERFACE_NAME, $0); }
 InterfaceMembers <- i:InterfaceMember { $$ = CN(INTERFACE_MEMBERS, 1, i); } (_ i:InterfaceMember { AC($$, i); } / InterfaceMemberError)*
 InterfaceMember <- (i:InterfaceConstructor / i:InterfaceDestructor / i:InterfaceMemberMethod / i:InterfaceMemberProperty) { $$ = i; }
-InterfaceConstructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? { $$ = CN(INTERFACE_CONSTRUCTOR, 2, p, t); }
-InterfaceDestructor <- "~this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? { $$ = CN(INTERFACE_DESTRUCTOR, 3, p, t); }
+InterfaceConstructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? { $$ = CN(INTERFACE_CONSTRUCTOR, 2, p, CCN(TYPE, 1, t)); }
+InterfaceDestructor <- "~this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? { $$ = CN(INTERFACE_DESTRUCTOR, 3, p, CCN(TYPE, 1, t)); }
 InterfaceMemberMethod <- m:MemberAccess _ i:InterfaceMethod { $$ = CN(INTERFACE_MEMBER_METHOD, 2, m, i); }
-InterfaceMethod <- "fn" _ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _  ("is" _ t:Type _)? { $$ = CN(INTERFACE_METHOD, 4, f, tv, p, t); }
-InterfaceMemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name  (_ "is" _ t:Type { AC(n, t); })?) { $$ = CN(INTERFACE_MEMBER_PROPERTY, 4, m, c, n, t); }
+InterfaceMethod <- "fn" _ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _  ("is" _ t:Type _)? { $$ = CN(INTERFACE_METHOD, 4, f, tv, p, CCN(TYPE, 1, t)); }
+InterfaceMemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name  (_ "is" _ t:Type { AC(n, CCN(TYPE, 1, t)); })?) { $$ = CN(INTERFACE_MEMBER_PROPERTY, 4, m, c, n, t); }
 InterfaceMemberError <- ("," / ";") {
     panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
@@ -159,11 +159,11 @@ Interfaces <- i:Interface { $$ = CN(INTERFACES, 1, i); } (_ "," _ i:Interface { 
 Interface <- n:Name ("<" _ t:Types _ ">")? { $$ = CN(INTERFACE, 2, n, t); }
 RecordMembers <- c:RecordMember { $$ = CN(RECORD_MEMBERS, 1, c); } (_ c:RecordMember { AC($$, c); } / RecordMemberError)*
 RecordMember <- (c:Constructor / c:Destructor / c:MemberMethod / c:MemberProperty) { $$ = c; }
-Constructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(RECORD_CONSTRUCTOR, 3, p, t, b); }
-Destructor <- "~this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(RECORD_DESTRUCTOR, 3, p, t, b); }
+Constructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(RECORD_CONSTRUCTOR, 3, p, CCN(TYPE, 1, t), b); }
+Destructor <- "~this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(RECORD_DESTRUCTOR, 3, p, CCN(TYPE, 1, t), b); }
 MemberMethod <- m:MemberAccess _ f:FunctionDef { $$ = CN(MEMBER_METHOD, 2, m, f); }
 MemberAccess <- "public" { $$ = CT(PUBLIC, NULL); } / "private" { $$ = CT(PRIVATE, NULL); }
-MemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name (_ "is" _ t:Type { AC(n, t); })? (_ "=" _ e:Expr)?) { $$ = CN(MEMBER_PROPERTY, 4, m, c, n, e); }
+MemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name (_ "is" _ t:Type { AC(n, CCN(TYPE, 1, t)); })? (_ "=" _ e:Expr)?) { $$ = CN(MEMBER_PROPERTY, 4, m, c, n, e); }
 RecordMemberError <- ("," / ";") {
     panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
@@ -340,7 +340,7 @@ TypeConstructorLiteral <- n:Name "<" _ e:Exprs? _ ">" { $$ = CN(TYPE_CONSTRUCTOR
 # Match expression
 #
 
-MatchExpr <- (m:MatchCons / m:MatchLiteral / (m:UnboundName (_ "is" _ t:Type { AC(m, t); })?) / m:Name) { $$ = m; } (_ "as" _ u:UnboundName { AC($$, RN(u, MATCH_AS)); })?
+MatchExpr <- (m:MatchCons / m:MatchLiteral / (m:UnboundName (_ "is" _ t:Type { AC(m, CCN(TYPE, 1, t)); })?) / m:Name) { $$ = m; } (_ "as" _ u:UnboundName { AC($$, RN(u, MATCH_AS)); })?
 
 MatchCons <- l:MatchExpr _ "::" _ r:MatchExpr { $$ = CN(CONS, 2, l, r); }
 

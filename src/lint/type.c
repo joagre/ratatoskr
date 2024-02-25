@@ -44,6 +44,12 @@ type_t* type_new_map_type(type_t* key_type, type_t* value_type) {
     return type;
 }
 
+type_t* type_new_empty_map_type(void) {
+    type_t* type = malloc(sizeof(type_t));
+    type->tag = TYPE_TAG_EMPTY_MAP_TYPE;
+    return type;
+}
+
 type_t* type_new_constructor_type(char* name, types_t* types) {
     type_t* type = malloc(sizeof(type_t));
     type->tag = TYPE_TAG_CONSTRUCTOR_TYPE;
@@ -153,6 +159,9 @@ void type_print_type(type_t* type) {
 	    printf(", ");
 	    type_print_type(type->map_type.value_type);
 	    printf("}");
+	    break;
+	case TYPE_TAG_EMPTY_MAP_TYPE:
+	    printf("empty_map");
 	    break;
 	case TYPE_TAG_CONSTRUCTOR_TYPE:
 	    printf("{constructor, %s, [", type->constructor_type.name);

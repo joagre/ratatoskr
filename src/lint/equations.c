@@ -1,3 +1,4 @@
+#include <log.h>
 #include "equations.h"
 #include "types.h"
 
@@ -32,6 +33,8 @@ void equations_print(equations_t* equations) {
 	printf("{");
 	type_print_type(equation->left);
 	printf(", ");
+	fflush(stdout);
+	LOG_ASSERT(equation->right != NULL, "equation->right is NULL");
 	type_print_type(equation->right);
 	printf("}\n");
     }
