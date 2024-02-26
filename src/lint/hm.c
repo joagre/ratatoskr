@@ -203,7 +203,8 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 		return false;
 	    }
 	}
-	// Remove the function definition symbol table created above
+	// Remove the symbol table created above and all sub symbol
+	// tables created by bind expressions
 	symbol_tables_delete_by_id(tables, block_expr_id);
 	traverse_children = false;
     } else if(node->name == BLOCK_EXPR) {
@@ -223,7 +224,8 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 		return false;
 	    }
 	}
-	// Remove the block expression symbol table
+	// Remove the symbol table created above and all sub symbol
+	// tables created by bind expressions
 	symbol_tables_delete_by_id(tables, block_expr_id);
 	traverse_children = false;
     } else {
