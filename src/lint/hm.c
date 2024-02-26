@@ -124,10 +124,14 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == CONCAT_STRING ||
 	       node->name == DIV_INT ||
 	       node->name == DIV_FLOAT ||
+	       node->name == EMPTY_LIST_TYPE ||
 	       node->name == EMPTY_MAP_TYPE ||
+	       node->name == EMPTY_TUPLE_TYPE ||
 	       node->name == EQ ||
 	       node->name == EXP ||
 	       node->name == FALSE ||
+	       node->name == FLOAT ||
+	       node->name == FLOAT_TYPE ||
 	       node->name == FUNCTION_CALL ||
 	       node->name == GTE_INT ||
 	       node->name == GT_INT ||
@@ -135,10 +139,11 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == GT_INT ||
 	       node->name == GT_FLOAT ||
 	       node->name == IF_EXPR ||
-	       node->name == FLOAT ||
 	       node->name == IN ||
 	       node->name == INT ||
 	       node->name == INT_TYPE ||
+	       node->name == LIST_LITERAL ||
+	       node->name == LIST_TYPE ||
 	       node->name == LTE_INT ||
 	       node->name == LTE_FLOAT ||
 	       node->name == LT_INT ||
@@ -158,11 +163,13 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == POS_INT ||
 	       node->name == POS_FLOAT ||
 	       node->name == POSTFIX_EXPR ||
+	       node->name == STRING_TYPE ||
 	       node->name == SUB_INT ||
 	       node->name == SUB_FLOAT ||
+	       node->name == TASK_TYPE ||
+	       node->name == TRUE ||
 	       node->name == TUPLE_LITERAL ||
-	       node->name == TUPLE_TYPE ||
-	       node->name == TRUE) {
+	       node->name == TUPLE_TYPE) {
 	// Assign a type variable
 	type_t* type = type_new_type_variable();
 	node->type = type;
@@ -261,6 +268,7 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == BOOL_TYPE ||
 	node->name == ELSE ||
 	node->name == EQ_TYPE ||
+	node->name == FLOAT_TYPE ||
 	node->name == FUNCTION_CALL ||
 	node->name == FUNCTION_NAME ||
 	node->name == IF ||
@@ -271,6 +279,8 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == PARAM_NAME ||
 	node->name == POSITIONAL_ARGS ||
 	node->name == PROGRAM ||
+	node->name == STRING_TYPE ||
+	node->name == TASK_TYPE ||
 	node->name == TOP_LEVEL_DEFS ||
 	node->name == TUPLE_TYPE) {
 	// Do not create an equation
@@ -327,6 +337,31 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	LOG_ABORT("Not implemented yet\n");
     } else if (node->name == FUNCTION_TYPE) {
 	LOG_ABORT("Not implemented yet\n");
+    } else if (node->name == LIST_LITERAL) {
+	size_t n = ast_number_of_children(node);
+	if (n == 0) {
+	    // Equation: Empty list literal
+	    equation_t equation = equation_new(
+		node->type, type_new_empty_list_type(), node, node, false);
+	    equations_add(equations, &equation);
+	} else {
+	    // Extract first list element
+	    ast_node_t* first_element_node = ast_get_child(node, 0);
+	    // Equation: List literal
+	    type_t* type = type_new_list_type(first_element_node->type);
+	    equation_t equation = equation_new(node->type, type, node,
+					       first_element_node, false);
+	    equations_add(equations, &equation);
+	    // Add equations for all list elements
+	    for (uint16_t i = 0; i < n; i++) {
+		ast_node_t* element_node = ast_get_child(node, i);
+		// Equation: List element
+		equation_t equation =
+		    equation_new(element_node->type, first_element_node->type,
+				 node, element_node, false);
+		equations_add(equations, &equation);
+	    }
+	}
     } else if (node->name == MAP_LITERAL) {
 	size_t n = ast_number_of_children(node);
 	if (n == 0) {
@@ -366,12 +401,37 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		equations_add(equations, &equation);
 	    }
 	}
+    } else if (node->name == TUPLE_LITERAL) {
+	// Equation: Tuple literal
+	size_t n = ast_number_of_children(node);
+	if (n == 0) {
+	    // Equation: Empty tuple literal
+	    equation_t equation = equation_new(
+		node->type, type_new_empty_tuple_type(), node, node, false);
+	    equations_add(equations, &equation);
+	} else {
+	    types_t* types = types_new();
+	    for (uint16_t i = 0; i < n; i++) {
+		ast_node_t* element_node = ast_get_child(node, i);
+		types_add(types, element_node->type);
+	    }
+	    type_t* type = type_new_tuple_type(types);
+	    equation_t equation = equation_new(node->type, type, node, node,
+					       false);
+	    equations_add(equations, &equation);
+	}
     } else if (node->name == LIST_TYPE) {
 	// Equation: List
 	ast_node_t* list_type_node = ast_get_child(node, 0);
 	equation_t equation =
 	    equation_new(node->type, type_new_list_type(list_type_node->type),
 			 node, node, false);
+	equations_add(equations, &equation);
+    } else if (node->name == EMPTY_LIST_TYPE) {
+	// Equation: Empty list type
+	equation_t equation =
+	    equation_new(node->type, type_new_empty_list_type(), node, node,
+			 false);
 	equations_add(equations, &equation);
     } else if (node->name == MAP_TYPE) {
 	// Equation: Map
@@ -388,17 +448,22 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(node->type, type_new_empty_map_type(), node, node,
 			 false);
 	equations_add(equations, &equation);
-    } else if (node->name == TUPLE_LITERAL) {
-	// Equation: Tuple literal
+    } else if (node->name == TUPLE_TYPE) {
+	// Equation: Tuple
+	types_t* types = types_new();
 	size_t n = ast_number_of_children(node);
-	types_t* tuple_types = types_new();
 	for (uint16_t i = 0; i < n; i++) {
-	    ast_node_t* tuple_element_node = ast_get_child(node, i);
-	    types_add(tuple_types, tuple_element_node->type);
+	    ast_node_t* type_node = ast_get_child(node, i);
+	    types_add(types, type_node->type);
 	}
+	type_t* type = type_new_tuple_type(types);
+	equation_t equation = equation_new(node->type, type, node, node, false);
+	equations_add(equations, &equation);
+    } else if (node->name == EMPTY_TUPLE_TYPE) {
+	// Equation: Empty tuple type
 	equation_t equation =
-	    equation_new(node->type, type_new_tuple_type(tuple_types), node,
-			 node, false);
+	    equation_new(node->type, type_new_empty_tuple_type(), node, node,
+			 false);
 	equations_add(equations, &equation);
     } else if (node->name == TYPE_VARIABLE) {
 	LOG_ABORT("Not implemented yet\n");
@@ -745,6 +810,8 @@ static type_t* extract_type(ast_node_t* type_node) {
 	case LIST_TYPE:
 	    return type_new_list_type(
 		extract_type(ast_get_child(type_node, 0)));
+	case EMPTY_LIST_TYPE:
+	    return type_new_empty_map_type();
 	case MAP_TYPE: {
 	    ast_node_t* key_type_node = ast_get_child(type_node, 0);
 	    type_t* key_type = extract_type(key_type_node);
@@ -752,9 +819,8 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    type_t* value_type = extract_type(value_type_node);
 	    return type_new_map_type(key_type, value_type);
 	}
-	case EMPTY_MAP_TYPE: {
+	case EMPTY_MAP_TYPE:
 	    return type_new_empty_map_type();
-	}
 	case TUPLE_TYPE: {
 	    types_t* tuple_types = types_new();
 	    for (uint16_t i = 0; i < ast_number_of_children(type_node); i++) {
@@ -764,6 +830,8 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    }
 	    return type_new_tuple_type(tuple_types);
 	}
+	case EMPTY_TUPLE_TYPE:
+	    return type_new_empty_tuple_type();
 	case TYPE_VARIABLE:
 	    return type_new_type_variable();
 	default:

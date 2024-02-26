@@ -53,6 +53,8 @@ typedef dynarray_t node_array_t;
         NODE_NAME(ELIF) \
         NODE_NAME(ELSE) \
 	NODE_NAME(EMPTY_MAP_TYPE) \
+	NODE_NAME(EMPTY_LIST_TYPE) \
+	NODE_NAME(EMPTY_TUPLE_TYPE) \
         NODE_NAME(ENUM) \
         NODE_NAME(ENUM_DEF) \
         NODE_NAME(ENUM_DEF_NAME) \

@@ -1,10 +1,10 @@
 -module(hm).
--export([ex1/0, ex2/0]).
+-compile(export_all).
 
 -include("lint.hrl").
 
 %% foo f g x = if f(x == 1) then g(x) else 20
-ex1() ->
+simple_test() ->
     Equations = [{int, int},
                  {3, int},
                  {6, bool},
@@ -19,22 +19,21 @@ ex1() ->
     {[{[bool],bool},{[int],int},int],int} =
         dereference(Substitutions, 0).
 
-%% fn foo(f, g, x) {
-%%     if f(x =Int= 1) {
-%%         g(x)
-%%     } else {
-%%         20
-%%     }
-%% }
-ex2() ->
-    case lint:start("../../../examples/sa/hm1.sa") of
+hm1() ->
+    test("../../../examples/sa/hm1.sa").
+
+test_literals() ->
+    test("../../../examples/sa/test_literals.sa").
+
+test(Filename) ->
+    case lint:start(Filename) of
         {error, Reason} ->
             Reason;
         Result ->
-            ex2(Result)
+            print_test_result(Result)
     end.
 
-ex2({Source, Result, Node, AdornedEquations}) ->
+print_test_result({Source, Result, Node, AdornedEquations}) ->
     io:format("==== Source:\n~s\n", [Source]),
     io:format("==== Lint output:\n~s\n", [Result]),
     %%io:format("==== Node:\n~p\n\n", [Node]),
@@ -219,16 +218,20 @@ type_to_string(string) ->
     "String";
 type_to_string(task) ->
     "Task";
+type_to_string({constructor, Xs}) ->
+    "<" ++ type_to_string(Xs) ++ ">";
 type_to_string({list, X}) ->
     "[" ++ type_to_string(X) ++ "]";
-type_to_string({tuple, Xs}) ->
-    "(" ++ type_to_string(Xs) ++ ")";
+type_to_string(empty_list) ->
+    "[]";
 type_to_string({map, Key, Value}) ->
     "[" ++ type_to_string(Key) ++ ": " ++ type_to_string(Value) ++ "]";
 type_to_string(empty_map) ->
     "[:]";
-type_to_string({constructor, Xs}) ->
-    "<" ++ type_to_string(Xs) ++ ">";
+type_to_string({tuple, Xs}) ->
+    "(" ++ type_to_string(Xs) ++ ")";
+type_to_string(empty_tuple) ->
+    "()";
 type_to_string({[ArgType], ReturnType}) ->
     "(" ++ type_to_string(ArgType) ++ " -> " ++
         type_to_string(ReturnType) ++ ")";

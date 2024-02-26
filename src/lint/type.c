@@ -14,10 +14,11 @@ type_t* type_new_basic_type(type_basic_type_t basic_type) {
     return type;
 }
 
-type_t* type_new_list_type(type_t* list_type) {
+type_t* type_new_constructor_type(char* name, types_t* types) {
     type_t* type = malloc(sizeof(type_t));
-    type->tag = TYPE_TAG_LIST_TYPE;
-    type->list_type = list_type;
+    type->tag = TYPE_TAG_CONSTRUCTOR_TYPE;
+    type->constructor_type.name = name;
+    type->constructor_type.types = types;
     return type;
 }
 
@@ -29,10 +30,16 @@ type_t* type_new_function_type(types_t* arg_types, type_t* return_type) {
     return type;
 }
 
-type_t* type_new_tuple_type(types_t* tuple_types) {
+type_t* type_new_list_type(type_t* list_type) {
     type_t* type = malloc(sizeof(type_t));
-    type->tag = TYPE_TAG_TUPLE_TYPE;
-    type->tuple_types = tuple_types;
+    type->tag = TYPE_TAG_LIST_TYPE;
+    type->list_type = list_type;
+    return type;
+}
+
+type_t* type_new_empty_list_type(void) {
+    type_t* type = malloc(sizeof(type_t));
+    type->tag = TYPE_TAG_EMPTY_LIST_TYPE;
     return type;
 }
 
@@ -50,11 +57,16 @@ type_t* type_new_empty_map_type(void) {
     return type;
 }
 
-type_t* type_new_constructor_type(char* name, types_t* types) {
+type_t* type_new_tuple_type(types_t* tuple_types) {
     type_t* type = malloc(sizeof(type_t));
-    type->tag = TYPE_TAG_CONSTRUCTOR_TYPE;
-    type->constructor_type.name = name;
-    type->constructor_type.types = types;
+    type->tag = TYPE_TAG_TUPLE_TYPE;
+    type->tuple_types = tuple_types;
+    return type;
+}
+
+type_t* type_new_empty_tuple_type(void) {
+    type_t* type = malloc(sizeof(type_t));
+    type->tag = TYPE_TAG_EMPTY_TUPLE_TYPE;
     return type;
 }
 
@@ -125,6 +137,9 @@ void type_print_type(type_t* type) {
 	    printf("{list, ");
 	    type_print_type(type->list_type);
 	    printf("}");
+	    break;
+	case TYPE_TAG_EMPTY_LIST_TYPE:
+	    printf("empty_list");
 	    break;
 	case TYPE_TAG_FUNCTION_TYPE:
 	    printf("{");

@@ -227,21 +227,21 @@ ConsExpr <- l:ConsExpr _ "::" _ r:ListConcatExpr { $$ = CN(CONS, 2, l, r); } / e
 ListConcatExpr <- l:ListConcatExpr _ "@" _ r:MapConcatExpr { $$ = CN(CONCAT_LIST, 2, l, r); } / e:MapConcatExpr { $$ = e; }
 MapConcatExpr <- l:MapConcatExpr _ "~" _ r:StringConcatExpr { $$ = CN(CONCAT_MAP, 2, l, r); } / e:StringConcatExpr { $$ = e; }
 StringConcatExpr <- l:StringConcatExpr _ "^" _ r:SubIntExpr { $$ = CN(CONCAT_STRING, 2, l, r); } / e:SubIntExpr { $$ = e; }
-SubIntExpr <- l:SubIntExpr _ "-" _ r:SubFloatExpr { $$ = CN(SUB_INT, 2, l, r); } / e:SubFloatExpr { $$ = e; }
-SubFloatExpr <- l:SubFloatExpr _ "-." _ r:AddIntExpr { $$ = CN(SUB_FLOAT, 2, l, r); } / e:AddIntExpr { $$ = e; }
-AddIntExpr <- l:AddIntExpr _ "+" _ r:AddFloatExpr { $$ = CN(ADD_INT, 2, l, r); } / e:AddFloatExpr { $$ = e; }
-AddFloatExpr <- l:AddFloatExpr _ "+." _ r:ModExpr { $$ = CN(ADD_FLOAT, 2, l, r); } / e:ModExpr { $$ = e; }
+SubIntExpr <- l:SubIntExpr _ "-Int-" _ r:SubFloatExpr { $$ = CN(SUB_INT, 2, l, r); } / e:SubFloatExpr { $$ = e; }
+SubFloatExpr <- l:SubFloatExpr _ "-Float-" _ r:AddIntExpr { $$ = CN(SUB_FLOAT, 2, l, r); } / e:AddIntExpr { $$ = e; }
+AddIntExpr <- l:AddIntExpr _ "+Int+" _ r:AddFloatExpr { $$ = CN(ADD_INT, 2, l, r); } / e:AddFloatExpr { $$ = e; }
+AddFloatExpr <- l:AddFloatExpr _ "+Float+" _ r:ModExpr { $$ = CN(ADD_FLOAT, 2, l, r); } / e:ModExpr { $$ = e; }
 ModExpr <- l:ModExpr _ "%" _ r:DivIntExpr { $$ = CN(MOD, 2, l, r); } / e:DivIntExpr { $$ = e; }
-DivIntExpr <- l:DivIntExpr _ "/" _ r:DivFloatExpr { $$ = CN(DIV_INT, 2, l, r); } / e:DivFloatExpr { $$ = e; }
-DivFloatExpr <- l:DivFloatExpr _ "/." _ r:MulIntExpr { $$ = CN(DIV_FLOAT, 2, l, r); } / e:MulIntExpr { $$ = e; }
-MulIntExpr <- l:MulIntExpr _ "*" _ r:MulFloatExpr { $$ = CN(MUL_INT, 2, l, r); } / e:MulFloatExpr { $$ = e; }
-MulFloatExpr <- l:MulFloatExpr _ "*." _ r:ExponentiationExpr { $$ = CN(MUL_FLOAT, 2, l, r); } / e:ExponentiationExpr { $$ = e; }
+DivIntExpr <- l:DivIntExpr _ "/Int/" _ r:DivFloatExpr { $$ = CN(DIV_INT, 2, l, r); } / e:DivFloatExpr { $$ = e; }
+DivFloatExpr <- l:DivFloatExpr _ "/Float/" _ r:MulIntExpr { $$ = CN(DIV_FLOAT, 2, l, r); } / e:MulIntExpr { $$ = e; }
+MulIntExpr <- l:MulIntExpr _ "*Int*" _ r:MulFloatExpr { $$ = CN(MUL_INT, 2, l, r); } / e:MulFloatExpr { $$ = e; }
+MulFloatExpr <- l:MulFloatExpr _ "*Float*" _ r:ExponentiationExpr { $$ = CN(MUL_FLOAT, 2, l, r); } / e:ExponentiationExpr { $$ = e; }
 ExponentiationExpr <- l:ExponentiationExpr _ "^^" _ r:NotExpr { $$ = CN(EXP, 2, l, r); } / e:NotExpr { $$ = e; }
 NotExpr <- "!" _ l:PosIntExpr { $$ = CN(NOT, 1, l); } / e:PosIntExpr { $$ = e; }
-PosIntExpr <- "+" _ l:PosFloatExpr { $$ = CN(POS_INT, 1, l); } / e:PosFloatExpr { $$ = e; }
-PosFloatExpr <- "+." _ l:NegIntExpr { $$ = CN(POS_FLOAT, 1, l); } / e:NegIntExpr { $$ = e; }
-NegIntExpr <- "-" _ l:NegFloatExpr { $$ = CN(NEG_INT, 1, l); } / e:NegFloatExpr { $$ = e; }
-NegFloatExpr <- "-." _ l:PostfixExpr { $$ = CN(NEG_FLOAT, 1, l); } / e:PostfixExpr { $$ = e; }
+PosIntExpr <- "+Int+" _ l:PosFloatExpr { $$ = CN(POS_INT, 1, l); } / e:PosFloatExpr { $$ = e; }
+PosFloatExpr <- "+Float+" _ l:NegIntExpr { $$ = CN(POS_FLOAT, 1, l); } / e:NegIntExpr { $$ = e; }
+NegIntExpr <- "-Int-" _ l:NegFloatExpr { $$ = CN(NEG_INT, 1, l); } / e:NegFloatExpr { $$ = e; }
+NegFloatExpr <- "-Float-" _ l:PostfixExpr { $$ = CN(NEG_FLOAT, 1, l); } / e:PostfixExpr { $$ = e; }
 PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX_EXPR, 1, p); }
                 (_ "<->" _ n:Name { AC($$, RN(n, TASK_CALL)); } /
                  _ "->" _ n:Name { AC($$, RN(n, TASK_CAST)); } /

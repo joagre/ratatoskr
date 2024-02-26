@@ -6,13 +6,15 @@
 typedef dynarray_t types_t;
 
 typedef enum {
-    TYPE_TAG_BASIC_TYPE,
+    TYPE_TAG_BASIC_TYPE, // DONE
     TYPE_TAG_CONSTRUCTOR_TYPE,
     TYPE_TAG_FUNCTION_TYPE,
-    TYPE_TAG_LIST_TYPE,
-    TYPE_TAG_MAP_TYPE,
-    TYPE_TAG_EMPTY_MAP_TYPE,
-    TYPE_TAG_TUPLE_TYPE,
+    TYPE_TAG_LIST_TYPE, // DONE
+    TYPE_TAG_EMPTY_LIST_TYPE, // DONE
+    TYPE_TAG_MAP_TYPE, // DONE
+    TYPE_TAG_EMPTY_MAP_TYPE, // DONE
+    TYPE_TAG_TUPLE_TYPE, // DONE
+    TYPE_TAG_EMPTY_TUPLE_TYPE, // DONE
     TYPE_TAG_TYPE_VARIABLE
 } type_tag_t;
 
@@ -56,13 +58,16 @@ typedef struct type {
 } type_t;
 
 type_t* type_new_basic_type(type_basic_type_t basic_type);
-type_t* type_new_list_type(type_t* list_type);
+type_t* type_new_constructor_type(char* name, types_t* types);
 type_t* type_new_function_type(types_t* arg_types, type_t* return_type);
-type_t* type_new_tuple_type(types_t* tuple_types);
+type_t* type_new_list_type(type_t* list_type);
+type_t* type_new_empty_list_type(void);
 type_t* type_new_map_type(type_t* key_type, type_t* value_type);
 type_t* type_new_empty_map_type(void);
-type_t* type_new_constructor_type(char* name, types_t* types);
+type_t* type_new_tuple_type(types_t* tuple_types);
+type_t* type_new_empty_tuple_type(void);
 type_t* type_new_type_variable(void);
+
 char* type_basic_type_to_string(type_basic_type_t basic_type);
 type_basic_type_t type_string_to_basic_type(const char* string);
 void type_print_type(type_t* type);
