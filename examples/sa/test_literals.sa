@@ -1,0 +1,20 @@
+fn foo() {
+   // Bool
+   ?a is Bool := true,
+   ?a is Bool := false,
+   // Int
+   ?a is Int := 42,
+   ?a is Int := -42,
+   ?a is Int := +42,
+   ?a is Int := 0xff,
+   ?a is Int := 0b101010,
+   ?a is Int := 042,
+   ?a is Int := 42 + 4711,
+   // Float
+   ?a is Float := 3.14,
+   ?a is Float := 3E-2,
+   ?a is Float := +;3E+2,
+   ?a is Float := +;3.14E+2,
+   ?a is Float := +;14E+2,
+   ?a is Float := 3.14 +; 3.14
+}
