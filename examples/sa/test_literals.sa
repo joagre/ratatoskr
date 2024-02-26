@@ -1,4 +1,4 @@
-fn foo() {
+fn foo(f is (Int -> Int)) {
    // Bool
    ?a is Bool := true,
    ?a is Bool := false,
@@ -20,5 +20,19 @@ fn foo() {
    // String
    ?a is String := "foo",
    ?a is String := "",
-   ?a is String := r"\nbar"
+   ?a is String := r"\nbar",
+   // Function
+   ?a is (Int -> Int) :=
+       fn (x is Int) {
+           x
+       },
+   41 := a(41)
+}
+
+fn baz(x is Int) {
+    x
+}
+
+fn bar() {
+    foo(baz)
 }

@@ -100,7 +100,8 @@ static void forward_declare_type_variables(ast_node_t* node,
 static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 			       uint32_t block_expr_id, satie_error_t* error) {
     bool traverse_children = true;
-    if (node->name == ELSE ||
+    if (node->name == ARG_TYPES ||
+	node->name == ELSE ||
 	node->name == EQ_TYPE ||
 	node->name == IF ||
 	node->name == FUNCTION_NAME ||
@@ -133,6 +134,7 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == FLOAT ||
 	       node->name == FLOAT_TYPE ||
 	       node->name == FUNCTION_CALL ||
+	       node->name == FUNCTION_LITERAL ||
 	       node->name == GTE_INT ||
 	       node->name == GT_INT ||
 	       node->name == GTE_FLOAT ||
@@ -142,6 +144,7 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == IN ||
 	       node->name == INT ||
 	       node->name == INT_TYPE ||
+	       node->name == FUNCTION_TYPE ||
 	       node->name == LIST_LITERAL ||
 	       node->name == LIST_TYPE ||
 	       node->name == LTE_INT ||
@@ -163,6 +166,8 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == POS_INT ||
 	       node->name == POS_FLOAT ||
 	       node->name == POSTFIX_EXPR ||
+	       node->name == RAW_STRING ||
+	       node->name == REGULAR_STRING ||
 	       node->name == STRING_TYPE ||
 	       node->name == SUB_INT ||
 	       node->name == SUB_FLOAT ||
@@ -320,7 +325,14 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
 			 node, node, false);
 	equations_add(equations, &equation);
-    } else if (node->name == STRING) {
+    } else if (node->name == RAW_STRING) {
+	// Equation: String constant
+	equation_t equation =
+	    equation_new(node->type,
+			 type_new_basic_type(TYPE_BASIC_TYPE_STRING),
+			 node, node, false);
+	equations_add(equations, &equation);
+    } else if (node->name == REGULAR_STRING) {
 	// Equation: String constant
 	equation_t equation =
 	    equation_new(node->type,
@@ -337,6 +349,117 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	LOG_ABORT("Not implemented yet\n");
     } else if (node->name == FUNCTION_TYPE) {
 	LOG_ABORT("Not implemented yet\n");
+    } else if (node->name == LIST_TYPE) {
+	// Equation: List
+	ast_node_t* list_type_node = ast_get_child(node, 0);
+	equation_t equation =
+	    equation_new(node->type, type_new_list_type(list_type_node->type),
+			 node, node, false);
+	equations_add(equations, &equation);
+    } else if (node->name == EMPTY_LIST_TYPE) {
+	// Equation: Empty list type
+	equation_t equation =
+	    equation_new(node->type, type_new_empty_list_type(), node, node,
+			 false);
+	equations_add(equations, &equation);
+    } else if (node->name == MAP_TYPE) {
+	// Equation: Map
+	ast_node_t* key_type_node = ast_get_child(node, 0);
+	ast_node_t* value_type_node = ast_get_child(node, 1);
+	equation_t equation =
+	    equation_new(node->type, type_new_map_type(key_type_node->type,
+						       value_type_node->type),
+			 node, node, false);
+	equations_add(equations, &equation);
+    } else if (node->name == EMPTY_MAP_TYPE) {
+	// Equation: Empty map type
+	equation_t equation =
+	    equation_new(node->type, type_new_empty_map_type(), node, node,
+			 false);
+	equations_add(equations, &equation);
+    } else if (node->name == TUPLE_TYPE) {
+	// Equation: Tuple
+	types_t* types = types_new();
+	size_t n = ast_number_of_children(node);
+	for (uint16_t i = 0; i < n; i++) {
+	    ast_node_t* type_node = ast_get_child(node, i);
+	    types_add(types, type_node->type);
+	}
+	type_t* type = type_new_tuple_type(types);
+	equation_t equation = equation_new(node->type, type, node, node, false);
+	equations_add(equations, &equation);
+    } else if (node->name == EMPTY_TUPLE_TYPE) {
+	// Equation: Empty tuple type
+	equation_t equation =
+	    equation_new(node->type, type_new_empty_tuple_type(), node, node,
+			 false);
+	equations_add(equations, &equation);
+    } else if (node->name == TYPE_VARIABLE) {
+	LOG_ABORT("Not implemented yet\n");
+    } else if (node->name == FUNCTION_LITERAL) {
+        // Extract all nodes constituting the function literal
+       	ast_node_t* unknown_node = ast_get_child(node, 0);
+	ast_node_t* non_default_params_node = NULL;
+	ast_node_t* return_type_node = NULL;
+	ast_node_t* block_expr_node;
+	if (unknown_node->name == BLOCK_EXPR) {
+	    block_expr_node = unknown_node;
+	} else if (unknown_node->name == NON_DEFAULT_PARAMS) {
+	    non_default_params_node = unknown_node;
+	    unknown_node = ast_get_child(node, 1);
+	    if (unknown_node->name == TYPE) {
+		return_type_node = unknown_node;
+		block_expr_node = ast_get_child(node, 2);
+	    } else {
+		block_expr_node = unknown_node;
+	    }
+	} else if (unknown_node->name == TYPE) {
+	    return_type_node = unknown_node;
+	    block_expr_node = ast_get_child(node, 1);
+	} else {
+	    block_expr_node = unknown_node;
+	}
+	// Extract all parameter types
+	types_t* param_types = types_new();
+	if (non_default_params_node != NULL) {
+	    size_t n = ast_number_of_children(non_default_params_node);
+	    for (uint16_t i = 0; i < n; i++) {
+		ast_node_t* param_node =
+		    ast_get_child(non_default_params_node, i);
+		LOG_ASSERT(param_node->name == PARAM_NAME,
+			   "Expected a PARAM_NAME node");
+		// Has a type been specified?
+		if (ast_number_of_children(param_node) > 0) {
+		    ast_node_t* param_type_node = ast_get_child(param_node, 0);
+		    LOG_ASSERT(param_type_node->name == TYPE,
+			       "Expected a TYPE node");
+		    ast_node_t* actual_type_node =
+			ast_get_child(param_type_node, 0);
+                    // Equation: Parameter
+		    equation_t param_type_equation =
+			equation_new(param_node->type, actual_type_node->type,
+				     node, param_node, true);
+		    equations_add(equations, &param_type_equation);
+		}
+		types_add(param_types, param_node->type);
+	    }
+	}
+	// Equation: Function
+	equation_t function_equation =
+	    equation_new(node->type,
+			 type_new_function_type(param_types,
+						block_expr_node->type),
+			 node, node, false);
+	equations_add(equations, &function_equation);
+	// Has a return type been specified?
+	if (return_type_node != NULL) {
+	    // Equation: Return type
+	    ast_node_t* type_node = ast_get_child(return_type_node, 0);
+	    equation_t return_type_equation =
+		equation_new(block_expr_node->type, type_node->type, node,
+			     return_type_node, true);
+	    equations_add(equations, &return_type_equation);
+	}
     } else if (node->name == LIST_LITERAL) {
 	size_t n = ast_number_of_children(node);
 	if (n == 0) {
@@ -420,53 +543,6 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 					       false);
 	    equations_add(equations, &equation);
 	}
-    } else if (node->name == LIST_TYPE) {
-	// Equation: List
-	ast_node_t* list_type_node = ast_get_child(node, 0);
-	equation_t equation =
-	    equation_new(node->type, type_new_list_type(list_type_node->type),
-			 node, node, false);
-	equations_add(equations, &equation);
-    } else if (node->name == EMPTY_LIST_TYPE) {
-	// Equation: Empty list type
-	equation_t equation =
-	    equation_new(node->type, type_new_empty_list_type(), node, node,
-			 false);
-	equations_add(equations, &equation);
-    } else if (node->name == MAP_TYPE) {
-	// Equation: Map
-	ast_node_t* key_type_node = ast_get_child(node, 0);
-	ast_node_t* value_type_node = ast_get_child(node, 1);
-	equation_t equation =
-	    equation_new(node->type, type_new_map_type(key_type_node->type,
-						       value_type_node->type),
-			 node, node, false);
-	equations_add(equations, &equation);
-    } else if (node->name == EMPTY_MAP_TYPE) {
-	// Equation: Empty map type
-	equation_t equation =
-	    equation_new(node->type, type_new_empty_map_type(), node, node,
-			 false);
-	equations_add(equations, &equation);
-    } else if (node->name == TUPLE_TYPE) {
-	// Equation: Tuple
-	types_t* types = types_new();
-	size_t n = ast_number_of_children(node);
-	for (uint16_t i = 0; i < n; i++) {
-	    ast_node_t* type_node = ast_get_child(node, i);
-	    types_add(types, type_node->type);
-	}
-	type_t* type = type_new_tuple_type(types);
-	equation_t equation = equation_new(node->type, type, node, node, false);
-	equations_add(equations, &equation);
-    } else if (node->name == EMPTY_TUPLE_TYPE) {
-	// Equation: Empty tuple type
-	equation_t equation =
-	    equation_new(node->type, type_new_empty_tuple_type(), node, node,
-			 false);
-	equations_add(equations, &equation);
-    } else if (node->name == TYPE_VARIABLE) {
-	LOG_ABORT("Not implemented yet\n");
     } else if (node->name == EQ || node->name == NE) {
 	// Equation: eq or ne
 	equation_t operator_equation =

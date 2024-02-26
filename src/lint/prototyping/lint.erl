@@ -63,7 +63,6 @@ parse_node_type("Bool") -> bool;
 parse_node_type("t" ++ Variable) -> list_to_integer(Variable).
 
 parse_line(Line) ->
-    io:format("LINE: ~p~n", [Line]),
     [Name, Row, Value, Type] = string:split(string:trim(Line), ":", all),
     {Name, Row, Value, Type, calc_indent(Line)}.
 
