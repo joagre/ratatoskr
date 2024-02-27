@@ -119,8 +119,7 @@ DefaultParam <- i:DefaultParamName (_ "is" _ t:Type { AC(i, CCN(TYPE, 1, t)); })
 DefaultParamName <- Identifier { $$ = CT(PARAM_NAME, $0); }
 ParamExpr <- (m:MatchLiteral / m:Name) { $$ = m; }
 BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
-BlockLevelExprs <- b:BlockLevelExpr { $$ = CN(BLOCK_EXPR, 1, b); } (_ Comma _ b:BlockLevelExpr { AC($$, b); })*
-BlockLevelExpr <- (b:FunctionDef / b:Expr) { $$ = b; }
+BlockLevelExprs <- e:Expr { $$ = CN(BLOCK_EXPR, 1, e); } (_ Comma _ e:Expr { AC($$, e); })*
 Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between "
           "expressions)", auxil->row);
@@ -191,10 +190,10 @@ IntType <- "Int" { $$ = CT(INT_TYPE, NULL); }
 FloatType <- "Float" { $$ = CT(FLOAT_TYPE, NULL); }
 StringType <- "String" { $$ = CT(STRING_TYPE, NULL); }
 TaskType <- "Task" { $$ = CT(TASK_TYPE, NULL); }
-ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); }
+ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); } / "[" _ "]" { $$ = CT(EMPTY_LIST_TYPE, NULL); }
 FunctionType <- "(" _ a:Type? _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes _ "}" _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, a, r); }
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
-TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")"
+TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")" / "(" _ ")" { $$ = CT(EMPTY_TUPLE_TYPE, NULL); }
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); } / "[" _ ":" _ "]" { $$ = CT(EMPTY_MAP_TYPE, NULL); }
 ConstructorType <- n:Name "<" _ t:Types? _ ">" { $$ = CN(CONSTRUCTOR_TYPE, 2, n, t); }
 TypeVariables <- t:TypeVariable {$$ = CN(TYPE_VARIABLES, 1, t); } (_ "," _ t:TypeVariable { AC($$, t); })*
@@ -210,17 +209,27 @@ LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
 BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
 BitwiseOrExpr <- l:BitwiseOrExpr _ "|" _ r:GTEIntExpr { $$ = CN(BITWISE_OR, 2, l, r); } / e:GTEIntExpr { $$ = e; }
-GTEIntExpr <- l:GTEIntExpr __ ">Int=" __ r:GTEFloatExpr { $$ = CN(GTE_INT, 2, l, r); } / e:GTEFloatExpr { $$ = e; }
-GTEFloatExpr <- l:GTEFloatExpr __ ">Float=" __ r:GTIntExpr { $$ = CN(GTE_FLOAT, 2, l, r); } / e:GTIntExpr { $$ = e; }
-GTIntExpr <- l:GTIntExpr __ ">Int>" __ r:GTFloatExpr { $$ = CN(GT_INT, 2, l, r); } / e:GTFloatExpr { $$ = e; }
-GTFloatExpr <- l:GTFloatExpr __ ">Float>" __ r:LTEIntExpr { $$ = CN(GT_FLOAT, 2, l, r); } / e:LTEIntExpr { $$ = e; }
-LTEIntExpr <- l:LTEIntExpr __ "<Int=" __ r:LTEFloatExpr { $$ = CN(LTE_INT, 2, l, r); } / e:LTEFloatExpr { $$ = e; }
-LTEFloatExpr <- l:LTEFloatExpr __ "<Float=" __ r:LTIntExpr { $$ = CN(LTE_FLOAT, 2, l, r); } / e:LTIntExpr { $$ = e; }
-LTIntExpr <- l:LTIntExpr __ "<Int<" __ r:LTFloatExpr { $$ = CN(LT_INT, 2, l, r); } / e:LTFloatExpr { $$ = e; }
-LTFloatExpr <- l:LTFloatExpr __ "<Float<" __ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l, r); } / e:NotEqualExpr { $$ = e; }
-NotEqualExpr <- l:NotEqualExpr _ "!" t:Name "=" _ r:EqualExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualExpr { $$ = e; }
-EqualExpr <- l:EqualExpr _ "=" t:Name "=" _ r:InExpr { $$ = CN(EQ, 3, l, RN(t, EQ_TYPE), r); } / e:InExpr { $$ = e; }
+GTEIntExpr <- l:GTEIntExpr __ ">=" __ r:GTEFloatExpr { $$ = CN(GTE_INT, 2, l, r); } / e:GTEFloatExpr { $$ = e; }
+GTEFloatExpr <- l:GTEFloatExpr __ ">=;" __ r:GTIntExpr { $$ = CN(GTE_FLOAT, 2, l, r); } / e:GTIntExpr { $$ = e; }
+GTIntExpr <- l:GTIntExpr __ ">" __ r:GTFloatExpr { $$ = CN(GT_INT, 2, l, r); } / e:GTFloatExpr { $$ = e; }
+GTFloatExpr <- l:GTFloatExpr __ ">;" __ r:LTEIntExpr { $$ = CN(GT_FLOAT, 2, l, r); } / e:LTEIntExpr { $$ = e; }
+LTEIntExpr <- l:LTEIntExpr __ "<=" __ r:LTEFloatExpr { $$ = CN(LTE_INT, 2, l, r); } / e:LTEFloatExpr { $$ = e; }
+LTEFloatExpr <- l:LTEFloatExpr __ "<=;" __ r:LTIntExpr { $$ = CN(LTE_FLOAT, 2, l, r); } / e:LTIntExpr { $$ = e; }
+LTIntExpr <- l:LTIntExpr __ "<" __ r:LTFloatExpr { $$ = CN(LT_INT, 2, l, r); } / e:LTFloatExpr { $$ = e; }
+LTFloatExpr <- l:LTFloatExpr __ "<;" __ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l, r); } / e:NotEqualExpr { $$ = e; }
+
+
+NotEqualIntExpr <- l:NotEqualIntExpr _ "!=" _ r:NotEqualFloatExpr { $$ = CN(NE, 3, l, CT(INT_TYPE, NULL), r); } / e:NotEqualFloatExpr { $$ = e; }
+NotEqualFloatExpr <- l:NotEqualFloatExpr _ "!=;" _ r:NotEqualExpr { $$ = CN(NE, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:NotEqualExpr { $$ = e; }
+NotEqualExpr <- l:NotEqualExpr _ "!" !("Int" / "Float") t:Name "=" _ r:EqualIntExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualIntExpr { $$ = e; }
+EqualIntExpr <- l:EqualIntExpr _ "==" _ r:EqualFloatExpr { $$ = CN(EQ, 3, l, CT(INT_TYPE, NULL), r); } / e:EqualFloatExpr { $$ = e; }
+EqualFloatExpr <- l:EqualFloatExpr _ "==;" _ r:EqualExpr { $$ = CN(EQ, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:EqualExpr { $$ = e; }
+EqualExpr <- l:EqualExpr _ "=" !("Int" / "Float") t:Name "=" _ r:InExpr { $$ = CN(EQ, 3, l, RN(t, EQ_TYPE), r); } / e:InExpr { $$ = e; }
 InExpr <- l:InExpr _ "in" _ e:RightShiftExpr { $$ = CN(IN, 2, l, e); } / e:RightShiftExpr { $$ = e; }
+
+
+
+
 RightShiftExpr <- l:RightShiftExpr __ ">>" __ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
 LeftShiftExpr <- l:LeftShiftExpr __ "<<" __ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
 ConsExpr <- l:ConsExpr _ "::" _ r:ListConcatExpr { $$ = CN(CONS, 2, l, r); } / e:ListConcatExpr { $$ = e; }
@@ -255,8 +264,7 @@ PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX_EXPR, 1, p); }
 IndexValues <- i:IndexValue { $$ = CN(INDEX_VALUES, 1, i); } (_ "," _ i:IndexValue { AC($$, i); })*
 IndexValue <- i:Int _ "=" _ v:Expr { $$ = CN(INDEX_VALUE, 2, i, v); }
 
-PrimaryExpr <- "nil" { $$ = CT(NIL, NULL); } /
-               "this" { $$ = CT(THIS, NULL); } /
+PrimaryExpr <- "this" { $$ = CT(THIS, NULL); } /
                "$" { $$ = CT(SLICE_LENGTH, NULL); } /
                e:NewRecord {$$ = e;} /
                e:LaunchTask {$$ = e;} /
@@ -413,15 +421,17 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    //ast_print(program, 0);
+    ast_print(program, 0);
     /*
      * Check semantics
      */
+    /*
     satie_error_t error;
     if (!hm_infer_types(program, &error)) {
        fprintf(stderr, "Error: %s\n", satie_error_message);
        return 1;
     }
+    */
     /*
      * Cleanup
      */

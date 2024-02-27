@@ -37,7 +37,7 @@ record TodoList {
 }
 
 export fn main() {
-    fn loopUntilQuit(todoList) {
+    ?loopUntilQuit := fn (todoList) {
         ?input := readInput(), // implemented elsewhere
         if input.command =String= "add" {
             (?todoList, ?a) := todoList.addItem(input.tag, input.description),

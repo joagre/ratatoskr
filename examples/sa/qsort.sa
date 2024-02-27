@@ -21,7 +21,7 @@ export fn qsort(compare, list) {
 }
 
 export fn main(_args) {
-    fn compare(x, y) { x <Int< y },
+    ?compare := fn (x, y) { x < y },
     case sort(compare, [3, 1, 32, 0]) {
         Left<?l> => writeln("Success: %l")
         Right<?reason> => writeln("Error: %reason")

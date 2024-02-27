@@ -38,7 +38,7 @@ fn depth(tree) {
 }
 
 fn completeTree(k, n) {
-    if n =Int= 0 {
+    if n == 0 {
         Leaf<>
     } else {
         Branch<k, completeTree(2 * k, n - 1), completeTree(2 * k + 1, n - 1)>

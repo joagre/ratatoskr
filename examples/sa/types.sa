@@ -11,7 +11,7 @@ fn foo(x, y, compare) {
 }
 
 export fn main(_args) {
-    fn compare(a, b) { a =Int= b },
+    ?compare := fn (a, b) { a == b },
     ?w := foo([12, 13], 42, compare),
     w := foo2<int>([12, 13], 42, compare)
 }

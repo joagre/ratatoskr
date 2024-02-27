@@ -1,4 +1,4 @@
-fn foo(f is (Int -> Int)) {
+fn foo() {
    // Bool
    ?a is Bool := true,
    ?a is Bool := false,
@@ -26,13 +26,16 @@ fn foo(f is (Int -> Int)) {
        fn (x is Int) {
            x
        },
-   41 := a(41)
-}
-
-fn baz(x is Int) {
-    x
-}
-
-fn bar() {
-    foo(baz)
+   41 := a(41),
+   ?bonk := fn (x) { x },
+   42 := bonk(42),
+   // List
+   ?a is [(Bool, Int)] := [(true, 42), (false, 4711)],
+   ?a is [] := [],
+   // Map
+   ?a is [Bool: Int] := [true: 42, false:4711],
+   ?a is [:] := [:],
+   // Tuple
+   ?a is (Bool, [Int: String]) := (true, [42: "foo"]),
+   ?a is () := ()
 }

@@ -142,7 +142,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(NEG_INT) \
         NODE_NAME(NEG_FLOAT) \
         NODE_NAME(NEW_EXPR) \
-        NODE_NAME(NIL) \
         NODE_NAME(NON_DEFAULT_PARAMS) \
         NODE_NAME(NON_QUOTE_CHARACTER) \
         NODE_NAME(NOT) \

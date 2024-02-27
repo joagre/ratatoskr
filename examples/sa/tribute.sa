@@ -10,7 +10,7 @@ export fn main(args) {
 }
 
 fn startTributes(numberOfTributes, n = 0, tasks = []) {
-    if n <Int< numberOfTributes {
+    if n < numberOfTributes {
         ?task := launch Tribute(n: n),
         startTributes(numberOfTributes, n + 1, task @ tasks)
     } else {

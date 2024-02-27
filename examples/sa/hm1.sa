@@ -1,3 +1,4 @@
+/*
 fn foo(f, g, x is Int) is Int{
     if f(x =Int= 1) {
         g(x)
@@ -5,6 +6,7 @@ fn foo(f, g, x is Int) is Int{
         20
     }
 }
+*/
 
 fn bar(x, y) {
     ?a := [x: y],
@@ -16,10 +18,17 @@ fn bar(x, y) {
 }
 
 fn foo() {
-   [2: [true: ?b]] := bar([true: false], 2),
-   b
+   [2: [true: false]] := bar([true: false], 2)
 }
 
+
+/*
+fn foo() {
+    bar([true: false], 2),
+}
+*/
+
+/*
 fn bar(x is [Bool: Bool], y is Int) is [Int: [Bool: Bool]] {
     ?a is [[Bool: Bool]: Int] := [x: y],
     [?b is [Bool: Bool]: y] := a,
@@ -33,7 +42,7 @@ fn foo() is Bool {
    [2: [true: ?b is Bool]] := bar([true: false], 2),
    b
 }
-
+*/
 /*
 fn bonk(y) {
    ?b := (y, false),

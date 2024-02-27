@@ -25,6 +25,9 @@ hm1() ->
 test_literals() ->
     test("../../../examples/sa/test_literals.sa").
 
+test_functions() ->
+    test("../../../examples/sa/test_functions.sa").
+
 test(Filename) ->
     case lint:start(Filename) of
         {error, Reason} ->

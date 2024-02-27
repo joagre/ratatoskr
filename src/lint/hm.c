@@ -188,10 +188,23 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	// Assign a type variable
 	type_t* type = type_new_type_variable();
 	node->type = type;
-	// Create a new symbol table
+	// Take care of the right node first
+	ast_node_t* right_node = ast_get_child(node, 1);
+	if (!add_type_variables(right_node, tables, block_expr_id, error)) {
+	    CLEAR_ERROR(error);
+	    return false;
+	}
+        // Create a new symbol table
 	symbol_table_t* table = symbol_table_new();
 	block_expr_id = unique_id();
 	symbol_tables_insert_table(tables, table, block_expr_id);
+	// Take care of the left node
+	ast_node_t* left_node = ast_get_child(node, 0);
+	if (!add_type_variables(left_node, tables, block_expr_id, error)) {
+	    CLEAR_ERROR(error);
+	    return false;
+	}
+	traverse_children = false;
     } else if (node->name == NAME) {
 	// Names should already be in a symbol table or else it is an error
 	node->type = symbol_tables_lookup(tables, node->value);
@@ -202,7 +215,7 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	    return false;
 	}
     } else if (node->name == FUNCTION_DEF) {
-	// Create a new symbol table
+        // Create a new symbol table
 	uint32_t block_expr_id = unique_id();
 	symbol_table_t* table = symbol_table_new();
 	symbol_tables_insert_table(tables, table, block_expr_id);
@@ -887,7 +900,7 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    return type_new_list_type(
 		extract_type(ast_get_child(type_node, 0)));
 	case EMPTY_LIST_TYPE:
-	    return type_new_empty_map_type();
+	    return type_new_empty_list_type();
 	case MAP_TYPE: {
 	    ast_node_t* key_type_node = ast_get_child(type_node, 0);
 	    type_t* key_type = extract_type(key_type_node);

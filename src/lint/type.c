@@ -133,13 +133,17 @@ void type_print_type(type_t* type) {
 		    assert(false);
 	    }
 	    break;
-	case TYPE_TAG_LIST_TYPE:
-	    printf("{list, ");
-	    type_print_type(type->list_type);
-	    printf("}");
-	    break;
-	case TYPE_TAG_EMPTY_LIST_TYPE:
-	    printf("empty_list");
+	case TYPE_TAG_CONSTRUCTOR_TYPE:
+	    printf("{constructor, %s, [", type->constructor_type.name);
+	    for (size_t i = 0; i < type->constructor_type.types->size; i++) {
+		type_t* constructor_type =
+		    types_lookup(type->constructor_type.types, i);
+		type_print_type(constructor_type);
+		if (i < type->constructor_type.types->size - 1) {
+		    printf(", ");
+		}
+	    }
+	    printf("]}");
 	    break;
 	case TYPE_TAG_FUNCTION_TYPE:
 	    printf("{");
@@ -156,6 +160,24 @@ void type_print_type(type_t* type) {
 	    type_print_type(type->function_type.return_type);
 	    printf("}");
 	    break;
+	case TYPE_TAG_LIST_TYPE:
+	    printf("{list, ");
+	    type_print_type(type->list_type);
+	    printf("}");
+	    break;
+	case TYPE_TAG_EMPTY_LIST_TYPE:
+	    printf("empty_list");
+	    break;
+	case TYPE_TAG_MAP_TYPE:
+	    printf("{map, ");
+	    type_print_type(type->map_type.key_type);
+	    printf(", ");
+	    type_print_type(type->map_type.value_type);
+	    printf("}");
+	    break;
+	case TYPE_TAG_EMPTY_MAP_TYPE:
+	    printf("empty_map");
+	    break;
 	case TYPE_TAG_TUPLE_TYPE:
 	    printf("{tuple, [");
 	    for (size_t i = 0; i < type->tuple_types->size; i++) {
@@ -168,27 +190,8 @@ void type_print_type(type_t* type) {
 	    }
 	    printf("]}");
 	    break;
-	case TYPE_TAG_MAP_TYPE:
-	    printf("{map, ");
-	    type_print_type(type->map_type.key_type);
-	    printf(", ");
-	    type_print_type(type->map_type.value_type);
-	    printf("}");
-	    break;
-	case TYPE_TAG_EMPTY_MAP_TYPE:
-	    printf("empty_map");
-	    break;
-	case TYPE_TAG_CONSTRUCTOR_TYPE:
-	    printf("{constructor, %s, [", type->constructor_type.name);
-	    for (size_t i = 0; i < type->constructor_type.types->size; i++) {
-		type_t* constructor_type =
-		    types_lookup(type->constructor_type.types, i);
-		type_print_type(constructor_type);
-		if (i < type->constructor_type.types->size - 1) {
-		    printf(", ");
-		}
-	    }
-	    printf("]}");
+	case TYPE_TAG_EMPTY_TUPLE_TYPE:
+	    printf("empty_tuple");
 	    break;
 	case TYPE_TAG_TYPE_VARIABLE:
 	    printf("%d", type->type_variable);

@@ -23,9 +23,9 @@ task Ackermann {
         this(savedCalculatedValues: [])
     }
     private fn ackermann(m, n) {
-        if m =Int= 0 {
+        if m == 0 {
             n + 1
-        } elif n =Int= 0 {
+        } elif n == 0 {
             ackermann(m - 1, 1)
         } else {
             ackermann(m - 1, ackermann(m, n - 1))

@@ -1,0 +1,13 @@
+fn foo(f, g, x) {
+    f(g(x)),
+    foo(f, g, x + 1)
+}
+
+fn bar() {
+    foo(fn (x) { x + 1 }, fn (x) { x + 2}, 42)
+}
+
+fn zip() {
+    ?b := fn (x) { 4711 },
+    b(42)
+}

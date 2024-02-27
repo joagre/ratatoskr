@@ -37,11 +37,11 @@ record ColorIterator implements Iterator<Color> {
 export fn main() {
     ?colors := [Color#red, Color#red, Color#blue, Color#green],
     ?iterator := new ColorIterator(colors),
-    fn iterate(iterator) {
+    ?iterate := fn (iterator) {
         if iterator.hasNext() {
             (?iterator, ?color) := iterator.next(),
             writeln("Color: %color"),
-            iterate(iterator)
+            self(iterator)
         } else {
             true
         }
