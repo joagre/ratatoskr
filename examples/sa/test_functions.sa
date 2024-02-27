@@ -4,7 +4,7 @@ fn foo(f, g, x) {
 }
 
 fn bar() {
-    foo(fn (x) { x + 1 }, fn (x) { x + 2}, 42)
+    foo(fn (x) { x + 1 }, fn (x) { x + 2 }, 42)
 }
 
 fn zip() {
