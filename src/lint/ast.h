@@ -162,6 +162,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(RAW_STRING) \
         NODE_NAME(READONLY) \
         NODE_NAME(REGULAR_STRING) \
+        NODE_NAME(SELF) \
         NODE_NAME(SLICE_LENGTH) \
 	NODE_NAME(STRING_TYPE) \
 	NODE_NAME(TASK) \

@@ -260,6 +260,7 @@ IndexValues <- i:IndexValue { $$ = CN(INDEX_VALUES, 1, i); } (_ "," _ i:IndexVal
 IndexValue <- i:Int _ "=" _ v:Expr { $$ = CN(INDEX_VALUE, 2, i, v); }
 
 PrimaryExpr <- "this" { $$ = CT(THIS, NULL); } /
+               "self" { $$ = CT(SELF, NULL); } /
                "$" { $$ = CT(SLICE_LENGTH, NULL); } /
                e:NewRecord {$$ = e;} /
                e:LaunchTask {$$ = e;} /
