@@ -58,8 +58,6 @@ parse_tree([Line|Rest] = Lines, Level) ->
     end.
 
 parse_node_type("") -> undefined;
-parse_node_type("Int") -> int;
-parse_node_type("Bool") -> bool;
 parse_node_type("t" ++ Variable) -> list_to_integer(Variable).
 
 parse_line(Line) ->

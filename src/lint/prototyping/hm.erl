@@ -217,6 +217,8 @@ type_to_string(int) ->
     "Int";
 type_to_string(float) ->
     "Float";
+type_to_string(char) ->
+    "Char";
 type_to_string(string) ->
     "String";
 type_to_string(task) ->

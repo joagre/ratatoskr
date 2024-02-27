@@ -32,7 +32,8 @@ typedef dynarray_t node_array_t;
         NODE_NAME(CASE_BRANCH) \
         NODE_NAME(CASE_EXPR) \
         NODE_NAME(CAST) \
-        NODE_NAME(CHARACTER_LITERAL) \
+        NODE_NAME(CHAR) \
+	NODE_NAME(CHAR_TYPE) \
         NODE_NAME(RECORD_CONSTRUCTOR) \
         NODE_NAME(RECORD_DESTRUCTOR) \
         NODE_NAME(RECORD_DEF) \
@@ -64,7 +65,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(ENUM_VALUE) \
         NODE_NAME(EQ) \
         NODE_NAME(EQ_TYPE) \
-        NODE_NAME(ESCAPE_CHARACTER) \
+        NODE_NAME(ESCAPE_CHAR) \
         NODE_NAME(EXP) \
         NODE_NAME(EXPORT) \
         NODE_NAME(EXPR) \
@@ -143,7 +144,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(NEG_FLOAT) \
         NODE_NAME(NEW_EXPR) \
         NODE_NAME(NON_DEFAULT_PARAMS) \
-        NODE_NAME(NON_QUOTE_CHARACTER) \
+        NODE_NAME(NON_QUOTE_CHAR) \
         NODE_NAME(NOT) \
         NODE_NAME(NOT_SET) \
         NODE_NAME(OR) \

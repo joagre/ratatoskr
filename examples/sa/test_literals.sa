@@ -17,6 +17,8 @@ fn foo() {
    ?a is Float := +;3.14E+2,
    ?a is Float := +;14E+2,
    ?a is Float := 3.14 +; 3.14,
+   // Char
+   ?a is Char := 'a',
    // String
    ?a is String := "foo",
    ?a is String := "",

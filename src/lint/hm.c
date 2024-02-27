@@ -119,6 +119,8 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == BOOL_TYPE ||
 	       node->name == BSL ||
 	       node->name == BSR ||
+	       node->name == CHAR ||
+	       node->name == CHAR_TYPE ||
 	       node->name == CONS ||
 	       node->name == CONCAT_LIST ||
 	       node->name == CONCAT_MAP ||
@@ -129,6 +131,7 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == EMPTY_MAP_TYPE ||
 	       node->name == EMPTY_TUPLE_TYPE ||
 	       node->name == EQ ||
+	       node->name == ESCAPE_CHAR ||
 	       node->name == EXP ||
 	       node->name == FALSE ||
 	       node->name == FLOAT ||
@@ -162,6 +165,7 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == NOT ||
 	       node->name == MOD ||
 	       node->name == NE ||
+	       node->name == NON_QUOTE_CHAR ||
 	       node->name == OR ||
 	       node->name == POS_INT ||
 	       node->name == POS_FLOAT ||
@@ -284,7 +288,9 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
     if (node->name == FUNCTION_TYPE ||
 	node->name == ARG_TYPES ||
 	node->name == BOOL_TYPE ||
+	node->name == CHAR_TYPE ||
 	node->name == ELSE ||
+	node->name == ESCAPE_CHAR ||
 	node->name == EQ_TYPE ||
 	node->name == FLOAT_TYPE ||
 	node->name == FUNCTION_CALL ||
@@ -293,6 +299,7 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == INT_TYPE ||
 	node->name == MAP_KEY_VALUE ||
 	node->name == NON_DEFAULT_PARAMS ||
+	node->name == NON_QUOTE_CHAR ||
 	node->name == NAME ||
 	node->name == PARAM_NAME ||
 	node->name == POSITIONAL_ARGS ||
@@ -336,6 +343,12 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	// Equation: Float constant
 	equation_t equation =
 	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_FLOAT),
+			 node, node, false);
+	equations_add(equations, &equation);
+    } else if (node->name == CHAR) {
+	// Equation: Char constant
+	equation_t equation =
+	    equation_new(node->type, type_new_basic_type(TYPE_BASIC_TYPE_CHAR),
 			 node, node, false);
 	equations_add(equations, &equation);
     } else if (node->name == RAW_STRING) {
@@ -866,6 +879,8 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    return type_new_basic_type(TYPE_BASIC_TYPE_INT);
 	case FLOAT_TYPE:
 	    return type_new_basic_type(TYPE_BASIC_TYPE_FLOAT);
+	case CHAR_TYPE:
+	    return type_new_basic_type(TYPE_BASIC_TYPE_CHAR);
 	case STRING_TYPE:
 	    return type_new_basic_type(TYPE_BASIC_TYPE_STRING);
 	case TASK_TYPE:

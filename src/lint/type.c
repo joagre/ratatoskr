@@ -85,6 +85,8 @@ char* type_basic_type_to_string(type_basic_type_t basic_type) {
 	    return "Int";
 	case TYPE_BASIC_TYPE_FLOAT:
 	    return "Float";
+	case TYPE_BASIC_TYPE_CHAR:
+	    return "Char";
 	case TYPE_BASIC_TYPE_STRING:
 	    return "String";
 	case TYPE_BASIC_TYPE_TASK:
@@ -101,6 +103,8 @@ type_basic_type_t type_string_to_basic_type(const char* string) {
 	return TYPE_BASIC_TYPE_INT;
     } else if (strcmp(string, "Float") == 0) {
 	return TYPE_BASIC_TYPE_FLOAT;
+    } else if (strcmp(string, "Char") == 0) {
+	return TYPE_BASIC_TYPE_CHAR;
     } else if (strcmp(string, "String") == 0) {
 	return TYPE_BASIC_TYPE_STRING;
     } else if (strcmp(string, "Task") == 0) {
@@ -122,6 +126,9 @@ void type_print_type(type_t* type) {
 		    break;
 		case TYPE_BASIC_TYPE_FLOAT:
 		    printf("float");
+		    break;
+		case TYPE_BASIC_TYPE_CHAR:
+		    printf("char");
 		    break;
 		case TYPE_BASIC_TYPE_STRING:
 		    printf("string");

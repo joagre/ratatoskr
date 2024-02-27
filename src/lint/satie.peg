@@ -184,10 +184,11 @@ TaskDef <- "task" __ n:Name ("<" _ t:TypeVariables _ ">")? _ ( "implements" _ i:
 
 Types <- t:Type { $$ = CN(TYPES, 1, t); } (_ "," _ t:Type { AC($$, t); })*
 Type <- (t:BasicType / t:ListType / t:FunctionType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable / t:Name) { $$ = t; }
-BasicType <- (b:BoolType / b:IntType / b:FloatType / b:StringType / b:TaskType) { $$ = b;}
+BasicType <- (b:BoolType / b:IntType / b:FloatType / b:CharType / b:StringType / b:TaskType) { $$ = b;}
 BoolType <- "Bool" { $$ = CT(BOOL_TYPE, NULL); }
 IntType <- "Int" { $$ = CT(INT_TYPE, NULL); }
 FloatType <- "Float" { $$ = CT(FLOAT_TYPE, NULL); }
+CharType <- "Char" { $$ = CT(CHAR_TYPE, NULL); }
 StringType <- "String" { $$ = CT(STRING_TYPE, NULL); }
 TaskType <- "Task" { $$ = CT(TASK_TYPE, NULL); }
 ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); } / "[" _ "]" { $$ = CT(EMPTY_LIST_TYPE, NULL); }
@@ -303,7 +304,7 @@ BinaryInt <- "0b" [01]+
 OctalInt <- "0" [0-7]+
 DecimalInt <- [0-9]+
 
-CharLiteral <- "'" (c:EscapeChar / c:NonQuoteChar) "'" { $$ = CN(CHARACTER_LITERAL, 1, c); }
+CharLiteral <- "'" (c:EscapeChar / c:NonQuoteChar) "'" { $$ = CN(CHAR, 1, c); }
 EscapeChar <- "\\" (
               [abfnrtv'"\\] /
               "x" HexDigit HexDigit /
@@ -313,10 +314,10 @@ EscapeChar <- "\\" (
                OctalDigit /
                OctalDigit OctalDigit /
                OctalDigit OctalDigit OctalDigit
-               ) { $$ = CT(ESCAPE_CHARACTER, $0); }
+               ) { $$ = CT(ESCAPE_CHAR, $0); }
 HexDigit <- [0-9a-fA-F]
 OctalDigit <- [0-7]
-NonQuoteChar <- [^'] { $$ = CT(NON_QUOTE_CHARACTER, $0); }
+NonQuoteChar <- [^'] { $$ = CT(NON_QUOTE_CHAR, $0); }
 
 StringLiteral <- ('"' s:RegularString '"' / 'r"' s:RawString '"') { $$ = s; }
 RegularString <- (EscapeSequence / [^"])* { $$ = CT(REGULAR_STRING, $0); }
@@ -415,17 +416,15 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    ast_print(program, 0);
+    //ast_print(program, 0);
     /*
      * Check semantics
      */
-    /*
     satie_error_t error;
     if (!hm_infer_types(program, &error)) {
        fprintf(stderr, "Error: %s\n", satie_error_message);
        return 1;
     }
-    */
     /*
      * Cleanup
      */
