@@ -1,15 +1,16 @@
 fn zonk() {
-    ?fac := fn (n) {
-        ?a := fn (x is Float) {
-           self(1.0)
+    ?outer := fn (x) {
+        ?fac := fn (n) {
+            if n == 1 {
+                1
+            } else {
+                n * self(n - 1)
+            }
         },
-        if n == 1 {
-            1
-        } else {
-            n * self(n - 1)
-        }
+        self(x +; 1.0),
+        fac(2)
     },
-    fac(2)
+    outer(3.14)
 }
 
 
