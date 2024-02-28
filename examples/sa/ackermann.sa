@@ -1,10 +1,11 @@
 import Std.stdio: writeln
 
 export fn main(_args) {
-  ?masterTask := launch Master(),
-  masterTask->startSlave(3, 10), // -> is a cast
-  masterTask->startSlave(3, 11),
-  2 := masterTask<->startedSlaves // <-> is a call
+    ?masterTask := launch Master(),
+    masterTask->startSlave(3, 10), // -> is a cast
+    masterTask->startSlave(3, 11),
+    2 := masterTask<->startedSlaves(), // <-> is a call
+    2 := masterTask<->startedSlaves // works as well (it's public property)
 }
 
 task Master {
@@ -19,6 +20,9 @@ task Master {
     }
     public fn slaveDone(m, n, result) {
         writeln("Slave calculated %m:%n = %result")
+    }
+    public fn startedSlaves() {
+        startedSlaves
     }
 }
 

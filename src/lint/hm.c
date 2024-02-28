@@ -886,6 +886,7 @@ static bool update_self_types(ast_node_t *node, symbol_tables_t* tables,
 	    }
 	}
     }
+    CLEAR_ERROR(error);
     return true;
 }
 
