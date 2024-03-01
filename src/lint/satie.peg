@@ -221,13 +221,9 @@ LTFloatExpr <- l:LTFloatExpr __ "<;" __ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l,
 NotEqualIntExpr <- l:NotEqualIntExpr _ "!=" _ r:NotEqualFloatExpr { $$ = CN(NE, 3, l, CT(INT_TYPE, NULL), r); } / e:NotEqualFloatExpr { $$ = e; }
 NotEqualFloatExpr <- l:NotEqualFloatExpr _ "!=;" _ r:NotEqualExpr { $$ = CN(NE, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:NotEqualExpr { $$ = e; }
 NotEqualExpr <- l:NotEqualExpr _ "!" !("Int" / "Float") t:Name "=" _ r:EqualIntExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualIntExpr { $$ = e; }
-
-
 EqualIntExpr <- l:EqualIntExpr _ "==" _ r:EqualFloatExpr { $$ = CN(EQ, 3, l, CT(INT_TYPE, NULL), r); } / e:EqualFloatExpr { $$ = e; }
 EqualFloatExpr <- l:EqualFloatExpr _ "==;" _ r:EqualExpr { $$ = CN(EQ, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:EqualExpr { $$ = e; }
 EqualExpr <- l:EqualExpr _ "=" !("Int" / "Float") t:Name "=" _ r:InExpr { $$ = CN(EQ, 3, l, RN(t, EQ_TYPE), r); } / e:InExpr { $$ = e; }
-
-
 InExpr <- l:InExpr _ "in" _ e:RightShiftExpr { $$ = CN(IN, 2, l, e); } / e:RightShiftExpr { $$ = e; }
 RightShiftExpr <- l:RightShiftExpr __ ">>" __ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
 LeftShiftExpr <- l:LeftShiftExpr __ "<<" __ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
@@ -243,8 +239,8 @@ ModExpr <- l:ModExpr _ "%" _ r:DivIntExpr { $$ = CN(MOD, 2, l, r); } / e:DivIntE
 DivIntExpr <- l:DivIntExpr _ "/" _ r:DivFloatExpr { $$ = CN(DIV_INT, 2, l, r); } / e:DivFloatExpr { $$ = e; }
 DivFloatExpr <- l:DivFloatExpr _ "/;" _ r:MulIntExpr { $$ = CN(DIV_FLOAT, 2, l, r); } / e:MulIntExpr { $$ = e; }
 MulIntExpr <- l:MulIntExpr _ "*" _ r:MulFloatExpr { $$ = CN(MUL_INT, 2, l, r); } / e:MulFloatExpr { $$ = e; }
-MulFloatExpr <- l:MulFloatExpr _ "*;" _ r:ExponentiationExpr { $$ = CN(MUL_FLOAT, 2, l, r); } / e:ExponentiationExpr { $$ = e; }
-ExponentiationExpr <- l:ExponentiationExpr _ "^^" _ r:NotExpr { $$ = CN(EXP, 2, l, r); } / e:NotExpr { $$ = e; }
+MulFloatExpr <- l:MulFloatExpr _ "*;" _ r:ExpExpr { $$ = CN(MUL_FLOAT, 2, l, r); } / e:ExpExpr { $$ = e; }
+ExpExpr <- l:ExpExpr _ "^^" _ r:NotExpr { $$ = CN(EXP, 2, l, r); } / e:NotExpr { $$ = e; }
 NotExpr <- "!" _ l:PosIntExpr { $$ = CN(NOT, 1, l); } / e:PosIntExpr { $$ = e; }
 PosIntExpr <- "+" _ l:PosFloatExpr { $$ = CN(POS_INT, 1, l); } / e:PosFloatExpr { $$ = e; }
 PosFloatExpr <- "+;" _ l:NegIntExpr { $$ = CN(POS_FLOAT, 1, l); } / e:NegIntExpr { $$ = e; }

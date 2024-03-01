@@ -53,11 +53,7 @@ print_test_result({Source, Result, Node, AdornedEquations}) ->
     io:format("\n"),
     case unify_all_equations(Equations, Node, maps:new()) of
         {mismatch, TypeStack} ->
-            io:format("==== Type error:\n~s",
-                      [format_type_stack(TypeStack)]),
-            %%io:format("==== Type error:\n~s\n",
-            %%          [prettify_type_stack(TypeStack)]),
-            ok;
+            print_type_error(Source, Node, AdornedEquations, TypeStack);
         Substitutions ->
             %%io:format("==== Substitutions:\n~p\n", [Substitutions]),
             io:format("==== Solutions:\n"),
@@ -69,6 +65,14 @@ print_test_result({Source, Result, Node, AdornedEquations}) ->
                                    dereference(Substitutions, Right))])
               end, AdornedEquations)
     end.
+
+print_type_error(_Source, _Node, _AdornedEquations, TypeStack) ->
+    %%io:format("**** Source:\n~s\n", [Source]),
+    %%io:format("****Node:\n~p\n", [Node]),
+    %%io:format("****Adorned equations:\n~p\n", [AdornedEquations]),
+    %%io:format("****Type error:\n~p\n", [TypeStack]),
+    io:format("==== Type error:\n~s",
+              [format_type_stack(TypeStack)]).
 
 %%
 %% Unify all equations

@@ -3,13 +3,13 @@ export fn main() {
       x + 1
   },
   ?bar := fn (x) {
-      (?a, ?b) := x,
+      (?a, ?b is String) := x,
       foo(a) + baz(b)
   },
-  ?zippo := fn gazonk(x) {
-      gazonk(x) + 1 + bar((x, 42)) + foo(42) + foo(3 + gazonk(11)) // :-)
+  ?zippo := fn gazonk(x, y is String) {
+      gazonk(x, y) + 1 + bar((x, 42)) + foo(42) + foo(3 + gazonk(11, y)) // :-)
   },
-  (foo(42), bar((4711, 43)), zippo(44), gazonk(106), baz(45))
+  (foo(42), bar((4711, 43)), zippo(44, "bar"), gazonk(10, "foo"), baz(45))
 }
 
 fn baz(x) {
