@@ -42,6 +42,10 @@ void symbol_table_insert(symbol_table_t* table, char* name, type_t* type) {
     lhash_kv_insert(table, (void*)name, (void*)type);
 }
 
+void symbol_table_delete(symbol_table_t* table, char* name) {
+    lhash_kv_remove(table, (void*)name, NULL);
+}
+
 type_t* symbol_table_lookup(symbol_table_t* table, char* name) {
     type_t* type = NULL;
     lhash_kv_find(table, (void*)name, (void**)&type);

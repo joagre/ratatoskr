@@ -51,6 +51,27 @@ void symbol_tables_delete_by_id(symbol_tables_t* tables, uint32_t id) {
     }
 }
 
+void symbol_tables_hoist(symbol_tables_t* tables, char* name) {
+    size_t n = dynarray_size(tables);
+    LOG_ASSERT(n > 1, "There is no symbol table available for hoisting");
+    size_t i = n - 1;
+    do {
+	symbol_tables_entry_t* entry = dynarray_element(tables, i);
+	type_t* type = symbol_table_lookup(entry->table, name);
+	if (type != NULL) {
+	    type_t* type_copy = malloc(sizeof(type_t));
+	    memcpy(type_copy, type, sizeof(type_t));
+	    //printf("Hoisting %s\n", name);
+	    symbol_table_delete(entry->table, name);
+	    LOG_ASSERT(i > 0, "Cannot hoist symbol table to the top");
+	    symbol_tables_entry_t* entry_above = dynarray_element(tables, i - 1);
+	    symbol_table_insert(entry_above->table, name, type_copy);
+	    return;
+	}
+    } while (i-- > 0);
+    LOG_PANIC("Symbol %s not found", name);
+}
+
 void symbol_tables_print(symbol_tables_t* tables) {
     size_t n = dynarray_size(tables);
     printf("====\n");

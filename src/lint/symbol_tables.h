@@ -18,6 +18,7 @@ void symbol_tables_insert_table(symbol_tables_t* tables, symbol_table_t* table,
 				uint32_t id);
 void symbol_tables_insert(symbol_tables_t* tables, char* name, type_t* type);
 void symbol_tables_delete_by_id(symbol_tables_t* tables, uint32_t id);
+void symbol_tables_hoist(symbol_tables_t* tables, char* name);
 void symbol_tables_print(symbol_tables_t* tables);
 
 #endif

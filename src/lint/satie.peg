@@ -221,9 +221,13 @@ LTFloatExpr <- l:LTFloatExpr __ "<;" __ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l,
 NotEqualIntExpr <- l:NotEqualIntExpr _ "!=" _ r:NotEqualFloatExpr { $$ = CN(NE, 3, l, CT(INT_TYPE, NULL), r); } / e:NotEqualFloatExpr { $$ = e; }
 NotEqualFloatExpr <- l:NotEqualFloatExpr _ "!=;" _ r:NotEqualExpr { $$ = CN(NE, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:NotEqualExpr { $$ = e; }
 NotEqualExpr <- l:NotEqualExpr _ "!" !("Int" / "Float") t:Name "=" _ r:EqualIntExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualIntExpr { $$ = e; }
+
+
 EqualIntExpr <- l:EqualIntExpr _ "==" _ r:EqualFloatExpr { $$ = CN(EQ, 3, l, CT(INT_TYPE, NULL), r); } / e:EqualFloatExpr { $$ = e; }
 EqualFloatExpr <- l:EqualFloatExpr _ "==;" _ r:EqualExpr { $$ = CN(EQ, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:EqualExpr { $$ = e; }
 EqualExpr <- l:EqualExpr _ "=" !("Int" / "Float") t:Name "=" _ r:InExpr { $$ = CN(EQ, 3, l, RN(t, EQ_TYPE), r); } / e:InExpr { $$ = e; }
+
+
 InExpr <- l:InExpr _ "in" _ e:RightShiftExpr { $$ = CN(IN, 2, l, e); } / e:RightShiftExpr { $$ = e; }
 RightShiftExpr <- l:RightShiftExpr __ ">>" __ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
 LeftShiftExpr <- l:LeftShiftExpr __ "<<" __ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
@@ -260,7 +264,6 @@ IndexValues <- i:IndexValue { $$ = CN(INDEX_VALUES, 1, i); } (_ "," _ i:IndexVal
 IndexValue <- i:Int _ "=" _ v:Expr { $$ = CN(INDEX_VALUE, 2, i, v); }
 
 PrimaryExpr <- "this" { $$ = CT(THIS, NULL); } /
-               "self" { $$ = CT(SELF, NULL); } /
                "$" { $$ = CT(SLICE_LENGTH, NULL); } /
                e:NewRecord {$$ = e;} /
                e:LaunchTask {$$ = e;} /
@@ -325,7 +328,7 @@ RegularString <- (EscapeSequence / [^"])* { $$ = CT(REGULAR_STRING, $0); }
 EscapeSequence <- "\\" [btnvfr"\\]
 RawString <- [^"]* { $$ = CT(RAW_STRING, $0); }
 
-FunctionLiteral <- "fn" _ "(" _ p:Params? _ ")" _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 2, p, e); }
+FunctionLiteral <- "fn" _ (f:FunctionName _)? "(" _ p:Params? _ ")" _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 3, f, p, e); }
 
 EnumLiteral <- edn:EnumDefName _ "#" _ en:EnumName { $$ = CN(ENUM_LITERAL, 2, edn, en); }
 

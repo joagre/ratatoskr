@@ -12,15 +12,12 @@
 // Forward declarations of local functions
 static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
 		     satie_error_t* error);
-static void add_function_definition_type_variables(ast_node_t* node,
-						   symbol_tables_t* tables);
-static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
-			       uint32_t block_expr_id, satie_error_t* error);
-static void add_type_equations(ast_node_t* node, symbol_tables_t* tables,
-			       equations_t* equations);
-static bool update_self_types(ast_node_t *node, symbol_tables_t* tables,
-			      type_t* self_type, equations_t* equations,
-			      satie_error_t* error);
+static void forward_declare_function_definitions(ast_node_t* node,
+						 symbol_tables_t* tables);
+static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
+				  uint32_t block_expr_id, satie_error_t* error);
+static void create_type_equations(ast_node_t* node, symbol_tables_t* tables,
+				  equations_t* equations);
 static operator_types_t get_operator_types(node_name_t name);
 static type_t* extract_type(ast_node_t* type_node);
 static uint32_t unique_id(void);
@@ -35,21 +32,18 @@ bool hm_infer_types(ast_node_t* node, satie_error_t* error) {
     symbol_tables_init(&tables);
     symbol_table_t* table = symbol_table_new();
     symbol_tables_insert_table(&tables, table, unique_id());
-    // Add type variables
-    add_function_definition_type_variables(node, &tables);
-    if (!add_type_variables(node, &tables, unique_id(), error)) {
+    // Create type variables
+    forward_declare_function_definitions(node, &tables);
+    if (!create_type_variables(node, &tables, unique_id(), error)) {
 	return false;
     }
     // Print parse tree
     ast_print(node, 0);
     printf("\n");
-    // Add equations
+    // Create type equations
     equations_t equations;
     equations_init(&equations);
-    add_type_equations(node, &tables, &equations);
-    if (!update_self_types(node, &tables, NULL, &equations, error)) {
-	return false;
-    }
+    create_type_equations(node, &tables, &equations);
     // Print equations
     equations_print(&equations);
     return true;
@@ -85,15 +79,17 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
     return true;
 }
 
-static void add_function_definition_type_variables(ast_node_t* node,
-						   symbol_tables_t* tables) {
-    // Hoist the function names of all function definitions
+static void forward_declare_function_definitions(ast_node_t* node,
+						 symbol_tables_t* tables) {
     ast_node_t* top_level_defs_node = ast_get_child(node, 0);
     size_t n = ast_number_of_children(top_level_defs_node);
     for (uint16_t i = 0; i < n; i++) {
 	ast_node_t* child_node = ast_get_child(top_level_defs_node, i);
 	if (child_node->name == FUNCTION_DEF) {
 	    ast_node_t* function_name_node = ast_get_child(child_node, 0);
+	    if (function_name_node->name == EXPORT) {
+		function_name_node = ast_get_child(child_node, 1);
+	    }
 	    LOG_ASSERT(function_name_node->name == FUNCTION_NAME,
 		       "Expected a FUNCTION_NAME node");
 	    type_t* type = type_new_type_variable();
@@ -103,16 +99,19 @@ static void add_function_definition_type_variables(ast_node_t* node,
     }
 }
 
-static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
-			       uint32_t block_expr_id, satie_error_t* error) {
+static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
+				  uint32_t block_expr_id, satie_error_t* error) {
     bool traverse_children = true;
     if (node->name == ARG_TYPES ||
 	node->name == ELSE ||
+	node->name == EXPORT ||
+	node->name == DEFAULT_PARAM ||
+	node->name == DEFAULT_PARAMS ||
 	node->name == EQ_TYPE ||
 	node->name == IF ||
-	node->name == FUNCTION_NAME ||
 	node->name == NON_DEFAULT_PARAMS ||
 	node->name == POSITIONAL_ARGS ||
+	node->name == PARAMS ||
 	node->name == PROGRAM ||
 	node->name == TOP_LEVEL_DEFS ||
 	node->name == TYPE) {
@@ -143,7 +142,6 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == FLOAT ||
 	       node->name == FLOAT_TYPE ||
 	       node->name == FUNCTION_CALL ||
-	       node->name == FUNCTION_LITERAL ||
 	       node->name == GTE_INT ||
 	       node->name == GT_INT ||
 	       node->name == GTE_FLOAT ||
@@ -178,7 +176,6 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == POSTFIX_EXPR ||
 	       node->name == RAW_STRING ||
 	       node->name == REGULAR_STRING ||
-	       node->name == SELF ||
 	       node->name == STRING_TYPE ||
 	       node->name == SUB_INT ||
 	       node->name == SUB_FLOAT ||
@@ -189,33 +186,6 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	// Assign a type variable
 	type_t* type = type_new_type_variable();
 	node->type = type;
-    } else if (node->name == PARAM_NAME || node->name == UNBOUND_NAME) {
-	// Assign a type variable
-	type_t* type = type_new_type_variable();
-	node->type = type;
-	// Add the type variable to the symbol table
-	symbol_tables_insert(tables, node->value, type);
-    } else if (node->name == BIND) {
-	// Assign a type variable
-	type_t* type = type_new_type_variable();
-	node->type = type;
-	// Take care of the right node first
-	ast_node_t* right_node = ast_get_child(node, 1);
-	if (!add_type_variables(right_node, tables, block_expr_id, error)) {
-	    CLEAR_ERROR(error);
-	    return false;
-	}
-        // Create a new symbol table
-	symbol_table_t* table = symbol_table_new();
-	block_expr_id = unique_id();
-	symbol_tables_insert_table(tables, table, block_expr_id);
-	// Take care of the left node
-	ast_node_t* left_node = ast_get_child(node, 0);
-	if (!add_type_variables(left_node, tables, block_expr_id, error)) {
-	    CLEAR_ERROR(error);
-	    return false;
-	}
-	traverse_children = false;
     } else if (node->name == NAME) {
 	// Names should already be in a symbol table or else it is an error
 	node->type = symbol_tables_lookup(tables, node->value);
@@ -225,23 +195,86 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 			      node->row, node->value);
 	    return false;
 	}
+    } else if (node->name == PARAM_NAME ||
+	       node->name == UNBOUND_NAME ||
+	       node->name == FUNCTION_NAME) {
+	if (node->type == NULL) {
+	    // Assign a type variable
+	    type_t* type = type_new_type_variable();
+	    node->type = type;
+	    // Add the type variable to the symbol table
+	    symbol_tables_insert(tables, node->value, type);
+	}
     } else if (node->name == FUNCTION_DEF) {
-        // Create a new symbol table
 	uint32_t block_expr_id = unique_id();
 	symbol_table_t* table = symbol_table_new();
 	symbol_tables_insert_table(tables, table, block_expr_id);
 	// Add type variables to the function definition children nodes
 	size_t n = ast_number_of_children(node);
 	for (uint16_t i = 0; i < n; i++) {
-	    if (!add_type_variables(ast_get_child(node, i), tables,
-				    block_expr_id, error)) {
+	    if (!create_type_variables(ast_get_child(node, i), tables,
+				       block_expr_id, error)) {
 		CLEAR_ERROR(error);
 		return false;
 	    }
 	}
-	// Remove the symbol table created above and all sub symbol
+	// Remove the symbol table created above and all nested symbol
 	// tables created by bind expressions
 	symbol_tables_delete_by_id(tables, block_expr_id);
+	traverse_children = false;
+    } else if (node->name == FUNCTION_LITERAL) {
+	// Assign a type variable
+	type_t* type = type_new_type_variable();
+	node->type = type;
+	// Create a new symbol table
+	uint32_t block_expr_id = unique_id();
+	symbol_table_t* table = symbol_table_new();
+	symbol_tables_insert_table(tables, table, block_expr_id);
+	// Add type variables to the function definition children nodes
+	size_t n = ast_number_of_children(node);
+	for (uint16_t i = 0; i < n; i++) {
+	    if (!create_type_variables(ast_get_child(node, i), tables,
+				       block_expr_id, error)) {
+		CLEAR_ERROR(error);
+		return false;
+	    }
+	}
+	// Hoist the function name type variable
+	ast_node_t* function_name_node = ast_get_child(node, 0);
+	if (function_name_node->name == FUNCTION_NAME) {
+	    /*
+	      symbol_tables_print(tables);
+	      printf("** Hoisting function name: %s\n",
+		   function_name_node->value);
+	    */
+	    symbol_tables_hoist(tables, function_name_node->value);
+	    //symbol_tables_print(tables);
+	    //fflush(stdout);
+	}
+	// Remove the symbol table created above and all nested symbol
+	// tables created by bind expressions
+	symbol_tables_delete_by_id(tables, block_expr_id);
+	traverse_children = false;
+    } else if (node->name == BIND) {
+	// Assign a type variable
+	type_t* type = type_new_type_variable();
+	node->type = type;
+	// Take care of the right node first
+	ast_node_t* right_node = ast_get_child(node, 1);
+	if (!create_type_variables(right_node, tables, block_expr_id, error)) {
+	    CLEAR_ERROR(error);
+	    return false;
+	}
+        // Create a new symbol table
+	symbol_table_t* table = symbol_table_new();
+	block_expr_id = unique_id();
+	symbol_tables_insert_table(tables, table, block_expr_id);
+	// Take care of the left node
+	ast_node_t* left_node = ast_get_child(node, 0);
+	if (!create_type_variables(left_node, tables, block_expr_id, error)) {
+	    CLEAR_ERROR(error);
+	    return false;
+	}
 	traverse_children = false;
     } else if(node->name == BLOCK_EXPR) {
 	// Assign a type variable
@@ -254,8 +287,8 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	// Add type variables to the block expression children nodes
 	size_t n = ast_number_of_children(node);
 	for (uint16_t i = 0; i < n; i++) {
-	    if (!add_type_variables(ast_get_child(node, i), tables,
-				    block_expr_id, error)) {
+	    if (!create_type_variables(ast_get_child(node, i), tables,
+				       block_expr_id, error)) {
 		CLEAR_ERROR(error);
 		return false;
 	    }
@@ -273,8 +306,8 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
     if (traverse_children) {
 	size_t n = ast_number_of_children(node);
 	for (uint16_t i = 0; i < n; i++) {
-	    if (!add_type_variables(
-		    ast_get_child(node, i), tables, block_expr_id, error)) {
+	    if (!create_type_variables(ast_get_child(node, i), tables,
+				       block_expr_id, error)) {
 		return false;
 	    }
 	}
@@ -284,24 +317,25 @@ static bool add_type_variables(ast_node_t* node, symbol_tables_t* tables,
     return true;
 }
 
-static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
-			       equations_t* equations) {
+static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
+				  equations_t* equations) {
     // Traverse children first (if any)
     size_t n = ast_number_of_children(node);
     for (uint16_t i = 0; i < n; i++) {
-	add_type_equations(ast_get_child(node, i), tables, equations);
+	create_type_equations(ast_get_child(node, i), tables, equations);
     }
 
-    if (node->name == FUNCTION_TYPE ||
-	node->name == ARG_TYPES ||
+    if (node->name == ARG_TYPES ||
 	node->name == BOOL_TYPE ||
 	node->name == CHAR_TYPE ||
 	node->name == ELSE ||
 	node->name == ESCAPE_CHAR ||
 	node->name == EQ_TYPE ||
+	node->name == EXPORT ||
 	node->name == FLOAT_TYPE ||
 	node->name == FUNCTION_CALL ||
 	node->name == FUNCTION_NAME ||
+	node->name == FUNCTION_TYPE ||
 	node->name == IF ||
 	node->name == INT_TYPE ||
 	node->name == MAP_KEY_VALUE ||
@@ -311,7 +345,6 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == PARAM_NAME ||
 	node->name == POSITIONAL_ARGS ||
 	node->name == PROGRAM ||
-	node->name == SELF ||
 	node->name == STRING_TYPE ||
 	node->name == TASK_TYPE ||
 	node->name == TOP_LEVEL_DEFS ||
@@ -432,26 +465,30 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	LOG_ABORT("Not implemented yet\n");
     } else if (node->name == FUNCTION_LITERAL) {
         // Extract all nodes constituting the function literal
-       	ast_node_t* unknown_node = ast_get_child(node, 0);
+	uint16_t i = 0;
+	ast_node_t* child_node = ast_get_child(node, i);
+	if (child_node->name == FUNCTION_NAME) {
+	    child_node = ast_get_child(node, ++i);
+	}
 	ast_node_t* non_default_params_node = NULL;
 	ast_node_t* return_type_node = NULL;
 	ast_node_t* block_expr_node;
-	if (unknown_node->name == BLOCK_EXPR) {
-	    block_expr_node = unknown_node;
-	} else if (unknown_node->name == NON_DEFAULT_PARAMS) {
-	    non_default_params_node = unknown_node;
-	    unknown_node = ast_get_child(node, 1);
-	    if (unknown_node->name == TYPE) {
-		return_type_node = unknown_node;
-		block_expr_node = ast_get_child(node, 2);
+	if (child_node->name == BLOCK_EXPR) {
+	    block_expr_node = child_node;
+	} else if (child_node->name == NON_DEFAULT_PARAMS) {
+	    non_default_params_node = child_node;
+	    child_node = ast_get_child(node, i + 1);
+	    if (child_node->name == TYPE) {
+		return_type_node = child_node;
+		block_expr_node = ast_get_child(node, i + 2);
 	    } else {
-		block_expr_node = unknown_node;
+		block_expr_node = child_node;
 	    }
-	} else if (unknown_node->name == TYPE) {
-	    return_type_node = unknown_node;
-	    block_expr_node = ast_get_child(node, 1);
+	} else if (child_node->name == TYPE) {
+	    return_type_node = child_node;
+	    block_expr_node = ast_get_child(node, i + 1);
 	} else {
-	    block_expr_node = unknown_node;
+	    block_expr_node = child_node;
 	}
 	// Extract all parameter types
 	types_t* param_types = types_new();
@@ -718,30 +755,37 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 			 else_block_expr_node, false);
 	equations_add(equations, &else_block_expr_equation);
     } else if (node->name == FUNCTION_DEF) {
-	// Extract all nodes constituting the function definition
-	ast_node_t* function_name_node = ast_get_child(node, 0);
+        // Extract all nodes constituting the function definition
+	uint16_t i = 0;
+	ast_node_t* child_node = ast_get_child(node, i);
+	ast_node_t* function_name_node = NULL;
+	if (child_node->name == EXPORT) {
+	    function_name_node = ast_get_child(node, ++i);
+	} else {
+	    function_name_node = child_node;
+	}
 	LOG_ASSERT(function_name_node->name == FUNCTION_NAME,
 		   "Expected a FUNCTION_NAME node");
-       	ast_node_t* unknown_node = ast_get_child(node, 1);
+	child_node = ast_get_child(node, i + 1);
 	ast_node_t* non_default_params_node = NULL;
 	ast_node_t* return_type_node = NULL;
 	ast_node_t* block_expr_node;
-	if (unknown_node->name == BLOCK_EXPR) {
-	    block_expr_node = unknown_node;
-	} else if (unknown_node->name == NON_DEFAULT_PARAMS) {
-	    non_default_params_node = unknown_node;
-	    unknown_node = ast_get_child(node, 2);
-	    if (unknown_node->name == TYPE) {
-		return_type_node = unknown_node;
-		block_expr_node = ast_get_child(node, 3);
+	if (child_node->name == BLOCK_EXPR) {
+	    block_expr_node = child_node;
+	} else if (child_node->name == NON_DEFAULT_PARAMS) {
+	    non_default_params_node = child_node;
+	    child_node = ast_get_child(node, i + 2);
+	    if (child_node->name == TYPE) {
+		return_type_node = child_node;
+		block_expr_node = ast_get_child(node, i + 3);
 	    } else {
-		block_expr_node = unknown_node;
+		block_expr_node = child_node;
 	    }
-	} else if (unknown_node->name == TYPE) {
-	    return_type_node = unknown_node;
-	    block_expr_node = ast_get_child(node, 2);
+	} else if (child_node->name == TYPE) {
+	    return_type_node = child_node;
+	    block_expr_node = ast_get_child(node, i + 2);
 	} else {
-	    block_expr_node = unknown_node;
+	    block_expr_node = child_node;
 	}
 	// Extract all parameter types
 	types_t* param_types = types_new();
@@ -805,8 +849,7 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	 */
 	// Extract all nodes constituting the function call
 	ast_node_t* name_node = ast_get_child(node, 0);
-	LOG_ASSERT(name_node->name == NAME || name_node->name == SELF,
-		   "Expected a NAME or a SELF node");
+	LOG_ASSERT(name_node->name == NAME, "Expected a NAME node");
 	ast_node_t* function_call_node = ast_get_child(node, 1);
 	LOG_ASSERT(function_call_node->name == FUNCTION_CALL,
 		   "Expected a FUNCTION_CALL node");
@@ -846,48 +889,6 @@ static void add_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	LOG_ABORT("Not handled node: %s\n",
 		  ast_node_name_to_string(node->name));
     }
-}
-
-static bool update_self_types(ast_node_t *node, symbol_tables_t* tables,
-			      type_t* self_type, equations_t* equations,
-			      satie_error_t* error) {
-    if (node->name == FUNCTION_LITERAL) {
-	size_t n = ast_number_of_children(node);
-	for (uint16_t i = 0; i < n; i++) {
-	    ast_node_t* child = ast_get_child(node, i);
-	    if (!update_self_types(child, tables, node->type, equations,
-				   error)) {
-		return false;
-	    }
-	}
-    } else if (node->name == POSTFIX_EXPR) {
-	ast_node_t* function_call_node = ast_get_child(node, 1);
-	if (function_call_node->name == FUNCTION_CALL) {
-	    ast_node_t* name_node = ast_get_child(node, 0);
-	    if (name_node->name == SELF) {
-		if (self_type == NULL) {
-		    SET_ERROR_MESSAGE(
-			error, COMPONENT_COMPILER, "%d: self is not defined",
-			node->row);
-		    return false;
-		}
-		equation_t equation = equation_new(
-		    name_node->type, self_type, node, name_node, false);
-		equations_add(equations, &equation);
-	    }
-	}
-    } else {
-	size_t n = ast_number_of_children(node);
-	for (uint16_t i = 0; i < n; i++) {
-	    ast_node_t* child = ast_get_child(node, i);
-	    if (!update_self_types(child, tables, self_type, equations,
-				   error)) {
-		return false;
-	    }
-	}
-    }
-    CLEAR_ERROR(error);
-    return true;
 }
 
 static type_t* extract_type(ast_node_t* type_node) {
