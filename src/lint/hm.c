@@ -102,7 +102,8 @@ static void forward_declare_function_definitions(ast_node_t* node,
 static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 				  uint32_t block_expr_id, satie_error_t* error) {
     bool traverse_children = true;
-    if (node->name == ARG_TYPES ||
+    if (node->name == ARGS ||
+	node->name == ARG_TYPES ||
 	node->name == ELSE ||
 	node->name == EXPORT ||
 	node->name == DEFAULT_PARAM ||
@@ -242,14 +243,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	// Hoist the function name type variable
 	ast_node_t* function_name_node = ast_get_child(node, 0);
 	if (function_name_node->name == FUNCTION_NAME) {
-	    /*
-	      symbol_tables_print(tables);
-	      printf("** Hoisting function name: %s\n",
-		   function_name_node->value);
-	    */
 	    symbol_tables_hoist(tables, function_name_node->value);
-	    //symbol_tables_print(tables);
-	    //fflush(stdout);
 	}
 	// Remove the symbol table created above and all nested symbol
 	// tables created by bind expressions
@@ -325,7 +319,8 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	create_type_equations(ast_get_child(node, i), tables, equations);
     }
 
-    if (node->name == ARG_TYPES ||
+    if (node->name == ARGS ||
+	node->name == ARG_TYPES ||
 	node->name == BOOL_TYPE ||
 	node->name == CHAR_TYPE ||
 	node->name == ELSE ||
@@ -853,15 +848,15 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	ast_node_t* function_call_node = ast_get_child(node, 1);
 	LOG_ASSERT(function_call_node->name == FUNCTION_CALL,
 		   "Expected a FUNCTION_CALL node");
-	ast_node_t* positional_args_node = ast_get_child(function_call_node, 0);
+	ast_node_t* args_node = ast_get_child(function_call_node, 0);
 	// Extract all argument types
 	types_t* arg_types = types_new();
-	if (positional_args_node != NULL) {
-	    LOG_ASSERT(positional_args_node->name == POSITIONAL_ARGS,
-		       "Expected a POSITIONAL_ARGS node");
-	    size_t n = ast_number_of_children(positional_args_node);
+	if (args_node != NULL) {
+	    LOG_ASSERT(args_node->name == ARGS,
+		       "Expected an ARGS node");
+	    size_t n = ast_number_of_children(args_node);
 	    for (uint16_t i = 0; i < n; i++) {
-		ast_node_t* arg_node = ast_get_child(positional_args_node, i);
+		ast_node_t* arg_node = ast_get_child(args_node, i);
 		types_add(arg_types, arg_node->type);
 	    }
 	}

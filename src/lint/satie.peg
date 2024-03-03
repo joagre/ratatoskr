@@ -124,10 +124,8 @@ Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between "
           "expressions)", auxil->row);
 }
-Args <- (a:PositionalArgs / a:NamedArgs) { $$ = a; }
-PositionalArgs <- !NamedArg e:Expr { $$ = CN(POSITIONAL_ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
-NamedArgs <- n:NamedArg { $$ = CN(NAMED_ARGS, 1, n); } (_ "," _ n:NamedArg { AC($$, n); })*
-NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
+
+Args <- e:Expr { $$ = CN(ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
 #
 # Interface definition
@@ -204,7 +202,7 @@ TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 # Expression
 #
 
-Expr <- e:BindExpr { $$ = e; }
+Expr <- "this" _ "(" _ a:RecordArgs _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; }
 BindExpr <- l:MatchExpr _ ":=" _ r:Expr { $$ = CN(BIND, 2, l, r); } / e:LogicalOrExpr { $$ = e; }
 LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r); } / e:LogicalAndExpr { $$ = e; }
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
@@ -268,8 +266,13 @@ PrimaryExpr <- "this" { $$ = CT(THIS, NULL); } /
                e:Name { $$ = e; } /
                "(" _ e:Expr _ ")" { $$ = e; }
 
-NewRecord <- "new" _ n:Name _ "(" a:Args? ")" { $$ = CN(NEW_RECORD, 2, n, a); }
-LaunchTask <- "launch" _ n:Name _ "(" a:Args? ")" { $$ = CN(LAUNCH_TASK, 2, n, a); }
+NewRecord <- "new" _ n:Name _ "(" a:RecordArgs? ")" { $$ = CN(NEW_RECORD, 2, n, a); }
+RecordArgs <- (a:PositionalArgs / a:NamedArgs) { $$ = a; }
+PositionalArgs <- !NamedArg e:Expr { $$ = CN(POSITIONAL_ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
+NamedArgs <- n:NamedArg { $$ = CN(NAMED_ARGS, 1, n); } (_ "," _ n:NamedArg { AC($$, n); })*
+NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
+
+LaunchTask <- "launch" _ n:Name _ "(" a:RecordArgs? ")" { $$ = CN(LAUNCH_TASK, 2, n, a); }
 
 ControlFlowExpr <- (c:IfExpr / c:CaseExpr / c:BlockExpr) { $$ = c; }
 
@@ -416,15 +419,17 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    //ast_print(program, 0);
+    ast_print(program, 0);
     /*
      * Check semantics
      */
+    /*
     satie_error_t error;
     if (!hm_infer_types(program, &error)) {
        fprintf(stderr, "Error: %s\n", satie_error_message);
        return 1;
     }
+    */
     /*
      * Cleanup
      */
