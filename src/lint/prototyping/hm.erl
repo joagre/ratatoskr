@@ -28,6 +28,9 @@ test_literals() ->
 test_functions() ->
     test("../../../examples/sa/test_functions.sa").
 
+test_list() ->
+    test("../../../examples/sa/test_list.sa").
+
 test(Filename) ->
     case lint:start(Filename) of
         {error, Reason} ->

@@ -154,6 +154,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == INT_TYPE ||
 	       node->name == FUNCTION_TYPE ||
 	       node->name == LIST_LITERAL ||
+	       node->name == LIST_LOOKUP ||
 	       node->name == LIST_TYPE ||
 	       node->name == LTE_INT ||
 	       node->name == LTE_FLOAT ||
@@ -333,6 +334,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == FUNCTION_TYPE ||
 	node->name == IF ||
 	node->name == INT_TYPE ||
+	node->name == LIST_LOOKUP ||
 	node->name == MAP_KEY_VALUE ||
 	node->name == NON_DEFAULT_PARAMS ||
 	node->name == NON_QUOTE_CHAR ||
@@ -651,6 +653,18 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(operand_node->type, types.operand_type, node,
 			 operand_node, false);
 	equations_add(equations, &operand_equation);
+    } else if (node->name == CONCAT_LIST) {
+	ast_node_t* left_node = ast_get_child(node, 0);
+	ast_node_t* right_node = ast_get_child(node, 1);
+	// Equation: Operator
+	equation_t operator_equation =
+	    equation_new(node->type, left_node->type, node, left_node, false);
+	equations_add(equations, &operator_equation);
+	// Equation: Operands
+	equation_t operands_equation =
+	    equation_new(left_node->type, right_node->type, node, right_node,
+			 false);
+	equations_add(equations, &operands_equation);
     } else if (node->name == ADD_FLOAT ||
 	       node->name == ADD_INT ||
 	       node->name == AND ||
@@ -658,7 +672,6 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	       node->name == BITWISE_OR ||
 	       node->name == BSL ||
 	       node->name == BSR ||
-	       node->name == CONCAT_LIST ||
 	       node->name == CONCAT_MAP ||
 	       node->name == CONCAT_STRING ||
 	       node->name == CONS ||
@@ -840,6 +853,19 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	equations_add(equations, &bind_equation);
     } else if (node->name == POSTFIX_EXPR) {
 	/*
+
+    POSTFIX_EXPR:12::
+          NAME:12:l3:
+          LIST_LOOKUP:12::
+            INT:12:0:
+          LIST_LOOKUP:12::
+            INT:12:1:
+          FUNCTION_CALL:12::
+            INT:12:1:
+            ARGS:12::
+              NAME:12:x:
+	*/
+        /*
 	 * NOTE: This POSTFIX_EXPR is hardwired to only handle function calls
 	 */
 	// Extract all nodes constituting the function call
@@ -994,9 +1020,6 @@ static operator_types_t get_operator_types(node_name_t name) {
 		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
 		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
 	    };
-	case CONCAT_LIST:
-	    // FIXME: Add as own
-	    break;
 	case CONCAT_MAP:
 	    // FIXME: Add as own
 	    break;
