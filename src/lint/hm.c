@@ -106,11 +106,8 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	node->name == ARG_TYPES ||
 	node->name == ELSE ||
 	node->name == EXPORT ||
-	node->name == DEFAULT_PARAM ||
-	node->name == DEFAULT_PARAMS ||
 	node->name == EQ_TYPE ||
 	node->name == IF ||
-	node->name == NON_DEFAULT_PARAMS ||
 	node->name == POSITIONAL_ARGS ||
 	node->name == PARAMS ||
 	node->name == PROGRAM ||
@@ -336,9 +333,9 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == INT_TYPE ||
 	node->name == LIST_LOOKUP ||
 	node->name == MAP_KEY_VALUE ||
-	node->name == NON_DEFAULT_PARAMS ||
 	node->name == NON_QUOTE_CHAR ||
 	node->name == NAME ||
+	node->name == PARAMS ||
 	node->name == PARAM_NAME ||
 	node->name == POSITIONAL_ARGS ||
 	node->name == PROGRAM ||
@@ -467,13 +464,13 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	if (child_node->name == FUNCTION_NAME) {
 	    child_node = ast_get_child(node, ++i);
 	}
-	ast_node_t* non_default_params_node = NULL;
+	ast_node_t* params_node = NULL;
 	ast_node_t* return_type_node = NULL;
 	ast_node_t* block_expr_node;
 	if (child_node->name == BLOCK_EXPR) {
 	    block_expr_node = child_node;
-	} else if (child_node->name == NON_DEFAULT_PARAMS) {
-	    non_default_params_node = child_node;
+	} else if (child_node->name == PARAMS) {
+	    params_node = child_node;
 	    child_node = ast_get_child(node, i + 1);
 	    if (child_node->name == TYPE) {
 		return_type_node = child_node;
@@ -489,11 +486,10 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	}
 	// Extract all parameter types
 	types_t* param_types = types_new();
-	if (non_default_params_node != NULL) {
-	    size_t n = ast_number_of_children(non_default_params_node);
+	if (params_node != NULL) {
+	    size_t n = ast_number_of_children(params_node);
 	    for (uint16_t i = 0; i < n; i++) {
-		ast_node_t* param_node =
-		    ast_get_child(non_default_params_node, i);
+		ast_node_t* param_node = ast_get_child(params_node, i);
 		LOG_ASSERT(param_node->name == PARAM_NAME,
 			   "Expected a PARAM_NAME node");
 		// Has a type been specified?
@@ -775,13 +771,13 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	LOG_ASSERT(function_name_node->name == FUNCTION_NAME,
 		   "Expected a FUNCTION_NAME node");
 	child_node = ast_get_child(node, i + 1);
-	ast_node_t* non_default_params_node = NULL;
+	ast_node_t* params_node = NULL;
 	ast_node_t* return_type_node = NULL;
 	ast_node_t* block_expr_node;
 	if (child_node->name == BLOCK_EXPR) {
 	    block_expr_node = child_node;
-	} else if (child_node->name == NON_DEFAULT_PARAMS) {
-	    non_default_params_node = child_node;
+	} else if (child_node->name == PARAMS) {
+	    params_node = child_node;
 	    child_node = ast_get_child(node, i + 2);
 	    if (child_node->name == TYPE) {
 		return_type_node = child_node;
@@ -797,11 +793,11 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	}
 	// Extract all parameter types
 	types_t* param_types = types_new();
-	if (non_default_params_node != NULL) {
-	    size_t n = ast_number_of_children(non_default_params_node);
+	if (params_node != NULL) {
+	    size_t n = ast_number_of_children(params_node);
 	    for (uint16_t i = 0; i < n; i++) {
 		ast_node_t* param_node =
-		    ast_get_child(non_default_params_node, i);
+		    ast_get_child(params_node, i);
 		LOG_ASSERT(param_node->name == PARAM_NAME,
 			   "Expected a PARAM_NAME node");
 		// Has a type been specified?
@@ -852,19 +848,6 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(node->type, right_node->type, node, node, false);
 	equations_add(equations, &bind_equation);
     } else if (node->name == POSTFIX_EXPR) {
-	/*
-
-    POSTFIX_EXPR:12::
-          NAME:12:l3:
-          LIST_LOOKUP:12::
-            INT:12:0:
-          LIST_LOOKUP:12::
-            INT:12:1:
-          FUNCTION_CALL:12::
-            INT:12:1:
-            ARGS:12::
-              NAME:12:x:
-	*/
         /*
 	 * NOTE: This POSTFIX_EXPR is hardwired to only handle function calls
 	 */
@@ -878,8 +861,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	// Extract all argument types
 	types_t* arg_types = types_new();
 	if (args_node != NULL) {
-	    LOG_ASSERT(args_node->name == ARGS,
-		       "Expected an ARGS node");
+	    LOG_ASSERT(args_node->name == ARGS, "Expected an ARGS node");
 	    size_t n = ast_number_of_children(args_node);
 	    for (uint16_t i = 0; i < n; i++) {
 		ast_node_t* arg_node = ast_get_child(args_node, i);
@@ -888,10 +870,10 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	}
         // Equation: Function call
 	equation_t function_equation =
-	    equation_new(name_node->type,
-			 type_new_function_type(arg_types,
-						function_call_node->type),
-			 node, node, false);
+	    equation_new(
+		name_node->type,
+		type_new_function_type(arg_types, function_call_node->type),
+		node, node, false);
 	equations_add(equations, &function_equation);
         // Equation: Postfix expression
 	equation_t postfix_expr_equation =

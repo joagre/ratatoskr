@@ -1,8 +1,7 @@
-#include "type.h"
-#include "types.h"
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
+#include "types.h"
 
 // Forward declarations of local functions (alphabetical order)
 static type_variable_t next_type_variable(void);

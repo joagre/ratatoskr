@@ -24,44 +24,33 @@ programming languages.
 All rise. Here is a tribute and a premature Satie example:
 
 ```
-import Std.satie
-import Std.stdio : writeln
+import Std.tasks: Task
+import Std.lists
+import Std.stdio: writeln
 
 export fn main(args) {
-    ?numberOfTributes := args[1],
-    ?channel := satie.makeChannel(copies: numberOfTributes),
-    ?jobs := startTributes(channel, numberOfTributes),
-    channel.send("Standing on the shoulders of ${jobs.length} giants")
+    ?tasks := startTributes(args[1].stringToInt()),
+    lists.foreach(fn (task) {
+        task->hail("Standing on the shoulders of %{tasks.length} giants")
+    }, tasks)
 }
 
-fn startTributes(channel, numberOfTributes, n = 0, jobs = []) {
-    if n <Int< numberOfTributes {
-        ?job := satie.spawn(fn () {
-                    ?message := receive channel,
-                    writeln("$n: $message")
-                }),
-        startTributes(channel, numberOfTributes, n + 1, job @ jobs)
+fn startTributes(numberOfTributes, n = 0, tasks = []) {
+    if n < numberOfTributes {
+        ?task := launch Tribute(n: n),
+        startTributes(numberOfTributes, n + 1, task @ tasks)
     } else {
-        jobs
+        tasks
     }
 }
 
-/*
-A channel can be created with the following modifiers:
-
-copies: N
-    Keep a message in the mailbox until N instances has read it
-fade: N
-    If a message hasn't been read in N milliseconds it fades away
-sync: Bool
-    Should the sender block until the receiver has read the message
-    (defaults to false)?
-size: (Type, Size)
-    Set the number of messages allowed in a channel to Size. If this
-    threshold is reached the sender blocks or the message is ignored,
-    depending on Type (which can either be the enum
-    ChannelOption@block or ChannelOption@ignore).
-*/
+task Tribute {
+    public n is Int
+    public fn hail(message is String) {
+        writeln("%n: %message"),
+        Task.die
+    }
+}
 $ sac tribute.sa
 $ sa build/tribute 100000
 0: Standing on the shoulders of giants
@@ -202,11 +191,11 @@ enum Color {
 }
 
 interface Iterator<$t> {
-    public fn next() is Either<false, (Iterator<$t>, $t)>
+    public fn next() is Either<Bool, (Iterator<$t>, $t)>
     public fn hasNext() is Bool
 }
 
-class ColorIterator implements Iterator<Color> {
+record ColorIterator implements Iterator<Color> {
     private colors
     private graffiti
 
@@ -229,12 +218,12 @@ class ColorIterator implements Iterator<Color> {
 
 export fn main() {
     ?colors := [Color#red, Color#red, Color#blue, Color#green],
-    ?iterator := ColorIterator(colors),
-    fn iterate(iterator) {
+    ?iterator := new ColorIterator(colors),
+    ?iterate := fn (iterator) {
         if iterator.hasNext() {
             (?iterator, ?color) := iterator.next(),
             writeln("Color: %color"),
-            iterate(iterator)
+            self(iterator)
         } else {
             true
         }
@@ -1275,68 +1264,48 @@ message.
 Study this and do not despair:
 
 ```
-import Std.satie
-import Std.jobs: JobStatus, SpawnOption
-import Std.channels: ChannelOption
-import Std.stdio
+import Std.stdio: writeln
 
 export fn main(_args) {
-  ?ackermann := Ackermann(),
-  ?ackermann := ackermann.startJobs(3, 10),
-  ackermann.waitForJobs()
+    ?masterTask := launch Master(),
+    masterTask->startSlave(3, 10), // -> is a cast
+    masterTask->startSlave(3, 11),
+    2 := masterTask<->startedSlaves(), // <-> is a call
+    2 := masterTask<->startedSlaves // works as well (it's public property)
 }
 
-//type FooChannel = ([Int, Float] => Channel => [Float])
-
-class Ackermann {
-    private jobs is [Job] = []
-//    private resultChannel is ([Int, Float] => Channel => [Float])
-    private resultChannel is Channel
-
-    this() {
-        this(resultChannel:
-                 satie.makeChannel(onCrowding: (ChannelOption#block, 4)))
+task Master {
+    public startedSlaves = 0
+    public fn startSlave(m, n) {
+        ?slaveTask := launch Slave(this),
+        slaveTask->start(m, n),
+        this(startedSlaves: startedSlaves + 1)
     }
-
-    public fn startJobs(m, n, i = 0, startedJobs = []) {
-        if i <Int< n {
-            fn computeAckermann(m, n) {
-                ?result := ackermann(m, n),
-                resultChannel.send((self, m, n, result))
-            },
-            ?job := satie.spawn(fn () {
-                        computeAckermann(m, i)
-                    }, [SpawnOption#monitor: true]),
-            startJobs(m, n, i + 1, job @ startedJobs)
-        } else {
-            this(jobs: startedJobs)
-        }
+    public fn slaveRunning(m, n) {
+        writeln("Slave %m:%n started")
     }
-
-    public fn waitForJobs() {
-        fn waitForJobs(jobs) {
-            if jobs.length >Int> 0 {
-                receive [resultChannel, satie.systemChannel] {
-                    (?job, ?m, ?n, ?result) {
-                        stdio.writeln("ackermann(%m, %n) = %result"),
-                        waitForJobs(jobs.delete(job))
-                    }
-                    (JobStatus#died, ?job, ?reason) {
-                        stdio.writeln("Oh no! Compute job %job died: %reason"),
-                        waitForJobs(jobs.delete(job))
-                    }
-                }
-            } else {
-                this(jobs: [])
-            }
-        },
-        waitForJobs(jobs)
+    public fn slaveDone(m, n, result) {
+        writeln("Slave calculated %m:%n = %result")
     }
+    public fn startedSlaves() {
+        startedSlaves
+    }
+}
 
+task Slave {
+    private masterTask is Task
+    this(masterTask) {
+        this(masterTask: masterTask)
+    }
+    public fn start(m, n) {
+        masterTask->slaveRunning(m, n),
+        ?result := ackermann(m, n),
+        masterTask->slaveDone(m, n, result)
+    }
     private fn ackermann(m, n) {
-        if m =Int= 0 {
+        if m == 0 {
             n + 1
-        } elif n !Int= 0 {
+        } elif n == 0 && m > 0 {
             ackermann(m - 1, 1)
         } else {
             ackermann(m - 1, ackermann(m, n - 1))
@@ -1490,10 +1459,11 @@ Operators in decreasing order of precedence:
     static void panic(const char *fmt, ...) {
         va_list args;
         va_start(args, fmt);
-        fprintf(stderr, "\033[31mError:\033[0m ");
+        printf("\033[31mError:\033[0m ");
         vfprintf(stderr, fmt, args);
-        fprintf(stderr, "\n");
+        printf("\n");
         va_end(args);
+        fflush(stdout);
         exit(1);
     }
 
@@ -1517,7 +1487,7 @@ Operators in decreasing order of precedence:
 
 Program <- _ (i:Imports __)? t:TopLevelDefs EOF { $$ = CN(PROGRAM, 2, i, t); }
 TopLevelDefs <- t:TopLevelDef { $$ = CN(TOP_LEVEL_DEFS, 1, t); } (__ t:TopLevelDef { AC($$, t); } / TopLevelDefError)*
-TopLevelDef <- (t:AliasDef / t:TypeDef / t:EnumDef / t:FunctionDef / t:InterfaceDef / t:ClassDef) { $$ = t; }
+TopLevelDef <- (t:AliasDef / t:TypeDef / t:EnumDef / t:FunctionDef / t:InterfaceDef / t:RecordDef / t:TaskDef) { $$ = t; }
 TopLevelDefError <- ("," / ";") {
     panic("Unexpected %s between top level definitions on line %d",
           $0, auxil->row);
@@ -1547,7 +1517,7 @@ AliasDef <- "alias" _ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ t:Type { $$
 
 TypeDef <- "type" _ n:Name ("<" _ t:TypeVariables _ ">")? _ "=" _ tc:TypeConstructors { $$ = CN(TYPE_DEF, 3, n, t, tc); }
 TypeConstructors <- t:TypeConstructor { $$ = CN(TYPE_CONSTRUCTORS, 1, t); } (_ "or" _ t:TypeConstructor { AC($$, t); })*
-TypeConstructor <- n:Name ("<" _ t:Types _ ">")? { $$ = CN(TYPE_CONSTRUCTOR, 2, n, t); }
+TypeConstructor <- n:Name "<" _ t:Types? _ ">" { $$ = CN(TYPE_CONSTRUCTOR, 2, n, t); }
 
 #
 # Enumeration definition
@@ -1566,7 +1536,7 @@ EnumValueError <- ("," / ";") {
 # Function definition
 #
 
-FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ t:Type _)? b:BlockExpr { ast_node_t* rt = NULL; if (t != NULL) { rt = CN(RETURN_TYPE, 1, t); } $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, rt, b); }
+FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ t:Type _)? b:BlockExpr { $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, CCN(TYPE, 1, t), b); }
 Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
 Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d); } /
@@ -1574,18 +1544,18 @@ Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d);
           d:DefaultParams { $$ = d; }
 NonDefaultParams <- n:NonDefaultParam { $$ = CN(NON_DEFAULT_PARAMS, 1, n); }
                     (_ "," _ n:NonDefaultParam { AC($$, n); })*
-NonDefaultParam <- n:Name (_ "is" _ t:Type)? !(_ "=") { $$ = RN(n, PARAM_NAME); AC($$, t);}
+NonDefaultParam <- n:Name (_ "is" _ t:Type)? !(_ "=") { $$ = RN(n, PARAM_NAME); AC($$, CCN(TYPE, 1, t));}
 DefaultParams <- d:DefaultParam { $$ = CN(DEFAULT_PARAMS, 1, d); } (_ "," _ d:DefaultParam {AC($$, d); })*
-DefaultParam <- i:DefaultParamName (_ "is" _ t:Type { AC(i, t); })? _ "=" _ m:ParamExpr { $$ = CN(DEFAULT_PARAM, 2, i, m); }
+DefaultParam <- i:DefaultParamName (_ "is" _ t:Type { AC(i, CCN(TYPE, 1, t)); })? _ "=" _ m:ParamExpr { $$ = CN(DEFAULT_PARAM, 2, i, m); }
 DefaultParamName <- Identifier { $$ = CT(PARAM_NAME, $0); }
 ParamExpr <- (m:MatchLiteral / m:Name) { $$ = m; }
 BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
-BlockLevelExprs <- b:BlockLevelExpr { $$ = CN(BLOCK_EXPR, 1, b); } (_ Comma _ b:BlockLevelExpr { AC($$, b); })*
-BlockLevelExpr <- (b:FunctionDef / b:Expr) { $$ = b; }
+BlockLevelExprs <- e:Expr { $$ = CN(BLOCK_EXPR, 1, e); } (_ Comma _ e:Expr { AC($$, e); })*
 Comma <- "," / ";" {
     panic("Unexpected ';' on line %d (use ',' as a separator between "
           "expressions)", auxil->row);
 }
+
 Args <- (a:PositionalArgs / a:NamedArgs) { $$ = a; }
 PositionalArgs <- !NamedArg e:Expr { $$ = CN(POSITIONAL_ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 NamedArgs <- n:NamedArg { $$ = CN(NAMED_ARGS, 1, n); } (_ "," _ n:NamedArg { AC($$, n); })*
@@ -1601,57 +1571,64 @@ InterfaceDef <- "interface" __ i:InterfaceName ("<" _ t:TypeVariables _ ">")? _ 
 InterfaceName <- Identifier { $$ = CT(INTERFACE_NAME, $0); }
 InterfaceMembers <- i:InterfaceMember { $$ = CN(INTERFACE_MEMBERS, 1, i); } (_ i:InterfaceMember { AC($$, i); } / InterfaceMemberError)*
 InterfaceMember <- (i:InterfaceConstructor / i:InterfaceDestructor / i:InterfaceMemberMethod / i:InterfaceMemberProperty) { $$ = i; }
-InterfaceConstructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? { $$ = CN(INTERFACE_CONSTRUCTOR, 2, p, t); }
-InterfaceDestructor <- "~this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? { $$ = CN(INTERFACE_DESTRUCTOR, 3, p, t); }
+InterfaceConstructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? { $$ = CN(INTERFACE_CONSTRUCTOR, 2, p, CCN(TYPE, 1, t)); }
+InterfaceDestructor <- "~this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? { $$ = CN(INTERFACE_DESTRUCTOR, 3, p, CCN(TYPE, 1, t)); }
 InterfaceMemberMethod <- m:MemberAccess _ i:InterfaceMethod { $$ = CN(INTERFACE_MEMBER_METHOD, 2, m, i); }
-InterfaceMethod <- "fn" _ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _  ("is" _ t:Type _)? { $$ = CN(INTERFACE_METHOD, 4, f, tv, p, t); }
-InterfaceMemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name  (_ "is" _ t:Type { AC(n, t); })?) { $$ = CN(INTERFACE_MEMBER_PROPERTY, 4, m, c, n, t); }
+InterfaceMethod <- "fn" _ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _  ("is" _ t:Type _)? { $$ = CN(INTERFACE_METHOD, 4, f, tv, p, CCN(TYPE, 1, t)); }
+InterfaceMemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name  (_ "is" _ t:Type { AC(n, CCN(TYPE, 1, t)); })?) { $$ = CN(INTERFACE_MEMBER_PROPERTY, 4, m, c, n, t); }
 InterfaceMemberError <- ("," / ";") {
     panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
 
 #
-# Class definition
+# Record definition
 #
 
-ClassDef <- "class" __ cn:ClassName ("<" _ t:TypeVariables _ ">")? _ ( "implements" _ i:Interfaces _ )? "{" _
-            c:ClassMembers _
-            "}" { $$ = CN(CLASS_DEF, 4, cn, t, i, c); }
-ClassName <- Identifier { $$ = CT(CLASS_NAME, $0); }
+RecordDef <- "record" __ n:Name ("<" _ t:TypeVariables _ ">")? _ ( "implements" _ i:Interfaces _ )? "{" _
+             c:RecordMembers _
+             "}" { $$ = CN(RECORD_DEF, 4, n, t, i, c); }
 Interfaces <- i:Interface { $$ = CN(INTERFACES, 1, i); } (_ "," _ i:Interface { AC($$, i); })*
 Interface <- n:Name ("<" _ t:Types _ ">")? { $$ = CN(INTERFACE, 2, n, t); }
-ClassMembers <- c:ClassMember { $$ = CN(CLASS_MEMBERS, 1, c); } (_ c:ClassMember { AC($$, c); } / ClassMemberError)*
-ClassMember <- (c:Constructor / c:Destructor / c:MemberMethod / c:MemberProperty) { $$ = c; }
-Constructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(CLASS_CONSTRUCTOR, 3, p, t, b); }
-Destructor <- "~this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(CLASS_DESTRUCTOR, 3, p, t, b); }
+RecordMembers <- c:RecordMember { $$ = CN(RECORD_MEMBERS, 1, c); } (_ c:RecordMember { AC($$, c); } / RecordMemberError)*
+RecordMember <- (c:Constructor / c:Destructor / c:MemberMethod / c:MemberProperty) { $$ = c; }
+Constructor <- "this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(RECORD_CONSTRUCTOR, 3, p, CCN(TYPE, 1, t), b); }
+Destructor <- "~this" _ "(" _ p:Params? _ ")" (_ "is" _ t:Type)? _ b:BlockExpr { $$ = CN(RECORD_DESTRUCTOR, 3, p, CCN(TYPE, 1, t), b); }
 MemberMethod <- m:MemberAccess _ f:FunctionDef { $$ = CN(MEMBER_METHOD, 2, m, f); }
 MemberAccess <- "public" { $$ = CT(PUBLIC, NULL); } / "private" { $$ = CT(PRIVATE, NULL); }
-MemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name (_ "is" _ t:Type { AC(n, t); })? (_ "=" _ e:Expr)?) { $$ = CN(MEMBER_PROPERTY, 4, m, c, n, e); }
-ClassMemberError <- ("," / ";") {
+MemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name (_ "is" _ t:Type { AC(n, CCN(TYPE, 1, t)); })? (_ "=" _ e:Expr)?) { $$ = CN(MEMBER_PROPERTY, 4, m, c, n, e); }
+RecordMemberError <- ("," / ";") {
     panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
 Const <- "const" { $$ = CT(CONST, NULL); }
 Readonly <- "readonly" { $$ = CT(READONLY, NULL); }
 
 #
+# Task definition
+#
+
+TaskDef <- "task" __ n:Name ("<" _ t:TypeVariables _ ">")? _ ( "implements" _ i:Interfaces _ )? "{" _
+           c:RecordMembers _
+           "}" { $$ = CN(TASK_DEF, 4, n, t, i, c); }
+
+#
 # Type
 #
 
 Types <- t:Type { $$ = CN(TYPES, 1, t); } (_ "," _ t:Type { AC($$, t); })*
-Type <- (t:BasicType / t:ListType / t:AppType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable) { $$ = t; }
-BasicType <- (b:BoolType / b:IntType / b:FloatType / b:StringType / b:JobType / b:ChannelType) { $$ = b;}
+Type <- (t:BasicType / t:ListType / t:FunctionType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable / t:Name) { $$ = t; }
+BasicType <- (b:BoolType / b:IntType / b:FloatType / b:CharType / b:StringType / b:TaskType) { $$ = b;}
 BoolType <- "Bool" { $$ = CT(BOOL_TYPE, NULL); }
 IntType <- "Int" { $$ = CT(INT_TYPE, NULL); }
 FloatType <- "Float" { $$ = CT(FLOAT_TYPE, NULL); }
+CharType <- "Char" { $$ = CT(CHAR_TYPE, NULL); }
 StringType <- "String" { $$ = CT(STRING_TYPE, NULL); }
-JobType <- "Job" { $$ = CT(JOB_TYPE, NULL); }
-ChannelType <- "Channel" { $$ = CT(CHANNEL_TYPE, NULL); }
-ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); }
-AppType <- "(" _ a:Type? _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes _ "}" _ "->" _ r:Type _ ")" { $$ = CN(APP_TYPE, 2, a, r); }
+TaskType <- "Task" { $$ = CT(TASK_TYPE, NULL); }
+ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); } / "[" _ "]" { $$ = CT(EMPTY_LIST_TYPE, NULL); }
+FunctionType <- "(" _ a:Type? _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes _ "}" _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, a, r); }
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
-TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")"
-MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); }
-ConstructorType <- n:Name ("<" _ t:Types _ ">")? { $$ = CN(CONSTRUCTOR_TYPE, 2, n, t); }
+TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")" / "(" _ ")" { $$ = CT(EMPTY_TUPLE_TYPE, NULL); }
+MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); } / "[" _ ":" _ "]" { $$ = CT(EMPTY_MAP_TYPE, NULL); }
+ConstructorType <- n:Name "<" _ t:Types? _ ">" { $$ = CN(CONSTRUCTOR_TYPE, 2, n, t); }
 TypeVariables <- t:TypeVariable {$$ = CN(TYPE_VARIABLES, 1, t); } (_ "," _ t:TypeVariable { AC($$, t); })*
 TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 
@@ -1659,86 +1636,84 @@ TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 # Expression
 #
 
-Expr <- e:BindExpr { $$ = e; }
+Expr <- BindExpr
 BindExpr <- l:MatchExpr _ ":=" _ r:Expr { $$ = CN(BIND, 2, l, r); } / e:LogicalOrExpr { $$ = e; }
 LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r); } / e:LogicalAndExpr { $$ = e; }
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
 BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
 BitwiseOrExpr <- l:BitwiseOrExpr _ "|" _ r:GTEIntExpr { $$ = CN(BITWISE_OR, 2, l, r); } / e:GTEIntExpr { $$ = e; }
-GTEIntExpr <- l:GTEIntExpr __ ">Int=" __ r:GTEFloatExpr { $$ = CN(GTE_INT, 2, l, r); } / e:GTEFloatExpr { $$ = e; }
-GTEFloatExpr <- l:GTEFloatExpr __ ">Float=" __ r:GTIntExpr { $$ = CN(GTE_FLOAT, 2, l, r); } / e:GTIntExpr { $$ = e; }
-GTIntExpr <- l:GTIntExpr __ ">Int>" __ r:GTFloatExpr { $$ = CN(GT_INT, 2, l, r); } / e:GTFloatExpr { $$ = e; }
-GTFloatExpr <- l:GTFloatExpr __ ">Float>" __ r:LTEIntExpr { $$ = CN(GT_FLOAT, 2, l, r); } / e:LTEIntExpr { $$ = e; }
-LTEIntExpr <- l:LTEIntExpr __ "<Int=" __ r:LTEFloatExpr { $$ = CN(LTE_INT, 2, l, r); } / e:LTEFloatExpr { $$ = e; }
-LTEFloatExpr <- l:LTEFloatExpr __ "<Float=" __ r:LTIntExpr { $$ = CN(LTE_FLOAT, 2, l, r); } / e:LTIntExpr { $$ = e; }
-LTIntExpr <- l:LTIntExpr __ "<Int<" __ r:LTFloatExpr { $$ = CN(LT_INT, 2, l, r); } / e:LTFloatExpr { $$ = e; }
-LTFloatExpr <- l:LTFloatExpr __ "<Float<" __ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l, r); } / e:NotEqualExpr { $$ = e; }
-NotEqualExpr <- l:NotEqualExpr _ "!" t:Name "=" _ r:EqualExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualExpr { $$ = e; }
-EqualExpr <- l:EqualExpr _ "=" t:Name "=" _ r:InExpr { $$ = CN(EQ, 3, l, RN(t, EQ_TYPE), r); } / e:InExpr { $$ = e; }
+GTEIntExpr <- l:GTEIntExpr __ ">=" __ r:GTEFloatExpr { $$ = CN(GTE_INT, 2, l, r); } / e:GTEFloatExpr { $$ = e; }
+GTEFloatExpr <- l:GTEFloatExpr __ ">=;" __ r:GTIntExpr { $$ = CN(GTE_FLOAT, 2, l, r); } / e:GTIntExpr { $$ = e; }
+GTIntExpr <- l:GTIntExpr __ ">" __ r:GTFloatExpr { $$ = CN(GT_INT, 2, l, r); } / e:GTFloatExpr { $$ = e; }
+GTFloatExpr <- l:GTFloatExpr __ ">;" __ r:LTEIntExpr { $$ = CN(GT_FLOAT, 2, l, r); } / e:LTEIntExpr { $$ = e; }
+LTEIntExpr <- l:LTEIntExpr __ "<=" __ r:LTEFloatExpr { $$ = CN(LTE_INT, 2, l, r); } / e:LTEFloatExpr { $$ = e; }
+LTEFloatExpr <- l:LTEFloatExpr __ "<=;" __ r:LTIntExpr { $$ = CN(LTE_FLOAT, 2, l, r); } / e:LTIntExpr { $$ = e; }
+LTIntExpr <- l:LTIntExpr __ "<" __ r:LTFloatExpr { $$ = CN(LT_INT, 2, l, r); } / e:LTFloatExpr { $$ = e; }
+LTFloatExpr <- l:LTFloatExpr __ "<;" __ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l, r); } / e:NotEqualExpr { $$ = e; }
+NotEqualIntExpr <- l:NotEqualIntExpr _ "!=" _ r:NotEqualFloatExpr { $$ = CN(NE, 3, l, CT(INT_TYPE, NULL), r); } / e:NotEqualFloatExpr { $$ = e; }
+NotEqualFloatExpr <- l:NotEqualFloatExpr _ "!=;" _ r:NotEqualExpr { $$ = CN(NE, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:NotEqualExpr { $$ = e; }
+NotEqualExpr <- l:NotEqualExpr _ "!" !("Int" / "Float") t:Name "=" _ r:EqualIntExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualIntExpr { $$ = e; }
+EqualIntExpr <- l:EqualIntExpr _ "==" _ r:EqualFloatExpr { $$ = CN(EQ, 3, l, CT(INT_TYPE, NULL), r); } / e:EqualFloatExpr { $$ = e; }
+EqualFloatExpr <- l:EqualFloatExpr _ "==;" _ r:EqualExpr { $$ = CN(EQ, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:EqualExpr { $$ = e; }
+EqualExpr <- l:EqualExpr _ "=" !("Int" / "Float") t:Name "=" _ r:InExpr { $$ = CN(EQ, 3, l, RN(t, EQ_TYPE), r); } / e:InExpr { $$ = e; }
 InExpr <- l:InExpr _ "in" _ e:RightShiftExpr { $$ = CN(IN, 2, l, e); } / e:RightShiftExpr { $$ = e; }
 RightShiftExpr <- l:RightShiftExpr __ ">>" __ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
 LeftShiftExpr <- l:LeftShiftExpr __ "<<" __ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
 ConsExpr <- l:ConsExpr _ "::" _ r:ListConcatExpr { $$ = CN(CONS, 2, l, r); } / e:ListConcatExpr { $$ = e; }
 ListConcatExpr <- l:ListConcatExpr _ "@" _ r:MapConcatExpr { $$ = CN(CONCAT_LIST, 2, l, r); } / e:MapConcatExpr { $$ = e; }
 MapConcatExpr <- l:MapConcatExpr _ "~" _ r:StringConcatExpr { $$ = CN(CONCAT_MAP, 2, l, r); } / e:StringConcatExpr { $$ = e; }
-StringConcatExpr <- l:StringConcatExpr _ "^" _ r:MinusIntExpr { $$ = CN(CONCAT_STRING, 2, l, r); } / e:MinusIntExpr { $$ = e; }
-MinusIntExpr <- l:MinusIntExpr _ "-" _ r:MinusFloatExpr { $$ = CN(MINUS_INT, 2, l, r); } / e:MinusFloatExpr { $$ = e; }
-MinusFloatExpr <- l:MinusFloatExpr _ "-." _ r:PlusIntExpr { $$ = CN(MINUS_FLOAT, 2, l, r); } / e:PlusIntExpr { $$ = e; }
-PlusIntExpr <- l:PlusIntExpr _ "+" _ r:PlusFloatExpr { $$ = CN(PLUS_INT, 2, l, r); } / e:PlusFloatExpr { $$ = e; }
-PlusFloatExpr <- l:PlusFloatExpr _ "+." _ r:ModulusExpr { $$ = CN(PLUS_FLOAT, 2, l, r); } / e:ModulusExpr { $$ = e; }
-ModulusExpr <- l:ModulusExpr _ "%" _ r:DivideIntExpr { $$ = CN(MODULUS, 2, l, r); } / e:DivideIntExpr { $$ = e; }
-DivideIntExpr <- l:DivideIntExpr _ "/" _ r:DivideFloatExpr { $$ = CN(DIVIDE_INT, 2, l, r); } / e:DivideFloatExpr { $$ = e; }
-DivideFloatExpr <- l:DivideFloatExpr _ "/." _ r:MultiplyIntExpr { $$ = CN(DIVIDE_FLOAT, 2, l, r); } / e:MultiplyIntExpr { $$ = e; }
-MultiplyIntExpr <- l:MultiplyIntExpr _ "*" _ r:MultiplyFloatExpr { $$ = CN(MULTIPLY_INT, 2, l, r); } / e:MultiplyFloatExpr { $$ = e; }
-MultiplyFloatExpr <- l:MultiplyFloatExpr _ "*." _ r:ExponentiationExpr { $$ = CN(MULTIPLY_FLOAT, 2, l, r); } / e:ExponentiationExpr { $$ = e; }
-ExponentiationExpr <- l:ExponentiationExpr _ "^^" _ r:NotExpr { $$ = CN(EXPONENTIATE, 2, l, r); } / e:NotExpr { $$ = e; }
-NotExpr <- "!" _ l:UnaryPlusIntExpr { $$ = CN(NOT, 1, l); } / e:UnaryPlusIntExpr { $$ = e; }
-UnaryPlusIntExpr <- "+" _ l:UnaryPlusFloatExpr { $$ = CN(UNARY_PLUS_INT, 1, l); } / e:UnaryPlusFloatExpr { $$ = e; }
-UnaryPlusFloatExpr <- "+." _ l:UnaryMinusIntExpr { $$ = CN(UNARY_PLUS_FLOAT, 1, l); } / e:UnaryMinusIntExpr { $$ = e; }
-UnaryMinusIntExpr <- "-" _ l:UnaryMinusFloatExpr { $$ = CN(UNARY_MINUS_INT, 1, l); } / e:UnaryMinusFloatExpr { $$ = e; }
-UnaryMinusFloatExpr <- "-." _ l:PostfixExpr { $$ = CN(UNARY_PLUS_FLOAT, 1, l); } / e:PostfixExpr { $$ = e; }
+StringConcatExpr <- l:StringConcatExpr _ "^" _ r:SubIntExpr { $$ = CN(CONCAT_STRING, 2, l, r); } / e:SubIntExpr { $$ = e; }
+SubIntExpr <- l:SubIntExpr _ "-" _ r:SubFloatExpr { $$ = CN(SUB_INT, 2, l, r); } / e:SubFloatExpr { $$ = e; }
+SubFloatExpr <- l:SubFloatExpr _ "-;" _ r:AddIntExpr { $$ = CN(SUB_FLOAT, 2, l, r); } / e:AddIntExpr { $$ = e; }
+AddIntExpr <- l:AddIntExpr _ "+" _ r:AddFloatExpr { $$ = CN(ADD_INT, 2, l, r); } / e:AddFloatExpr { $$ = e; }
+AddFloatExpr <- l:AddFloatExpr _ "+;" _ r:ModExpr { $$ = CN(ADD_FLOAT, 2, l, r); } / e:ModExpr { $$ = e; }
+ModExpr <- l:ModExpr _ "%" _ r:DivIntExpr { $$ = CN(MOD, 2, l, r); } / e:DivIntExpr { $$ = e; }
+DivIntExpr <- l:DivIntExpr _ "/" _ r:DivFloatExpr { $$ = CN(DIV_INT, 2, l, r); } / e:DivFloatExpr { $$ = e; }
+DivFloatExpr <- l:DivFloatExpr _ "/;" _ r:MulIntExpr { $$ = CN(DIV_FLOAT, 2, l, r); } / e:MulIntExpr { $$ = e; }
+MulIntExpr <- l:MulIntExpr _ "*" _ r:MulFloatExpr { $$ = CN(MUL_INT, 2, l, r); } / e:MulFloatExpr { $$ = e; }
+MulFloatExpr <- l:MulFloatExpr _ "*;" _ r:ExpExpr { $$ = CN(MUL_FLOAT, 2, l, r); } / e:ExpExpr { $$ = e; }
+ExpExpr <- l:ExpExpr _ "^^" _ r:NotExpr { $$ = CN(EXP, 2, l, r); } / e:NotExpr { $$ = e; }
+NotExpr <- "!" _ l:PosIntExpr { $$ = CN(NOT, 1, l); } / e:PosIntExpr { $$ = e; }
+PosIntExpr <- "+" _ l:PosFloatExpr { $$ = CN(POS_INT, 1, l); } / e:PosFloatExpr { $$ = e; }
+PosFloatExpr <- "+;" _ l:NegIntExpr { $$ = CN(POS_FLOAT, 1, l); } / e:NegIntExpr { $$ = e; }
+NegIntExpr <- "-" _ l:NegFloatExpr { $$ = CN(NEG_INT, 1, l); } / e:NegFloatExpr { $$ = e; }
+NegFloatExpr <- "-;" _ l:PostfixExpr { $$ = CN(NEG_FLOAT, 1, l); } / e:PostfixExpr { $$ = e; }
 PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX_EXPR, 1, p); }
-                (_ "." _ n:Name { AC($$, RN(n, DOT_NAME)); } /
+                (_ "<->" _ n:Name { AC($$, RN(n, TASK_CALL)); } /
+                 _ "->" _ n:Name { AC($$, RN(n, TASK_CAST)); } /
+                 _ "." _ n:Name { AC($$, RN(n, DOT_NAME)); } /
                  _ "[" _ s:Expr _ ".." _ e:Expr _ "]" { AC($$, CN(LIST_SLICE, 2, s, e)); } /
                  _ "[" _ i:IndexValues _ "]" { AC($$, CN(LIST_UPDATE, 1, i)); } /
                  _ "[" _ m:MapKeyValues _ "]" { AC($$, CN(MAP_UPDATE, 1, m)); } /
                  _ "[" _ e:Expr _ "]" { AC($$, CN(LIST_LOOKUP, 1, e)); } /
-                 _ ("<" _ e:Expr _ ">")? "(" _ a:Args? _ ")" { AC($$, CN(FUNCTION_CALL, 2, e, a)); })*)
+                 _ ("<" _ e:Exprs? _ ">")? "(" _ a:Args? _ ")" { AC($$, CN(FUNCTION_CALL, 2, e, a)); })*)
 
 IndexValues <- i:IndexValue { $$ = CN(INDEX_VALUES, 1, i); } (_ "," _ i:IndexValue { AC($$, i); })*
 IndexValue <- i:Int _ "=" _ v:Expr { $$ = CN(INDEX_VALUE, 2, i, v); }
 
-PrimaryExpr <- "nil" { $$ = CT(NIL, NULL); } /
-               "this" { $$ = CT(THIS, NULL); } /
-               "self" { $$ = CT(SELF, NULL); } /
+PrimaryExpr <- "this" { $$ = CT(THIS, NULL); } /
                "$" { $$ = CT(SLICE_LENGTH, NULL); } /
+               e:NewRecord {$$ = e;} /
+               e:LaunchTask {$$ = e;} /
                e:ControlFlowExpr { $$ = e; } /
                e:Literal { $$ = e; } /
                e:Name { $$ = e; } /
                "(" _ e:Expr _ ")" { $$ = e; }
 
-ControlFlowExpr <- (c:IfExpr / c:CaseExpr / c:ReceiveExpr / c:BlockExpr) { $$ = c; }
+NewRecord <- "new" _ n:Name _ "(" a:Args? ")" { $$ = CN(NEW_RECORD, 2, n, a); }
+
+LaunchTask <- "launch" _ n:Name _ "(" a:Args? ")" { $$ = CN(LAUNCH_TASK, 2, n, a); }
+
+ControlFlowExpr <- (c:IfExpr / c:CaseExpr / c:BlockExpr) { $$ = c; }
 
 IfExpr <- "if" __ ie:Expr _ b:BlockExpr { $$ = CN(IF_EXPR, 1, CN(IF, 2, ie, b)); }
           (_ "elif" __ ee:Expr _ b:BlockExpr { AC($$, CN(ELIF, 2, ee, b)); })*
           (_ "else" _ e:BlockExpr { AC($$, CN(ELSE, 1, e)); })
 
 CaseExpr <- "case" __ e:Expr { $$ = CN(CASE_EXPR, 1, CN(CASE, 1, e)); } _ "{"
-              (_ m:MatchExprs _ ("when" _ we:Expr { AC($$, CN(WHEN, 1, we)); } _)? _ b:BlockExpr { AC($$, CN(CASE_BRANCH, 2, m, b)); })+
-              (_ "default" _ b:BlockExpr { AC($$, CN(DEFAULT, 1, b)); })? _
-              "}"
-
-ReceiveExpr <- "receive" __ c:ReceiveChannels { $$ = CN(RECEIVE_EXPR, 1, CN(RECEIVE, 1, c)); } (_ "{"
-               (_ m:MatchExprs _ b:BlockExpr _ { AC($$, CN(CASE, 2, m, b)); })+
-               (_ "timeout" _ d:DecimalInt _ b:BlockExpr { AC($$, CN(TIMEOUT, 2, d, b)); })? _
-               "}")?
-
-ReceiveChannels <- (c:Channel / "[" _ c:Channels _ "]") { $$ = c; }
-Channel <- (c:ChannelName { $$ = CN(CHANNEL, 1, c); }
-                (_ "." _ n:Name { AC($$, RN(n, DOT_NAME)); } /
-                 _ "[" _ e:Expr _ "]" { AC($$, CN(LIST_LOOKUP, 1, e)); })*)
-ChannelName <- Identifier { $$ = CT(CHANNEL_NAME, $0); }
-Channels <- c:Channel { $$ = CN(CHANNELS, 1, c); } (_ "," _ c:Channel { AC($$, c); })*
+            (_ m:MatchExprs _ ("when" _ we:Expr { AC($$, CN(WHEN, 1, we)); } _)? _ "=>" _ e:Exprs { AC($$, CN(CASE_BRANCH, 2, m, e)); })+
+            (_ "default" _ "=>" _ e:Exprs { AC($$, CN(DEFAULT, 1, 1)); })? _
+            "}"
 
 Literal <- (l:BasicLiteral / l:CompositeLiteral) { $$ = l; }
 
@@ -1752,7 +1727,7 @@ BoolLiteral <- "true" { $$ = CT(TRUE, NULL); } / "false" { $$ = CT(FALSE, NULL);
 NumberLiteral <- (n:Float / n:Int) { $$ = n; }
 
 Float <- (f:DecimalPointLeading / f:DecimalPointTrailing) { $$ = CT(FLOAT, $0); }
-DecimalPointLeading <- [0-9]* "." [0-9]+ ExponentPart?
+DecimalPointLeading <- [0-9]+ "." [0-9]+ ExponentPart?
 DecimalPointTrailing <- [0-9]+ ExponentPart
 ExponentPart <- [eE] [+-]? [0-9]+
 
@@ -1762,7 +1737,7 @@ BinaryInt <- "0b" [01]+
 OctalInt <- "0" [0-7]+
 DecimalInt <- [0-9]+
 
-CharLiteral <- "'" (c:EscapeChar / c:NonQuoteChar) "'" { $$ = CN(CHARACTER_LITERAL, 1, c); }
+CharLiteral <- "'" (c:EscapeChar / c:NonQuoteChar) "'" { $$ = CN(CHAR, 1, c); }
 EscapeChar <- "\\" (
               [abfnrtv'"\\] /
               "x" HexDigit HexDigit /
@@ -1772,17 +1747,17 @@ EscapeChar <- "\\" (
                OctalDigit /
                OctalDigit OctalDigit /
                OctalDigit OctalDigit OctalDigit
-               ) { $$ = CT(ESCAPE_CHARACTER, $0); }
+               ) { $$ = CT(ESCAPE_CHAR, $0); }
 HexDigit <- [0-9a-fA-F]
 OctalDigit <- [0-7]
-NonQuoteChar <- [^'] { $$ = CT(NON_QUOTE_CHARACTER, $0); }
+NonQuoteChar <- [^'] { $$ = CT(NON_QUOTE_CHAR, $0); }
 
 StringLiteral <- ('"' s:RegularString '"' / 'r"' s:RawString '"') { $$ = s; }
 RegularString <- (EscapeSequence / [^"])* { $$ = CT(REGULAR_STRING, $0); }
 EscapeSequence <- "\\" [btnvfr"\\]
 RawString <- [^"]* { $$ = CT(RAW_STRING, $0); }
 
-FunctionLiteral <- "fn" _ "(" _ p:Params? _ ")" _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 2, p, e); }
+FunctionLiteral <- "fn" _ (f:FunctionName _)? "(" _ p:Params? _ ")" _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 3, f, p, e); }
 
 EnumLiteral <- edn:EnumDefName _ "#" _ en:EnumName { $$ = CN(ENUM_LITERAL, 2, edn, en); }
 
@@ -1796,13 +1771,13 @@ MapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyValues? _ "]
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
 MapKeyValue <- (k:Literal / k:Name) _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
-TypeConstructorLiteral <- n:Name "<" _ e:Exprs _ ">" { $$ = CN(TYPE_CONSTRUCTOR_LITERAL, 2, n, e); }
+TypeConstructorLiteral <- n:Name "<" _ e:Exprs? _ ">" { $$ = CN(TYPE_CONSTRUCTOR_LITERAL, 2, n, e); }
 
 #
 # Match expression
 #
 
-MatchExpr <- (m:MatchCons / m:MatchLiteral / (m:UnboundName (_ "is" _ t:Type { AC(m, t); })?) / m:Name) { $$ = m; } (_ "as" _ u:UnboundName { AC($$, RN(u, MATCH_AS)); })?
+MatchExpr <- (m:MatchCons / m:MatchLiteral / m:UnboundName / m:Name) { $$ = m; } (_ "as" _ u:UnboundName { AC($$, RN(u, MATCH_AS)); })?
 
 MatchCons <- l:MatchExpr _ "::" _ r:MatchExpr { $$ = CN(CONS, 2, l, r); }
 
@@ -1817,7 +1792,7 @@ MatchBasicLiteral <- (m:BoolLiteral /
 MatchCompositeLiteral <- (m:MatchTupleLiteral /
                           m:MatchListLiteral /
                           m:MatchMapLiteral /
-                          m:MatchClassLiteral /
+                          m:MatchRecordLiteral /
                           m:MatchTypeConstructorLiteral) { $$ = m; }
 
 MatchTupleLiteral <- "(" _ ")" { $$ = CT(TUPLE_LITERAL, NULL); } / "(" _ m:MatchTupleExprs _ ")" { $$ = RN(m, TUPLE_LITERAL); }
@@ -1828,15 +1803,15 @@ MatchListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } /
                     "[" _ m:MatchExprs? _ "]" { $$ = RN(m, LIST_LITERAL); }
 MatchExprs <- m:MatchExpr { $$ = CN(MATCH_EXPRS, 1, m); } (_ "," _ m:MatchExpr { AC($$, m); })*
 
-MatchMapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyValues? _ "]" { $$ = RN(m, MAP_LITERAL); }
+MatchMapLiteral <- "[:]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyValues _ "]" { $$ = RN(m, MAP_LITERAL); }
 MatchMapKeyValues <- m:MatchMapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MatchMapKeyValue { AC($$, m); })*
-MatchMapKeyValue <- (k:Literal / k:Name) _ ":" _ v:MatchExpr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
+MatchMapKeyValue <- (k:Literal / k:Name / k:UnboundName) _ ":" _ v:MatchExpr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
-MatchClassLiteral <- n:Name _ "(" _ m:NamedMatchArgs _ ")" { $$ = CN(MATCH_CLASS_LITERAL, 2, n, m); }
+MatchRecordLiteral <- n:Name _ "(" _ m:NamedMatchArgs _ ")" { $$ = CN(MATCH_RECORD_LITERAL, 2, n, m); }
 NamedMatchArgs <- n:NamedMatchArg { $$ = CN(NAMED_MATCH_ARGS, 1, n); } (_ "," _ n:NamedMatchArg { AC($$, n); })*
 NamedMatchArg <- u:UnboundName { $$ = CN(NAMED_MATCH_ARG, 1, u); } / n:Name _ ":" _ r:MatchExpr { $$ = CN(NAMED_MATCH_ARG, 2, n, r); }
 
-MatchTypeConstructorLiteral <- n:Name "<" _ m:MatchExprs _ ">" { $$ = CN(MATCH_TYPE_CONSTRUCTOR_LITERAL, 2, n, m); }
+MatchTypeConstructorLiteral <- n:Name "<" _ m:MatchExprs? _ ">" { $$ = CN(MATCH_TYPE_CONSTRUCTOR_LITERAL, 2, n, m); }
 
 #
 # Misc
@@ -1844,7 +1819,8 @@ MatchTypeConstructorLiteral <- n:Name "<" _ m:MatchExprs _ ">" { $$ = CN(MATCH_T
 
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 Name <- Identifier { $$ = CT(NAME, $0); }
-UnboundName <- "?" n:Name { $$ = RN(n, UNBOUND_NAME); } / "_" { $$ = CT(UNBOUND_NO_NAME, $0); }
+UnboundName <- "?" n:Name (_ "is" _ t:Type)? { $$ = RN(n, UNBOUND_NAME); AC($$, CCN(TYPE, 1, t)); } / "_" { $$ = CT(UNBOUND_NO_NAME, $0); }
+
 #_ <- WS*
 #__ <- WS+
 _ <- (WS / Comments)*
@@ -1873,14 +1849,14 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
+    ast_print(program, 0);
     /*
      * Check semantics
      */
-    ast_print(program, 0);
-    /*
+     /*
     satie_error_t error;
     if (!hm_infer_types(program, &error)) {
-       fprintf(stderr, "%s\n", satie_error_message);
+       fprintf(stderr, "Error: %s\n", satie_error_message);
        return 1;
     }
     */
@@ -1898,7 +1874,7 @@ int main() {
 import Std.stdio : writeln
 import Std.lists
 
-class TodoItem {
+record TodoItem {
     private description
     private completed
 
@@ -1915,7 +1891,7 @@ class TodoItem {
     }
 }
 
-class TodoList {
+record TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
@@ -1934,7 +1910,7 @@ class TodoList {
 }
 
 export fn main() {
-    fn loopUntilQuit(todoList) {
+    ?loopUntilQuit := fn (todoList) {
         ?input := readInput(), // implemented elsewhere
         if input.command =String= "add" {
             (?todoList, ?a) := todoList.addItem(input.tag, input.description),

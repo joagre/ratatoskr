@@ -37,4 +37,4 @@ no_actions_satie.peg: satie.peg
 	cat $^ | ./remove_actions.pl > $@
 
 clean:
-	rm -f $(OBJS) $(DEPS) $(EXEC) satie.h satie.c no_actions_satie.peg
+	rm -f $(OBJS) $(DEPS) $(EXEC) satie.h satie.c satie.o satie.d no_actions_satie.peg

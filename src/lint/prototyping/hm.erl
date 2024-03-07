@@ -36,17 +36,14 @@ test(Filename) ->
         {error, Reason} ->
             Reason;
         Result ->
-            print_test_result(Result)
+            check_types(Result)
     end.
 
-print_test_result({Source, Result, Node, AdornedEquations}) ->
+check_types({Source, Result, Node, AdornedEquations}) ->
     io:format("==== Source:\n~s\n", [Source]),
     io:format("==== Lint output:\n~s\n", [Result]),
-    %%io:format("==== Node:\n~p\n\n", [Node]),
-    %%io:format("==== Adorned equations:\n~p\n\n", [AdornedEquations]),
     Equations =
         lists:map(fun(#equation{type = Type}) -> Type end, AdornedEquations),
-    %%io:format("==== Equations:\n~p\n", [Equations]),
     io:format("==== Equations:\n"),
     lists:foreach(
       fun(#equation{type = {Left, Right}}) ->
@@ -58,7 +55,6 @@ print_test_result({Source, Result, Node, AdornedEquations}) ->
         {mismatch, TypeStack} ->
             print_type_error(Source, Node, AdornedEquations, TypeStack);
         Substitutions ->
-            %%io:format("==== Substitutions:\n~p\n", [Substitutions]),
             io:format("==== Solutions:\n"),
             lists:foreach(
               fun(#equation{type = {Left, Right}}) ->
@@ -74,8 +70,7 @@ print_type_error(_Source, _Node, _AdornedEquations, TypeStack) ->
     %%io:format("****Node:\n~p\n", [Node]),
     %%io:format("****Adorned equations:\n~p\n", [AdornedEquations]),
     %%io:format("****Type error:\n~p\n", [TypeStack]),
-    io:format("==== Type error:\n~s",
-              [format_type_stack(TypeStack)]).
+    io:format("==== Type error:\n~s", [format_type_stack(TypeStack)]).
 
 %%
 %% Unify all equations
@@ -258,48 +253,3 @@ type_to_string([Type]) ->
     type_to_string(Type);
 type_to_string([Type|Rest]) ->
     type_to_string(Type) ++ ", " ++ type_to_string(Rest).
-
-%% prettify_type_stack(_Node, []) ->
-%%     [];
-%% prettify_type_stack(Node, [{X, Y}|Rest]) ->
-%%     prettify_type_stack(Node, Rest) ++
-%%         prettify_type(Node, X) ++ " -> " ++ prettify_type(Node, Y) ++ "\n".
-
-%% prettify_type(_Node, int) ->
-%%     "Int";
-%% prettify_type(_Node, bool) ->
-%%     "Bool";
-%% prettify_type(Node, TypeVariable) when is_integer(TypeVariable) ->
-%%     case search_by_type(Node, TypeVariable) of
-%%         #node{name = Name, row = Row, value = undefined} ->
-%%             Name ++ ":" ++ integer_to_list(Row);
-%%         #node{name = Name, row = Row, value = Value} ->
-%%             Name ++ ":" ++ integer_to_list(Row) ++ ":" ++ Value
-%%     end;
-%% prettify_type(Node, {[ArgType], ReturnType}) ->
-%%     "(" ++ prettify_type(Node, ArgType) ++ " -> " ++
-%%         prettify_type(Node, ReturnType) ++ ")";
-%% prettify_type(Node, {ArgTypes, ReturnType}) ->
-%%     "((" ++ prettify_type(Node, ArgTypes) ++ ") -> " ++
-%%         prettify_type(Node, ReturnType) ++ ")";
-%% prettify_type(_Node, []) ->
-%%     [];
-%% prettify_type(Node, [Type]) ->
-%%     prettify_type(Node, Type);
-%% prettify_type(Node, [Type|Types]) ->
-%%     prettify_type(Node, Type) ++ ", " ++ prettify_type(Node, Types).
-
-%% search_by_type(Node, Type) when Node#node.type =:= Type ->
-%%     Node;
-%% search_by_type(Node, Type) ->
-%%     search_children(Node#node.children, Type).
-
-%% search_children([], _Type) ->
-%%     undefined;
-%% search_children([Child|Rest], Type) ->
-%%     case search_by_type(Child, Type) of
-%%         undefined ->
-%%             search_children(Rest, Type);
-%%         Node ->
-%%             Node
-%%     end.

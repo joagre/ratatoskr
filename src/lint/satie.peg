@@ -108,16 +108,8 @@ EnumValueError <- ("," / ";") {
 FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("is" _ t:Type _)? b:BlockExpr { $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, CCN(TYPE, 1, t), b); }
 Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
-Params <- n:NonDefaultParams _ "," _ d:DefaultParams { $$ = CN(PARAMS, 2, n, d); } /
-          n:NonDefaultParams { $$ = n; } /
-          d:DefaultParams { $$ = d; }
-NonDefaultParams <- n:NonDefaultParam { $$ = CN(NON_DEFAULT_PARAMS, 1, n); }
-                    (_ "," _ n:NonDefaultParam { AC($$, n); })*
-NonDefaultParam <- n:Name (_ "is" _ t:Type)? !(_ "=") { $$ = RN(n, PARAM_NAME); AC($$, CCN(TYPE, 1, t));}
-DefaultParams <- d:DefaultParam { $$ = CN(DEFAULT_PARAMS, 1, d); } (_ "," _ d:DefaultParam {AC($$, d); })*
-DefaultParam <- i:DefaultParamName (_ "is" _ t:Type { AC(i, CCN(TYPE, 1, t)); })? _ "=" _ m:ParamExpr { $$ = CN(DEFAULT_PARAM, 2, i, m); }
-DefaultParamName <- Identifier { $$ = CT(PARAM_NAME, $0); }
-ParamExpr <- (m:MatchLiteral / m:Name) { $$ = m; }
+Params <- n:Param { $$ = CN(PARAMS, 1, n); } (_ "," _ n:Param { AC($$, n); })*
+Param <- n:Name (_ "is" _ t:Type)? { $$ = RN(n, PARAM_NAME); AC($$, CCN(TYPE, 1, t));}
 BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
 BlockLevelExprs <- e:Expr { $$ = CN(BLOCK_EXPR, 1, e); } (_ Comma _ e:Expr { AC($$, e); })*
 Comma <- "," / ";" {
@@ -202,7 +194,7 @@ TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 # Expression
 #
 
-Expr <- "this" _ "(" _ a:RecordArgs _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; }
+Expr <- "this" _ "(" _ a:DynamicArgs _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; }
 BindExpr <- l:MatchExpr _ ":=" _ r:Expr { $$ = CN(BIND, 2, l, r); } / e:LogicalOrExpr { $$ = e; }
 LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r); } / e:LogicalAndExpr { $$ = e; }
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
@@ -266,13 +258,13 @@ PrimaryExpr <- "this" { $$ = CT(THIS, NULL); } /
                e:Name { $$ = e; } /
                "(" _ e:Expr _ ")" { $$ = e; }
 
-NewRecord <- "new" _ n:Name _ "(" a:RecordArgs? ")" { $$ = CN(NEW_RECORD, 2, n, a); }
-RecordArgs <- (a:PositionalArgs / a:NamedArgs) { $$ = a; }
+NewRecord <- "new" _ n:Name _ "(" a:DynamicArgs? ")" { $$ = CN(NEW_RECORD, 2, n, a); }
+DynamicArgs <- (a:PositionalArgs / a:NamedArgs) { $$ = a; }
 PositionalArgs <- !NamedArg e:Expr { $$ = CN(POSITIONAL_ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 NamedArgs <- n:NamedArg { $$ = CN(NAMED_ARGS, 1, n); } (_ "," _ n:NamedArg { AC($$, n); })*
 NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
 
-LaunchTask <- "launch" _ n:Name _ "(" a:RecordArgs? ")" { $$ = CN(LAUNCH_TASK, 2, n, a); }
+LaunchTask <- "launch" _ n:Name _ "(" a:DynamicArgs? ")" { $$ = CN(LAUNCH_TASK, 2, n, a); }
 
 ControlFlowExpr <- (c:IfExpr / c:CaseExpr / c:BlockExpr) { $$ = c; }
 

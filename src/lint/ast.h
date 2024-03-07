@@ -15,8 +15,8 @@ typedef dynarray_t node_array_t;
         NODE_NAME(ALIAS_DEF) \
 	NODE_NAME(AND) \
         NODE_NAME(FUNCTION_TYPE) \
-        NODE_NAME(ARG_TYPES) \
-        NODE_NAME(ARGS) \
+	NODE_NAME(ARGS) \
+	NODE_NAME(ARG_TYPES) \
         NODE_NAME(BIND) \
         NODE_NAME(BITWISE_AND) \
         NODE_NAME(BITWISE_COMPLEMENT) \
@@ -45,8 +45,6 @@ typedef dynarray_t node_array_t;
 	NODE_NAME(CONST) \
         NODE_NAME(CONSTRUCTOR_TYPE ) \
         NODE_NAME(DEFAULT) \
-        NODE_NAME(DEFAULT_PARAM) \
-        NODE_NAME(DEFAULT_PARAMS) \
         NODE_NAME(DIV_INT) \
         NODE_NAME(DIV_FLOAT) \
         NODE_NAME(DOT_NAME) \
@@ -143,7 +141,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(NEG_INT) \
         NODE_NAME(NEG_FLOAT) \
         NODE_NAME(NEW_EXPR) \
-        NODE_NAME(NON_DEFAULT_PARAMS) \
         NODE_NAME(NON_QUOTE_CHAR) \
         NODE_NAME(NOT) \
         NODE_NAME(NOT_SET) \

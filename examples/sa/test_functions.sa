@@ -1,25 +1,9 @@
-fn bonk(f) {
-    (?a, ?b) := f,
-    foo((a, b))
-}
-
-fn foo(x) {
-    (?a, ?b) := x,
-    ?c := a,
-    c(1) + b
-}
-
-fn bar() {
-    foo((fn (x) { x + 1 }, 42))
-}
-
-/*
 export fn main() {
   fn foo(x) {
       x + 1
   },
   ?bar := fn (x) {
-      (?a, ?b is String) := x,
+      (?a, ?b is Int) := x,
       foo(a) + baz(b)
   },
   ?zippo := fn gazonk(x, y is String) {
@@ -31,4 +15,3 @@ export fn main() {
 fn baz(x) {
     x + 1
 }
-*/
