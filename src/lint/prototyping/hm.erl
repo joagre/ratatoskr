@@ -108,7 +108,8 @@ unify({map, KeyX, ValueX}, {map, KeyY, ValueY}, TypeStack, Node,
     unify_args([KeyX, ValueX], [KeyY, ValueY], TypeStack, Node, Substitutions);
 unify({constructor, Xs}, {constructor, Ys}, TypeStack, Node, Substitutions) ->
     unify_args(Xs, Ys, TypeStack, Node, Substitutions);
-unify({ArgsX, ReturnX}, {ArgsY, ReturnY}, TypeStack, Node, Substitutions) ->
+unify({ArgsX, ReturnX}, {ArgsY, ReturnY}, TypeStack, Node, Substitutions)
+  when is_list(ArgsX) andalso is_list(ArgsY) ->
     case length(ArgsX) /= length(ArgsY) of
         true ->
             {mismatch, TypeStack};

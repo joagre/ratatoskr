@@ -1,18 +1,14 @@
-//export fn main(_) {
-//    84 := foo(42)
-//}
+export fn main(_) {
+    44 := foo(42)
+}
 
-//export fn main(_) {
-//    ?l is [Int] := foo(42)
-//}
-
-
-fn foo(x) {
+fn foo(x is Int) is Int {
     ?l is [Int] := [1, 2, 3],
-    ?l2 := l @ [4, 5]
-    //1 := l2[0]
-    //5 := l2[$ - 1],
-    //?l3 := [[fn (x) { x + 1 }, fn (x) { x + 2 }],
-    //        [fn (x) { x * 1 }, fn (x) { x * 2 }]],
-    //l3[0][1](x)
+    ?l2 := l @ [4, 5],
+    1 := l2[0],
+    5 := l2[$ - 1],
+    ?l3 is [[(Int -> Int)]] :=
+        [[fn (x) { x + 1 }, fn (x) { x + 2 }],
+         [fn (x) { x + 2 }, fn (x) { x + 3 }]],
+    l3[0][1](x)
 }

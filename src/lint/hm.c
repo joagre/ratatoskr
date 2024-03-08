@@ -175,6 +175,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == POSTFIX_EXPR ||
 	       node->name == RAW_STRING ||
 	       node->name == REGULAR_STRING ||
+	       node->name == SLICE_LENGTH ||
 	       node->name == STRING_TYPE ||
 	       node->name == SUB_INT ||
 	       node->name == SUB_FLOAT ||
@@ -339,6 +340,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == PARAM_NAME ||
 	node->name == POSITIONAL_ARGS ||
 	node->name == PROGRAM ||
+	node->name == SLICE_LENGTH ||
 	node->name == STRING_TYPE ||
 	node->name == TASK_TYPE ||
 	node->name == TOP_LEVEL_DEFS ||
@@ -848,36 +850,53 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(node->type, right_node->type, node, node, false);
 	equations_add(equations, &bind_equation);
     } else if (node->name == POSTFIX_EXPR) {
-        /*
-	 * NOTE: This POSTFIX_EXPR is hardwired to only handle function calls
-	 */
-	// Extract all nodes constituting the function call
-	ast_node_t* name_node = ast_get_child(node, 0);
-	LOG_ASSERT(name_node->name == NAME, "Expected a NAME node");
-	ast_node_t* function_call_node = ast_get_child(node, 1);
-	LOG_ASSERT(function_call_node->name == FUNCTION_CALL,
-		   "Expected a FUNCTION_CALL node");
-	ast_node_t* args_node = ast_get_child(function_call_node, 0);
-	// Extract all argument types
-	types_t* arg_types = types_new();
-	if (args_node != NULL) {
-	    LOG_ASSERT(args_node->name == ARGS, "Expected an ARGS node");
-	    size_t n = ast_number_of_children(args_node);
-	    for (uint16_t i = 0; i < n; i++) {
-		ast_node_t* arg_node = ast_get_child(args_node, i);
-		types_add(arg_types, arg_node->type);
+	ast_node_t* postfix_expr_node = ast_get_child(node, 0);
+	size_t n = ast_number_of_children(node);
+	ast_node_t* child_node;
+	for (uint16_t i = 1; i < n; i++) {
+	    child_node = ast_get_child(node, i);
+	    if (child_node->name == FUNCTION_CALL) {
+		ast_node_t* function_call_node = child_node;
+		ast_node_t* args_node = ast_get_child(function_call_node, 0);
+		// Extract all argument types
+		types_t* arg_types = types_new();
+		if (args_node != NULL) {
+		    size_t n = ast_number_of_children(args_node);
+		    for (uint16_t i = 0; i < n; i++) {
+			ast_node_t* arg_node = ast_get_child(args_node, i);
+			types_add(arg_types, arg_node->type);
+		    }
+		}
+		// Equation: Function call
+		equation_t function_equation =
+		    equation_new(
+			postfix_expr_node->type,
+			type_new_function_type(arg_types,
+					       function_call_node->type),
+			node, node, false);
+		equations_add(equations, &function_equation);
+		postfix_expr_node = function_call_node;
+	    } else if (child_node->name == LIST_LOOKUP) {
+		ast_node_t* list_lookup_node = child_node;
+		ast_node_t* index_node = ast_get_child(list_lookup_node, 0);
+		// Equation: Index equation
+		equation_t index_equation =
+		    equation_new(index_node->type,
+				 type_new_basic_type(TYPE_BASIC_TYPE_INT),
+				 node, index_node, false);
+		equations_add(equations, &index_equation);
+		// Equation: List lookup
+		equation_t list_lookup_equation =
+		    equation_new(postfix_expr_node->type,
+				 type_new_list_type(list_lookup_node->type),
+				 node, node, false);
+		equations_add(equations, &list_lookup_equation);
+		postfix_expr_node = list_lookup_node;
 	    }
 	}
-        // Equation: Function call
-	equation_t function_equation =
-	    equation_new(
-		name_node->type,
-		type_new_function_type(arg_types, function_call_node->type),
-		node, node, false);
-	equations_add(equations, &function_equation);
         // Equation: Postfix expression
 	equation_t postfix_expr_equation =
-	    equation_new(node->type, function_call_node->type, node, node,
+	    equation_new(node->type, child_node->type, node, node,
 			 false);
 	equations_add(equations, &postfix_expr_equation);
     } else if (node->name == BLOCK_EXPR) {
