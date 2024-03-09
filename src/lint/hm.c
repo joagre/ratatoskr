@@ -108,6 +108,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	node->name == EXPORT ||
 	node->name == EQ_TYPE ||
 	node->name == IF ||
+	node->name == INDEX_VALUE ||
 	node->name == POSITIONAL_ARGS ||
 	node->name == PARAMS ||
 	node->name == PROGRAM ||
@@ -153,6 +154,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == LIST_LITERAL ||
 	       node->name == LIST_LOOKUP ||
 	       node->name == LIST_TYPE ||
+	       node->name == LIST_UPDATE ||
 	       node->name == LTE_INT ||
 	       node->name == LTE_FLOAT ||
 	       node->name == LT_INT ||
@@ -332,7 +334,9 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == FUNCTION_TYPE ||
 	node->name == IF ||
 	node->name == INT_TYPE ||
+	node->name == INDEX_VALUE ||
 	node->name == LIST_LOOKUP ||
+	node->name == LIST_UPDATE ||
 	node->name == MAP_KEY_VALUE ||
 	node->name == NON_QUOTE_CHAR ||
 	node->name == NAME ||
@@ -567,7 +571,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		ast_get_child(first_map_key_value_node, 0);
 	    ast_node_t* first_value_node =
 		ast_get_child(first_map_key_value_node, 1);
-	    // Equation: Map literal
+            // Equation: Map literal
 	    type_t* type = type_new_map_type(
 		first_key_node->type, first_value_node->type);
 	    equation_t equation = equation_new(node->type, type, node,
@@ -875,6 +879,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 					       function_call_node->type),
 			node, node, false);
 		equations_add(equations, &function_equation);
+		// Update postfix expression
 		postfix_expr_node = function_call_node;
 	    } else if (child_node->name == LIST_LOOKUP) {
 		ast_node_t* list_lookup_node = child_node;
@@ -891,7 +896,50 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 				 type_new_list_type(list_lookup_node->type),
 				 node, node, false);
 		equations_add(equations, &list_lookup_equation);
+		// Update postfix expression
 		postfix_expr_node = list_lookup_node;
+	    } else if (child_node->name == LIST_UPDATE) {
+		ast_node_t* list_update_node = child_node;
+		// Extract first index-value pair
+		ast_node_t* first_index_value_node = ast_get_child(list_update_node, 0);
+		LOG_ASSERT(first_index_value_node->name == INDEX_VALUE,
+			   "Expected a INDEX_VALUE node");
+		ast_node_t* first_index_node = ast_get_child(first_index_value_node, 0);
+		ast_node_t* first_value_node = ast_get_child(first_index_value_node, 1);
+		// Equation: List literal
+		type_t* type = type_new_list_type(first_value_node->type);
+		equation_t equation = equation_new(list_update_node->type, type, node,
+						   first_index_value_node, false);
+		equations_add(equations, &equation);
+                // Add equations for all index-value pairs
+		size_t n = ast_number_of_children(list_update_node);
+		for (uint16_t i = 0; i < n; i++) {
+		    ast_node_t* index_value_node = ast_get_child(list_update_node, i);
+		    LOG_ASSERT(index_value_node->name == INDEX_VALUE,
+			       "Expected a INDEX_VALUE node");
+		    ast_node_t* index_node = ast_get_child(index_value_node, 0);
+		    ast_node_t* value_node = ast_get_child(index_value_node, 1);
+		    // Equation: Index equation
+		    equation_t index_equation =
+			equation_new(index_node->type, first_index_node->type,
+				     node, index_node, false);
+		    equations_add(equations, &index_equation);
+		    // Equation: Value
+		    equation_t value_equation =
+			equation_new(value_node->type, first_value_node->type,
+				     node, value_node, false);
+		    equations_add(equations, &value_equation);
+		}
+		// Equation: List update
+		equation_t list_update_equation =
+		    equation_new(postfix_expr_node->type,
+				 type_new_list_type(first_value_node->type),
+				 node, node, false);
+		equations_add(equations, &list_update_equation);
+		// Update postfix expression
+		postfix_expr_node = list_update_node;
+	    } else {
+		assert(false);
 	    }
 	}
         // Equation: Postfix expression

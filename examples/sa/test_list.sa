@@ -7,8 +7,13 @@ fn foo(x is Int) is Int {
     ?l2 := l @ [4, 5],
     1 := l2[0],
     5 := l2[$ - 1],
+    ?l2 is [Int] := l2[1 = 42, bar(x) = 66],
     ?l3 is [[(Int -> Int)]] :=
         [[fn (x) { x + 1 }, fn (x) { x + 2 }],
          [fn (x) { x + 2 }, fn (x) { x + 3 }]],
     l3[0][1](x)
+}
+
+fn bar(x) {
+    x + 1
 }

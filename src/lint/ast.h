@@ -88,7 +88,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(IMPORTS) \
         NODE_NAME(IN) \
         NODE_NAME(INDEX_VALUE) \
-        NODE_NAME(INDEX_VALUES)\
         NODE_NAME(INT) \
 	NODE_NAME(INT_TYPE) \
         NODE_NAME(INTERFACE) \
