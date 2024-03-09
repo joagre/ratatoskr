@@ -19,8 +19,8 @@ simple_test() ->
     {[{[bool],bool},{[int],int},int],int} =
         dereference(Substitutions, 0).
 
-hm1() ->
-    test("../../../examples/sa/hm1.sa").
+test_first() ->
+    test("../../../examples/sa/test_first.sa").
 
 test_literals() ->
     test("../../../examples/sa/test_literals.sa").
