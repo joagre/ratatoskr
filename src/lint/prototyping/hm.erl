@@ -99,6 +99,10 @@ unify(X, Y, TypeStack, Node, Substitutions) when is_integer(Y) ->
     unify_variable(Y, X, TypeStack, Node, Substitutions);
 unify({list, X}, {list, Y}, TypeStack, Node, Substitutions) ->
     unify_args([X], [Y], TypeStack, Node, Substitutions);
+unify(empty_list, {list, _Ys}, _TypeStack, _Node, Substitutions) ->
+    Substitutions;
+unify({list, _}, empty_list, _TypeStack, _Node, Substitutions) ->
+    Substitutions;
 unify({tuple, Xs}, {tuple, Ys}, TypeStack, Node, Substitutions) ->
     case length(Xs) /= length(Ys) of
         true ->
@@ -106,6 +110,12 @@ unify({tuple, Xs}, {tuple, Ys}, TypeStack, Node, Substitutions) ->
         false ->
             unify_args(Xs, Ys, TypeStack, Node, Substitutions)
     end;
+unify(empty_map, {map, _KeyY, _ValueY}, _TypeStack, _Node,
+      Substitutions) ->
+    Substitutions;
+unify({map, _KeyX, _ValueX}, empty_map, _TypeStack, _Node,
+      Substitutions) ->
+    Substitutions;
 unify({map, KeyX, ValueX}, {map, KeyY, ValueY}, TypeStack, Node,
       Substitutions) ->
     unify_args([KeyX, ValueX], [KeyY, ValueY], TypeStack, Node, Substitutions);
@@ -121,7 +131,7 @@ unify({ArgsX, ReturnX}, {ArgsY, ReturnY}, TypeStack, Node, Substitutions)
                        unify(ReturnX, ReturnY, [{ReturnX, ReturnY}|TypeStack],
                              Node, Substitutions))
     end;
-unify(_, _, TypeStack, _, _) ->
+unify(_X, _Y, TypeStack, _Node, _Substitutions) ->
     {mismatch, TypeStack}.
 
 unify_args([], [], _TypeStack, _MetInfo, Substitutions) ->
