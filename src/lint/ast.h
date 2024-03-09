@@ -86,7 +86,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(IMPORTED_NAME) \
         NODE_NAME(IMPORTED_NAMES) \
         NODE_NAME(IMPORTS) \
-        NODE_NAME(IN) \
         NODE_NAME(INDEX_VALUE) \
         NODE_NAME(INT) \
 	NODE_NAME(INT_TYPE) \
@@ -113,6 +112,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(MAP_KEY_VALUE) \
         NODE_NAME(MAP_KEY_VALUES) \
         NODE_NAME(MAP_LITERAL) \
+	NODE_NAME(MAP_LOOKUP) \
         NODE_NAME(MAP_TYPE) \
         NODE_NAME(MAP_UPDATE) \
         NODE_NAME(MATCH_RECORD_LITERAL) \

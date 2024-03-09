@@ -147,7 +147,6 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == GT_INT ||
 	       node->name == GT_FLOAT ||
 	       node->name == IF_EXPR ||
-	       node->name == IN ||
 	       node->name == INT ||
 	       node->name == INT_TYPE ||
 	       node->name == FUNCTION_TYPE ||
@@ -162,7 +161,9 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == LT_FLOAT ||
 	       node->name == MAP_KEY_VALUE ||
 	       node->name == MAP_LITERAL ||
+	       node->name == MAP_LOOKUP ||
 	       node->name == MAP_TYPE ||
+	       node->name == MAP_UPDATE ||
 	       node->name == NE ||
 	       node->name == NEG_INT ||
 	       node->name == NEG_FLOAT ||
@@ -340,6 +341,8 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == LIST_SLICE ||
 	node->name == LIST_UPDATE ||
 	node->name == MAP_KEY_VALUE ||
+	node->name == MAP_LOOKUP ||
+	node->name == MAP_UPDATE ||
 	node->name == NON_QUOTE_CHAR ||
 	node->name == NAME ||
 	node->name == PARAMS ||
@@ -669,6 +672,18 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(left_node->type, right_node->type, node, right_node,
 			 false);
 	equations_add(equations, &operands_equation);
+    } else if (node->name == CONCAT_MAP) {
+	ast_node_t* left_node = ast_get_child(node, 0);
+	ast_node_t* right_node = ast_get_child(node, 1);
+	// Equation: Operator
+	equation_t operator_equation =
+	    equation_new(node->type, left_node->type, node, left_node, false);
+	equations_add(equations, &operator_equation);
+	// Equation: Operands
+	equation_t operands_equation =
+	    equation_new(left_node->type, right_node->type, node, right_node,
+			 false);
+	equations_add(equations, &operands_equation);
     } else if (node->name == ADD_FLOAT ||
 	       node->name == ADD_INT ||
 	       node->name == AND ||
@@ -676,7 +691,6 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	       node->name == BITWISE_OR ||
 	       node->name == BSL ||
 	       node->name == BSR ||
-	       node->name == CONCAT_MAP ||
 	       node->name == CONCAT_STRING ||
 	       node->name == CONS ||
 	       node->name == DIV_FLOAT ||
@@ -726,15 +740,6 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(right_node->type, type_new_list_type(left_node->type),
 			 node, right_node, false);
 	equations_add(equations, &right_equation);
-    } else if (node->name == IN) {
-	ast_node_t* left_node = ast_get_child(node, 0);
-	ast_node_t* right_node = ast_get_child(node, 1);
-        // Equation: Operator
-	equation_t operator_equation =
-	    equation_new(right_node->type,
-			 type_new_map_type(left_node->type, node->type),
-			 node, node, false);
-	equations_add(equations, &operator_equation);
     } else if (node->name == IF_EXPR) {
 	// Extract all nodes constituting the if expression
 	ast_node_t* if_node = ast_get_child(node, 0);
@@ -963,6 +968,52 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		equations_add(equations, &end_equation);
 		// Update postfix expression
 		postfix_expr_node = list_slice_node;
+	    } else if (child_node->name == MAP_LOOKUP) {
+		ast_node_t* map_lookup_node = child_node;
+		ast_node_t* key_node = ast_get_child(map_lookup_node, 0);
+		// Equation: Map lookup
+		equation_t map_lookup_equation =
+		    equation_new(postfix_expr_node->type,
+				 type_new_map_type(key_node->type,
+						   map_lookup_node->type),
+				 node, node, false);
+		equations_add(equations, &map_lookup_equation);
+		// Update postfix expression
+		postfix_expr_node = map_lookup_node;
+	    } else if (child_node->name == MAP_UPDATE) {
+		ast_node_t* map_update_node = child_node;
+                // Extract first key-value pair
+		ast_node_t* first_map_key_value_node = ast_get_child(map_update_node, 0);
+		LOG_ASSERT(first_map_key_value_node->name == MAP_KEY_VALUE,
+			   "Expected a MAP_KEY_VALUE node");
+		ast_node_t* first_key_node = ast_get_child(first_map_key_value_node, 0);
+		ast_node_t* first_value_node = ast_get_child(first_map_key_value_node, 1);
+		// Equation: Map literal
+		type_t* type = type_new_map_type(first_key_node->type, first_value_node->type);
+		equation_t equation = equation_new(map_update_node->type, type, node,
+						   first_map_key_value_node, false);
+		equations_add(equations, &equation);
+                // Add equations for all key-value pairs
+		size_t n = ast_number_of_children(map_update_node);
+		for (uint16_t i = 0; i < n; i++) {
+		    ast_node_t* map_key_value_node = ast_get_child(map_update_node, i);
+		    LOG_ASSERT(map_key_value_node->name == MAP_KEY_VALUE,
+			       "Expected a MAP_KEY_VALUE node");
+		    ast_node_t* key_node = ast_get_child(map_key_value_node, 0);
+		    ast_node_t* value_node = ast_get_child(map_key_value_node, 1);
+		    // Equation: Key equation
+		    equation_t key_equation =
+			equation_new(key_node->type, first_key_node->type,
+				     node, key_node, false);
+		    equations_add(equations, &key_equation);
+		    // Equation: Value
+		    equation_t value_equation =
+			equation_new(value_node->type, first_value_node->type,
+				     node, value_node, false);
+		    equations_add(equations, &value_equation);
+		}
+		// Update postfix expression
+		postfix_expr_node = map_update_node;
 	    } else {
 		assert(false);
 	    }
@@ -1094,9 +1145,6 @@ static operator_types_t get_operator_types(node_name_t name) {
 		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_INT),
 		.return_type = type_new_basic_type(TYPE_BASIC_TYPE_BOOL)
 	    };
-	case CONCAT_MAP:
-	    // FIXME: Add as own
-	    break;
 	case CONCAT_STRING:
 	    return (operator_types_t) {
 		.operand_type = type_new_basic_type(TYPE_BASIC_TYPE_STRING),
