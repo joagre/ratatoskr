@@ -153,6 +153,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == FUNCTION_TYPE ||
 	       node->name == LIST_LITERAL ||
 	       node->name == LIST_LOOKUP ||
+	       node->name == LIST_SLICE ||
 	       node->name == LIST_TYPE ||
 	       node->name == LIST_UPDATE ||
 	       node->name == LTE_INT ||
@@ -336,6 +337,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == INT_TYPE ||
 	node->name == INDEX_VALUE ||
 	node->name == LIST_LOOKUP ||
+	node->name == LIST_SLICE ||
 	node->name == LIST_UPDATE ||
 	node->name == MAP_KEY_VALUE ||
 	node->name == NON_QUOTE_CHAR ||
@@ -938,6 +940,29 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		equations_add(equations, &list_update_equation);
 		// Update postfix expression
 		postfix_expr_node = list_update_node;
+	    } else if (child_node->name == LIST_SLICE) {
+		ast_node_t* list_slice_node = child_node;
+		ast_node_t* start_node = ast_get_child(list_slice_node, 0);
+		ast_node_t* end_node = ast_get_child(list_slice_node, 1);
+		// Equation: List literal
+		type_t* type = type_new_list_type(end_node->type);
+		equation_t equation = equation_new(list_slice_node->type, type, node,
+						   end_node, false);
+		equations_add(equations, &equation);
+		// Equation: Start equation
+		equation_t start_equation =
+		    equation_new(start_node->type,
+				 type_new_basic_type(TYPE_BASIC_TYPE_INT),
+				 node, start_node, false);
+		equations_add(equations, &start_equation);
+                // Equation: End equation
+		equation_t end_equation =
+		    equation_new(end_node->type,
+				 type_new_basic_type(TYPE_BASIC_TYPE_INT),
+				 node, end_node, false);
+		equations_add(equations, &end_equation);
+		// Update postfix expression
+		postfix_expr_node = list_slice_node;
 	    } else {
 		assert(false);
 	    }

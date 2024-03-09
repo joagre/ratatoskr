@@ -7,6 +7,9 @@ fn foo(x is Int) is Int {
     ?l2 := l @ [4, 5],
     1 := l2[0],
     5 := l2[$ - 1],
+    [2, 3] := l2[1 .. $ - 2],
+    [2, 3] := l2[bar(0) - 1 + 1 .. $ - 2], // :-)
+    [5] := l2[$ - 1 .. $], // only the last element (corner case)
     ?l2 is [Int] := l2[1 = 42, bar(x) = 66],
     ?l3 is [[(Int -> Int)]] :=
         [[fn (x) { x + 1 }, fn (x) { x + 2 }],
