@@ -1,0 +1,19 @@
+export fn main(_) is Bool {
+    zonk()
+}
+
+fn zonk() {
+    if foo() {
+        if false {
+            true
+        } else {
+            false
+        }
+    } else {
+        foo()
+    }
+}
+
+fn foo() {
+    true
+}

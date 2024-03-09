@@ -34,6 +34,12 @@ test_list() ->
 test_map() ->
     test("../../../examples/sa/test_map.sa").
 
+test_if() ->
+    test("../../../examples/sa/test_if.sa").
+
+test_block() ->
+    test("../../../examples/sa/test_block.sa").
+
 test(Filename) ->
     case lint:start(Filename) of
         {error, Reason} ->
