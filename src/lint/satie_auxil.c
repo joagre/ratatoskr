@@ -82,7 +82,7 @@ void satie_auxil_add_child(ast_node_t* parent_node, ast_node_t* node) {
         LOG_WARNING("An undefined node cannot be appended to %s",
 		    ast_node_name_to_string(parent_node->name));
     } else {
-        if (node->name == POSTFIX_EXPR &&
+        if (node->name == POSTFIX &&
             dynarray_size(node->children) == 1) {
             ast_node_t* child_node = dynarray_element(node->children, 0);
             free(node);
@@ -109,7 +109,7 @@ static ast_node_t* create_node(satie_auxil_t* auxil, node_name_t name,
     for (uint16_t i = 0; i < n; i++) {
 	ast_node_t* child_node = va_arg(args, ast_node_t*);
 	if (child_node != NULL) {
-	    if (child_node->name == POSTFIX_EXPR &&
+	    if (child_node->name == POSTFIX &&
 		dynarray_size(child_node->children) == 1) {
 		ast_node_t* grand_child_node =
 		    dynarray_element(child_node->children, 0);

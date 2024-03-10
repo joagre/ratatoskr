@@ -42,19 +42,25 @@ fn main() {
     c[d: 2],
     [1, 2] := a,
     ?a := a[1 = 2],
+
+
+
     a[b] as ?c := 3,
+
+
+
     ?ackermann := Ackermann(),
     ackermann := startJobs(3, 10),
     a[1],
     1 := 1,
     ?a := b :: c,
-    case a {
-        ?a :: ?b => snuva
-        b when true => c
-        e => d
+    switch a {
+        case ?a :: ?b -> snuva
+        case b when true -> c
+        case e -> d
     },
-    case a {
-        (?b, a), (?b, a) =>  c
+    switch a {
+        case (?b, a) || (?b, a) ->  c
     },
     (1, 2),
     lists.foreach(fn () { stdio.writeln(item.toString())}, items),

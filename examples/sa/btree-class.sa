@@ -32,16 +32,16 @@ export fn main(_args) {
 }
 
 fn size(tree) {
-    case tree {
-        Leaf<> => 0
-        Tree(?left, ?right) => 1 + size(left) + size(right)
+    switch tree {
+        case Leaf<> -> 0
+        case Tree(?left, ?right) -> 1 + size(left) + size(right)
     }
 }
 
 fn depth(tree) {
-    case tree {
-        Leaf<> => 0
-        Tree(?left, ?right) => 1 + depth(left).max(depth(right))
+    switch tree {
+        case Leaf<> -> 0
+        case Tree(?left, ?right) -> 1 + depth(left).max(depth(right))
     }
 }
 
@@ -54,16 +54,16 @@ fn completeTree(k, n) {
 }
 
 fn mirror(tree) {
-    case tree {
-        Leaf<> => tree
-        Tree(?label, ?left, ?right) => Tree(label, mirror(right), mirror(left))
+    switch tree {
+        case Leaf<> -> tree
+        case Tree(?label, ?left, ?right) -> Tree(label, mirror(right), mirror(left))
     }
 }
 
 fn traverse(tree) {
-    case tree {
-        Leaf<> => []
-        Tree(?label, ?left, ?right) => label :: traverse(left) @ traverse(right)
+    switch tree {
+        case Leaf<> -> []
+        case Tree(?label, ?left, ?right) -> label :: traverse(left) @ traverse(right)
     }
 }
 

@@ -110,14 +110,9 @@ Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
 Params <- n:Param { $$ = CN(PARAMS, 1, n); } (_ "," _ n:Param { AC($$, n); })*
 Param <- n:Name (_ "is" _ t:Type)? { $$ = RN(n, PARAM_NAME); AC($$, CCN(TYPE, 1, t));}
-BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
-BlockLevelExprs <- e:Expr { $$ = CN(BLOCK_EXPR, 1, e); } (_ Comma _ e:Expr { AC($$, e); })*
-Comma <- "," / ";" {
-    panic("Unexpected ';' on line %d (use ',' as a separator between "
-          "expressions)", auxil->row);
-}
 
-Args <- e:Expr { $$ = CN(ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
+#Param <- pn:ParamName (_ "is" _ t:Type)? { AC(pn, CCN(TYPE, 1, t));}
+#ParamName <- Identifier { $$ = CT(PARAM_NAME, $0); }
 
 #
 # Interface definition
@@ -193,9 +188,18 @@ TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 #
 # Expression
 #
+# NOTE: Expressions can also be used for pattern matching. The grammar is
+#       the same, but the semantics are different. "as" and "unbound" names
+#       are only allowed in match expressions. This must be enforced in the
+#       parser explicitly. Other expressions are also context sensitive. Be
+#       sure to filter these out in the parser.
+#
 
-Expr <- "this" _ "(" _ a:DynamicArgs _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; }
-BindExpr <- l:MatchExpr _ ":=" _ r:Expr { $$ = CN(BIND, 2, l, r); } / e:LogicalOrExpr { $$ = e; }
+Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
+
+Expr <- ("this" _ "(" _ a:DynamicArgs _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; })
+        (_ "as" _ u:UnboundName { AC($$, RN(u, AS)); })?
+BindExpr <- l:Expr _ ":=" _ r:Expr { $$ = CN(BIND, 2, l, r); } / e:LogicalOrExpr { $$ = e; }
 LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r); } / e:LogicalAndExpr { $$ = e; }
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
 BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
@@ -235,9 +239,9 @@ PosIntExpr <- "+" _ l:PosFloatExpr { $$ = CN(POS_INT, 1, l); } / e:PosFloatExpr 
 PosFloatExpr <- "+;" _ l:NegIntExpr { $$ = CN(POS_FLOAT, 1, l); } / e:NegIntExpr { $$ = e; }
 NegIntExpr <- "-" _ l:NegFloatExpr { $$ = CN(NEG_INT, 1, l); } / e:NegFloatExpr { $$ = e; }
 NegFloatExpr <- "-;" _ l:PostfixExpr { $$ = CN(NEG_FLOAT, 1, l); } / e:PostfixExpr { $$ = e; }
-PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX_EXPR, 1, p); }
-                (_ "<->" _ n:Name { AC($$, RN(n, TASK_CALL)); } /
-                 _ "->" _ n:Name { AC($$, RN(n, TASK_CAST)); } /
+PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX, 1, p); }
+                (_ "<=>" _ n:Name { AC($$, RN(n, TASK_CALL)); } /
+                 _ "=>" _ n:Name { AC($$, RN(n, TASK_CAST)); } /
                  _ "." _ n:Name { AC($$, RN(n, DOT_NAME)); } /
                  _ "[" _ m:MapKeyValues _ "]" { AC($$, RN(m, MAP_UPDATE)); } /
                  _ "[" _ ":" _ e:Expr _ "]" { AC($$, CN(MAP_LOOKUP, 1, e)); } /
@@ -257,6 +261,7 @@ PrimaryExpr <- "this" { $$ = CT(THIS, NULL); } /
                e:LaunchTask {$$ = e;} /
                e:ControlFlowExpr { $$ = e; } /
                e:Literal { $$ = e; } /
+               e:UnboundName { $$ = e; } /
                e:Name { $$ = e; } /
                "(" _ e:Expr _ ")" { $$ = e; }
 
@@ -268,16 +273,23 @@ NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
 
 LaunchTask <- "launch" _ n:Name _ "(" a:DynamicArgs? ")" { $$ = CN(LAUNCH_TASK, 2, n, a); }
 
-ControlFlowExpr <- (c:IfExpr / c:CaseExpr / c:BlockExpr) { $$ = c; }
+ControlFlowExpr <- (c:IfExpr / c:SwitchExpr / c:BlockExpr) { $$ = c; }
 
-IfExpr <- "if" __ ie:Expr _ b:BlockExpr { $$ = CN(IF_EXPR, 1, CN(IF, 2, ie, b)); }
-          (_ "elif" __ ee:Expr _ b:BlockExpr { AC($$, CN(ELIF, 2, ee, b)); })*
-          (_ "else" _ e:BlockExpr { AC($$, CN(ELSE, 1, e)); })
+IfExpr <- "if" __ ie:Expr _ be:BlockExpr { $$ = CN(IF, 2, ie, be); }
+          (_ "elif" __ ee:Expr _ be:BlockExpr { AC($$, CN(ELIF, 2, ee, be)); })*
+          (_ "else" _ ee:BlockExpr { AC($$, CN(ELSE, 1, ee)); })
 
-CaseExpr <- "case" __ e:Expr { $$ = CN(CASE_EXPR, 1, CN(CASE, 1, e)); } _ "{"
-            (_ m:MatchExprs _ ("when" _ we:Expr { AC($$, CN(WHEN, 1, we)); } _)? _ "=>" _ e:Exprs { AC($$, CN(CASE_BRANCH, 2, m, e)); })+
-            (_ "default" _ "=>" _ e:Exprs { AC($$, CN(DEFAULT, 1, 1)); })? _
-            "}"
+SwitchExpr <- "switch" __ se:Expr { $$ = CN(SWITCH, 1, se); } _ "{"
+              (_ "case" _ me:Exprs _ ("when" _ we:Expr { AC($$, CN(WHEN, 1, we)); } _)? "->" _ be:Exprs { AC($$, CN(CASE, 2, me, be)); })+
+              (_ "default" _ "->" _ be:Exprs { AC($$, CN(DEFAULT, 1, be)); })? _
+              "}"
+
+BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
+BlockLevelExprs <- e:Expr { $$ = CN(BLOCK, 1, e); } (_ Comma _ e:Expr { AC($$, e); })*
+Comma <- "," / ";" {
+    panic("Unexpected ';' on line %d (use ',' as a separator between "
+          "expressions)", auxil->row);
+}
 
 Literal <- (l:BasicLiteral / l:CompositeLiteral) { $$ = l; }
 
@@ -325,11 +337,12 @@ FunctionLiteral <- "fn" _ (f:FunctionName _)? "(" _ p:Params? _ ")" _ e:BlockExp
 
 EnumLiteral <- edn:EnumDefName _ "#" _ en:EnumName { $$ = CN(ENUM_LITERAL, 2, edn, en); }
 
-TupleLiteral <- "(" _ ")" { $$ = CT(TUPLE_LITERAL, NULL); } / "(" _ e:TupleExprs _ ")" { $$ = RN(e, TUPLE_LITERAL); }
-TupleExprs <- e1:Expr _ "," _ e2:Expr { $$ = CN(EXPRS, 2, e1, e2); } (_ "," _ e:Expr { AC($$, e); })*
+TupleLiteral <- "(" _ ")" { $$ = CT(TUPLE_LITERAL, NULL); } /
+                "(" _ e:Expr _ "," _ ")" { $$ = CN(TUPLE_LITERAL, 1, e); } /
+                "(" _ te:TupleExprs _ ")" { $$ = te; }
+TupleExprs <- e1:Expr _ "," _ e2:Expr { $$ = CN(TUPLE_LITERAL, 2, e1, e2); } (_ "," _ e:Expr { AC($$, e); })*
 
 ListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } / "[" _ e:Exprs? _ "]" { $$ = RN(e, LIST_LITERAL); }
-Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
 MapLiteral <- "[" _ ":" _ "]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyValues? _ "]" { $$ = RN(k, MAP_LITERAL); }
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
@@ -337,45 +350,7 @@ MapKeyValue <- k:Expr _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
 TypeConstructorLiteral <- n:Name "<" _ e:Exprs? _ ">" { $$ = CN(TYPE_CONSTRUCTOR_LITERAL, 2, n, e); }
 
-#
-# Match expression
-#
-
-MatchExpr <- (m:MatchCons / m:MatchLiteral / m:UnboundName / m:Name) { $$ = m; } (_ "as" _ u:UnboundName { AC($$, RN(u, MATCH_AS)); })?
-
-MatchCons <- l:MatchExpr _ "::" _ r:MatchExpr { $$ = CN(CONS, 2, l, r); }
-
-MatchLiteral <- (m:MatchBasicLiteral / m:MatchCompositeLiteral) { $$ = m; }
-
-MatchBasicLiteral <- (m:BoolLiteral /
-                      m:NumberLiteral /
-                      m:CharLiteral /
-                      m:StringLiteral /
-                      m:EnumLiteral) { $$ = m; }
-
-MatchCompositeLiteral <- (m:MatchTupleLiteral /
-                          m:MatchListLiteral /
-                          m:MatchMapLiteral /
-                          m:MatchRecordLiteral /
-                          m:MatchTypeConstructorLiteral) { $$ = m; }
-
-MatchTupleLiteral <- "(" _ ")" { $$ = CT(TUPLE_LITERAL, NULL); } / "(" _ m:MatchTupleExprs _ ")" { $$ = RN(m, TUPLE_LITERAL); }
-MatchTupleExprs <- m1:MatchExpr _ "," _ m2:MatchExpr { $$ = CN(MATCH_EXPRS, 2, m1, m2); } (_ "," _ m:MatchExpr { AC($$, m); })*
-
-MatchListLiteral <- "[" _ "]" { $$ = CT(LIST_LITERAL, NULL); } /
-                    n:Name "[" _ m:MatchExpr? _ "]" { $$ = CN(LIST_LOOKUP, 2, n, m); } /
-                    "[" _ m:MatchExprs? _ "]" { $$ = RN(m, LIST_LITERAL); }
-MatchExprs <- m:MatchExpr { $$ = CN(MATCH_EXPRS, 1, m); } (_ "," _ m:MatchExpr { AC($$, m); })*
-
-MatchMapLiteral <- "[" _ ":" _ "]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ m:MatchMapKeyValues _ "]" { $$ = RN(m, MAP_LITERAL); }
-MatchMapKeyValues <- m:MatchMapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MatchMapKeyValue { AC($$, m); })*
-MatchMapKeyValue <- (k:Literal / k:Name / k:UnboundName) _ ":" _ v:MatchExpr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
-
-MatchRecordLiteral <- n:Name _ "(" _ m:NamedMatchArgs _ ")" { $$ = CN(MATCH_RECORD_LITERAL, 2, n, m); }
-NamedMatchArgs <- n:NamedMatchArg { $$ = CN(NAMED_MATCH_ARGS, 1, n); } (_ "," _ n:NamedMatchArg { AC($$, n); })*
-NamedMatchArg <- u:UnboundName { $$ = CN(NAMED_MATCH_ARG, 1, u); } / n:Name _ ":" _ r:MatchExpr { $$ = CN(NAMED_MATCH_ARG, 2, n, r); }
-
-MatchTypeConstructorLiteral <- n:Name "<" _ m:MatchExprs? _ ">" { $$ = CN(MATCH_TYPE_CONSTRUCTOR_LITERAL, 2, n, m); }
+Args <- e:Expr { $$ = CN(ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
 #
 # Misc

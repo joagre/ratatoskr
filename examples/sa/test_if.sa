@@ -9,6 +9,10 @@ fn zonk() {
         } else {
             false
         }
+    } elif foo() {
+        true
+    } elif foo() {
+        false
     } else {
         foo()
     }

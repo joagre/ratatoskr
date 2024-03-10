@@ -19,28 +19,60 @@ simple_test() ->
     {[{[bool],bool},{[int],int},int],int} =
         dereference(Substitutions, 0).
 
-test_first() ->
-    test("../../../examples/sa/test_first.sa").
+test_all() ->
+    simple_test(),
+    Ignore = ["test_switch.sa"],
+    case file:list_dir("../../../examples/sa") of
+        {ok, Files} ->
+            lists:foreach(
+              fun("test_" ++ _ = Filename) ->
+                      case lists:member(Filename, Ignore) of
+                          true ->
+                              ignore;
+                          false ->
+                              case filename:extension(Filename) of
+                                  ".sa" ->
+                                      FullPath = "../../../examples/sa/" ++ Filename,
+                                      io:format("**** Testing ~s\n", [FullPath]),
+                                      ok = start_test(FullPath);
+                                  _ ->
+                                      ignore
+                              end
+                      end;
+                 (_) ->
+                      ignore
+              end, Files);
+        Reason ->
+            {error, Reason}
+    end.
 
-test_literals() ->
-    test("../../../examples/sa/test_literals.sa").
+test_each(TestCase) ->
+    FullPath = "../../../examples/sa/test_" ++ TestCase ++ ".sa",
+    io:format("**** Testing ~s\n", [FullPath]),
+    start_test(FullPath).
 
-test_functions() ->
-    test("../../../examples/sa/test_functions.sa").
 
-test_list() ->
-    test("../../../examples/sa/test_list.sa").
+              %% IF_EXPR:9::                               t13
+              %%   IF:9::
+              %%     FALSE:7::                             t14
+              %%     BLOCK:8::                             t15
+              %%       TRUE:8::                            t16
+              %%   ELSE:11::
+              %%     BLOCK:10::                            t17
+              %%       FALSE:10::                          t18
 
-test_map() ->
-    test("../../../examples/sa/test_map.sa").
 
-test_if() ->
-    test("../../../examples/sa/test_if.sa").
+              %% IF_EXPR:9::                               t13
+              %%   IF:9::                                  kkkkkkk
+              %%     FALSE:7::                             t14
+              %%     BLOCK:8::                             t15
+              %%       TRUE:8::                            t16
+              %%     ELSE:11::
+              %%       BLOCK:10::                            t17
+              %%         FALSE:10::                          t18
 
-test_block() ->
-    test("../../../examples/sa/test_block.sa").
 
-test(Filename) ->
+start_test(Filename) ->
     case lint:start(Filename) of
         {error, Reason} ->
             Reason;
@@ -62,7 +94,8 @@ check_types({Source, Result, Node, AdornedEquations}) ->
     io:format("\n"),
     case unify_all_equations(Equations, Node, maps:new()) of
         {mismatch, TypeStack} ->
-            print_type_error(Source, Node, AdornedEquations, TypeStack);
+            print_type_error(Source, Node, AdornedEquations, TypeStack),
+            error;
         Substitutions ->
             io:format("==== Solutions:\n"),
             lists:foreach(
@@ -71,7 +104,8 @@ check_types({Source, Result, Node, AdornedEquations}) ->
                                 [type_to_string(Left),
                                  type_to_string(
                                    dereference(Substitutions, Right))])
-              end, AdornedEquations)
+              end, AdornedEquations),
+            ok
     end.
 
 print_type_error(_Source, _Node, _AdornedEquations, TypeStack) ->

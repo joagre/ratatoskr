@@ -20,16 +20,16 @@ record Queue {
     }
 
     public fn hd() {
-        case queue {
-            [?first :: _] => Left<first>
-            [] => Right<ErrorStatus#emptyQueue>
+        switch queue {
+            case [?first :: _] -> Left<first>
+            case [] -> Right<ErrorStatus#emptyQueue>
         }
     }
 
     public fn dequeue() {
-        case queue {
-            [_ :: ?rest] => Left<this(queue: rest)>
-            [] => Right<ErrorStatus#emptyQueue>
+        switch queue {
+            case [_ :: ?rest] -> Left<this(queue: rest)>
+            case [] -> Right<ErrorStatus#emptyQueue>
         }
     }
 }

@@ -57,7 +57,7 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
 		     satie_error_t* error) {
     // Check that the := operator only is allowed as a top-level expression
     if (node->name == BIND &&
-	parent_node != NULL && parent_node->name != BLOCK_EXPR) {
+	parent_node != NULL && parent_node->name != BLOCK) {
 	SET_ERROR_MESSAGE(
 	    error, COMPONENT_COMPILER,
 	    "%d: The := operator is only allowed as a top-level expression",
@@ -104,10 +104,10 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
     bool traverse_children = true;
     if (node->name == ARGS ||
 	node->name == ARG_TYPES ||
+	node->name == ELIF ||
 	node->name == ELSE ||
 	node->name == EXPORT ||
 	node->name == EQ_TYPE ||
-	node->name == IF ||
 	node->name == INDEX_VALUE ||
 	node->name == POSITIONAL_ARGS ||
 	node->name == PARAMS ||
@@ -146,7 +146,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == GTE_FLOAT ||
 	       node->name == GT_INT ||
 	       node->name == GT_FLOAT ||
-	       node->name == IF_EXPR ||
+	       node->name == IF ||
 	       node->name == INT ||
 	       node->name == INT_TYPE ||
 	       node->name == FUNCTION_TYPE ||
@@ -176,7 +176,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == OR ||
 	       node->name == POS_INT ||
 	       node->name == POS_FLOAT ||
-	       node->name == POSTFIX_EXPR ||
+	       node->name == POSTFIX ||
 	       node->name == RAW_STRING ||
 	       node->name == REGULAR_STRING ||
 	       node->name == SLICE_LENGTH ||
@@ -273,7 +273,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	    return false;
 	}
 	traverse_children = false;
-    } else if(node->name == BLOCK_EXPR) {
+    } else if(node->name == BLOCK) {
 	// Assign a type variable
 	type_t* type = type_new_type_variable();
 	node->type = type;
@@ -326,6 +326,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == ARG_TYPES ||
 	node->name == BOOL_TYPE ||
 	node->name == CHAR_TYPE ||
+	node->name == ELIF ||
 	node->name == ELSE ||
 	node->name == ESCAPE_CHAR ||
 	node->name == EQ_TYPE ||
@@ -334,7 +335,6 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == FUNCTION_CALL ||
 	node->name == FUNCTION_NAME ||
 	node->name == FUNCTION_TYPE ||
-	node->name == IF ||
 	node->name == INT_TYPE ||
 	node->name == INDEX_VALUE ||
 	node->name == LIST_LOOKUP ||
@@ -478,7 +478,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	ast_node_t* params_node = NULL;
 	ast_node_t* return_type_node = NULL;
 	ast_node_t* block_expr_node;
-	if (child_node->name == BLOCK_EXPR) {
+	if (child_node->name == BLOCK) {
 	    block_expr_node = child_node;
 	} else if (child_node->name == PARAMS) {
 	    params_node = child_node;
@@ -740,19 +740,11 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(right_node->type, type_new_list_type(left_node->type),
 			 node, right_node, false);
 	equations_add(equations, &right_equation);
-    } else if (node->name == IF_EXPR) {
-	// Extract all nodes constituting the if expression
-	ast_node_t* if_node = ast_get_child(node, 0);
-	LOG_ASSERT(if_node->name == IF, "Expected an IF node");
-	ast_node_t* if_conditional_node = ast_get_child(if_node, 0);
-	ast_node_t* if_block_expr_node = ast_get_child(if_node, 1);
-	LOG_ASSERT(if_block_expr_node->name == BLOCK_EXPR,
-		   "Expected a BLOCK_EXPR node");
-	ast_node_t* else_node = ast_get_child(node, 1);
-	LOG_ASSERT(else_node->name == ELSE, "Expected an ELSE node");
-	ast_node_t* else_block_expr_node = ast_get_child(else_node, 0);
-	LOG_ASSERT(else_block_expr_node->name == BLOCK_EXPR,
-		   "Expected a BLOCK_EXPR node");
+    } else if (node->name == IF) {
+	ast_node_t* if_conditional_node = ast_get_child(node, 0);
+	ast_node_t* if_block_expr_node = ast_get_child(node, 1);
+	LOG_ASSERT(if_block_expr_node->name == BLOCK,
+		   "Expected a BLOCK node");
 	// Equation: if conditional
 	equation_t if_conditional_equation =
 	    equation_new(if_conditional_node->type,
@@ -765,12 +757,40 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(if_block_expr_node->type, node->type, node,
 			 if_block_expr_node, false);
 	equations_add(equations, &if_block_expr_equation);
-	// Equation: else block expression
-	LOG_ASSERT(node->type != NULL, "Expected a type");
-	equation_t else_block_expr_equation =
-	    equation_new(else_block_expr_node->type, node->type, node,
-			 else_block_expr_node, false);
-	equations_add(equations, &else_block_expr_equation);
+	// Extract elif nodes (if any) and else node
+	size_t n = ast_number_of_children(node);
+	for (uint16_t i = 2; i < n; i++) {
+	    ast_node_t* child_node = ast_get_child(node, i);
+	    if (child_node->name == ELIF) {
+		ast_node_t* elif_node = child_node;
+		ast_node_t* elif_conditional_node = ast_get_child(elif_node, 0);
+		ast_node_t* elif_block_expr_node = ast_get_child(elif_node, 1);
+		LOG_ASSERT(elif_block_expr_node->name == BLOCK,
+			   "Expected a BLOCK node");
+		// Equation: elif conditional
+		equation_t elif_conditional_equation =
+		    equation_new(elif_conditional_node->type,
+				 type_new_basic_type(TYPE_BASIC_TYPE_BOOL),
+				 node, elif_conditional_node, false);
+		equations_add(equations, &elif_conditional_equation);
+		// Equation: elif block expression
+		equation_t elif_block_expr_equation =
+		    equation_new(elif_block_expr_node->type, node->type, node,
+				 elif_block_expr_node, false);
+		equations_add(equations, &elif_block_expr_equation);
+	    } else {
+		LOG_ASSERT(child_node->name == ELSE, "Expected an ELSE node");
+		ast_node_t* else_node = child_node;
+		ast_node_t* else_block_expr_node = ast_get_child(else_node, 0);
+		LOG_ASSERT(else_block_expr_node->name == BLOCK,
+			   "Expected a BLOCK node");
+		// Equation: else block expression
+		equation_t else_block_expr_equation =
+		    equation_new(else_block_expr_node->type, node->type, node,
+				 else_block_expr_node, false);
+		equations_add(equations, &else_block_expr_equation);
+	    }
+	}
     } else if (node->name == FUNCTION_DEF) {
         // Extract all nodes constituting the function definition
 	uint16_t i = 0;
@@ -787,7 +807,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	ast_node_t* params_node = NULL;
 	ast_node_t* return_type_node = NULL;
 	ast_node_t* block_expr_node;
-	if (child_node->name == BLOCK_EXPR) {
+	if (child_node->name == BLOCK) {
 	    block_expr_node = child_node;
 	} else if (child_node->name == PARAMS) {
 	    params_node = child_node;
@@ -860,7 +880,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	equation_t bind_equation =
 	    equation_new(node->type, right_node->type, node, node, false);
 	equations_add(equations, &bind_equation);
-    } else if (node->name == POSTFIX_EXPR) {
+    } else if (node->name == POSTFIX) {
 	ast_node_t* postfix_expr_node = ast_get_child(node, 0);
 	size_t n = ast_number_of_children(node);
 	ast_node_t* child_node;
@@ -1023,7 +1043,7 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(node->type, child_node->type, node, node,
 			 false);
 	equations_add(equations, &postfix_expr_equation);
-    } else if (node->name == BLOCK_EXPR) {
+    } else if (node->name == BLOCK) {
 	// Equation: Block expression
 	ast_node_t* last_block_expr_node = ast_last_child(node);
 	LOG_ASSERT(last_block_expr_node->type != NULL, "Expected a type");
