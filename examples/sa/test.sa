@@ -55,12 +55,12 @@ fn main() {
     1 := 1,
     ?a := b :: c,
     switch a {
-        case ?a :: ?b -> snuva
-        case b when true -> c
-        case e -> d
+        case ?a :: ?b => snuva
+        case b when true => c
+        case e => d
     },
     switch a {
-        case (?b, a) || (?b, a) ->  c
+        case (?b, a) || (?b, a) =>  c
     },
     (1, 2),
     lists.foreach(fn () { stdio.writeln(item.toString())}, items),

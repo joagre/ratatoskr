@@ -2,7 +2,7 @@ export fn main(_) {
     44 := foo(42)
 }
 
-fn foo(x is Int) is Int {
+fn foo(x is Int) -> Int {
     [42] := [], // just a check to see if I handle empty lists ok
     ?l is [Int] := [1, 2, 3],
     ?l2 := l @ [4, 5],

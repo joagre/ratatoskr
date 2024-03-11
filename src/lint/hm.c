@@ -370,7 +370,8 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == STRING_TYPE ||
 	node->name == TASK_TYPE ||
 	node->name == TOP_LEVEL_DEFS ||
-	node->name == TUPLE_TYPE) {
+	node->name == TUPLE_TYPE ||
+	node->name == UNBOUND_NAME) {
 	// Do not create an equation
     } else if (node->name == TYPE) {
 	// Equation: Type
@@ -380,16 +381,6 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(actual_type_node->type, type, node, actual_type_node,
 			 true);
 	equations_add(equations, &equation);
-    } else if (node->name == UNBOUND_NAME) {
-	// Equation: Unbound name (if any)
-	ast_node_t* type_node = ast_get_child(node, 0);
-	if (type_node != NULL) {
-	    ast_node_t* actual_type_node = ast_get_child(type_node, 0);
-	    equation_t equation =
-		equation_new(node->type, actual_type_node->type, node,
-			     actual_type_node, false);
-	    equations_add(equations, &equation);
-	}
     } else if (node->name == FALSE || node->name == TRUE) {
 	// Equation: Bool constant
 	equation_t equation =

@@ -1,14 +1,14 @@
-export fn main(_) is Bool {
+export fn main(_) -> Bool {
     zonk((1, true))
 }
 
 fn zonk(a) {
     switch a {
-        case (1, ?c) || (3, ?c) when c =Bool= true ->
+        case (1, ?c) || (3, ?c) when c =Bool= true =>
             c
-        case (2, 1) ->
+        case (2, 1) =>
             true
-        default ->
+        default =>
             true
     }
 }

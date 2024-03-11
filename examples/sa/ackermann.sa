@@ -2,17 +2,17 @@ import Std.stdio: writeln
 
 export fn main(_args) {
     ?masterTask := launch Master(),
-    masterTask=>startSlave(3, 10), // => is a cast
-    masterTask=>startSlave(3, 11),
-    2 := masterTask<=>startedSlaves(), // <=> is a call
-    2 := masterTask<=>startedSlaves // works as well (it's public property)
+    masterTask~>startSlave(3, 10), // ~> is a cast
+    masterTask~>startSlave(3, 11),
+    2 := masterTask<~>startedSlaves(), // <~> is a call
+    2 := masterTask<~>startedSlaves // works as well (it's public property)
 }
 
 task Master {
     public startedSlaves = 0
     public fn startSlave(m, n) {
         ?slaveTask := launch Slave(this),
-        slaveTask=>start(m, n),
+        slaveTask~>start(m, n),
         this(startedSlaves: startedSlaves + 1)
     }
     public fn slaveRunning(m, n) {
@@ -32,9 +32,9 @@ task Slave {
         this(masterTask: masterTask)
     }
     public fn start(m, n) {
-        masterTask=>slaveRunning(m, n),
+        masterTask~>slaveRunning(m, n),
         ?result := ackermann(m, n),
-        masterTask=>slaveDone(m, n, result)
+        masterTask~>slaveDone(m, n, result)
     }
     private fn ackermann(m, n) {
         if m == 0 {

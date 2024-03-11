@@ -3,9 +3,7 @@
 ## Version 0.1
 
 * [x] Dive into Hindley-Milner type inference
-      _ Introduce the syntax changes
-      _ Add a test_generics.sa (already written)
-      _ Remove is handling of unbound names in hm.c
+
       _ Read Functional + Object-oriented paper
 
       _ Fix consistent variables in satie.peg
@@ -14,7 +12,7 @@
         also check use of generic Exprs rule etc
       _ remove RN in satie.peg?
       _ use _ and __ conistently in satie.peg
-      _ implement type and alias + type constructors (+ is _ - wildcards?)
+      _ implement type and alias + type constructors (+ is _ - wildcards?) + : instantiated constructors
       _ Make sure that satie.peg catches common errors
       _ Add column support in satie.peg
       _ rewrite satie.peg to handle options instead of <.

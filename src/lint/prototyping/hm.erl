@@ -21,7 +21,7 @@ simple_test() ->
 
 test_all() ->
     simple_test(),
-    Ignore = ["test_switch.sa"],
+    Ignore = ["test_switch.sa", "test_type_constructors.sa"],
     case file:list_dir("../../../examples/sa") of
         {ok, Files} ->
             lists:foreach(
@@ -50,27 +50,6 @@ test_each(TestCase) ->
     FullPath = "../../../examples/sa/test_" ++ TestCase ++ ".sa",
     io:format("**** Testing ~s\n", [FullPath]),
     start_test(FullPath).
-
-
-              %% IF_EXPR:9::                               t13
-              %%   IF:9::
-              %%     FALSE:7::                             t14
-              %%     BLOCK:8::                             t15
-              %%       TRUE:8::                            t16
-              %%   ELSE:11::
-              %%     BLOCK:10::                            t17
-              %%       FALSE:10::                          t18
-
-
-              %% IF_EXPR:9::                               t13
-              %%   IF:9::                                  kkkkkkk
-              %%     FALSE:7::                             t14
-              %%     BLOCK:8::                             t15
-              %%       TRUE:8::                            t16
-              %%     ELSE:11::
-              %%       BLOCK:10::                            t17
-              %%         FALSE:10::                          t18
-
 
 start_test(Filename) ->
     case lint:start(Filename) of

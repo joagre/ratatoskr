@@ -2,7 +2,7 @@ export fn main(_) {
     45.0 := foo(42.0)
 }
 
-fn foo(x is Float) is Float {
+fn foo(x is Float) -> Float {
     ["foo": 42] := [:], // just a check to see if I handle empty maps ok
     ?m is [String: Float] := ["foo": 3.14, "zap": 6.28],
     ?m2 := m ~ ["bar": 3.14 *; 2.0, "bonk": 100.0],

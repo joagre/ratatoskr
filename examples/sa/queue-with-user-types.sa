@@ -7,29 +7,29 @@ enum ErrorStatus {
 record Queue<$t> {
     private queue is [$t]
 
-    this(element is $t) is Queue<$t> {
+    this(element is $t) -> Queue<$t> {
         this(queue: [element])
     }
 
-    public fn enqueue<$t>(element is $t) is Queue<$t>  {
+    public fn enqueue<$t>(element is $t) -> Queue<$t>  {
         this(queue : queue @ [element])
     }
 
-    public fn null() is Bool {
+    public fn null() -> Bool {
         queue.isEmpty()
     }
 
-    public fn hd() is Either<$t, ErrorStatus> {
+    public fn hd() -> Either<$t, ErrorStatus> {
         switch queue {
-            case [?first :: _] -> Left<first>
-            case [] -> Right<ErrorStatus#emptyQueue>
+            case [?first :: _] => Left<first>
+            case [] => Right<ErrorStatus#emptyQueue>
         }
     }
 
-    public fn dequeue() is Either<Queue<$t>, ErrorStatus> {
+    public fn dequeue() -> Either<Queue<$t>, ErrorStatus> {
         switch queue {
-            case [_ :: ?rest] -> Left<this(queue: rest)>
-            case [] -> Right<ErrorStatus#emptyQueue>
+            case [_ :: ?rest] => Left<this(queue: rest)>
+            case [] => Right<ErrorStatus#emptyQueue>
         }
     }
 }

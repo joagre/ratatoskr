@@ -12,8 +12,8 @@ fn sort(compare, list) {
 
 export fn qsort(compare, list) {
     switch list {
-        case [] -> []
-        case ?first :: ?rest ->
+        case [] => []
+        case ?first :: ?rest =>
             (?smaller, ?larger) :=
                 l.partition(fn (x) { compare(x, first) }, rest),
             qsort(compare, smaller) @ [first] @ qsort(compare, larger)
@@ -23,7 +23,7 @@ export fn qsort(compare, list) {
 export fn main(_args) {
     ?compare := fn (x, y) { x < y },
     switch sort(compare, [3, 1, 32, 0]) {
-        case Left<?l> -> writeln("Success: %l")
-        case Right<?reason> -> writeln("Error: %reason")
+        case Left<?l> => writeln("Success: %l")
+        case Right<?reason> => writeln("Error: %reason")
     }
 }

@@ -1,4 +1,4 @@
-export fn main(_) is Bool {
+export fn main(_) -> Bool {
     zonk()
 }
 
