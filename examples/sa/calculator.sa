@@ -1,8 +1,8 @@
 export fn test() {
     ?task := launch Ackermann(),
-    (x, task) := task<~>calc(3, 12),
+    (?x, task) := task<~>calc(3, 12),
     writeln("Ackermann(3, 12) = %x"),
-    (y, task) := task<~>calc(3, 13),
+    (?y, task) := task<~>calc(3, 13),
     writeln("Ackermann(3, 13) = %y"),
     writeln("Saved calculations: %{task<~>savedCalculations}"),
     task := task<~>resetCalculatedValues(),
