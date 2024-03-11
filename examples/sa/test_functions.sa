@@ -3,7 +3,7 @@ export fn main() {
       x + 1
   },
   ?bar := fn (x) {
-      (?a, ?b is Int) := x,
+      (?a, ?b) := x,
       foo(a) + baz(b)
   },
   ?zippo := fn gazonk(x, y is String) {

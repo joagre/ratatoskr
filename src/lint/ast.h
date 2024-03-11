@@ -93,6 +93,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(INTERFACE_METHOD) \
         NODE_NAME(INTERFACE_NAME) \
         NODE_NAME(INTERFACES) \
+        NODE_NAME(IS) \
 	NODE_NAME(LAUNCH_TASK) \
         NODE_NAME(LIST_LITERAL) \
         NODE_NAME(LIST_LOOKUP) \

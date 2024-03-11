@@ -197,9 +197,14 @@ TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 
 Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
-Expr <- ("this" _ "(" _ a:DynamicArgs _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; })
-        (_ "as" _ u:UnboundName { AC($$, RN(u, AS)); })?
-BindExpr <- l:Expr _ ":=" _ r:Expr { $$ = CN(BIND, 2, l, r); } / e:LogicalOrExpr { $$ = e; }
+Expr <- "this" _ "(" _ a:DynamicArgs _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; }
+
+BindExpr <- l:Expr _ (("as" _ un:UnboundName _ "is" _ t:Type /
+                       "is" _ t:Type _ "as" _ un:UnboundName /
+                       "is" _ t:Type /
+                       "as" _ un:UnboundName) _)? ":=" _
+            r:Expr { $$ = CN(BIND, 4, l, CN(IS, 1, t), CN(AS, 1, un), r); } / e:LogicalOrExpr { $$ = e; }
+
 LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r); } / e:LogicalAndExpr { $$ = e; }
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
 BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
@@ -358,7 +363,7 @@ Args <- e:Expr { $$ = CN(ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
 Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
 Name <- Identifier { $$ = CT(NAME, $0); }
-UnboundName <- "?" n:Name (_ "is" _ t:Type)? { $$ = RN(n, UNBOUND_NAME); AC($$, CCN(TYPE, 1, t)); } / "_" { $$ = CT(UNBOUND_NO_NAME, $0); }
+UnboundName <- "?" n:Name { $$ = RN(n, UNBOUND_NAME); } / "_" { $$ = CT(UNBOUND_NO_NAME, $0); }
 
 #_ <- WS*
 #__ <- WS+

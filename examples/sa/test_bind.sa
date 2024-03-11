@@ -1,0 +1,10 @@
+fn main(_) {
+   (?a, (42, 4711.0)) as ?d is (Float, (Int, Float)) :=
+       foo((42, 4711.0)),
+   (4711.0, (4711.0, (42, 4711.0))) := (a, d)
+}
+
+fn foo(a) {
+    (42, ?b) is (Int, Float) as ?c := a,
+    (b, c)
+}
