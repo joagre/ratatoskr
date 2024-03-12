@@ -85,7 +85,7 @@ AliasDef <- "alias" _ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ t:Type { $$
 #
 
 TypeDef <- "type" _ n:Name ("<" _ t:TypeVariables _ ">")? _ "=" _ tc:TypeConstructors { $$ = CN(TYPE_DEF, 3, n, t, tc); }
-TypeConstructors <- t:TypeConstructor { $$ = CN(TYPE_CONSTRUCTORS, 1, t); } (_ "or" _ t:TypeConstructor { AC($$, t); })*
+TypeConstructors <- t:TypeConstructor { $$ = CN(TYPE_CONSTRUCTORS, 1, t); } (_ "||" _ t:TypeConstructor { AC($$, t); })*
 TypeConstructor <- n:Name "<" _ t:Types? _ ">" { $$ = CN(TYPE_CONSTRUCTOR, 2, n, t); }
 
 #
@@ -246,7 +246,7 @@ PosFloatExpr <- "+;" _ l:NegIntExpr { $$ = CN(POS_FLOAT, 1, l); } / e:NegIntExpr
 NegIntExpr <- "-" _ l:NegFloatExpr { $$ = CN(NEG_INT, 1, l); } / e:NegFloatExpr { $$ = e; }
 NegFloatExpr <- "-;" _ l:PostfixExpr { $$ = CN(NEG_FLOAT, 1, l); } / e:PostfixExpr { $$ = e; }
 PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX, 1, p); }
-                (_ "<~>" _ n:Name { AC($$, RN(n, TASK_CALL)); } /
+                (_ "<~" _ n:Name { AC($$, RN(n, TASK_CALL)); } /
                  _ "~>" _ n:Name { AC($$, RN(n, TASK_CAST)); } /
                  _ "." _ n:Name { AC($$, RN(n, DOT_NAME)); } /
                  _ "[" _ m:MapKeyValues _ "]" { AC($$, RN(m, MAP_UPDATE)); } /
@@ -394,15 +394,17 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    //ast_print(program, 0);
+    ast_print(program, 0);
     /*
      * Check semantics
      */
+    /*
     satie_error_t error;
     if (!hm_infer_types(program, &error)) {
        fprintf(stderr, "Error: %s\n", satie_error_message);
        return 1;
     }
+    */
     /*
      * Cleanup
      */

@@ -1,16 +1,20 @@
-import Std.types: Result, Maybe, Either
+import Std.types: Result
+// type Result<$t1, $t2> = Ok<$t1> or Error<$t2>
 import Std.io: writeln
 
-fn foo<$t>(x is $t) -> Result<$t, String> {
-    switch x {
-        case 42 => Ok<x>
-        case _ => Error<"Bad value">
-    }
+fn foo<$t>(x is $t, baz is ($t -> Bool)) -> Result<$t, String> {
+   if baz(x) {
+       Ok<x>
+   } else {
+       Error<"Bad value">
+   }
 }
 
 fn bar() {
-    switch foo<Int>(42) { // <Int> can be omitted
-        case Ok<?value> => writeln("%value")
-        case Error<?reason> => writeln("%reason")
+    switch foo<Int>(42, fn (x) { x == 42 }) { // <Int> can be omitted
+        case Ok<?value> =>
+            writeln("%value")
+        case Error<?reason> =>
+            writeln("%reason")
     }
 }

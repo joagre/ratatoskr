@@ -1,4 +1,4 @@
-type Either<$t1, $t2> = Left<$t1> or Right<$t2>
+type Either<$t1, $t2> = Left<$t1> || Right<$t2>
 
 enum ErrorStatus {
    emptyQueue

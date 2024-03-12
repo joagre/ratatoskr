@@ -1,12 +1,12 @@
-type Either<$t1, $t2> = Left<$t1> or Right<$t2>
+type Either<$t1, $t2> = This<$t1> || That<$t2>
 alias Baz = Int
 
 fn foo(x, y, compare) {
     ?first :: ?rest := x,
     if compare(first, y) {
-        Left<rest>
+        This<rest>
     } else {
-        Right<"%x is an invalid value">
+        That<"%x is an invalid value">
     }
 }
 
