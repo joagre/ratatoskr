@@ -15,7 +15,7 @@
 
       _ Add equations for case + test case + as
 
-      _ implement type and alias + type constructors (and _ type wildcard?) + ; instantiated type constructors
+      _ implement type and alias + type constructors (and _ type wildcard?)
 
       _ Make sure that satie.peg catches common errors
       _ Add column support in satie.peg
@@ -25,7 +25,7 @@
       _ check free malloc in hm.c etc + remove dtor?
 
       _ Parse impoert and do remote module type checking (load path)
-        : to refer to module
+        : to refer to module for all defs
 
       _ Skip enums, record and tasks for now
 

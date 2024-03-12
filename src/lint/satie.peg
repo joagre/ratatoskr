@@ -343,7 +343,7 @@ MapLiteral <- "[" _ ":" _ "]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyVa
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
 MapKeyValue <- k:Expr _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
-ConstructorLiteral <- n:Name "<" _ e:Exprs? _ ">" { $$ = CN(TYPE_CONSTRUCTOR_LITERAL, 2, n, e); }
+ConstructorLiteral <- (Name _ ";" _)? n:Name "<" _ e:Exprs? _ ">" { $$ = CN(TYPE_CONSTRUCTOR_LITERAL, 2, n, e); }
 
 Args <- e:Expr { $$ = CN(ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 

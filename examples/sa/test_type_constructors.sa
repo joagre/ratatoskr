@@ -4,11 +4,7 @@ import Std.io: writeln
 
 fn foo<$t>(x is $t, baz is ($t -> Bool)) -> Result<$t, String> {
    if baz(x) {
-       Ok<x>
-       /*
-       THINK ON THIS
-       types:Result;Ok<x>
-       */
+       Result;Ok<x> // Constructirs can be prefixed with its type parent
    } else {
        Error<"Bad value">
    }
