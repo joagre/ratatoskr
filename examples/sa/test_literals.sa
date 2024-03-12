@@ -13,10 +13,10 @@ fn foo() {
    // Float
    ?a is Float := 3.14,
    ?a is Float := 3E-2,
-   ?a is Float := +;3E+2,
-   ?a is Float := +;3.14E+2,
-   ?a is Float := +;14E+2,
-   ?a is Float := 3.14 +; 3.14,
+   ?a is Float := +.3E+2,
+   ?a is Float := +.3.14E+2,
+   ?a is Float := +.14E+2,
+   ?a is Float := 3.14 +. 3.14,
    // Char
    ?a is Char := 'a',
    // String
