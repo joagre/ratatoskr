@@ -5,7 +5,6 @@ enum ErrorStatus {
 }
 
 interface QueueInterface<$t> {
-    this(element is $t) -> QueueInterface<$t>
     public fn enqueue(element is $t) -> QueueInterface<$t>
     public fn null() -> Bool
     public fn hd() -> Either<$t, ErrorStatus>
@@ -13,11 +12,7 @@ interface QueueInterface<$t> {
 }
 
 record Queue<$t> implements QueueInterface<$t> {
-    private queue is [$t]
-
-    this(element) {
-        this(queue : [element])
-    }
+    private queue is [$t] = []
 
     public fn enqueue(element) {
         this(queue : queue @ [element])
@@ -43,10 +38,10 @@ record Queue<$t> implements QueueInterface<$t> {
 }
 
 export fn main(_args) {
-    ?a := new Queue(42),
+    ?a := Queue(:),
     ?a := a.enqueue(4711),
-    Left<42> := b.hd(),
-    ?b := new Queue(42),
+    Left<4711> := b.hd(),
+    ?b := Queue(:),
     ?b := b.enqueue(4711),
     true := (a =Queue= b)
 }

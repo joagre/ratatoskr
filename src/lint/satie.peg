@@ -84,9 +84,9 @@ AliasDef <- "alias" _ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ t:Type { $$
 # Type definition
 #
 
-TypeDef <- "type" _ n:Name ("<" _ t:TypeVariables _ ">")? _ "=" _ tc:TypeConstructors { $$ = CN(TYPE_DEF, 3, n, t, tc); }
-TypeConstructors <- t:TypeConstructor { $$ = CN(TYPE_CONSTRUCTORS, 1, t); } (_ "||" _ t:TypeConstructor { AC($$, t); })*
-TypeConstructor <- n:Name "<" _ t:Types? _ ">" { $$ = CN(TYPE_CONSTRUCTOR, 2, n, t); }
+TypeDef <- "type" _ n:Name ("<" _ t:TypeVariables _ ">")? _ "=" _ tc:Constructors { $$ = CN(TYPE_DEF, 3, n, t, tc); }
+Constructors <- t:Constructor { $$ = CN(TYPE_CONSTRUCTORS, 1, t); } (_ "||" _ t:Constructor { AC($$, t); })*
+Constructor <- n:Name "<" _ t:Types? _ ">" { $$ = CN(TYPE_CONSTRUCTOR, 2, n, t); }
 
 #
 # Enumeration definition
@@ -124,12 +124,10 @@ InterfaceDef <- "interface" __ i:InterfaceName ("<" _ t:TypeVariables _ ">")? _ 
                  "}" { $$ = CN(INTERFACE_DEF, 3, i, t, im); }
 InterfaceName <- Identifier { $$ = CT(INTERFACE_NAME, $0); }
 InterfaceMembers <- i:InterfaceMember { $$ = CN(INTERFACE_MEMBERS, 1, i); } (_ i:InterfaceMember { AC($$, i); } / InterfaceMemberError)*
-InterfaceMember <- (i:InterfaceConstructor / i:InterfaceDestructor / i:InterfaceMemberMethod / i:InterfaceMemberProperty) { $$ = i; }
-InterfaceConstructor <- "this" _ "(" _ p:Params? _ ")" (_ "->" _ t:Type)? { $$ = CN(INTERFACE_CONSTRUCTOR, 2, p, CCN(TYPE, 1, t)); }
-InterfaceDestructor <- "~this" _ "(" _ p:Params? _ ")" (_ "->" _ t:Type)? { $$ = CN(INTERFACE_DESTRUCTOR, 3, p, CCN(TYPE, 1, t)); }
+InterfaceMember <- (i:InterfaceMemberMethod / i:InterfaceMemberProperty) { $$ = i; }
 InterfaceMemberMethod <- m:MemberAccess _ i:InterfaceMethod { $$ = CN(INTERFACE_MEMBER_METHOD, 2, m, i); }
 InterfaceMethod <- "fn" _ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _  ("->" _ t:Type _)? { $$ = CN(INTERFACE_METHOD, 4, f, tv, p, CCN(TYPE, 1, t)); }
-InterfaceMemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name  (_ "is" _ t:Type { AC(n, CCN(TYPE, 1, t)); })?) { $$ = CN(INTERFACE_MEMBER_PROPERTY, 4, m, c, n, t); }
+InterfaceMemberProperty <- (m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name (_ "is" _ t:Type { AC(n, CCN(TYPE, 1, t)); })? { $$ = CN(INTERFACE_MEMBER_PROPERTY, 4, m, c, n, t); }
 InterfaceMemberError <- ("," / ";") {
     panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
@@ -144,12 +142,10 @@ RecordDef <- "record" __ n:Name ("<" _ t:TypeVariables _ ">")? _ ( "implements" 
 Interfaces <- i:Interface { $$ = CN(INTERFACES, 1, i); } (_ "," _ i:Interface { AC($$, i); })*
 Interface <- n:Name ("<" _ t:Types _ ">")? { $$ = CN(INTERFACE, 2, n, t); }
 RecordMembers <- c:RecordMember { $$ = CN(RECORD_MEMBERS, 1, c); } (_ c:RecordMember { AC($$, c); } / RecordMemberError)*
-RecordMember <- (c:Constructor / c:Destructor / c:MemberMethod / c:MemberProperty) { $$ = c; }
-Constructor <- "this" _ "(" _ p:Params? _ ")" (_ "->" _ t:Type)? _ b:BlockExpr { $$ = CN(RECORD_CONSTRUCTOR, 3, p, CCN(TYPE, 1, t), b); }
-Destructor <- "~this" _ "(" _ p:Params? _ ")" (_ "->" _ t:Type)? _ b:BlockExpr { $$ = CN(RECORD_DESTRUCTOR, 3, p, CCN(TYPE, 1, t), b); }
+RecordMember <- (c:MemberMethod / c:MemberProperty) { $$ = c; }
 MemberMethod <- m:MemberAccess _ f:FunctionDef { $$ = CN(MEMBER_METHOD, 2, m, f); }
 MemberAccess <- "public" { $$ = CT(PUBLIC, NULL); } / "private" { $$ = CT(PRIVATE, NULL); }
-MemberProperty <- ((m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name (_ "is" _ t:Type { AC(n, CCN(TYPE, 1, t)); })? (_ "=" _ e:Expr)?) { $$ = CN(MEMBER_PROPERTY, 4, m, c, n, e); }
+MemberProperty <- (m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name _ ("is" _ t:Type _ { AC(n, CCN(TYPE, 1, t)); })? ("=" _ e:Expr)? { $$ = CN(MEMBER_PROPERTY, 4, m, c, n, e); }
 RecordMemberError <- ("," / ";") {
     panic("Unexpected %s between members on line %d", $0, auxil->row);
 }
@@ -198,14 +194,8 @@ TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 
 Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
-Expr <- "this" _ "(" _ a:DynamicArgs _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; }
-
-BindExpr <- l:Expr _ (("as" _ un:UnboundName _ "is" _ t:Type /
-                       "is" _ t:Type _ "as" _ un:UnboundName /
-                       "is" _ t:Type /
-                       "as" _ un:UnboundName) _)? ":=" _
-            r:Expr { $$ = CN(BIND, 4, l, CN(IS, 1, t), CN(AS, 1, un), r); } / e:LogicalOrExpr { $$ = e; }
-
+Expr <- "this" _ "(" _ (":" / a:NamedArgs) _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; }
+BindExpr <- l:Expr _ (("as" _ un:UnboundName _ "is" _ t:Type / "is" _ t:Type _ "as" _ un:UnboundName / "is" _ t:Type / "as" _ un:UnboundName) _)? ":=" _ r:Expr { $$ = CN(BIND, 4, l, CN(IS, 1, t), CN(AS, 1, un), r); } / e:LogicalOrExpr { $$ = e; }
 LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r); } / e:LogicalAndExpr { $$ = e; }
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
 BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
@@ -271,13 +261,12 @@ PrimaryExpr <- "this" { $$ = CT(THIS, NULL); } /
                e:Name { $$ = e; } /
                "(" _ e:Expr _ ")" { $$ = e; }
 
-NewRecord <- "new" _ n:Name _ "(" a:DynamicArgs? ")" { $$ = CN(NEW_RECORD, 2, n, a); }
-DynamicArgs <- (a:PositionalArgs / a:NamedArgs) { $$ = a; }
-PositionalArgs <- !NamedArg e:Expr { $$ = CN(POSITIONAL_ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
+NewRecord <- n:Name _ "(" _ (":" / a:NamedArgs) _ ")" { $$ = CN(NEW_RECORD, 2, n, a); }
+
 NamedArgs <- n:NamedArg { $$ = CN(NAMED_ARGS, 1, n); } (_ "," _ n:NamedArg { AC($$, n); })*
 NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
 
-LaunchTask <- "launch" _ n:Name _ "(" a:DynamicArgs? ")" { $$ = CN(LAUNCH_TASK, 2, n, a); }
+LaunchTask <- "launch" _ n:Name _ "(" a:NamedArgs? ")" { $$ = CN(LAUNCH_TASK, 2, n, a); }
 
 ControlFlowExpr <- (c:IfExpr / c:SwitchExpr / c:BlockExpr) { $$ = c; }
 
@@ -302,7 +291,7 @@ Literal <- (l:BasicLiteral / l:CompositeLiteral) { $$ = l; }
 BasicLiteral <- (b:BoolLiteral / b:NumberLiteral / b:CharLiteral /
                  b:StringLiteral / b:FunctionLiteral / b:EnumLiteral) { $$ = b; }
 
-CompositeLiteral <- (c:TupleLiteral / c:ListLiteral / c:MapLiteral / c:TypeConstructorLiteral) { $$ = c; }
+CompositeLiteral <- (c:TupleLiteral / c:ListLiteral / c:MapLiteral / c:ConstructorLiteral) { $$ = c; }
 
 BoolLiteral <- "true" { $$ = CT(TRUE, NULL); } / "false" { $$ = CT(FALSE, NULL); }
 
@@ -354,7 +343,7 @@ MapLiteral <- "[" _ ":" _ "]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyVa
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
 MapKeyValue <- k:Expr _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
-TypeConstructorLiteral <- n:Name "<" _ e:Exprs? _ ">" { $$ = CN(TYPE_CONSTRUCTOR_LITERAL, 2, n, e); }
+ConstructorLiteral <- n:Name "<" _ e:Exprs? _ ">" { $$ = CN(TYPE_CONSTRUCTOR_LITERAL, 2, n, e); }
 
 Args <- e:Expr { $$ = CN(ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
@@ -394,17 +383,15 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    ast_print(program, 0);
+    //ast_print(program, 0);
     /*
      * Check semantics
      */
-    /*
     satie_error_t error;
     if (!hm_infer_types(program, &error)) {
        fprintf(stderr, "Error: %s\n", satie_error_message);
        return 1;
     }
-    */
     /*
      * Cleanup
      */

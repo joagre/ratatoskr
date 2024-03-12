@@ -11,7 +11,7 @@ export fn main(_args) {
 task Master {
     public startedSlaves = 0
     public fn startSlave(m, n) {
-        ?slaveTask := launch Slave(this),
+        ?slaveTask := launch Slave(masterTask: this),
         slaveTask~>start(m, n),
         this(startedSlaves: startedSlaves + 1)
     }
@@ -28,9 +28,6 @@ task Master {
 
 task Slave {
     private masterTask is Task
-    this(masterTask) {
-        this(masterTask: masterTask)
-    }
     public fn start(m, n) {
         masterTask~>slaveRunning(m, n),
         ?result := ackermann(m, n),

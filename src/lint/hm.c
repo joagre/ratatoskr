@@ -111,7 +111,6 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	node->name == EQ_TYPE ||
 	node->name == INDEX_VALUE ||
 	node->name == IS ||
-	node->name == POSITIONAL_ARGS ||
 	node->name == PARAMS ||
 	node->name == PROGRAM ||
 	node->name == TOP_LEVEL_DEFS ||
@@ -364,7 +363,6 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == NAME ||
 	node->name == PARAMS ||
 	node->name == PARAM_NAME ||
-	node->name == POSITIONAL_ARGS ||
 	node->name == PROGRAM ||
 	node->name == SLICE_LENGTH ||
 	node->name == STRING_TYPE ||

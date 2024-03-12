@@ -3,10 +3,7 @@ import d = a.b.c
 import a.b.c : Type
 
 record Foo {
-    this(a) {
-        a
-    }
-    public a = 1
+    public a
     public const b = 2 + a
     private c = 3
     private const d = 2 * c

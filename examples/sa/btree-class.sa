@@ -3,25 +3,21 @@ import Std.stdio: writeln
 type TreeChild<$t> = Tree<$t> || Leaf<>
 
 record Tree<$t> {
-    this(label is $t, left is TreeChild<$t>,
-         right is TreeChild<$t>) -> Tree<$t> {
-        this(label: label, left: left, right: right)
-    }
     public label is $t
     public left is TreeChild<$t>
     public right is TreeChild<$t>
 }
 
 export fn main(_args) {
-    ?tree := new Tree("The",
-                      Leaf<>,
-                      new Tree("wood",
-                               new Tree("of",
-                                         new Tree("Birnam",
-                                                  Leaf<>,
-                                                  Leaf<>),
-                                         Leaf<>),
-                               Leaf<>)),
+    ?tree := Tree(label: "The",
+                  left: Leaf<>,
+                  right: Tree(label: "wood",
+                              left: Tree(label: "of"),
+                                         left: Tree(label: "Birnam",
+                                                    left: Leaf<>,
+                                                    right: Leaf<>),
+                                         right: Leaf<>,
+                              right: Leaf<>)),
     writeln("Size: %{size(tree)}"),
     writeln("Depth: %{depth(tree)}"),
     writeln("Complete Tree: %{completeTree(1, 8)}"),
@@ -62,6 +58,8 @@ fn traverse(tree) {
     switch tree {
         case Leaf<> => []
         case Tree(?label, ?left, ?right) => label :: traverse(left) @ traverse(right)
+
+
     }
 }
 

@@ -1,13 +1,9 @@
-import Std.stdio : writeln
+import Std.stdio: writeln
 import Std.lists
 
 record TodoItem {
-    private description
-    private completed
-
-    this(description) {
-        this(descriptor: descriptor, completed: false)
-    }
+    public description
+    private completed = false
 
     public fn toString() {
        if completed {
@@ -22,7 +18,7 @@ record TodoList {
     private items = [:]
 
     public fn addItem(tag, description) {
-        ?item := TodoItem(description),
+        ?item := TodoItem(description: description),
         this(items: [tag: item] ~ items)
     }
 
@@ -55,6 +51,6 @@ export fn main() {
           loopUntilQuit(todoList)
         }
     },
-    ?todoList := TodoList(),
+    ?todoList := TodoList(:),
     loopUntilQuit(todoList)
 }

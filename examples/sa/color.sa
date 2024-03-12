@@ -17,8 +17,8 @@ record ColorIterator implements Iterator<Color> {
     private colors
     private graffiti
 
-    this(colors) {
-        this(colors: colors, graffiti: "Kilroy was here")
+    private fn initialize() {
+        this(colors: [])
     }
 
     public fn next() {
@@ -36,7 +36,7 @@ record ColorIterator implements Iterator<Color> {
 
 export fn main() {
     ?colors := [Color#red, Color#red, Color#blue, Color#green],
-    ?iterator := new ColorIterator(colors),
+    ?iterator := ColorIterator(colors: colors),
     ?iterate := fn (iterator) {
         if iterator.hasNext() {
             (?iterator, ?color) := iterator.next(),

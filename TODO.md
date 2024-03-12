@@ -8,7 +8,7 @@
       _ remove RN in satie.peg?
       _ Fix consistent variables in satie.peg
       _ use _ and __ conistently in satie.peg
-      _ Forgot -> Type for func lityeras (add hm.c)
+      _ Forgot -> Type for func literals (add hm.c)
 
 
       _ Read Functional + Object-oriented paper

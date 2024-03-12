@@ -5,11 +5,7 @@ enum ErrorStatus {
 }
 
 record Queue<$t> {
-    private queue is [$t]
-
-    this(element is $t) -> Queue<$t> {
-        this(queue: [element])
-    }
+    private queue is [$t] = []
 
     public fn enqueue<$t>(element is $t) -> Queue<$t>  {
         this(queue : queue @ [element])
@@ -35,10 +31,10 @@ record Queue<$t> {
 }
 
 export fn main(_args) {
-    ?a := new Queue(42),
+    ?a := Queue(:),
     ?a := a.enqueue(4711),
-    Left<42> := b.hd(),
-    ?b := new Queue(42),
+    Left<4711> := b.hd(),
+    ?b := Queue(:),
     ?b := b.enqueue(4711),
     true := (a =Queue= b)
 }

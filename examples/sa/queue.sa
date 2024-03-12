@@ -5,11 +5,7 @@ enum ErrorStatus {
 }
 
 record Queue {
-    private queue
-
-    this(element) {
-        this(queue: [element])
-    }
+    private queue = []
 
     public fn enqueue(element) {
         this(queue: queue @ [element])
@@ -35,10 +31,10 @@ record Queue {
 }
 
 export fn main(_args) {
-    ?a := new Queue(42),
+    ?a := Queue(:),
     ?a := a.enqueue(4711),
-    Left<42> := b.hd(),
-    ?b := new Queue(42),
+    Left<4711> := b.hd(),
+    ?b := Queue(:),
     ?b := b.enqueue(4711),
     true := (a =Queue= b)
 }
