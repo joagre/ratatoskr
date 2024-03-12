@@ -25,7 +25,7 @@ fn foo() {
    ?a is String := r"\nbar",
    // Function
    ?a is (Int -> Int) :=
-       fn (x is Int) {
+       fn (x is Int) -> Int {
            x
        },
    41 := a(41),

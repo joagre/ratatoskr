@@ -8,14 +8,14 @@
       _ remove RN in satie.peg?
       _ Fix consistent variables in satie.peg
       _ use _ and __ conistently in satie.peg
-
+      _ Forgot -> Type for func lityeras (add hm.c)
 
 
       _ Read Functional + Object-oriented paper
 
       _ Add equations for case + test case + as
 
-      _ implement type and alias + type constructors (+ is _ - wildcards?) + : instantiated constructors
+      _ implement type and alias + type constructors (and _ type wildcard?) + ; instantiated type constructors
 
       _ Make sure that satie.peg catches common errors
       _ Add column support in satie.peg
@@ -24,7 +24,8 @@
 
       _ check free malloc in hm.c etc + remove dtor?
 
-      _ Parse impoert and do multo module type checking (load path)
+      _ Parse impoert and do remote module type checking (load path)
+        : to refer to module
 
       _ Skip enums, record and tasks for now
 
