@@ -1,4 +1,4 @@
-type Either<$t1, $t2> = Left<$t1> or Right<$t2>
+type Either<$t1, $t2> = This<$t1> or That<$t2>
 
 enum ErrorStatus {
    emptyQueue
@@ -17,15 +17,15 @@ record Queue {
 
     public fn hd() {
         switch queue {
-            case [?first :: _] => Left<first>
-            case [] => Right<ErrorStatus#emptyQueue>
+            case [?first :: _] => This<first>
+            case [] => That<ErrorStatus#emptyQueue>
         }
     }
 
     public fn dequeue() {
         switch queue {
-            case [_ :: ?rest] => Left<this(queue: rest)>
-            case [] => Right<ErrorStatus#emptyQueue>
+            case [_ :: ?rest] => This<this(queue: rest)>
+            case [] => That<ErrorStatus#emptyQueue>
         }
     }
 }
@@ -33,7 +33,7 @@ record Queue {
 export fn main(_args) {
     ?a := Queue(:),
     ?a := a.enqueue(4711),
-    Left<4711> := b.hd(),
+    This<4711> := b.hd(),
     ?b := Queue(:),
     ?b := b.enqueue(4711),
     true := (a =Queue= b)

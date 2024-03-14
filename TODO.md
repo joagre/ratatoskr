@@ -3,30 +3,14 @@
 ## Version 0.1
 
 * [x] Dive into Hindley-Milner type inference
-      _ Go through all PEG rules, ideally all nodes should always be there (check all)
-        also check use of generic Exprs rule etc
-      _ remove RN in satie.peg?
-      _ Fix consistent variables in satie.peg
-      _ use _ and __ conistently in satie.peg
-      _ Forgot -> Type for func literals (add hm.c)
-
-
-      _ Read Functional + Object-oriented paper
-
       _ Add equations for case + test case + as
 
       _ implement type and alias + type constructors (and _ type wildcard?)
-
-      _ Make sure that satie.peg catches common errors
       _ Add column support in satie.peg
-
       _ Print type error beautifully (Read reserahc paper again)
-
       _ check free malloc in hm.c etc + remove dtor?
-
       _ Parse impoert and do remote module type checking (load path)
         : to refer to module for all defs
-
       _ Skip enums, record and tasks for now
 
 

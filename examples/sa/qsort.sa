@@ -1,12 +1,12 @@
 import Std.stdio: writeln
 
-type Either<$t1, $t2> = Left<$t1> or Right<$t2>
+type Either<$t1, $t2> = This<$t1> or That<$t2>
 
 fn sort(compare, list) {
     if !list.isEmpty() {
-        Left<qsort(compare, list)>
+        This<qsort(compare, list)>
     } else {
-        Right<"Empty List">
+        That<"Empty List">
     }
 }
 
@@ -23,7 +23,7 @@ export fn qsort(compare, list) {
 export fn main(_args) {
     ?compare := fn (x, y) { x < y },
     switch sort(compare, [3, 1, 32, 0]) {
-        case Left<?l> => writeln("Success: %l")
-        case Right<?reason> => writeln("Error: %reason")
+        case This<?l> => writeln("Success: %l")
+        case That<?reason> => writeln("Error: %reason")
     }
 }
