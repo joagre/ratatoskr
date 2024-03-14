@@ -258,10 +258,27 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	type_t* type = type_new_type_variable();
 	node->type = type;
 	// Extract all nodes constituting the bind expression
-	ast_node_t* left_node = ast_get_child(node, 0);
-	ast_node_t* is_node = ast_get_child(node, 1);
-	ast_node_t* as_node = ast_get_child(node, 2);
-	ast_node_t* right_node = ast_get_child(node, 3);
+	uint16_t i = 0;
+	ast_node_t* left_node = ast_get_child(node, i);
+	ast_node_t* is_node = NULL;
+	ast_node_t* as_node = NULL;
+	ast_node_t* right_node;
+	ast_node_t* child_node = ast_get_child(node, i + 1);
+	if (child_node->name == IS) {
+	    is_node = child_node;
+	    child_node = ast_get_child(node, i + 2);
+	    if (child_node->name == AS) {
+		as_node = child_node;
+		right_node = ast_get_child(node, i + 3);
+	    } else {
+		right_node = child_node;
+	    }
+	} else if (child_node->name == AS) {
+	    as_node = child_node;
+	    right_node = ast_get_child(node, i + 2);
+	} else {
+	    right_node = child_node;
+	}
 	// Take care of the right node first
 	if (!create_type_variables(right_node, tables, block_expr_id, error)) {
 	    CLEAR_ERROR(error);
@@ -276,15 +293,19 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	    CLEAR_ERROR(error);
 	    return false;
 	}
-	// Take care of the as node
-	if (!create_type_variables(as_node, tables, block_expr_id, error)) {
-	    CLEAR_ERROR(error);
-	    return false;
-	}
 	// Take care of the is node
-	if (!create_type_variables(is_node, tables, block_expr_id, error)) {
-	    CLEAR_ERROR(error);
-	    return false;
+	if (is_node != NULL) {
+	    if (!create_type_variables(is_node, tables, block_expr_id, error)) {
+		CLEAR_ERROR(error);
+		return false;
+	    }
+	}
+	// Take care of the as node
+	if (as_node != NULL) {
+	    if (!create_type_variables(as_node, tables, block_expr_id, error)) {
+		CLEAR_ERROR(error);
+		return false;
+	    }
 	}
 	traverse_children = false;
     } else if(node->name == BLOCK) {
@@ -873,11 +894,28 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	}
     } else if (node->name == BIND) {
 	// Extract all nodes constituting the bind expression
-	ast_node_t* left_node = ast_get_child(node, 0);
-	ast_node_t* is_node = ast_get_child(node, 1);
-	ast_node_t* as_node = ast_get_child(node, 2);
-	ast_node_t* right_node = ast_get_child(node, 3);
-	// Equation: Operands
+	uint16_t i = 0;
+	ast_node_t* left_node = ast_get_child(node, i);
+	ast_node_t* is_node = NULL;
+	ast_node_t* as_node = NULL;
+	ast_node_t* right_node;
+	ast_node_t* child_node = ast_get_child(node, i + 1);
+	if (child_node->name == IS) {
+	    is_node = child_node;
+	    child_node = ast_get_child(node, i + 2);
+	    if (child_node->name == AS) {
+		as_node = child_node;
+		right_node = ast_get_child(node, i + 3);
+	    } else {
+		right_node = child_node;
+	    }
+	} else if (child_node->name == AS) {
+	    as_node = child_node;
+	    right_node = ast_get_child(node, i + 2);
+	} else {
+	    right_node = child_node;
+	}
+        // Equation: Operands
 	LOG_ASSERT(right_node->type != NULL, "Expected a type");
 	equation_t bind_left_right_equation =
 	    equation_new(left_node->type, right_node->type, node, left_node,
@@ -889,16 +927,16 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    equation_new(node->type, right_node->type, node, node, false);
 	equations_add(equations, &bind_equation);
 	// Equation: Is
-	ast_node_t* type_node = ast_get_child(is_node, 0);
-	if (type_node != NULL) {
+	if (is_node != NULL) {
+	    ast_node_t* type_node = ast_get_child(is_node, 0);
 	    equation_t is_equation =
 		equation_new(left_node->type, type_node->type, node, is_node,
 			     false);
 	    equations_add(equations, &is_equation);
 	}
-        // Equation: As
-	ast_node_t* unbound_name_node = ast_get_child(as_node, 0);
-	if (unbound_name_node != NULL) {
+	// Equation: As
+	if (as_node != NULL) {
+	    ast_node_t* unbound_name_node = ast_get_child(as_node, 0);
 	    equation_t as_equation =
 		equation_new(unbound_name_node->type, left_node->type, node,
 			     as_node, false);

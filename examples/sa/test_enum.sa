@@ -1,0 +1,13 @@
+enum Zonk is Int {
+    foo = 42
+    bar = 4711
+}
+
+fn zippo() {
+    ?a := Zonk#foo.value(),
+    if a.value() == 42 {
+        writeln("No shit!")
+    } else {
+        writeln("Oh, well")
+    }
+}

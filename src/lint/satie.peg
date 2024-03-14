@@ -56,7 +56,13 @@
 
 Program <- _ (i:Imports _)? tld:TopLevelDefs? EOF { $$ = CN(PROGRAM, 2, i, tld); }
 TopLevelDefs <- tld:TopLevelDef { $$ = CN(TOP_LEVEL_DEFS, 1, tld); } (_ tld:TopLevelDef { AC($$, tld); })*
-TopLevelDef <- (tld:AliasDef / tld:TypeDef / tld:EnumDef / tld:FunctionDef / tld:InterfaceDef / tld:RecordDef / tld:TaskDef) (_ UnexpectedSeparator)? { $$ = tld; }
+TopLevelDef <- (tld:AliasDef /
+                tld:TypeDef /
+                tld:EnumDef /
+                tld:FunctionDef /
+                tld:InterfaceDef /
+                tld:RecordDef /
+                tld:TaskDef) (_ UnexpectedSeparator)? { $$ = tld; }
 
 #
 # Import
@@ -82,42 +88,27 @@ TypeDef <- "type" __ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ c:Constructo
 Constructors <- c:Constructor { $$ = CN(CONSTRUCTORS, 1, c); } (__ "or" __ c:Constructor { AC($$, c); })*
 Constructor <- n:Name "<" _ t:Types? _ ">" { $$ = CN(CONSTRUCTOR, 2, n, t); }
 
-
-
-
-
-
-
-
-
-
-
 #
 # Enumeration definition
 #
 
-EnumDef <- "enum" __ ed:EnumDefName _ "{" _ e:Enums _ "}" { $$ = CN(ENUM_DEF, 2, ed, e); }
-EnumDefName <- Identifier { $$ = CT(ENUM_DEF_NAME, $0); }
-Enums <- e:Enum { $$ = CN(ENUMS, 1, e); } (__ e:Enum { AC($$, e); } / EnumValueError)*
-Enum <- en:EnumName (_ "=" _ e:Expr)? { $$ = CN(ENUM, 2, en, CN(ENUM_VALUE, 1, e)); }
-EnumName <- Identifier { $$ = CT(ENUM_NAME, $0); }
-EnumValueError <- ("," / ";") {
-    panic("Unexpected %s between enum values on line %d", $0, auxil->row);
-}
+EnumDef <- "enum" __ n:Name _ ("is" _ t:Type _)? "{" _ e:Enums _ "}" { $$ = CN(ENUM_DEF, 3, n, CCN(TYPE, 1, t), e); }
+Enums <- e:Enum { $$ = CN(ENUMS, 1, e); } (_ UnexpectedSeparator)? (_ e:Enum { AC($$, e); } (_ UnexpectedSeparator)?)*
+Enum <- n:Name (_ "=" _ e:Expr)? { $$ = CN(ENUM, 2, n, CCN(ENUM_VALUE, 1, e)); }
 
 #
 # Function definition
 #
 
-FunctionDef <- e:Export? _ "fn" __ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("->" _ t:Type _)? b:BlockExpr { $$ = CN(FUNCTION_DEF, 6, e, f, tv, p, CCN(TYPE, 1, t), b); }
+FunctionDef <- e:Export? _ "fn" __ fn:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _ ("->" _ t:Type _)? be:BlockExpr { $$ = CN(FUNCTION_DEF, 6, e, fn, tv, p, CCN(TYPE, 1, t), be); }
 Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
-Params <- n:Param { $$ = CN(PARAMS, 1, n); } (_ "," _ n:Param { AC($$, n); })*
+Params <- p:Param { $$ = CN(PARAMS, 1, p); } (_ "," _ p:Param { AC($$, p); })*
 Param <- n:Name (_ "is" _ t:Type)? { $$ = RN(n, PARAM_NAME); AC($$, CCN(TYPE, 1, t));}
 
-# KEEP
-#Param <- pn:ParamName (_ "is" _ t:Type)? { AC(pn, CCN(TYPE, 1, t));}
-#ParamName <- Identifier { $$ = CT(PARAM_NAME, $0); }
+
+
+
 
 #
 # Interface definition
@@ -133,7 +124,7 @@ InterfaceMemberMethod <- m:MemberAccess _ i:InterfaceMethod { $$ = CN(INTERFACE_
 InterfaceMethod <- "fn" _ f:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" _  ("->" _ t:Type _)? { $$ = CN(INTERFACE_METHOD, 4, f, tv, p, CCN(TYPE, 1, t)); }
 InterfaceMemberProperty <- (m:MemberAccess (_ c:Const)? / c:Readonly) _ n:Name (_ "is" _ t:Type { AC(n, CCN(TYPE, 1, t)); })? { $$ = CN(INTERFACE_MEMBER_PROPERTY, 4, m, c, n, t); }
 InterfaceMemberError <- ("," / ";") {
-    panic("Unexpected %s between members on line %d", $0, auxil->row);
+    panic("Do not use a '%s' as a separator on line %d", $0, auxil->row);
 }
 
 #
@@ -199,7 +190,7 @@ TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
 Expr <- "this" _ "(" _ (":" / a:NamedArgs) _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; }
-BindExpr <- l:Expr _ (("as" _ un:UnboundName _ "is" _ t:Type / "is" _ t:Type _ "as" _ un:UnboundName / "is" _ t:Type / "as" _ un:UnboundName) _)? ":=" _ r:Expr { $$ = CN(BIND, 4, l, CN(IS, 1, t), CN(AS, 1, un), r); } / e:LogicalOrExpr { $$ = e; }
+BindExpr <- l:Expr _ (("as" _ un:UnboundName _ "is" _ t:Type / "is" _ t:Type _ "as" _ un:UnboundName / "is" _ t:Type / "as" _ un:UnboundName) _)? ":=" _ r:Expr { $$ = CN(BIND, 4, l, CCN(IS, 1, t), CCN(AS, 1, un), r); } / e:LogicalOrExpr { $$ = e; }
 LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r); } / e:LogicalAndExpr { $$ = e; }
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
 BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
@@ -283,11 +274,12 @@ SwitchExpr <- "switch" __ se:Expr { $$ = CN(SWITCH, 1, se); } _ "{"
               (_ "default" _ "=>" _ be:Exprs { AC($$, CN(DEFAULT, 1, be)); })? _
               "}"
 
-BlockExpr <- "{" _ b:BlockLevelExprs _ "}" { $$ = b; }
-BlockLevelExprs <- e:Expr { $$ = CN(BLOCK, 1, e); } (_ Comma _ e:Expr { AC($$, e); })*
-Comma <- "," / ";" {
-    panic("Unexpected ';' on line %d (use ',' as a separator between "
-          "expressions)", auxil->row);
+BlockExpr <- "{" _ be:ExprSequence _ "}" { $$ = be; }
+ExprSequence <- e:Expr { $$ = CN(BLOCK, 1, e); } ( _ CommaSeparator _ e:Expr { fprintf(stderr, "#2\n"); AC($$, e); })*
+CommaSeparator <- ("," / ";") {
+    if (strcmp($0, ";") == 0) {
+        panic("Use ',' on line %d to separate expressions in blocks", auxil->row);
+    }
 }
 
 Literal <- (l:BasicLiteral / l:CompositeLiteral) { $$ = l; }
@@ -334,7 +326,9 @@ RawString <- [^"]* { $$ = CT(RAW_STRING, $0); }
 
 FunctionLiteral <- "fn" _ (f:FunctionName _)? "(" _ p:Params? _ ")" _ ("->" _ Type _)? e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 3, f, p, e); }
 
-EnumLiteral <- edn:EnumDefName _ "#" _ en:EnumName { $$ = CN(ENUM_LITERAL, 2, edn, en); }
+EnumLiteral <- en:Name _ "#" _ n:Name { $$ = CN(ENUM_LITERAL, 2, en, n); }
+
+
 
 TupleLiteral <- "(" _ ")" { $$ = CT(TUPLE_LITERAL, NULL); } /
                 "(" _ e:Expr _ "," _ ")" { $$ = CN(TUPLE_LITERAL, 1, e); } /
@@ -403,7 +397,7 @@ BlockCommentContent <- (!("*/" / EOL) .)
 EOF <- _ !.
 
 UnexpectedSeparator <- ("," / ";") {
-    panic("Unexpected %s on line %d", $0, auxil->row);
+    panic("Do not use a '%s' as a separator on line %d", $0, auxil->row);
 }
 
 %%

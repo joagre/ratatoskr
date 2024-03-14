@@ -54,11 +54,9 @@ typedef dynarray_t node_array_t;
 	NODE_NAME(EMPTY_TUPLE_TYPE) \
         NODE_NAME(ENUM) \
         NODE_NAME(ENUM_DEF) \
-        NODE_NAME(ENUM_DEF_NAME) \
         NODE_NAME(ENUM_LITERAL) \
-        NODE_NAME(ENUM_NAME) \
+	NODE_NAME(ENUM_VALUE) \
         NODE_NAME(ENUMS) \
-        NODE_NAME(ENUM_VALUE) \
         NODE_NAME(EQ) \
         NODE_NAME(EQ_TYPE) \
         NODE_NAME(ESCAPE_CHAR) \
