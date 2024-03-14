@@ -33,13 +33,16 @@ typedef dynarray_t node_array_t;
         NODE_NAME(CASE) \
         NODE_NAME(CHAR) \
 	NODE_NAME(CHAR_TYPE) \
-	NODE_NAME(DEFAULT) \
+        NODE_NAME(CONSTRUCTOR) \
+        NODE_NAME(CONSTRUCTOR_LITERAL) \
+        NODE_NAME(CONSTRUCTORS)	\
         NODE_NAME(CONCAT_LIST)\
 	NODE_NAME(CONCAT_MAP) \
 	NODE_NAME(CONCAT_STRING) \
 	NODE_NAME(CONS) \
 	NODE_NAME(CONST) \
         NODE_NAME(CONSTRUCTOR_TYPE ) \
+        NODE_NAME(DEFAULT) \
         NODE_NAME(DIV_INT) \
         NODE_NAME(DIV_FLOAT) \
         NODE_NAME(DOT_NAME) \
@@ -77,8 +80,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(IDENTIFIER) \
         NODE_NAME(IF) \
         NODE_NAME(IMPORT) \
-        NODE_NAME(IMPORTED_NAME) \
-        NODE_NAME(IMPORTED_NAMES) \
+        NODE_NAME(IMPORTED_DEFS) \
         NODE_NAME(IMPORTS) \
         NODE_NAME(INDEX_VALUE) \
         NODE_NAME(INT) \
@@ -115,7 +117,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(SUB_FLOAT) \
         NODE_NAME(MODULE) \
         NODE_NAME(MODULE_ALIAS) \
-        NODE_NAME(MODULE_COMPONENT) \
         NODE_NAME(MOD) \
         NODE_NAME(MUL_INT) \
         NODE_NAME(MUL_FLOAT) \
@@ -159,9 +160,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(TYPE) \
         NODE_NAME(TYPE_DEF) \
         NODE_NAME(TYPES) \
-        NODE_NAME(TYPE_CONSTRUCTOR_LITERAL) \
-        NODE_NAME(TYPE_CONSTRUCTOR)	     \
-        NODE_NAME(TYPE_CONSTRUCTORS) \
         NODE_NAME(TYPE_VARIABLE) \
         NODE_NAME(TYPE_VARIABLES) \
         NODE_NAME(UNBOUND_NAME) \

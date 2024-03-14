@@ -1,6 +1,6 @@
 import Std.stdio: writeln
 
-type TreeChild<$t> = Tree<$t> || Leaf<>
+type TreeChild<$t> = Tree<$t> or Leaf<>
 
 record Tree<$t> {
     public label is $t

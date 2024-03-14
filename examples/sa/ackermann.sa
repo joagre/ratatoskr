@@ -1,7 +1,7 @@
 import Std.stdio: writeln
 
 export fn main(_args) {
-    ?masterTask := launch Master(),
+    ?masterTask := launch Master(:),
     masterTask~>startSlave(3, 10), // ~> is a "cast"
     masterTask~>startSlave(3, 11),
     2 := masterTask<~startedSlaves(), // <~ is a "call"

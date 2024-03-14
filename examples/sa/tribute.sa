@@ -4,15 +4,15 @@ import Std.stdio: writeln
 
 export fn main(args) {
     ?tasks := startTributes(args[1].toInt(), 0, []),
-    lists.foreach(fn (task) {
-        task~>hail("Standing on the shoulders of %{tasks.length} giants")
+    lists.foreach(fn (t) {
+        t~>hail("Standing on the shoulders of %{tasks.length} giants")
     }, tasks)
 }
 
 fn startTributes(numberOfTributes, n, tasks) {
     if n < numberOfTributes {
-        ?task := launch Tribute(n: n),
-        startTributes(numberOfTributes, n + 1, task @ tasks)
+        ?t := launch Tribute(n: n),
+        startTributes(numberOfTributes, n + 1, t @ tasks)
     } else {
         tasks
     }

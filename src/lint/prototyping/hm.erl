@@ -21,7 +21,7 @@ simple_test() ->
 
 test_all() ->
     simple_test(),
-    Ignore = ["test_switch.sa", "test_type_constructors.sa"],
+    Ignore = ["test_switch.sa", "test_constructor.sa"],
     case file:list_dir("../../../examples/sa") of
         {ok, Files} ->
             lists:foreach(

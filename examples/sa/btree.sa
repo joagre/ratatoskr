@@ -1,6 +1,6 @@
 import Std.stdio: writeln
 
-type Tree<$label> = Leaf<> || Branch<$label, Tree<$label>, Tree<$label>>
+type Tree<$label> = Leaf<> or Branch<$label, Tree<$label>, Tree<$label>>
 
 export fn main(_args) {
     ?tree := Branch<"The",

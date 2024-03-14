@@ -29,6 +29,7 @@
         va_list args;
         va_start(args, fmt);
         printf("\033[31mError:\033[0m ");
+        fflush(stdout);
         vfprintf(stderr, fmt, args);
         printf("\n");
         va_end(args);
@@ -37,8 +38,7 @@
     }
 
     static void satie_error(satie_auxil_t* auxil) {
-        printf("Bailing out near line %d\n", ROW);
-        exit(1);
+        panic("Syntax error near line %d", ROW);
     }
 }
 
@@ -54,39 +54,43 @@
 # Top level structure
 #
 
-Program <- _ (i:Imports __)? t:TopLevelDefs EOF { $$ = CN(PROGRAM, 2, i, t); }
-TopLevelDefs <- t:TopLevelDef { $$ = CN(TOP_LEVEL_DEFS, 1, t); } (__ t:TopLevelDef { AC($$, t); } / TopLevelDefError)*
-TopLevelDef <- (t:AliasDef / t:TypeDef / t:EnumDef / t:FunctionDef / t:InterfaceDef / t:RecordDef / t:TaskDef) { $$ = t; }
-TopLevelDefError <- ("," / ";") {
-    panic("Unexpected %s between top level definitions on line %d",
-          $0, auxil->row);
-}
+Program <- _ (i:Imports _)? tld:TopLevelDefs? EOF { $$ = CN(PROGRAM, 2, i, tld); }
+TopLevelDefs <- tld:TopLevelDef { $$ = CN(TOP_LEVEL_DEFS, 1, tld); } (_ tld:TopLevelDef { AC($$, tld); })*
+TopLevelDef <- (tld:AliasDef / tld:TypeDef / tld:EnumDef / tld:FunctionDef / tld:InterfaceDef / tld:RecordDef / tld:TaskDef) (_ UnexpectedSeparator)? { $$ = tld; }
 
 #
 # Import
 #
 
 Imports <- i:Import { $$ = CN(IMPORTS, 1, i); } (__ i:Import { AC($$, i); })*
-Import <- "import" __ (ma:ModuleAlias _ "=" _)? _ m:ModuleComponents (_ ":" _ i:ImportedNames)? { $$ = CN(IMPORT, 3, ma, m, i); }
+Import <- "import" __ (ma:ModuleAlias _ "=" _)? mc:Module (_ ":" _ in:ImportedDefs)? (_ UnexpectedSeparator)? { $$ = CN(IMPORT, 3, ma, mc, in); }
 ModuleAlias <- Identifier { $$ = CT(MODULE_ALIAS, $0); }
-ModuleComponents <- m:ModuleComponent {$$ = CN(MODULE, 1, m); } ( "." m:ModuleComponent { AC($$, m); })*
-ModuleComponent <- Identifier { $$ = CT(MODULE_COMPONENT, $0); }
-ImportedNames <- m:ImportedName { $$ = CN(IMPORTED_NAMES, 1, m); } (_ "," _ m:ImportedName { AC($$, m); })*
-ImportedName <- Identifier { $$ = CT(IMPORTED_NAME, $0); }
+Module <- n:Name {$$ = CN(MODULE, 1, n); } ( "." n:Name { AC($$, n); })*
+ImportedDefs <- n:Name { $$ = CN(IMPORTED_DEFS, 1, n); } (_ "," _ n:Name { AC($$, n); })*
 
 #
 # Alias definition
 #
 
-AliasDef <- "alias" _ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ t:Type { $$ = CN(ALIAS_DEF, 3, n, tv, t); }
+AliasDef <- "alias" __ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ t:Type { $$ = CN(ALIAS_DEF, 3, n, tv, t); }
 
 #
 # Type definition
 #
 
-TypeDef <- "type" _ n:Name ("<" _ t:TypeVariables _ ">")? _ "=" _ tc:Constructors { $$ = CN(TYPE_DEF, 3, n, t, tc); }
-Constructors <- t:Constructor { $$ = CN(TYPE_CONSTRUCTORS, 1, t); } (_ "||" _ t:Constructor { AC($$, t); })*
-Constructor <- n:Name "<" _ t:Types? _ ">" { $$ = CN(TYPE_CONSTRUCTOR, 2, n, t); }
+TypeDef <- "type" __ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ c:Constructors { $$ = CN(TYPE_DEF, 3, n, tv, c); }
+Constructors <- c:Constructor { $$ = CN(CONSTRUCTORS, 1, c); } (__ "or" __ c:Constructor { AC($$, c); })*
+Constructor <- n:Name "<" _ t:Types? _ ">" { $$ = CN(CONSTRUCTOR, 2, n, t); }
+
+
+
+
+
+
+
+
+
+
 
 #
 # Enumeration definition
@@ -266,7 +270,7 @@ NewRecord <- n:Name _ "(" _ (":" / a:NamedArgs) _ ")" { $$ = CN(NEW_RECORD, 2, n
 NamedArgs <- n:NamedArg { $$ = CN(NAMED_ARGS, 1, n); } (_ "," _ n:NamedArg { AC($$, n); })*
 NamedArg <- n:Name _ ":" _ r:Expr { $$ = CN(NAMED_ARG, 2, n, r); }
 
-LaunchTask <- "launch" _ n:Name _ "(" a:NamedArgs? ")" { $$ = CN(LAUNCH_TASK, 2, n, a); }
+LaunchTask <- "launch" __ n:Name _ "(" _ (":" / a:NamedArgs) _ ")" { $$ = CN(LAUNCH_TASK, 2, n, a); }
 
 ControlFlowExpr <- (c:IfExpr / c:SwitchExpr / c:BlockExpr) { $$ = c; }
 
@@ -343,7 +347,7 @@ MapLiteral <- "[" _ ":" _ "]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyVa
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
 MapKeyValue <- k:Expr _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
-ConstructorLiteral <- (Name _ ";" _)? n:Name "<" _ e:Exprs? _ ">" { $$ = CN(TYPE_CONSTRUCTOR_LITERAL, 2, n, e); }
+ConstructorLiteral <- (Name _ ";" _)? n:Name "<" _ e:Exprs? _ ">" { $$ = CN(CONSTRUCTOR_LITERAL, 2, n, e); }
 
 Args <- e:Expr { $$ = CN(ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
@@ -351,7 +355,34 @@ Args <- e:Expr { $$ = CN(ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 # Misc
 #
 
-Identifier <- [a-zA-Z_][a-zA-Z_0-9_]*
+Reserved <- ("alias" /
+             "as" /
+             "case" /
+             "const" /
+             "default" /
+             "elif" /
+             "else" /
+             "enum" /
+             "export" /
+             "false" /
+             "fn" /
+             "if" /
+             "import" /
+             "interface" /
+             "launch" /
+             "private" /
+             "public" /
+             "readonly" /
+             "record" /
+             "implements"
+             "is" /
+             "switch" /
+             "task" /
+             "this" /
+             "true" /
+             "type" /
+             "when") ![a-zA-Z_0-9_]
+Identifier <- !Reserved [a-zA-Z_][a-zA-Z_0-9_]*
 Name <- Identifier { $$ = CT(NAME, $0); }
 UnboundName <- "?" n:Name { $$ = RN(n, UNBOUND_NAME); } / "_" { $$ = CT(UNBOUND_NO_NAME, $0); }
 
@@ -371,6 +402,10 @@ BlockComment <- "/*" (BlockCommentContent / EOL)* "*/"
 BlockCommentContent <- (!("*/" / EOL) .)
 EOF <- _ !.
 
+UnexpectedSeparator <- ("," / ";") {
+    panic("Unexpected %s on line %d", $0, auxil->row);
+}
+
 %%
 int main() {
 #ifdef UNITTEST
@@ -383,15 +418,17 @@ int main() {
     satie_context_t *context = satie_create(satie_auxil);
     ast_node_t* program;
     satie_parse(context, &program);
-    //ast_print(program, 0);
+    ast_print(program, 0);
     /*
      * Check semantics
      */
+    /*
     satie_error_t error;
     if (!hm_infer_types(program, &error)) {
        fprintf(stderr, "Error: %s\n", satie_error_message);
        return 1;
     }
+    */
     /*
      * Cleanup
      */
