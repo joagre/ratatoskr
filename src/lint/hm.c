@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <log.h>
+#include <bits.h>
 #include "hm.h"
 #include "types.h"
 #include "equation.h"
@@ -10,7 +11,7 @@
 #include "symbol_tables.h"
 
 // Forward declarations of local functions
-static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
+static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 		     satie_error_t* error);
 static void forward_declare_function_definitions(ast_node_t* node,
 						 symbol_tables_t* tables);
@@ -24,7 +25,7 @@ static uint32_t unique_id(void);
 
 bool hm_infer_types(ast_node_t* node, satie_error_t* error) {
     // Check if tree is semantically valid
-    if (!is_valid(NULL, node, error)) {
+    if (!is_valid(NULL, node, 0, error)) {
 	return false;
     }
     // Create the top level symbol table
@@ -53,9 +54,8 @@ bool hm_infer_types(ast_node_t* node, satie_error_t* error) {
 // Local functions
 //
 
-static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
+static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 		     satie_error_t* error) {
-    // Check that the := operator only is allowed as a top-level expression
     if (node->name == BIND &&
 	parent_node != NULL && parent_node->name != BLOCK) {
 	SET_ERROR_MESSAGE(
@@ -63,13 +63,60 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node,
 	    "%d: The := operator is only allowed as a top-level expression",
 	    node->row);
 	return false;
+    } else if (node->name == BIND) {
+	if (is_valid(node, ast_get_child(node, 0), SET_BIT(flags, CONTEXT_BIND),
+		     error)) {
+	    size_t n = ast_number_of_children(node);
+	    for (uint16_t i = 1; i < n; i++) {
+		if (!is_valid(node, ast_get_child(node, i), flags, error)) {
+		    return false;
+		}
+	    }
+	    CLEAR_ERROR(error);
+	    return true;
+	} else {
+	    return false;
+	}
+    } else if (node->name == LIST_LOOKUP) {
+	return is_valid(parent_node, ast_get_child(node, 0),
+			SET_BIT(flags, CONTEXT_LIST_LOOKUP), error);
+    } else if (node->name == LIST_SLICE) {
+	if (is_valid(node, ast_get_child(node, 0),
+		     SET_BIT(flags, CONTEXT_LIST_SLICE), error)) {
+	    return is_valid(node, ast_get_child(node, 1),
+			    SET_BIT(flags, CONTEXT_LIST_SLICE), error);
+	} else {
+	    return false;
+	}
+    } else if (node->name == SLICE_LENGTH) {
+	if (!(IS_BIT_SET(flags, CONTEXT_LIST_SLICE) != 0 ||
+	      IS_BIT_SET(flags, CONTEXT_LIST_LOOKUP) != 0)) {
+	    SET_ERROR_MESSAGE(
+		error, COMPONENT_COMPILER,
+		"%d: The $ operator is only allowed in list lookups and slices",
+		node->row);
+	    return false;
+	}
+	CLEAR_ERROR(error);
+	return true;
+    } else if (node->name == UNBOUND_NAME) {
+	if (IS_BIT_SET(flags, CONTEXT_BIND) == 0) {
+	    SET_ERROR_MESSAGE(
+		error, COMPONENT_COMPILER,
+		"%d: The name name '%s' cannot be bound here", node->row,
+		node->value);
+	    return false;
+	} else {
+	    CLEAR_ERROR(error);
+	    return true;
+	}
     }
 
     // Traverse children (if any)
     size_t n = ast_number_of_children(node);
     if (n > 0) {
         for (uint16_t i = 0; i < n; i++) {
-	    if (!is_valid(node, ast_get_child(node, i), error)) {
+	    if (!is_valid(node, ast_get_child(node, i), flags, error)) {
 		return false;
 	    }
 	}
@@ -100,11 +147,13 @@ static void forward_declare_function_definitions(ast_node_t* node,
 }
 
 static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
-				  uint32_t block_expr_id, satie_error_t* error) {
+				  uint32_t block_expr_id,
+				  satie_error_t* error) {
     bool traverse_children = true;
     if (node->name == AS ||
 	node->name == ARGS ||
 	node->name == ARG_TYPES ||
+	node->name == DEFAULT ||
 	node->name == ELIF ||
 	node->name == ELSE ||
 	node->name == EXPORT ||
@@ -114,7 +163,8 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	node->name == PARAMS ||
 	node->name == PROGRAM ||
 	node->name == TOP_LEVEL_DEFS ||
-	node->name == TYPE) {
+	node->name == TYPE ||
+	node->name == WHEN) {
 	// Do not assign a type variable
     } else if (node->name == ADD_INT ||
 	       node->name == ADD_FLOAT ||
@@ -124,6 +174,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == BOOL_TYPE ||
 	       node->name == BSL ||
 	       node->name == BSR ||
+	       node->name == CASE ||
 	       node->name == CHAR ||
 	       node->name == CHAR_TYPE ||
 	       node->name == CONS ||
@@ -138,6 +189,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == EQ ||
 	       node->name == ESCAPE_CHAR ||
 	       node->name == EXP ||
+	       node->name == EXPRS ||
 	       node->name == FALSE ||
 	       node->name == FLOAT ||
 	       node->name == FLOAT_TYPE ||
@@ -184,6 +236,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == STRING_TYPE ||
 	       node->name == SUB_INT ||
 	       node->name == SUB_FLOAT ||
+	       node->name == SWITCH ||
 	       node->name == TASK_TYPE ||
 	       node->name == TRUE ||
 	       node->name == TUPLE_LITERAL ||
@@ -308,7 +361,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	    }
 	}
 	traverse_children = false;
-    } else if(node->name == BLOCK) {
+    } else if (node->name == BLOCK) {
 	// Assign a type variable
 	type_t* type = type_new_type_variable();
 	node->type = type;
@@ -818,6 +871,23 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		equations_add(equations, &else_block_expr_equation);
 	    }
 	}
+	/*
+    } else if (node->name == SWITCH) {
+	// Extract all nodes constituting the switch expression
+	ast_node_t* switch_expr_node = ast_get_child(node, 0);
+	size_t n = ast_number_of_children(node);
+	for (uint16_t i = 1; i < n; i++) {
+	    ast_node_t* child_node = ast_get_child(node, i);
+	    if (child_node->name == CASE) {
+
+
+
+	    } else {
+		LOG_ASSERT(child_node->name == DEFAULT,
+			   "Expected a DEFAULT node");
+	    }
+	}
+	*/
     } else if (node->name == FUNCTION_DEF) {
         // Extract all nodes constituting the function definition
 	uint16_t i = 0;
@@ -990,20 +1060,25 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    } else if (child_node->name == LIST_UPDATE) {
 		ast_node_t* list_update_node = child_node;
 		// Extract first index-value pair
-		ast_node_t* first_index_value_node = ast_get_child(list_update_node, 0);
+		ast_node_t* first_index_value_node =
+		    ast_get_child(list_update_node, 0);
 		LOG_ASSERT(first_index_value_node->name == INDEX_VALUE,
 			   "Expected a INDEX_VALUE node");
-		ast_node_t* first_index_node = ast_get_child(first_index_value_node, 0);
-		ast_node_t* first_value_node = ast_get_child(first_index_value_node, 1);
+		ast_node_t* first_index_node =
+		    ast_get_child(first_index_value_node, 0);
+		ast_node_t* first_value_node =
+		    ast_get_child(first_index_value_node, 1);
 		// Equation: List literal
 		type_t* type = type_new_list_type(first_value_node->type);
-		equation_t equation = equation_new(list_update_node->type, type, node,
-						   first_index_value_node, false);
+		equation_t equation =
+		    equation_new(list_update_node->type, type, node,
+				 first_index_value_node, false);
 		equations_add(equations, &equation);
                 // Add equations for all index-value pairs
 		size_t n = ast_number_of_children(list_update_node);
 		for (uint16_t i = 0; i < n; i++) {
-		    ast_node_t* index_value_node = ast_get_child(list_update_node, i);
+		    ast_node_t* index_value_node =
+			ast_get_child(list_update_node, i);
 		    LOG_ASSERT(index_value_node->name == INDEX_VALUE,
 			       "Expected a INDEX_VALUE node");
 		    ast_node_t* index_node = ast_get_child(index_value_node, 0);
@@ -1033,8 +1108,9 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		ast_node_t* end_node = ast_get_child(list_slice_node, 1);
 		// Equation: List literal
 		type_t* type = type_new_list_type(end_node->type);
-		equation_t equation = equation_new(list_slice_node->type, type, node,
-						   end_node, false);
+		equation_t equation =
+		    equation_new(list_slice_node->type, type, node, end_node,
+				 false);
 		equations_add(equations, &equation);
 		// Equation: Start equation
 		equation_t start_equation =
@@ -1065,24 +1141,31 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	    } else if (child_node->name == MAP_UPDATE) {
 		ast_node_t* map_update_node = child_node;
                 // Extract first key-value pair
-		ast_node_t* first_map_key_value_node = ast_get_child(map_update_node, 0);
+		ast_node_t* first_map_key_value_node =
+		    ast_get_child(map_update_node, 0);
 		LOG_ASSERT(first_map_key_value_node->name == MAP_KEY_VALUE,
 			   "Expected a MAP_KEY_VALUE node");
-		ast_node_t* first_key_node = ast_get_child(first_map_key_value_node, 0);
-		ast_node_t* first_value_node = ast_get_child(first_map_key_value_node, 1);
+		ast_node_t* first_key_node =
+		    ast_get_child(first_map_key_value_node, 0);
+		ast_node_t* first_value_node =
+		    ast_get_child(first_map_key_value_node, 1);
 		// Equation: Map literal
-		type_t* type = type_new_map_type(first_key_node->type, first_value_node->type);
-		equation_t equation = equation_new(map_update_node->type, type, node,
-						   first_map_key_value_node, false);
+		type_t* type = type_new_map_type(first_key_node->type,
+						 first_value_node->type);
+		equation_t equation =
+		    equation_new(map_update_node->type, type, node,
+				 first_map_key_value_node, false);
 		equations_add(equations, &equation);
                 // Add equations for all key-value pairs
 		size_t n = ast_number_of_children(map_update_node);
 		for (uint16_t i = 0; i < n; i++) {
-		    ast_node_t* map_key_value_node = ast_get_child(map_update_node, i);
+		    ast_node_t* map_key_value_node =
+			ast_get_child(map_update_node, i);
 		    LOG_ASSERT(map_key_value_node->name == MAP_KEY_VALUE,
 			       "Expected a MAP_KEY_VALUE node");
 		    ast_node_t* key_node = ast_get_child(map_key_value_node, 0);
-		    ast_node_t* value_node = ast_get_child(map_key_value_node, 1);
+		    ast_node_t* value_node =
+			ast_get_child(map_key_value_node, 1);
 		    // Equation: Key equation
 		    equation_t key_equation =
 			equation_new(key_node->type, first_key_node->type,

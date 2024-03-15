@@ -6,11 +6,14 @@
       _ Add equations for case + test case + as
 
       _ implement type and alias + type constructors (and _ type wildcard?)
-      _ Add column support in satie.peg
+
       _ Print type error beautifully (Read reserahc paper again)
+
+      _ Add column support in satie.peg
       _ check free malloc in hm.c etc + remove dtor?
-      _ Parse impoert and do remote module type checking (load path)
+      _ Parse import and do remote module type checking (load path)
         : to refer to module for all defs
+
       _ Skip enums, record and tasks for now
 
 
