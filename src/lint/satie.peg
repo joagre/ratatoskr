@@ -254,7 +254,7 @@ IfExpr <- "if" __ e:Expr _ be:BlockExpr { $$ = CN(IF, 2, e, be); }
           (_ "else" _ be:BlockExpr { AC($$, CN(ELSE, 1, be)); })
 
 SwitchExpr <- "switch" __ se:Expr { $$ = CN(SWITCH, 1, se); } _ "{"
-              (_ "case" __ me:Exprs (__ ("as" __ un:UnboundName __ "is" __ t:Type / "is" __ t:Type __ "as" __ un:UnboundName / "is" __ t:Type / "as" __ un:UnboundName))? (__ "when" __ e:Expr { AC($$, CN(WHEN, 1, e)); })? _ "=>" _ b:Block { AC($$, CN(CASE, 4, me, CCN(IS, 1, t), CCN(AS, 1, un), b)); })+
+              (_ "case" __ me:Exprs (__ ("as" __ un:UnboundName __ "is" __ t:Type / "is" __ t:Type __ "as" __ un:UnboundName / "is" __ t:Type / "as" __ un:UnboundName))? (__ "when" __ we:Expr)? _ "=>" _ b:Block { AC($$, CN(CASE, 5, me, CCN(AS, 1, un), CCN(IS, 1, t), CCN(WHEN, 1, we), b)); })+
               (_ "default" _ "=>" _ b:Block { AC($$, CN(DEFAULT, 1, b)); })? _
               "}"
 

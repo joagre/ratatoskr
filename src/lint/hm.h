@@ -8,6 +8,8 @@
 #define CONTEXT_LIST_LOOKUP 0x01
 #define CONTEXT_LIST_SLICE  0x02
 #define CONTEXT_BIND        0x03
+#define CONTEXT_AS          0x04
+#define CONTEXT_CASE        0x05
 
 typedef struct {
     type_t* operand_type;

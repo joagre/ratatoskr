@@ -68,7 +68,23 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 		     error)) {
 	    size_t n = ast_number_of_children(node);
 	    for (uint16_t i = 1; i < n; i++) {
-		if (!is_valid(node, ast_get_child(node, i), flags, error)) {
+		ast_node_t* child_node = ast_get_child(node, i);
+		if (!is_valid(child_node, child_node, flags, error)) {
+		    return false;
+		}
+	    }
+	    CLEAR_ERROR(error);
+	    return true;
+	} else {
+	    return false;
+	}
+    } else if (node->name == CASE) {
+	if (is_valid(node, ast_get_child(node, 0), SET_BIT(flags, CONTEXT_CASE),
+		     error)) {
+	    size_t n = ast_number_of_children(node);
+	    for (uint16_t i = 1; i < n; i++) {
+		ast_node_t* child_node = ast_get_child(node, i);
+		if (!is_valid(child_node, child_node, flags, error)) {
 		    return false;
 		}
 	    }
@@ -99,8 +115,13 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 	}
 	CLEAR_ERROR(error);
 	return true;
+    } else if (node->name == AS) {
+	return is_valid(node, ast_get_child(node, 0),
+			SET_BIT(flags, CONTEXT_AS), error);
     } else if (node->name == UNBOUND_NAME) {
-	if (IS_BIT_SET(flags, CONTEXT_BIND) == 0) {
+	if (!(IS_BIT_SET(flags, CONTEXT_BIND) != 0 ||
+	      IS_BIT_SET(flags, CONTEXT_AS) != 0 ||
+	      IS_BIT_SET(flags, CONTEXT_CASE) != 0)) {
 	    SET_ERROR_MESSAGE(
 		error, COMPONENT_COMPILER,
 		"%d: The name name '%s' cannot be bound here", node->row,
@@ -153,6 +174,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
     if (node->name == AS ||
 	node->name == ARGS ||
 	node->name == ARG_TYPES ||
+	node->name == CASE ||
 	node->name == DEFAULT ||
 	node->name == ELIF ||
 	node->name == ELSE ||
@@ -163,8 +185,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	node->name == PARAMS ||
 	node->name == PROGRAM ||
 	node->name == TOP_LEVEL_DEFS ||
-	node->name == TYPE ||
-	node->name == WHEN) {
+	node->name == TYPE) {
 	// Do not assign a type variable
     } else if (node->name == ADD_INT ||
 	       node->name == ADD_FLOAT ||
@@ -174,7 +195,6 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == BOOL_TYPE ||
 	       node->name == BSL ||
 	       node->name == BSR ||
-	       node->name == CASE ||
 	       node->name == CHAR ||
 	       node->name == CHAR_TYPE ||
 	       node->name == CONS ||
@@ -240,7 +260,8 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == TASK_TYPE ||
 	       node->name == TRUE ||
 	       node->name == TUPLE_LITERAL ||
-	       node->name == TUPLE_TYPE) {
+	       node->name == TUPLE_TYPE ||
+	       node->name == WHEN) {
 	// Assign a type variable
 	type_t* type = type_new_type_variable();
 	node->type = type;
@@ -414,12 +435,15 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == ARG_TYPES ||
 	node->name == AS ||
 	node->name == BOOL_TYPE ||
+	node->name == CASE ||
 	node->name == CHAR_TYPE ||
+	node->name == DEFAULT ||
 	node->name == ELIF ||
 	node->name == ELSE ||
 	node->name == ESCAPE_CHAR ||
 	node->name == EQ_TYPE ||
 	node->name == EXPORT ||
+	node->name == EXPRS ||
 	node->name == FLOAT_TYPE ||
 	node->name == FUNCTION_CALL ||
 	node->name == FUNCTION_NAME ||
@@ -443,7 +467,8 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == TASK_TYPE ||
 	node->name == TOP_LEVEL_DEFS ||
 	node->name == TUPLE_TYPE ||
-	node->name == UNBOUND_NAME) {
+	node->name == UNBOUND_NAME ||
+	node->name == WHEN) {
 	// Do not create an equation
     } else if (node->name == TYPE) {
 	// Equation: Type
@@ -871,23 +896,98 @@ static void create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		equations_add(equations, &else_block_expr_equation);
 	    }
 	}
-	/*
     } else if (node->name == SWITCH) {
-	// Extract all nodes constituting the switch expression
 	ast_node_t* switch_expr_node = ast_get_child(node, 0);
+	type_t* switch_expr_type = switch_expr_node->type;
+	type_t* first_branch_block_type = NULL;
+	// Go through all branches. The is and as constructs must
+	// adhere to the type of the switch expression
 	size_t n = ast_number_of_children(node);
 	for (uint16_t i = 1; i < n; i++) {
 	    ast_node_t* child_node = ast_get_child(node, i);
 	    if (child_node->name == CASE) {
-
-
-
+		// Extract all nodes constituting a case
+		size_t index = 0;
+		ast_node_t* case_node = child_node;
+		ast_node_t* case_match_exprs_node = ast_get_child(case_node, index);
+		ast_node_t* as_node = NULL;
+		ast_node_t* is_node = NULL;
+		ast_node_t* block_node;
+		child_node = ast_get_child(case_node, index + 1);
+		if (child_node->name == AS) {
+		    as_node = child_node;
+		    child_node = ast_get_child(case_node, index + 2);
+		    if (child_node->name == IS) {
+			is_node = child_node;
+			block_node = ast_get_child(case_node, index + 3);
+		    } else {
+			block_node = child_node;
+		    }
+		} else if (child_node->name == IS) {
+		    is_node = child_node;
+		    block_node = ast_get_child(case_node, index + 2);
+		} else {
+		    block_node = child_node;
+		}
+		// All case match expressions must adhere to the type
+		// of the switch expression
+		size_t n = ast_number_of_children(case_match_exprs_node);
+		for (uint16_t j = 0; j < n; j++) {
+		    ast_node_t* match_expr_node =
+			ast_get_child(case_match_exprs_node, j);
+		    // Equation: Case match expression
+		    equation_t match_expr_equation =
+			equation_new(switch_expr_type, match_expr_node->type,
+				     node, match_expr_node, false);
+		    equations_add(equations, &match_expr_equation);
+		}
+                // All branch blocks must be of same type
+		if (first_branch_block_type == NULL) {
+		    first_branch_block_type = block_node->type;
+		} else {
+		    // Equation: Branch block
+		    equation_t block_equation =
+			equation_new(block_node->type, first_branch_block_type,
+				     node, block_node, false);
+		    equations_add(equations, &block_equation);
+		}
+		// The as construct must adhere to the type of the
+		// switch expression
+		if (as_node != NULL) {
+		    ast_node_t* unbound_name_node = ast_get_child(as_node, 0);
+		    // Equation: as construct
+		    equation_t as_equation =
+			equation_new(unbound_name_node->type,
+				     switch_expr_type, node, unbound_name_node,
+				     true);
+		    equations_add(equations, &as_equation);
+		}
+		// The is construct must adhere to the type of the
+		// switch expression
+		if (is_node != NULL) {
+		    ast_node_t* type_node = ast_get_child(is_node, 0);
+		    // Equation: is construct
+		    equation_t is_equation =
+			equation_new(type_node->type, switch_expr_type, node,
+				     type_node, false);
+		    equations_add(equations, &is_equation);
+		}
 	    } else {
-		LOG_ASSERT(child_node->name == DEFAULT,
-			   "Expected a DEFAULT node");
+		ast_node_t* default_node = child_node;
+		ast_node_t* block_node = ast_get_child(default_node, 0);
+                // Equation: Default block
+		equation_t block_equation =
+		    equation_new(block_node->type, first_branch_block_type,
+				 node, block_node, false);
+		equations_add(equations, &block_equation);
 	    }
 	}
-	*/
+        // Equation: Switch expression
+	equation_t switch_equation =
+	    equation_new(node->type,
+			 first_branch_block_type, node, switch_expr_node,
+			 false);
+	equations_add(equations, &switch_equation);
     } else if (node->name == FUNCTION_DEF) {
         // Extract all nodes constituting the function definition
 	uint16_t i = 0;
