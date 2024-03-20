@@ -1,5 +1,5 @@
-#ifndef __STATIC_DATA_MAP_H__
-#define __STATIC_DATA_MAP_H__
+#ifndef SA_STATIC_DATA_MAP_H
+#define SA_STATIC_DATA_MAP_H
 
 #include <lhash_kv.h>
 #include "vm.h"

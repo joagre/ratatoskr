@@ -1,5 +1,5 @@
-#ifndef __COMPILER_H__
-#define __COMPILER_H__
+#ifndef SAC_COMPILER_H
+#define SAC_COMPILER_H
 
 #include <satie_error.h>
 #include <stdint.h>

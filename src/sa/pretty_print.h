@@ -1,5 +1,5 @@
-#ifndef __PRETTY_PRINT_H__
-#define __PRETTY_PRINT_H__
+#ifndef SA_PRETTY_PRINT_H
+#define SA_PRETTY_PRINT_H
 
 #include <stdint.h>
 #include "static_data.h"

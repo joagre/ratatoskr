@@ -1,5 +1,5 @@
-#ifndef __CALL_STACK_H__
-#define __CALL_STACK_H__
+#ifndef SA_CALL_STACK_H
+#define SA_CALL_STACK_H
 
 #include <dynarr.h>
 #include "vm.h"

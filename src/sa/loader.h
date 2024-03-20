@@ -1,5 +1,5 @@
-#ifndef __LOADER_H__
-#define __LOADER_H__
+#ifndef SA_LOADER_H
+#define SA_LOADER_H
 
 #include <stdint.h>
 #include <stdio.h>

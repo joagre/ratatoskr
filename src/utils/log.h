@@ -1,5 +1,5 @@
-#ifndef __LOG_H__
-#define __LOG_H__
+#ifndef UTILS_LOG_H
+#define UTILS_LOG_H
 
 #include <stdbool.h>
 #include <stdint.h>

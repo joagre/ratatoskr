@@ -1,5 +1,5 @@
-#ifndef __STATIC_DATA_H__
-#define __STATIC_DATA_H__
+#ifndef SA_STATIC_DATA_H
+#define SA_STATIC_DATA_H
 
 #include <stdint.h>
 #include <dynarr.h>

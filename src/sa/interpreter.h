@@ -1,5 +1,5 @@
-#ifndef __INTERPRETER_H__
-#define __INTERPRETER_H__
+#ifndef SA_INTERPRETER_H
+#define SA_INTERPRETER_H
 
 #include <time.h>
 #include <stdint.h>

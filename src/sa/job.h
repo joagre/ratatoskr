@@ -1,5 +1,5 @@
-#ifndef __JOB_H__
-#define __JOB_H__
+#ifndef SA_JOB_H
+#define SA_JOB_H
 
 #include <stdint.h>
 #include "vm.h"

@@ -1,5 +1,5 @@
-#ifndef __INSTRUCTIONS_H__
-#define __INSTRUCTIONS_H__
+#ifndef SA_INSTRUCTIONS_H
+#define SA_INSTRUCTIONS_H
 
 #include "loader.h"
 

@@ -1,5 +1,5 @@
-#ifndef __MODULE_H__
-#define __MODULE_H__
+#ifndef SA_MODULE_H
+#define SA_MODULE_H
 
 #include <lhash_kv.h>
 #include "vm.h"

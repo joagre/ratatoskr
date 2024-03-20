@@ -1,5 +1,5 @@
-#ifndef __VM_H__
-#define __VM_H__
+#ifndef SA_VM_H
+#define SA_VM_H
 
 #include <stdint.h>
 #include "satie_error.h"

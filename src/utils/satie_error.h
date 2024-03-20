@@ -1,5 +1,5 @@
-#ifndef __SATIE_H__
-#define __SATIE_H__
+#ifndef UTILS_SATIE_H
+#define UTILS_SATIE_H
 
 #include <stdbool.h>
 #include <stdio.h>

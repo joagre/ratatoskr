@@ -1,5 +1,5 @@
-#ifndef __SCHEDULER_H__
-#define __SCHEDULER_H__
+#ifndef SA_SCHEDULER_H
+#define SA_SCHEDULER_H
 
 #include <stdint.h>
 #include <satie_error.h>

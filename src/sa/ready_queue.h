@@ -1,5 +1,5 @@
-#ifndef __READY_QUEUE_H__
-#define __READY_QUEUE_H__
+#ifndef SA_READY_QUEUE_H
+#define SA_READY_QUEUE_H
 
 #include <dlist.h>
 #include "job.h"
