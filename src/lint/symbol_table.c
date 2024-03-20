@@ -4,33 +4,17 @@
 #include <assert.h>
 #include "symbol_table.h"
 
-// clib allocator
-static allocator_t allocator;
-
 // Forward declarations of local functions (alphabetical order)
-static void dtor(void* ptr);
 static int key_cmp(void* key, hlink_t* link, void* arg);
 static size_t key_hash(void* key, void*);
 
 symbol_table_t* symbol_table_new(void) {
     symbol_table_t* table = malloc(sizeof(symbol_table_t));
-    symbol_table_init(table);
-    return table;
-}
-
-void symbol_table_init(symbol_table_t* table) {
-    allocator = std_allocator;
-    allocator.dtor = dtor;
-    lhash_kv_init(table, &allocator, key_hash, key_cmp);
-}
+    lhash_kv_init(table, NULL, key_hash, key_cmp);
 
 void symbol_table_free(symbol_table_t* table) {
-    symbol_table_clear(table);
-    free(table);
-}
-
-void symbol_table_clear(symbol_table_t* table) {
     lhash_kv_clear(table);
+    free(table);
 }
 
 type_variable_t symbole_table_next_variable(symbol_table_t* table) {
@@ -101,13 +85,6 @@ void symbol_table_print(symbol_table_t* table) {
 //
 // Local functions (alphabetical order)
 //
-
-static void dtor(void* ptr) {
-    hlink_kv_t* link_kv = (hlink_kv_t*)ptr;
-    if (link_kv->data != NULL) {
-        free(link_kv->data);
-    }
-}
 
 static int key_cmp(void* key, hlink_t* link, void* arg) {
     hlink_kv_t* link_kv	= (hlink_kv_t*)link;
