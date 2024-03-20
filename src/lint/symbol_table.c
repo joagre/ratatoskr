@@ -11,15 +11,12 @@ static size_t key_hash(void* key, void*);
 symbol_table_t* symbol_table_new(void) {
     symbol_table_t* table = malloc(sizeof(symbol_table_t));
     lhash_kv_init(table, NULL, key_hash, key_cmp);
+    return table;
+}
 
 void symbol_table_free(symbol_table_t* table) {
     lhash_kv_clear(table);
     free(table);
-}
-
-type_variable_t symbole_table_next_variable(symbol_table_t* table) {
-    static uint32_t counter = 0;
-    return counter++;
 }
 
 void symbol_table_insert(symbol_table_t* table, char* name, type_t* type) {
@@ -105,15 +102,14 @@ static size_t key_hash(void* key, void* arg) {
 //
 
 void symbol_table_unit_test(void) {
-    symbol_table_t table;
-    symbol_table_init(&table);
+    symbol_table_t* table = symbol_table_new();
     type_t* type1 = type_new_basic_type(TYPE_BASIC_TYPE_INT);
-    symbol_table_insert(&table, "int", type1);
+    symbol_table_insert(table, "int", type1);
     type_t* type2 = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
-    symbol_table_insert(&table, "bool", type2);
+    symbol_table_insert(table, "bool", type2);
     type_t* type3 = type_new_type_variable();
-    symbol_table_insert(&table, "bar", type3);
-    type_t* type = symbol_table_lookup(&table, "int");
+    symbol_table_insert(table, "bar", type3);
+    type_t* type = symbol_table_lookup(table, "int");
     LOG_ASSERT(type->tag == TYPE_TAG_BASIC_TYPE, "Wrong type");
     LOG_INFO("Unit test passed");
 }
