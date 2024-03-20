@@ -1,9 +1,9 @@
 #ifndef LINT_TYPE_H
 #define LINT_TYPE_H
 
-// Defines types_t (based on dynarray_t) to avoid including types.h
-// which would lead to cyclic dependencies.
-#include "dynarr.h" // Include to define dynarray_t before typedef
+// types_t is defined here instead of being included from
+// types.h. Including types.h would lead to a cyclic dependency.
+#include "dynarr.h"
 typedef dynarray_t types_t;
 
 typedef enum {
@@ -75,6 +75,8 @@ type_t* type_new_tuple_type(types_t* tuple_types);
 type_t* type_new_empty_tuple_type(void);
 
 type_t* type_new_type_variable(void);
+
+void type_free(type_t* type);
 
 char* type_basic_type_to_string(type_basic_type_t basic_type);
 type_basic_type_t type_string_to_basic_type(const char* string);

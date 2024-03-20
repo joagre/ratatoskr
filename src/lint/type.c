@@ -76,6 +76,10 @@ type_t* type_new_type_variable(void) {
     return type;
 }
 
+void type_free(type_t* type) {
+    free(type);
+}
+
 char* type_basic_type_to_string(type_basic_type_t basic_type) {
     switch (basic_type) {
 	case TYPE_BASIC_TYPE_BOOL:
@@ -143,7 +147,7 @@ void type_print_type(type_t* type) {
 	    printf("{constructor, %s, [", type->constructor_type.name);
 	    for (size_t i = 0; i < type->constructor_type.types->size; i++) {
 		type_t* constructor_type =
-		    types_lookup(type->constructor_type.types, i);
+		    types_get(type->constructor_type.types, i);
 		type_print_type(constructor_type);
 		if (i < type->constructor_type.types->size - 1) {
 		    printf(", ");
@@ -156,7 +160,7 @@ void type_print_type(type_t* type) {
 	    printf("[");
 	    for (size_t i = 0; i < type->function_type.arg_types->size; i++) {
 		type_t* arg_type =
-		    types_lookup(type->function_type.arg_types, i);
+		    types_get(type->function_type.arg_types, i);
 		type_print_type(arg_type);
 		if (i < type->function_type.arg_types->size - 1) {
 		    printf(", ");
@@ -188,7 +192,7 @@ void type_print_type(type_t* type) {
 	    printf("{tuple, [");
 	    for (size_t i = 0; i < type->tuple_types->size; i++) {
 		type_t* tuple_type =
-		    types_lookup(type->tuple_types, i);
+		    types_get(type->tuple_types, i);
 		type_print_type(tuple_type);
 		if (i < type->tuple_types->size - 1) {
 		    printf(", ");
@@ -209,7 +213,7 @@ void type_print_type(type_t* type) {
 }
 
 //
-// Local functions (alphabetical order)
+// Local functions
 //
 
 static type_variable_t next_type_variable(void) {
