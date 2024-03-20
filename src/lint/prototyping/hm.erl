@@ -21,7 +21,7 @@ simple_test() ->
 
 test_all() ->
     simple_test(),
-    Ignore = ["test_switch.sa", "test_constructor.sa", "test_enum.sa"],
+    Ignore = ["test_constructor.sa", "test_enum.sa"],
     case file:list_dir("../../../examples/sa") of
         {ok, Files} ->
             lists:foreach(
@@ -32,8 +32,10 @@ test_all() ->
                           false ->
                               case filename:extension(Filename) of
                                   ".sa" ->
-                                      FullPath = "../../../examples/sa/" ++ Filename,
-                                      io:format("**** Testing ~s\n", [FullPath]),
+                                      FullPath =
+                                          "../../../examples/sa/" ++ Filename,
+                                      io:format("**** Testing ~s\n",
+                                                [FullPath]),
                                       ok = start_test(FullPath);
                                   _ ->
                                       ignore

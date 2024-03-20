@@ -4,11 +4,18 @@ export fn main(_) {
 
 fn zonk(a is (Int, Int)) -> (Int, (Int, Int)) {
     switch a {
-        case (?a, 4711) as ?b =>
+        case (?a, 4713) as ?b =>
             (a, b)
         case (?a, 4711), (?a, 4712) as ?b is (Int, Int) when a == 42 =>
             (a, b)
         default =>
             (0, (0, 0))
     }
+}
+
+fn baz(a) {
+   switch a {
+        case (?b, ?c, 3), (?c, ?b, 1) =>
+            b
+   }
 }

@@ -11,6 +11,8 @@
 #define CONTEXT_AS          0x04
 #define CONTEXT_CASE        0x05
 
+#define MAX_UNBOUND_NAMES   128
+
 typedef struct {
     type_t* operand_type;
     type_t* return_type;

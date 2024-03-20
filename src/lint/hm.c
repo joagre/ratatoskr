@@ -9,19 +9,26 @@
 #include "equations.h"
 #include "symbol_table.h"
 #include "symbol_tables.h"
+#include "unbound_names_list.h"
 
 // Forward declarations of local functions
+static uint32_t unique_id(void);
+
 static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 		     satie_error_t* error);
+static bool is_valid_match_exprs(ast_node_t* exprs_node, satie_error_t* error);
+static void collect_unbound_names(ast_node_t* node, unbound_names_t* names);
+
 static void forward_declare_function_definitions(ast_node_t* node,
 						 symbol_tables_t* tables);
+
 static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 				  uint32_t block_expr_id, satie_error_t* error);
+
 static void create_type_equations(ast_node_t* node, symbol_tables_t* tables,
 				  equations_t* equations);
-static operator_types_t get_operator_types(node_name_t name);
 static type_t* extract_type(ast_node_t* type_node);
-static uint32_t unique_id(void);
+static operator_types_t get_operator_types(node_name_t name);
 
 bool hm_infer_types(ast_node_t* node, satie_error_t* error) {
     // Check if tree is semantically valid
@@ -54,22 +61,32 @@ bool hm_infer_types(ast_node_t* node, satie_error_t* error) {
 // Local functions
 //
 
+static uint32_t unique_id(void) {
+    static uint32_t id = 0;
+    return id++;
+}
+
 static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 		     satie_error_t* error) {
     if (node->name == BIND &&
 	parent_node != NULL && parent_node->name != BLOCK) {
+	// Make sure that bind expressions aren't used deep within expressions
 	SET_ERROR_MESSAGE(
 	    error, COMPONENT_COMPILER,
-	    "%d: The := operator is only allowed as a top-level expression",
+	    "%d: The := operator is not allowed deep within expressions",
 	    node->row);
 	return false;
     } else if (node->name == BIND) {
-	if (is_valid(node, ast_get_child(node, 0), SET_BIT(flags, CONTEXT_BIND),
+	// Make sure that unbound names only are used to the left in
+	// bind expressions. The actual check is done in the
+	// UNBOUND_NAME check below.
+	ast_node_t *left_node = ast_get_child(node, 0);
+	if (is_valid(node, left_node, SET_BIT(flags, CONTEXT_BIND),
 		     error)) {
 	    size_t n = ast_number_of_children(node);
 	    for (uint16_t i = 1; i < n; i++) {
 		ast_node_t* child_node = ast_get_child(node, i);
-		if (!is_valid(child_node, child_node, flags, error)) {
+		if (!is_valid(node, child_node, flags, error)) {
 		    return false;
 		}
 	    }
@@ -79,12 +96,21 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 	    return false;
 	}
     } else if (node->name == CASE) {
-	if (is_valid(node, ast_get_child(node, 0), SET_BIT(flags, CONTEXT_CASE),
+	// Make sure that unbound names only are used in match expressions
+	ast_node_t* match_exprs_node = ast_get_child(node, 0);
+	if (is_valid(node, match_exprs_node, SET_BIT(flags, CONTEXT_CASE),
 		     error)) {
+	    // Make sure that unbound names occur in all match
+	    // expressions (if more than one)
+	    if (ast_number_of_children(match_exprs_node) > 1 &&
+		!is_valid_match_exprs(match_exprs_node, error)) {
+		return false;
+	    }
+	    // Validate all other children
 	    size_t n = ast_number_of_children(node);
 	    for (uint16_t i = 1; i < n; i++) {
 		ast_node_t* child_node = ast_get_child(node, i);
-		if (!is_valid(child_node, child_node, flags, error)) {
+		if (!is_valid(node, child_node, flags, error)) {
 		    return false;
 		}
 	    }
@@ -94,9 +120,11 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 	    return false;
 	}
     } else if (node->name == LIST_LOOKUP) {
-	return is_valid(parent_node, ast_get_child(node, 0),
+	// Make sure that $ expressions only are allowed in list lookup/slices
+	return is_valid(node, ast_get_child(node, 0),
 			SET_BIT(flags, CONTEXT_LIST_LOOKUP), error);
     } else if (node->name == LIST_SLICE) {
+	// Make sure that $ expressions only are allowed in list lookup/slices
 	if (is_valid(node, ast_get_child(node, 0),
 		     SET_BIT(flags, CONTEXT_LIST_SLICE), error)) {
 	    return is_valid(node, ast_get_child(node, 1),
@@ -105,31 +133,51 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 	    return false;
 	}
     } else if (node->name == SLICE_LENGTH) {
-	if (!(IS_BIT_SET(flags, CONTEXT_LIST_SLICE) != 0 ||
-	      IS_BIT_SET(flags, CONTEXT_LIST_LOOKUP) != 0)) {
+	// Make sure that $ expressions only are allowed in certain situations
+	if (IS_BIT_SET(flags, CONTEXT_LIST_SLICE) != 0 ||
+	    IS_BIT_SET(flags, CONTEXT_LIST_LOOKUP) != 0) {
+	    CLEAR_ERROR(error);
+	    return true;
+	} else {
 	    SET_ERROR_MESSAGE(
 		error, COMPONENT_COMPILER,
-		"%d: The $ operator is only allowed in list lookups and slices",
+		"%d: The $ operator is only allowed in list lookups and list "
+		"slices",
 		node->row);
 	    return false;
 	}
-	CLEAR_ERROR(error);
-	return true;
     } else if (node->name == AS) {
 	return is_valid(node, ast_get_child(node, 0),
 			SET_BIT(flags, CONTEXT_AS), error);
     } else if (node->name == UNBOUND_NAME) {
-	if (!(IS_BIT_SET(flags, CONTEXT_BIND) != 0 ||
-	      IS_BIT_SET(flags, CONTEXT_AS) != 0 ||
-	      IS_BIT_SET(flags, CONTEXT_CASE) != 0)) {
-	    SET_ERROR_MESSAGE(
-		error, COMPONENT_COMPILER,
-		"%d: The name name '%s' cannot be bound here", node->row,
-		node->value);
-	    return false;
-	} else {
+	// Make sure that unbound names are allowed only in certain locations
+	if (IS_BIT_SET(flags, CONTEXT_AS) != 0) {
+	    // Unbound names are allowed in 'as' constructs
 	    CLEAR_ERROR(error);
 	    return true;
+	} else if (IS_BIT_SET(flags, CONTEXT_BIND) != 0 ||
+		   IS_BIT_SET(flags, CONTEXT_CASE) != 0) {
+	    // Unbound names are only allowed their own or in
+	    // composite literals
+	    if(parent_node->name == BIND ||
+	       parent_node->name == TUPLE_LITERAL) {
+		CLEAR_ERROR(error);
+		return true;
+	    } else {
+		fprintf(stderr, "parent_node->name: %s\n",
+			ast_node_name_to_string(parent_node->name));
+		SET_ERROR_MESSAGE(
+		    error, COMPONENT_COMPILER,
+		    "%d: The unbound name '%s' is only allowed on its own or "
+		    "in composite literals", node->row, node->value);
+		return false;
+	    }
+	} else {
+	    SET_ERROR_MESSAGE(
+		error, COMPONENT_COMPILER,
+		"%d: The unbound name '%s' is not allowed here", node->row,
+		node->value);
+	    return false;
 	}
     }
 
@@ -145,6 +193,59 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 
     CLEAR_ERROR(error);
     return true;
+}
+
+static bool is_valid_match_exprs(ast_node_t* exprs_node, satie_error_t* error) {
+    unbound_names_list_t list;
+    unbound_names_list_init(&list);
+    // Collect all unbound names in all expressions
+    size_t n = ast_number_of_children(exprs_node);
+    for (uint16_t i = 0; i < n; i++) {
+	ast_node_t* expr_node = ast_get_child(exprs_node, i);
+	unbound_names_t* names = unbound_names_new();
+	collect_unbound_names(expr_node, names);
+	unbound_names_list_append(&list, names);
+    }
+    // Verify that any unbound name is represented in all expressions
+    for (uint16_t i = 0; i < n; i++) {
+	unbound_names_t* names = unbound_names_list_get(&list, i);
+	uint16_t k = unbound_names_size(names);
+	for (uint16_t j = 0; j < k; j++) {
+	    for (uint16_t l = 0; l < n; l++) {
+		if (l == i) {
+		    continue;
+		}
+		char* name = unbound_names_get(names, j);
+		unbound_names_t* names_to_be_checked =
+		    unbound_names_list_get(&list, l);
+		if (!unbound_names_member(names_to_be_checked, name)) {
+		    SET_ERROR_MESSAGE(
+			error, COMPONENT_COMPILER,
+			"%d: The unbound name ?%s must occur in all case "
+			"expressions", exprs_node->row, name);
+		    return false;
+		}
+	    }
+	}
+    }
+    unbound_names_list_clear(&list);
+    CLEAR_ERROR(error);
+    return true;
+}
+
+static void collect_unbound_names(ast_node_t* node, unbound_names_t* names) {
+    if (node->name == UNBOUND_NAME) {
+	unbound_names_append(names, node->value);
+    } else if (node->name == TUPLE_LITERAL ||
+	       node->name == LIST_LITERAL) {
+	uint16_t n = ast_number_of_children(node);
+	for (uint16_t i = 0; i < n; i++) {
+	    collect_unbound_names(ast_get_child(node, i), names);
+	}
+    } else if (node->name == MAP_LITERAL ||
+	       node->name == CONSTRUCTOR_LITERAL) {
+	LOG_PANIC("Not implemented yet");
+    }
 }
 
 static void forward_declare_function_definitions(ast_node_t* node,
@@ -1452,9 +1553,4 @@ static operator_types_t get_operator_types(node_name_t name) {
 	    assert(false);
     }
     assert(false);
-}
-
-static uint32_t unique_id(void) {
-    static uint32_t id = 0;
-    return id++;
 }
