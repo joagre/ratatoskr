@@ -1,5 +1,5 @@
-#ifndef __SYMBOL_TABLE_H__
-#define __SYMBOL_TABLE_H__
+#ifndef LINT_SYMBOL_TABLE_H
+#define LINT_SYMBOL_TABLE_H
 
 #include <lhash_kv.h>
 #include "type.h"

@@ -1,8 +1,9 @@
-#ifndef __TYPE_H__
-#define __TYPE_H__
+#ifndef LINT_TYPE_H
+#define LINT_TYPE_H
 
-#include "dynarr.h"
-
+// Defines types_t (based on dynarray_t) to avoid including types.h
+// which would lead to cyclic dependencies.
+#include "dynarr.h" // Include to define dynarray_t before typedef
 typedef dynarray_t types_t;
 
 typedef enum {
@@ -59,14 +60,20 @@ typedef struct type {
 } type_t;
 
 type_t* type_new_basic_type(type_basic_type_t basic_type);
+
 type_t* type_new_constructor_type(char* name, types_t* types);
+
 type_t* type_new_function_type(types_t* arg_types, type_t* return_type);
+
 type_t* type_new_list_type(type_t* list_type);
 type_t* type_new_empty_list_type(void);
+
 type_t* type_new_map_type(type_t* key_type, type_t* value_type);
 type_t* type_new_empty_map_type(void);
+
 type_t* type_new_tuple_type(types_t* tuple_types);
 type_t* type_new_empty_tuple_type(void);
+
 type_t* type_new_type_variable(void);
 
 char* type_basic_type_to_string(type_basic_type_t basic_type);

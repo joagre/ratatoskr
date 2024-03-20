@@ -3,7 +3,8 @@
 ## Version 0.1
 
 * [x] Dive into Hindley-Milner type inference
-      _ Add equations for case + test case + as
+      _ cleanup use of clib
+
 
       _ implement type and alias + type constructors (and _ type wildcard?)
 

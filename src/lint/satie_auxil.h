@@ -1,5 +1,5 @@
-#ifndef __SATIE_AUXIL_H__
-#define __SATIE_AUXIL_H__
+#ifndef LINT_SATIE_AUXIL_H
+#define LINT_SATIE_AUXIL_H
 
 #include <stdint.h>
 #include <stdarg.h>

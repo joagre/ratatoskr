@@ -1,5 +1,5 @@
-#ifndef __SYMBOL_TABLES_H__
-#define __SYMBOL_TABLES_H__
+#ifndef LINT_SYMBOL_TABLES_H
+#define LINT_SYMBOL_TABLES_H
 
 #include <dynarr.h>
 #include "symbol_table.h"

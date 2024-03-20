@@ -1,5 +1,5 @@
-#ifndef __EQUATION_H__
-#define __EQUATION_H__
+#ifndef LINT_EQUATION_H
+#define LINT_EQUATION_H
 
 #include <stdbool.h>
 #include "type.h"

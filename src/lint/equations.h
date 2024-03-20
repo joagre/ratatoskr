@@ -1,5 +1,5 @@
-#ifndef __EQUATIONS_H__
-#define __EQUATIONS_H__
+#ifndef LINT_EQUATIONS_H
+#define LINT_EQUATIONS_H
 
 #include <dynarr.h>
 #include "equation.h"

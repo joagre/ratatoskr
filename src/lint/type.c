@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "types.h"
 
-// Forward declarations of local functions (alphabetical order)
+// Forward declarations of local functions
 static type_variable_t next_type_variable(void);
 
 type_t* type_new_basic_type(type_basic_type_t basic_type) {

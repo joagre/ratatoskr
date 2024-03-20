@@ -1,5 +1,5 @@
-#ifndef __UNBOUND_NAMES_LIST_H__
-#define __UNBOUND_NAMES_LIST_H__
+#ifndef LINT_UNBOUND_NAMES_LIST_H
+#define LINT_UNBOUND_NAMES_LIST_H
 
 #include <dynarr.h>
 #include "unbound_names.h"

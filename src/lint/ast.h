@@ -1,5 +1,5 @@
-#ifndef __AST_H__
-#define __AST_H__
+#ifndef LINT_AST_H
+#define LINT_AST_H
 
 #include <stdio.h>
 #include <dynarr.h>
