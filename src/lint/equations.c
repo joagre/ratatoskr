@@ -12,7 +12,7 @@ void equations_append(equations_t* equations, equation_t* equation) {
     dynarray_append(equations, equation);
 }
 
-equation_t* equations_get(equations_t* equations, size_t i) {
+equation_t* equations_get(equations_t* equations, uint16_t i) {
     return dynarray_element(equations, i);
 }
 

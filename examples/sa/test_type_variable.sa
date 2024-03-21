@@ -1,0 +1,15 @@
+fn foo<$t>(x is $t, baz is ($t -> Bool)) -> Bool {
+    baz(x)
+}
+
+/*
+fn foo2(x, baz) {
+    baz(x)
+}
+
+fn bar() {
+    true := foo(42, fn (x) { x == 42 }),
+    true := foo<Int>(42, fn (x) { x == 42 }),
+    true := foo2(42, fn (x) { x == 42 })
+}
+*/

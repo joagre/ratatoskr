@@ -31,7 +31,7 @@ record Queue<$t> {
 }
 
 export fn main(_args) {
-    ?a :<= Queue(:),
+    ?a := Queue(:),
     ?a := a.enqueue(4711),
     This<4711> := b.hd(),
     ?b := Queue(:),

@@ -12,9 +12,9 @@ void symbol_tables_clear(symbol_tables_t* tables) {
 }
 
 type_t* symbol_tables_lookup(symbol_tables_t* tables, char* name) {
-    size_t n = dynarray_size(tables);
+    uint16_t n = dynarray_size(tables);
     LOG_ASSERT(n > 0, "There is no symbol table available");
-    size_t i = n - 1;
+    uint16_t i = n - 1;
     do {
 	symbol_tables_entry_t* entry = dynarray_element(tables, i);
 	type_t* type = symbol_table_lookup(entry->table, name);
@@ -34,14 +34,14 @@ void symbol_tables_insert_table(symbol_tables_t* tables, symbol_table_t* table,
 }
 
 void symbol_tables_insert(symbol_tables_t* tables, char* name, type_t* type) {
-    size_t n = dynarray_size(tables);
+    uint16_t n = dynarray_size(tables);
     LOG_ASSERT(n > 0, "There is no symbol table available");
     symbol_tables_entry_t* entry = dynarray_element(tables, n - 1);
     symbol_table_insert(entry->table, name, type);
 }
 
 void symbol_tables_delete_by_id(symbol_tables_t* tables, uint32_t id) {
-    size_t n = dynarray_size(tables);
+    uint16_t n = dynarray_size(tables);
     while (n-- > 0) {
 	symbol_tables_entry_t* entry = dynarray_element(tables, n);
 	dynarray_delete(tables, n);
@@ -52,9 +52,9 @@ void symbol_tables_delete_by_id(symbol_tables_t* tables, uint32_t id) {
 }
 
 void symbol_tables_hoist(symbol_tables_t* tables, char* name) {
-    size_t n = dynarray_size(tables);
+    uint16_t n = dynarray_size(tables);
     LOG_ASSERT(n > 1, "There is no symbol table available for hoisting");
-    size_t i = n - 1;
+    uint16_t i = n - 1;
     do {
 	symbol_tables_entry_t* entry = dynarray_element(tables, i);
 	type_t* type = symbol_table_lookup(entry->table, name);
@@ -73,9 +73,9 @@ void symbol_tables_hoist(symbol_tables_t* tables, char* name) {
 }
 
 void symbol_tables_print(symbol_tables_t* tables) {
-    size_t n = dynarray_size(tables);
+    uint16_t n = dynarray_size(tables);
     printf("====\n");
-    for (size_t i = 0; i < n; i++) {
+    for (uint16_t i = 0; i < n; i++) {
 	symbol_tables_entry_t* entry = dynarray_element(tables, i);
 	printf("== %d\n", entry->id);
 	symbol_table_print(entry->table);

@@ -1,8 +1,8 @@
 fn slow() {
     ?b := true,
     ?f0 := fn (x) {x + 1},
-    ?f0 := fn (x) {if b {f0} else {fn (y) {x(y)}}},
-    ?f0 := fn (x) {if b {f0} else {fn (y) {x(y)}}}
+    ?f1 := fn (x) {if b {f0} else {fn (y) {x(y)}}},
+    ?f2 := fn (x) {if b {f1} else {fn (y) {x(y)}}}
 }
 
 /*

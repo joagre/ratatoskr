@@ -145,7 +145,7 @@ void type_print_type(type_t* type) {
 	    break;
 	case TYPE_TAG_CONSTRUCTOR_TYPE:
 	    printf("{constructor, %s, [", type->constructor_type.name);
-	    for (size_t i = 0; i < type->constructor_type.types->size; i++) {
+	    for (uint16_t i = 0; i < type->constructor_type.types->size; i++) {
 		type_t* constructor_type =
 		    types_get(type->constructor_type.types, i);
 		type_print_type(constructor_type);
@@ -158,7 +158,7 @@ void type_print_type(type_t* type) {
 	case TYPE_TAG_FUNCTION_TYPE:
 	    printf("{");
 	    printf("[");
-	    for (size_t i = 0; i < type->function_type.arg_types->size; i++) {
+	    for (uint16_t i = 0; i < type->function_type.arg_types->size; i++) {
 		type_t* arg_type =
 		    types_get(type->function_type.arg_types, i);
 		type_print_type(arg_type);
@@ -190,7 +190,7 @@ void type_print_type(type_t* type) {
 	    break;
 	case TYPE_TAG_TUPLE_TYPE:
 	    printf("{tuple, [");
-	    for (size_t i = 0; i < type->tuple_types->size; i++) {
+	    for (uint16_t i = 0; i < type->tuple_types->size; i++) {
 		type_t* tuple_type =
 		    types_get(type->tuple_types, i);
 		type_print_type(tuple_type);
