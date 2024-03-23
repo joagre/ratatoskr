@@ -21,9 +21,11 @@ type_t* type_new_constructor_type(char* name, types_t* types) {
     return type;
 }
 
-type_t* type_new_function_type(types_t* arg_types, type_t* return_type) {
+type_t* type_new_function_type(types_t* generic_types,
+			       types_t* arg_types, type_t* return_type) {
     type_t* type = malloc(sizeof(type_t));
     type->tag = TYPE_TAG_FUNCTION_TYPE;
+    type->function_type.generic_types = generic_types;
     type->function_type.arg_types = arg_types;
     type->function_type.return_type = return_type;
     return type;

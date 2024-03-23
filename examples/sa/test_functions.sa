@@ -15,3 +15,11 @@ export fn main() {
 fn baz(x) {
     x + 1
 }
+
+fn foo<$t>(x is $t, baz is ($t -> ($t, $t))) -> ($t, $t) {
+    baz(x)
+}
+
+fn bar() {
+   (42, 42) := foo<Int>(42, fn (x) { (x, x) })
+}

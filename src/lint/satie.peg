@@ -148,7 +148,6 @@ TaskDef <- "task" __ n:Name ("<" _ tv:TypeVariables _ ">")? (__ "implements" __ 
 # Type
 #
 
-Types <- t:Type { $$ = CN(TYPES, 1, t); } (_ "," _ t:Type { AC($$, t); })*
 Type <- (t:BasicType / t:ListType / t:FunctionType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable / t:Name) { $$ = t; }
 BasicType <- (b:BoolType / b:IntType / b:FloatType / b:CharType / b:StringType / b:TaskType) { $$ = b;}
 BoolType <- "Bool" { $$ = CT(BOOL_TYPE, NULL); }
@@ -158,11 +157,14 @@ CharType <- "Char" { $$ = CT(CHAR_TYPE, NULL); }
 StringType <- "String" { $$ = CT(STRING_TYPE, NULL); }
 TaskType <- "Task" { $$ = CT(TASK_TYPE, NULL); }
 ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); } / "[" _ "]" { $$ = CT(EMPTY_LIST_TYPE, NULL); }
-FunctionType <- "(" _ a:Type? _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes _ "}" _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, a, r); }
+FunctionType <- "(" _ a:Type _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes? _ "}" _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, a, r); }
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")" / "(" _ ")" { $$ = CT(EMPTY_TUPLE_TYPE, NULL); }
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); } / "[" _ ":" _ "]" { $$ = CT(EMPTY_MAP_TYPE, NULL); }
 ConstructorType <- n:Name "<" _ t:Types? _ ">" { $$ = CN(CONSTRUCTOR_TYPE, 2, n, t); }
+
+Types <- t:Type { $$ = CN(TYPES, 1, t); } (_ "," _ t:Type { AC($$, t); })*
+
 TypeVariables <- t:TypeVariable {$$ = CN(TYPE_VARIABLES, 1, t); } (_ "," _ t:TypeVariable { AC($$, t); })*
 TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 
@@ -223,7 +225,7 @@ PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX, 1, p); }
                  _ "[" _ s:Expr _ ".." _ e:Expr _ "]" { AC($$, CN(LIST_SLICE, 2, s, e)); } /
                  _ "[" _ iv:IndexValues _ "]" { AC($$, iv); } /
                  _ "[" _ e:Expr _ "]" { AC($$, CN(LIST_LOOKUP, 1, e)); } /
-                 _ ("<" _ ee:Exprs? _ ">")? "(" _ a:Args? _ ")" { AC($$, CN(FUNCTION_CALL, 2, ee, a)); }
+                 _ ("<" _ t:Types _ ">")? "(" _ a:Args? _ ")" { AC($$, CN(FUNCTION_CALL, 2, t, a)); }
                 )*
                )
 
@@ -330,7 +332,7 @@ MapLiteral <- "[" _ ":" _ "]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyVa
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
 MapKeyValue <- k:Expr _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
-ConstructorLiteral <- (Name _ ";" _)? n:Name "<" _ e:Exprs? _ ">" { $$ = CN(CONSTRUCTOR_LITERAL, 2, n, e); }
+ConstructorLiteral <- (Name _ ";" _)? n:Name "<" _ e:Exprs? _ ">" !(_"(") { $$ = CN(CONSTRUCTOR_LITERAL, 2, n, e); }
 
 Args <- e:Expr { $$ = CN(ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 

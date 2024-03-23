@@ -42,6 +42,7 @@ typedef struct type {
 	} constructor_type;
 	// Function type
 	struct {
+	    types_t* generic_types;
 	    types_t* arg_types;
 	    struct type* return_type;
 	} function_type;
@@ -63,7 +64,8 @@ type_t* type_new_basic_type(type_basic_type_t basic_type);
 
 type_t* type_new_constructor_type(char* name, types_t* types);
 
-type_t* type_new_function_type(types_t* arg_types, type_t* return_type);
+type_t* type_new_function_type(types_t* generic_types,
+			       types_t* arg_types, type_t* return_type);
 
 type_t* type_new_list_type(type_t* list_type);
 type_t* type_new_empty_list_type(void);
