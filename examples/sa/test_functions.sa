@@ -16,10 +16,30 @@ fn baz(x) {
     x + 1
 }
 
+// Type variables in functions defintions
+
 fn foo<$t>(x is $t, baz is ($t -> ($t, $t))) -> ($t, $t) {
     baz(x)
 }
 
 fn bar() {
    (42, 42) := foo<Int>(42, fn (x) { (x, x) })
+}
+
+// Type variables in nested named function literals
+
+fn zippo() {
+    fn foo<$t>(x is $t, baz is ($t -> ($t, $t))) -> ($t, $t) {
+        baz(x)
+    },
+    (42, 42) := foo<Int>(42, fn (x) { (x, x) })
+}
+
+// Type variables in anonymous function literals
+
+fn zippo() {
+    ?foo := fn <$t>(x is $t, baz is ($t -> ($t, $t))) -> ($t, $t) {
+        baz(x)
+    },
+    (42, 42) := foo<Int>(42, fn (x) { (x, x) })
 }

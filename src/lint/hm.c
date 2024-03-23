@@ -695,12 +695,12 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	if (child_node->name == FUNCTION_NAME) {
 	    child_node = ast_get_child(node, ++index);
 	}
-	//ast_node_t* type_variables_node = NULL;
+	ast_node_t* type_variables_node = NULL;
 	ast_node_t* params_node = NULL;
 	ast_node_t* return_type_node = NULL;
 	ast_node_t* block_expr_node;
 	if (child_node->name == TYPE_VARIABLES) {
-	    //type_variables_node = child_node;
+	    type_variables_node = child_node;
 	    child_node = ast_get_child(node, ++index);
 	}
 	if (child_node->name == PARAMS) {
@@ -715,6 +715,11 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	// Extract all parameter types
 	types_t* param_types = types_new();
 	if (params_node != NULL) {
+	    uint16_t number_of_type_variables = 0 ;
+	    if (type_variables_node != NULL) {
+		number_of_type_variables =
+		    ast_number_of_children(type_variables_node);
+	    }
 	    uint16_t n = ast_number_of_children(params_node);
 	    for (uint16_t i = 0; i < n; i++) {
 		ast_node_t* param_node = ast_get_child(params_node, i);
@@ -726,6 +731,12 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		    LOG_ASSERT(param_type_node->name == TYPE,
 			       "Expected a TYPE node");
 		    ast_node_t* type_node = ast_get_child(param_type_node, 0);
+		    if (!create_type_variable_equations(
+			    equations, type_variables_node,
+			    number_of_type_variables, type_node,
+			    error)) {
+			return false;
+		    }
                     // Equation: Parameter
 		    equation_t param_type_equation =
 			equation_new(param_node->type, type_node->type, node

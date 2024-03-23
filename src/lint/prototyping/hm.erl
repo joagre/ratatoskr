@@ -278,7 +278,7 @@ type_to_string({[ArgType], ReturnType}) ->
     "(" ++ type_to_string(ArgType) ++ " -> " ++
         type_to_string(ReturnType) ++ ")";
 type_to_string({ArgTypes, ReturnType}) ->
-    "({"++ type_to_string(ArgTypes) ++ "} -> " ++
+    "(["++ type_to_string(ArgTypes) ++ "] -> " ++
         type_to_string(ReturnType) ++ ")";
 type_to_string(TypeVariable) when is_integer(TypeVariable) ->
     "t" ++ integer_to_list(TypeVariable);

@@ -317,7 +317,7 @@ RegularString <- (EscapeSequence / [^"])* { $$ = CT(REGULAR_STRING, $0); }
 EscapeSequence <- "\\" [btnvfr"\\]
 RawString <- [^"]* { $$ = CT(RAW_STRING, $0); }
 
-FunctionLiteral <- "fn" __ (f:FunctionName _)? "(" _ p:Params? _ ")" (_ "->" _ Type)? _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 3, f, p, e); }
+FunctionLiteral <- "fn" __ (f:FunctionName _)? ("<" _ tv:TypeVariables _ ">" _)? "(" _ p:Params? _ ")" (_ "->" _ Type)? _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 4, f, tv, p, e); }
 
 EnumLiteral <- en:Name _ "#" _ n:Name { $$ = CN(ENUM_LITERAL, 2, en, n); }
 
