@@ -8,15 +8,18 @@ simple_test() ->
     Equations = [{int, int},
                  {3, int},
                  {6, bool},
-                 {1, {[6], 5}},
-                 {2, {[3], 7}},
+                 {1, {function, [], [6], 5}},
+                 {2, {function, [], [3], 7}},
                  {5, bool},
                  {4, 7},
                  {4, int},
-                 {0, {[1, 2, 3], 4}}],
+                 {0, {function, [], [1, 2, 3], 4}}],
     Node = #node{},
     Substitutions = unify_all_equations(Equations, Node, maps:new()),
-    {[{[bool],bool},{[int],int},int],int} =
+    {function, [],
+     [{function,[],[bool],bool},
+      {function,[],[int], int},int],
+     int} =
         dereference(Substitutions, 0).
 
 test_all() ->
@@ -142,15 +145,40 @@ unify({map, KeyX, ValueX}, {map, KeyY, ValueY}, TypeStack, Node,
     unify_args([KeyX, ValueX], [KeyY, ValueY], TypeStack, Node, Substitutions);
 unify({constructor, Xs}, {constructor, Ys}, TypeStack, Node, Substitutions) ->
     unify_args(Xs, Ys, TypeStack, Node, Substitutions);
-unify({ArgsX, ReturnX}, {ArgsY, ReturnY}, TypeStack, Node, Substitutions)
-  when is_list(ArgsX) andalso is_list(ArgsY) ->
-    case length(ArgsX) /= length(ArgsY) of
-        true ->
+unify({function, GenericsX, ArgsX, ReturnX},
+      {function, GenericsY, ArgsY, ReturnY}, TypeStack, Node, Substitutions) ->
+    if
+        length(ArgsX) /= length(ArgsY) ->
             {mismatch, TypeStack};
-        false ->
-            unify_args(ArgsX, ArgsY, TypeStack, Node,
-                       unify(ReturnX, ReturnY, [{ReturnX, ReturnY}|TypeStack],
-                             Node, Substitutions))
+        (GenericsX == [] andalso GenericsY == []) orelse
+        (GenericsX == [] andalso GenericsY /= []) orelse
+        (GenericsX /= [] andalso GenericsY == []) ->
+            case unify_args(ArgsX, ArgsY, [{ArgsX, ArgsY}|TypeStack],
+                            Node, Substitutions) of
+                {mismatch, TypeStack} ->
+                    {mismatch, TypeStack};
+                ArgsSubstitutions ->
+                    unify(ReturnX, ReturnY,
+                          [{ReturnX, ReturnY}|TypeStack],
+                          Node, ArgsSubstitutions)
+            end;
+        true ->
+            case unify_args(GenericsX, GenericsY,
+                            [{GenericsX, GenericsY}|TypeStack],
+                            Node, Substitutions) of
+                {mismatch, TypeStack} ->
+                    {mismatch, TypeStack};
+                GenericsSubstitutions ->
+                    case unify_args(ArgsX, ArgsY, [{ArgsX, ArgsY}|TypeStack],
+                                    Node, GenericsSubstitutions) of
+                        {mismatch, TypeStack} ->
+                            {mismatch, TypeStack};
+                        ArgsSubstitutions ->
+                            unify(ReturnX, ReturnY,
+                                  [{ReturnX, ReturnY}|TypeStack],
+                                  Node, ArgsSubstitutions)
+                    end
+            end
     end;
 unify(_X, _Y, TypeStack, _Node, _Substitutions) ->
     {mismatch, TypeStack}.
@@ -225,8 +253,9 @@ dereference(Substitutions, {map, Key, Value}) ->
     {map, dereference(Substitutions, Key), dereference(Substitutions, Value)};
 dereference(Substitutions, {tuple, Xs}) ->
     {tuple, lists:map(fun(Type) -> dereference(Substitutions, Type) end, Xs)};
-dereference(Substitutions, {ArgTypes, ReturnType}) ->
-    {lists:map(fun(Type) -> dereference(Substitutions, Type) end, ArgTypes),
+dereference(Substitutions, {function, _GenericTypes, ArgTypes, ReturnType}) ->
+    {function, [],
+     lists:map(fun(Type) -> dereference(Substitutions, Type) end, ArgTypes),
      dereference(Substitutions, ReturnType)};
 dereference(Substitutions, Variable) when is_integer(Variable) ->
     case maps:get(Variable, Substitutions, undefined) of
@@ -274,11 +303,19 @@ type_to_string({tuple, Xs}) ->
     "(" ++ type_to_string(Xs) ++ ")";
 type_to_string(empty_tuple) ->
     "()";
-type_to_string({[ArgType], ReturnType}) ->
+type_to_string({function, [], [ArgType], ReturnType}) ->
     "(" ++ type_to_string(ArgType) ++ " -> " ++
         type_to_string(ReturnType) ++ ")";
-type_to_string({ArgTypes, ReturnType}) ->
+type_to_string({function, [], ArgTypes, ReturnType}) ->
     "(["++ type_to_string(ArgTypes) ++ "] -> " ++
+        type_to_string(ReturnType) ++ ")";
+type_to_string({function, GenericTypes, [ArgType], ReturnType}) ->
+    "(<" ++ type_to_string(GenericTypes) ++ ">" ++
+        type_to_string(ArgType) ++ " -> " ++
+        type_to_string(ReturnType) ++ ")";
+type_to_string({function, GenericTypes, ArgTypes, ReturnType}) ->
+    "(<" ++ type_to_string(GenericTypes) ++ ">" ++
+        "["++ type_to_string(ArgTypes) ++ "] -> " ++
         type_to_string(ReturnType) ++ ")";
 type_to_string(TypeVariable) when is_integer(TypeVariable) ->
     "t" ++ integer_to_list(TypeVariable);

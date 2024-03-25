@@ -100,7 +100,7 @@ Enum <- n:Name (_ "=" _ e:Expr)? { $$ = CN(ENUM, 2, n, CCN(ENUM_VALUE, 1, e)); }
 # Function definition
 #
 
-FunctionDef <- e:Export? _ "fn" __ fn:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" (_ "->" _ t:Type _)? _ be:BlockExpr { $$ = CN(FUNCTION_DEF, 6, e, fn, tv, p, CCN(TYPE, 1, t), be); }
+FunctionDef <- e:Export? _ "fn" __ fn:FunctionName _ ("<" _ tv:TypeVariables _ ">" _)? "(" _ p:Params? _ ")" (_ "->" _ t:Type _)? _ be:BlockExpr { $$ = CN(FUNCTION_DEF, 6, e, fn, tv, p, CCN(TYPE, 1, t), be); }
 Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
 Params <- p:Param { $$ = CN(PARAMS, 1, p); } (_ "," _ p:Param { AC($$, p); })*
@@ -157,13 +157,14 @@ CharType <- "Char" { $$ = CT(CHAR_TYPE, NULL); }
 StringType <- "String" { $$ = CT(STRING_TYPE, NULL); }
 TaskType <- "Task" { $$ = CT(TASK_TYPE, NULL); }
 ListType <- "[" _ t:Type _ "]" {$$ = CN(LIST_TYPE, 1, t); } / "[" _ "]" { $$ = CT(EMPTY_LIST_TYPE, NULL); }
-FunctionType <- "(" _ a:Type _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, CN(ARG_TYPES, 1, a), r); } / "(" _ "{" _ a:ArgTypes? _ "}" _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 2, a, r); }
+FunctionType <- "(" _ ("<" _ tv:TypeVariables _ ">" _)? a:Type _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 3, tv, CCN(ARG_TYPES, 1, a), r); } / "(" _ ("<" _ tv:TypeVariables _ ">" _)? "[" _ at:ArgTypes? _ "]" _ "->" _ r:Type _ ")" { $$ = CN(FUNCTION_TYPE, 3, tv, at, r); }
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")" / "(" _ ")" { $$ = CT(EMPTY_TUPLE_TYPE, NULL); }
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); } / "[" _ ":" _ "]" { $$ = CT(EMPTY_MAP_TYPE, NULL); }
+
 ConstructorType <- n:Name "<" _ t:Types? _ ">" { $$ = CN(CONSTRUCTOR_TYPE, 2, n, t); }
 
-Types <- t:Type { $$ = CN(TYPES, 1, t); } (_ "," _ t:Type { AC($$, t); })*
+Types <- t:Type { $$ = CN(TYPES, 1, CN(TYPE, 1, t)); } (_ "," _ t:Type { AC($$, CN(TYPE, 1, t)); })*
 
 TypeVariables <- t:TypeVariable {$$ = CN(TYPE_VARIABLES, 1, t); } (_ "," _ t:TypeVariable { AC($$, t); })*
 TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
@@ -317,7 +318,7 @@ RegularString <- (EscapeSequence / [^"])* { $$ = CT(REGULAR_STRING, $0); }
 EscapeSequence <- "\\" [btnvfr"\\]
 RawString <- [^"]* { $$ = CT(RAW_STRING, $0); }
 
-FunctionLiteral <- "fn" __ (f:FunctionName _)? ("<" _ tv:TypeVariables _ ">" _)? "(" _ p:Params? _ ")" (_ "->" _ Type)? _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 4, f, tv, p, e); }
+FunctionLiteral <- "fn" __ f:FunctionName? _ ("<" _ tv:TypeVariables _ ">" _)? "(" _ p:Params? _ ")" (_ "->" _ Type)? _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 4, f, tv, p, e); }
 
 EnumLiteral <- en:Name _ "#" _ n:Name { $$ = CN(ENUM_LITERAL, 2, en, n); }
 

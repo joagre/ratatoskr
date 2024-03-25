@@ -158,7 +158,19 @@ void type_print_type(type_t* type) {
 	    printf("]}");
 	    break;
 	case TYPE_TAG_FUNCTION_TYPE:
-	    printf("{");
+	    printf("{function, ");
+	    // Generic types
+	    printf("[");
+	    for (uint16_t i = 0; i < type->function_type.generic_types->size; i++) {
+		type_t* generic_type =
+		    types_get(type->function_type.generic_types, i);
+		type_print_type(generic_type);
+		if (i < type->function_type.generic_types->size - 1) {
+		    printf(", ");
+		}
+	    }
+	    printf("], ");
+	    // Argument types
 	    printf("[");
 	    for (uint16_t i = 0; i < type->function_type.arg_types->size; i++) {
 		type_t* arg_type =

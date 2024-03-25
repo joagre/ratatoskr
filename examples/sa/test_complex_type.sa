@@ -2,7 +2,13 @@ fn slow() {
     ?b := true,
     ?f0 := fn (x) {x + 1},
     ?f1 := fn (x) {if b {f0} else {fn (y) {x(y)}}},
-    ?f2 := fn (x) {if b {f1} else {fn (y) {x(y)}}}
+    ?f2 := fn (x) {if b {f1} else {fn (y) {x(y)}}},
+    ?f3 := fn (x) {if b {f2} else {fn (y) {x(y)}}},
+    ?f4 := fn (x) {if b {f3} else {fn (y) {x(y)}}},
+    ?f5 := fn (x) {if b {f4} else {fn (y) {x(y)}}},
+    ?f6 := fn (x) {if b {f5} else {fn (y) {x(y)}}},
+    ?f7 := fn (x) {if b {f6} else {fn (y) {x(y)}}},
+    fn (x) {if b {f7} else {fn (y) {x(y)}}}
 }
 
 /*
