@@ -39,6 +39,7 @@
 * Design the buffer datatype
 * Add strong language support for regular expressions
 * Persistent datatypes
+* FFI ala LuaJIT
 
 ## Version 0.4
 
