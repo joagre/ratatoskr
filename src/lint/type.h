@@ -2,7 +2,7 @@
 #define LINT_TYPE_H
 
 // types_t is defined here instead of being included from
-// types.h. Including types.h would lead to a cyclic dependency.
+// types.h. Including types.h here would lead to a cyclic dependency.
 #include "dynarr.h"
 typedef dynarray_t types_t;
 
@@ -14,9 +14,12 @@ typedef enum {
     TYPE_TAG_EMPTY_LIST_TYPE,
     TYPE_TAG_MAP_TYPE,
     TYPE_TAG_EMPTY_MAP_TYPE,
+//    TYPE_TAG_RECORD_DEF_MEMBER_METHOD_TYPE,
+//    TYPE_TAG_RECORD_DEF_MEMBER_PROPERTY_TYPE,
+//    TYPE_TAG_RECORD_TYPE,
     TYPE_TAG_TUPLE_TYPE,
     TYPE_TAG_EMPTY_TUPLE_TYPE,
-    TYPE_TAG_TYPE_VARIABLE // FIXME
+    TYPE_TAG_TYPE_VARIABLE
 } type_tag_t;
 
 typedef enum {
@@ -27,6 +30,21 @@ typedef enum {
     TYPE_BASIC_TYPE_STRING,
     TYPE_BASIC_TYPE_TASK
 } type_basic_type_t;
+
+/*
+typedef enum {
+    RECORD_DEF_MEMBER_METHOD_MODIFIER_PUBLIC,
+    RECORD_DEF_MEMBER_METHOD_MODIFIER_PRIVATE
+} record_def_member_method_modifier_t;
+
+typedef enum {
+    RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PUBLIC,
+    RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PUBLIC_CONSTANT,
+    RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PRIVATE,
+    RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PRIVATE_CONSTANT,
+    RECORD_DEF_MEMBER_PROPERTY_MODIFIER_READONLY
+} record_def_member_property_modifier_t;
+*/
 
 typedef uint32_t type_variable_t;
 
@@ -53,6 +71,20 @@ typedef struct type {
 	    struct type* key_type;
 	    struct type* value_type;
 	} map_type;
+	// Record definition member method type
+//	struct {
+//	    char* name;
+//	    record_def_member_method_modifier_t modifier;
+//	    struct type* type;
+//	} record_def_member_method_type;
+	// Record definition member property type
+//	struct {
+//	    char* name;
+//	    record_def_member_property_modifier_t modifier;
+//	    struct type* type;
+//	} record_def_member_property_type;
+	// Record type
+//	char* record_name;
 	// Tuple type
 	types_t* tuple_types;
 	// Type variable
@@ -72,6 +104,14 @@ type_t* type_new_empty_list_type(void);
 
 type_t* type_new_map_type(type_t* key_type, type_t* value_type);
 type_t* type_new_empty_map_type(void);
+
+/*
+type_t* type_new_record_def_member_method_type(
+    char* name, record_def_member_method_modifier_t modifier, type_t* type);
+type_t* type_new_record_def_member_property_type(
+    char* name, record_def_member_property_modifier_t modifier, type_t* type);
+type_t* type_new_record_type(char *name);
+*/
 
 type_t* type_new_tuple_type(types_t* tuple_types);
 type_t* type_new_empty_tuple_type(void);

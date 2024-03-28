@@ -57,6 +57,39 @@ type_t* type_new_empty_map_type(void) {
     type->tag = TYPE_TAG_EMPTY_MAP_TYPE;
     return type;
 }
+/*
+type_t* type_new_record_def_member_method_type(
+    char* name, record_def_member_method_modifier_t modifier, type_t* type) {
+    type_t* record_def_member_method_type = malloc(sizeof(type_t));
+    record_def_member_method_type->tag = TYPE_TAG_RECORD_DEF_MEMBER_METHOD_TYPE;
+    record_def_member_method_type->record_def_member_method_type.name = name;
+    record_def_member_method_type->record_def_member_method_type.modifier =
+	modifier;
+    record_def_member_method_type->record_def_member_method_type.type = type;
+    return record_def_member_method_type;
+}
+
+type_t* type_new_record_def_member_property_type(
+    char* name, record_def_member_property_modifier_t modifier, type_t* type) {
+    type_t* record_def_member_property_type = malloc(sizeof(type_t));
+    record_def_member_property_type->tag =
+	TYPE_TAG_RECORD_DEF_MEMBER_PROPERTY_TYPE;
+    record_def_member_property_type->record_def_member_property_type.name =
+	name;
+    record_def_member_property_type->record_def_member_property_type.modifier =
+	modifier;
+    record_def_member_property_type->record_def_member_property_type.type =
+	type;
+    return record_def_member_property_type;
+}
+
+type_t* type_new_record_type(char* name) {
+    type_t* record_type = malloc(sizeof(type_t));
+    record_type->tag = TYPE_TAG_RECORD_TYPE;
+    record_type->record_name = name;
+    return record_type;
+}
+*/
 
 type_t* type_new_tuple_type(types_t* tuple_types) {
     type_t* type = malloc(sizeof(type_t));
@@ -161,7 +194,8 @@ void type_print_type(type_t* type) {
 	    printf("{function, ");
 	    // Generic types
 	    printf("[");
-	    for (uint16_t i = 0; i < type->function_type.generic_types->size; i++) {
+	    for (uint16_t i = 0;
+		 i < type->function_type.generic_types->size; i++) {
 		type_t* generic_type =
 		    types_get(type->function_type.generic_types, i);
 		type_print_type(generic_type);
@@ -172,7 +206,8 @@ void type_print_type(type_t* type) {
 	    printf("], ");
 	    // Argument types
 	    printf("[");
-	    for (uint16_t i = 0; i < type->function_type.arg_types->size; i++) {
+	    for (uint16_t i = 0;
+		 i < type->function_type.arg_types->size; i++) {
 		type_t* arg_type =
 		    types_get(type->function_type.arg_types, i);
 		type_print_type(arg_type);
@@ -202,6 +237,59 @@ void type_print_type(type_t* type) {
 	case TYPE_TAG_EMPTY_MAP_TYPE:
 	    printf("empty_map");
 	    break;
+	    /*
+	case TYPE_TAG_RECORD_DEF_MEMBER_METHOD_TYPE:
+	    printf("{method, %s, ", type->record_member_method_type.name);
+	    switch (type->record_member_method_type.modifier) {
+		case RECORD_DEF_MEMBER_METHOD_MODIFIER_PUBLIC:
+		    printf("public, ");
+		    break;
+		case RECORD_DEF_MEMBER_METHOD_MODIFIER_PRIVATE:
+		    printf("private, ");
+		    break;
+		default:
+		    assert(false);
+	    }
+	    type_print_type(type->record_member_method_type.type);
+	    printf("}");
+	    break;
+	case TYPE_TAG_RECORD_DEF_MEMBER_PROPERTY_TYPE:
+	    printf("{property, %s, ", type->record_member_property_type.name);
+	    switch (type->record_member_property_type.modifier) {
+		case RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PUBLIC:
+		    printf("public, ");
+		    break;
+		case RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PUBLIC_CONSTANT:
+		    printf("public_constant, ");
+		    break;
+		case RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PRIVATE:
+		    printf("private, ");
+		    break;
+		case RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PRIVATE_CONSTANT:
+		    printf("private_constant, ");
+		    break;
+		case RECORD_DEF_MEMBER_PROPERTY_MODIFIER_READONLY:
+		    printf("readonly, ");
+		    break;
+		default:
+		    assert(false);
+	    }
+	    type_print_type(type->record_member_property_type.type);
+	    printf("}");
+	    break;
+	case TYPE_TAG_RECORD_DEF_TYPE:
+	    printf("{record, [");
+	    for (uint16_t i = 0; i < type->record_type.types->size; i++) {
+		type_t* record_type =
+		    types_get(type->record_type.types, i);
+		type_print_type(record_type);
+		if (i < type->record_type.types->size - 1) {
+		    printf(", ");
+		}
+	    }
+	    printf("]}");
+	    break;
+	    */
 	case TYPE_TAG_TUPLE_TYPE:
 	    printf("{tuple, [");
 	    for (uint16_t i = 0; i < type->tuple_types->size; i++) {

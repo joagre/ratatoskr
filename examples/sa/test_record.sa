@@ -1,0 +1,50 @@
+record Person<$t> {
+    public name is $t
+    readonly socialSecurityNumber is String
+    public salary = 0
+    private competence = 100
+    public const version = "1.0"
+    readonly creationDate is String
+
+    public fn changeSalary(x is Int) -> Person {
+        this(salary: salary + x)
+    }
+
+    public fn changeCompetence(x is Int) -> Person {
+        this(competence: competence + 1)
+    }
+
+    public fn raiseSalaryAndReturnCompetence(x is Int) -> (Int, Person) {
+        (competence, this(salary: salary + x))
+    }
+
+/*
+    this() {
+        this(creationDate: "get it from a library")
+    }
+*/
+}
+
+export fn main(_) {
+    // Create a record (public member properties without default values must be
+    // provided
+    ?p1 := Person<String>(name: "Joe", socialSecurityNumber: "360822-7945"),
+    // Access a member property
+    ?name is String := p1.name,
+    // Update member properties
+    ?p2 := p1(name: "Joe Armstrong", salary: 1000),
+    // Call member functions
+    ?p3 := p2.changeSalary(-10),
+    ?p4 := p3.changeCompetence(-1),
+    // Call a member function which both returns a new instance of itself and
+    // returns a value
+    (?competence, ?p5) := p4.raiseSalaryAndReturnCompetence(5),
+    // Pattern matching on rcords
+    switch p5 {
+        case Person(name: ?n, competence: ?c) =>
+            (n, c)
+        // This  is shorthand pattern for the pattern used above
+        case Person(?name:, ?competence:) =>
+            (name, competence)
+    }
+}

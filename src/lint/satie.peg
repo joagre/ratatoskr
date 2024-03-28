@@ -86,7 +86,7 @@ AliasDef <- "alias" __ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ t:Type { $
 
 TypeDef <- "type" __ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ c:Constructors { $$ = CN(TYPE_DEF, 3, n, tv, c); }
 Constructors <- c:Constructor { $$ = CN(CONSTRUCTORS, 1, c); } (__ "or" __ c:Constructor { AC($$, c); })*
-Constructor <- n:Name "<" _ t:Types? _ ">" { $$ = CN(CONSTRUCTOR, 2, n, t); }
+Constructor <- n:Name ("<" _ t:Types? _ ">")? { $$ = CN(CONSTRUCTOR, 2, n, t); }
 
 #
 # Enumeration definition
@@ -220,7 +220,7 @@ NegFloatExpr <- "-." _ l:PostfixExpr { $$ = CN(NEG_FLOAT, 1, l); } / e:PostfixEx
 PostfixExpr <- (p:PrimaryExpr { $$ = CN(POSTFIX, 1, p); }
                 (_ "<~" _ n:Name { AC($$, RN(n, TASK_CALL)); } /
                  _ "~>" _ n:Name { AC($$, RN(n, TASK_CAST)); } /
-                 _ "." _ n:Name { AC($$, RN(n, DOT_NAME)); } /
+                 _ "." _ n:Name { AC($$, RN(n, RECORD_DOT)); } /
                  _ "[" _ mkv:MapKeyValues _ "]" { AC($$, RN(mkv, MAP_UPDATE)); } /
                  _ "[" _ ":" _ e:Expr _ "]" { AC($$, CN(MAP_LOOKUP, 1, e)); } /
                  _ "[" _ s:Expr _ ".." _ e:Expr _ "]" { AC($$, CN(LIST_SLICE, 2, s, e)); } /
@@ -243,12 +243,14 @@ PrimaryExpr <- "this" { $$ = CT(THIS, NULL); } /
                pe:Name { $$ = pe; } /
                "(" _ e:Expr _ ")" { $$ = e; }
 
-NewRecord <- n:Name _ "(" _ (":" / na:NamedArgs) _ ")" { $$ = CN(NEW_RECORD, 2, n, na); }
+NewRecord <- n:Name _ ("<" _ t:Types _ ">" _)? "(" _ (":" / na:NamedArgs) _ ")" { $$ = CN(NEW_RECORD, 3, n, t, na); }
 
 NamedArgs <- na:NamedArg { $$ = CN(NAMED_ARGS, 1, na); } (_ "," _ na:NamedArg { AC($$, na); })*
-NamedArg <- n:Name _ ":" _ e:Expr { $$ = CN(NAMED_ARG, 2, n, e); }
+NamedArg <- nan:NamedArgName _ ":" _ e:Expr { $$ = CN(NAMED_ARG, 2, nan, e); } /
+            un:UnboundName _ ":" { $$ = CN(NAMED_ARG, 2, RN(un, NAMED_ARG_NAME), un); }
+NamedArgName <- Identifier { $$ = CT(NAMED_ARG_NAME, $0); }
 
-LaunchTask <- "launch" __ n:Name _ "(" _ (":" / na:NamedArgs) _ ")" { $$ = CN(LAUNCH_TASK, 2, n, na); }
+LaunchTask <- "launch" __ n:Name _ ("<" _ t:Types _ ">" _)? "(" _ (":" / na:NamedArgs) _ ")" { $$ = CN(LAUNCH_TASK, 3, n, t, na); }
 
 ControlFlowExpr <- (cfe:IfExpr / cfe:SwitchExpr / cfe:BlockExpr) { $$ = cfe; }
 

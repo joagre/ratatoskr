@@ -4,7 +4,7 @@
 -include("lint.hrl").
 
 %% foo f g x = if f(x == 1) then g(x) else 20
-simple_test() ->
+simple() ->
     Equations = [{int, int},
                  {3, int},
                  {6, bool},
@@ -22,9 +22,11 @@ simple_test() ->
      int} =
         dereference(Substitutions, 0).
 
-test_all() ->
-    simple_test(),
-    Ignore = ["test_constructor.sa", "test_enum.sa"],
+all() ->
+    simple(),
+    Ignore = ["test_constructor.sa",
+              "test_enum.sa",
+              "test_record.sa"],
     case file:list_dir("../../../examples/sa") of
         {ok, Files} ->
             lists:foreach(
@@ -51,7 +53,7 @@ test_all() ->
             {error, Reason}
     end.
 
-test_each(TestCase) ->
+one(TestCase) ->
     FullPath = "../../../examples/sa/test_" ++ TestCase ++ ".sa",
     io:format("**** Testing ~s\n", [FullPath]),
     start_test(FullPath).

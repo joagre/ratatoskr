@@ -19,8 +19,7 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 static bool is_valid_match_exprs(ast_node_t* exprs_node, satie_error_t* error);
 static void collect_unbound_names(ast_node_t* node, unbound_names_t* names);
 
-static void forward_declare_function_definitions(ast_node_t* node,
-						 symbol_tables_t* tables);
+static void forward_declare_defs(ast_node_t* node, symbol_tables_t* tables);
 
 static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 				  uint32_t block_expr_id, satie_error_t* error);
@@ -31,7 +30,7 @@ static bool create_type_variable_equations(
     equations_t* equations, ast_node_t* type_variables_node,
     uint16_t number_of_type_variables, ast_node_t* type_node,
     satie_error_t* error);
-static type_t* extract_type(ast_node_t* type_node);
+static type_t* extract_type(ast_node_t* type_node, symbol_tables_t* tables);
 static operator_types_t get_operator_types(node_name_t name);
 
 bool hm_infer_types(ast_node_t* node, satie_error_t* error) {
@@ -45,7 +44,7 @@ bool hm_infer_types(ast_node_t* node, satie_error_t* error) {
     symbol_table_t* table = symbol_table_new();
     symbol_tables_insert_table(&tables, table, unique_id());
     // Create type variables
-    forward_declare_function_definitions(node, &tables);
+    forward_declare_defs(node, &tables);
     if (!create_type_variables(node, &tables, unique_id(), error)) {
 	return false;
     }
@@ -166,10 +165,13 @@ static bool is_valid(ast_node_t* parent_node, ast_node_t* node, uint16_t flags,
 	    // Unbound names are only allowed their own or in
 	    // composite literals
 	    if(parent_node->name == BIND ||
-	       parent_node->name == TUPLE_LITERAL) {
+	       parent_node->name == TUPLE_LITERAL ||
+	       parent_node->name == NAMED_ARG) {
 		CLEAR_ERROR(error);
 		return true;
 	    } else {
+		//fprintf(stderr, "parent_node->name: %s\n",
+		//	ast_node_name_to_string(parent_node->name));
 		SET_ERROR_MESSAGE(
 		    error, COMPONENT_COMPILER,
 		    "%d: The unbound name '%s' is only allowed on its own or "
@@ -252,8 +254,7 @@ static void collect_unbound_names(ast_node_t* node, unbound_names_t* names) {
     }
 }
 
-static void forward_declare_function_definitions(ast_node_t* node,
-						 symbol_tables_t* tables) {
+static void forward_declare_defs(ast_node_t* node, symbol_tables_t* tables) {
     ast_node_t* top_level_defs_node = ast_get_child(node, 0);
     uint16_t n = ast_number_of_children(top_level_defs_node);
     for (uint16_t i = 0; i < n; i++) {
@@ -268,6 +269,11 @@ static void forward_declare_function_definitions(ast_node_t* node,
 	    type_t* type = type_new_type_variable();
 	    function_name_node->type = type;
 	    symbol_tables_insert(tables, function_name_node->value, type);
+	} else if (child_node->name == RECORD_DEF) {
+	    ast_node_t* record_name_node = ast_get_child(child_node, 0);
+	    type_t* type = type_new_type_variable();
+	    record_name_node->type = type;
+	    symbol_tables_insert(tables, record_name_node->value, type);
 	}
     }
 }
@@ -287,6 +293,9 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	node->name == EQ_TYPE ||
 	node->name == INDEX_VALUE ||
 	node->name == IS ||
+	node->name == NAMED_ARG ||
+	node->name == NAMED_ARG_NAME ||
+	node->name == NAMED_ARGS ||
 	node->name == PARAMS ||
 	node->name == PROGRAM ||
 	node->name == TOP_LEVEL_DEFS ||
@@ -347,6 +356,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == NE ||
 	       node->name == NEG_INT ||
 	       node->name == NEG_FLOAT ||
+	       node->name == NEW_RECORD ||
 	       node->name == MUL_INT ||
 	       node->name == MUL_FLOAT ||
 	       node->name == NOT ||
@@ -358,6 +368,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	       node->name == POS_FLOAT ||
 	       node->name == POSTFIX ||
 	       node->name == RAW_STRING ||
+	       node->name == RECORD_DOT ||
 	       node->name == REGULAR_STRING ||
 	       node->name == SLICE_LENGTH ||
 	       node->name == STRING_TYPE ||
@@ -513,6 +524,8 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	// tables created by bind expressions
 	symbol_tables_delete_by_id(tables, block_expr_id);
 	traverse_children = false;
+    } else if (node->name == RECORD_DEF) {
+	traverse_children = false;
     } else {
 	LOG_ABORT("Not handled node: %s\n",
 		  ast_node_name_to_string(node->name));
@@ -551,6 +564,7 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == BOOL_TYPE ||
 	node->name == CASE ||
 	node->name == CHAR_TYPE ||
+	node->name == CONST ||
 	node->name == DEFAULT ||
 	node->name == ELIF ||
 	node->name == ELSE ||
@@ -573,9 +587,16 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	node->name == MAP_UPDATE ||
 	node->name == NON_QUOTE_CHAR ||
 	node->name == NAME ||
+	node->name == NAMED_ARG ||
+	node->name == NAMED_ARG_NAME ||
+	node->name == NAMED_ARGS ||
+	node->name == MEMBER_PROPERTY ||
 	node->name == PARAMS ||
 	node->name == PARAM_NAME ||
+	node->name == PRIVATE ||
 	node->name == PROGRAM ||
+	node->name == PUBLIC ||
+	node->name == READONLY ||
 	node->name == SLICE_LENGTH ||
 	node->name == STRING_TYPE ||
 	node->name == TASK_TYPE ||
@@ -590,7 +611,7 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
     } else if (node->name == TYPE) {
 	// Equation: Type
 	ast_node_t* type_node = ast_get_child(node, 0);
-	type_t* type = extract_type(type_node);
+	type_t* type = extract_type(type_node, tables);
 	equation_t equation =
 	    equation_new(type_node->type, type, node, type_node, true);
 	equations_append(equations, &equation);
@@ -1456,6 +1477,16 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		}
 		// Update postfix expression
 		postfix_expr_node = map_update_node;
+	    } else if (postfix_expr_child_node->name == RECORD_DOT) {
+		ast_node_t* record_dot_node = postfix_expr_child_node;
+                // Equation: Dot equation
+		equation_t record_dot_equation =
+		    equation_new(postfix_expr_node->type,
+				 record_dot_node->type,
+				 node, record_dot_node, false);
+		equations_append(equations, &record_dot_equation);
+		// Update postfix expression
+		postfix_expr_node = record_dot_node;
 	    } else {
 		assert(false);
 	    }
@@ -1583,7 +1614,7 @@ static bool create_type_variable_equations(equations_t* equations,
     return true;
 }
 
-static type_t* extract_type(ast_node_t* type_node) {
+static type_t* extract_type(ast_node_t* type_node, symbol_tables_t* tables) {
     switch (type_node->name) {
 	case BOOL_TYPE:
 	    return type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
@@ -1603,7 +1634,7 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    types_t* types = types_new();
 	    for (uint16_t i = 1; i < ast_number_of_children(type_node); i++) {
 		ast_node_t* type_node = ast_get_child(type_node, i);
-		type_t* type = extract_type(type_node);
+		type_t* type = extract_type(type_node, tables);
 		types_add(types, type);
 	    }
 	    return type_new_constructor_type(name_node->value, types);
@@ -1631,7 +1662,8 @@ static type_t* extract_type(ast_node_t* type_node) {
 		     i < ast_number_of_children(type_variables_node); i++) {
 		    ast_node_t* type_variable_node =
 			ast_get_child(type_variables_node, i);
-		    type_t* generic_type = extract_type(type_variable_node);
+		    type_t* generic_type =
+			extract_type(type_variable_node, tables);
 		    types_add(generic_types, generic_type);
 		}
 	    }
@@ -1640,33 +1672,36 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    for (uint16_t i = 0; i < ast_number_of_children(arg_types_node);
 		 i++) {
 		ast_node_t* arg_type_node = ast_get_child(arg_types_node, i);
-		type_t* arg_type = extract_type(arg_type_node);
+		type_t* arg_type = extract_type(arg_type_node, tables);
 		types_add(arg_types, arg_type);
 	    }
 	    // Return type
-	    type_t* return_type = extract_type(return_type_node);
+	    type_t* return_type = extract_type(return_type_node, tables);
 	    return type_new_function_type(generic_types, arg_types,
 					  return_type);
 	}
 	case LIST_TYPE:
 	    return type_new_list_type(
-		extract_type(ast_get_child(type_node, 0)));
+		extract_type(ast_get_child(type_node, 0), tables));
 	case EMPTY_LIST_TYPE:
 	    return type_new_empty_list_type();
 	case MAP_TYPE: {
 	    ast_node_t* key_type_node = ast_get_child(type_node, 0);
-	    type_t* key_type = extract_type(key_type_node);
+	    type_t* key_type = extract_type(key_type_node, tables);
 	    ast_node_t* value_type_node = ast_get_child(type_node, 1);
-	    type_t* value_type = extract_type(value_type_node);
+	    type_t* value_type = extract_type(value_type_node, tables);
 	    return type_new_map_type(key_type, value_type);
 	}
 	case EMPTY_MAP_TYPE:
 	    return type_new_empty_map_type();
+	case RECORD_DEF:
+	    LOG_PANIC("Not implemented");
+	    break;
 	case TUPLE_TYPE: {
 	    types_t* tuple_types = types_new();
 	    for (uint16_t i = 0; i < ast_number_of_children(type_node); i++) {
 		ast_node_t* tuple_type_node = ast_get_child(type_node, i);
-		type_t* tuple_type = extract_type(tuple_type_node);
+		type_t* tuple_type = extract_type(tuple_type_node, tables);
 		types_add(tuple_types, tuple_type);
 	    }
 	    return type_new_tuple_type(tuple_types);
@@ -1675,6 +1710,11 @@ static type_t* extract_type(ast_node_t* type_node) {
 	    return type_new_empty_tuple_type();
 	case TYPE_VARIABLE:
 	    return type_new_type_variable();
+	case NAME:
+	    type_t* type = symbol_tables_lookup(tables, type_node->value);
+	    LOG_ASSERT(type != NULL, "Unknown type: %s", type_node->value);
+	    type_node->type = type;
+	    return type;
 	default:
 	    LOG_ABORT("Unknown type node: %s",
 		      ast_node_name_to_string(type_node->name));

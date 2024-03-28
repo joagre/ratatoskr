@@ -45,8 +45,6 @@ typedef dynarray_t node_array_t;
         NODE_NAME(DEFAULT) \
         NODE_NAME(DIV_INT) \
         NODE_NAME(DIV_FLOAT) \
-        NODE_NAME(DOT_NAME) \
-        NODE_NAME(DOTTED_NAME) \
         NODE_NAME(ELIF) \
         NODE_NAME(ELSE) \
 	NODE_NAME(EMPTY_MAP_TYPE) \
@@ -119,6 +117,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(MUL_FLOAT) \
         NODE_NAME(NAME) \
         NODE_NAME(NAMED_ARG) \
+	NODE_NAME(NAMED_ARG_NAME) \
         NODE_NAME(NAMED_ARGS) \
         NODE_NAME(NE) \
         NODE_NAME(NEG_INT) \
@@ -138,6 +137,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(RAW_STRING) \
         NODE_NAME(READONLY) \
         NODE_NAME(RECORD_DEF) \
+        NODE_NAME(RECORD_DOT) \
         NODE_NAME(RECORD_MEMBERS) \
         NODE_NAME(REGULAR_STRING) \
         NODE_NAME(SLICE_LENGTH) \

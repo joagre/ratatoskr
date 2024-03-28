@@ -30,7 +30,7 @@ void log_entry(log_level_t log_level, char* file, uint32_t line, char* format,
 	    printf("PANIC (%s: %d): ", file, line);
 	    break;
     }
-    vfprintf(stderr, format, args);
+    vprintf(format, args);
     printf("\n");
 }
 
