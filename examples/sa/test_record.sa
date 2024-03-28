@@ -6,20 +6,21 @@ record Person<$t> {
     public const version = "1.0"
     readonly creationDate: String
 
-    public fn changeSalary(x: Int) -> Person {
+    public fn changeSalary(x: Int) -> Person<$t> {
         this(salary: salary + x)
     }
 
-    public fn changeCompetence(x: Int) -> Person {
+    public fn changeCompetence(x: Int) -> Person<$t> {
         this(competence: competence + 1)
     }
 
-    public fn raiseSalaryAndReturnCompetence(x: Int) -> (Int, Person) {
+    public fn raiseSalaryAndReturnCompetence(x: Int) -> (Int, Person<$t>) {
         (competence, this(salary: salary + x))
     }
 
 /*
-    this() {
+    // called just after the built-in record constructor has been called
+    fn finalize() {
         this(creationDate: "get it from a library")
     }
 */
