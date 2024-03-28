@@ -1,20 +1,20 @@
 record Person<$t> {
-    public name is $t
-    readonly socialSecurityNumber is String
+    public name: $t
+    readonly socialSecurityNumber: String
     public salary = 0
     private competence = 100
     public const version = "1.0"
-    readonly creationDate is String
+    readonly creationDate: String
 
-    public fn changeSalary(x is Int) -> Person {
+    public fn changeSalary(x: Int) -> Person {
         this(salary: salary + x)
     }
 
-    public fn changeCompetence(x is Int) -> Person {
+    public fn changeCompetence(x: Int) -> Person {
         this(competence: competence + 1)
     }
 
-    public fn raiseSalaryAndReturnCompetence(x is Int) -> (Int, Person) {
+    public fn raiseSalaryAndReturnCompetence(x: Int) -> (Int, Person) {
         (competence, this(salary: salary + x))
     }
 
@@ -30,7 +30,7 @@ export fn main(_) {
     // provided
     ?p1 := Person<String>(name: "Joe", socialSecurityNumber: "360822-7945"),
     // Access a member property
-    ?name is String := p1.name,
+    ?name: String := p1.name,
     // Update member properties
     ?p2 := p1(name: "Joe Armstrong", salary: 1000),
     // Call member functions

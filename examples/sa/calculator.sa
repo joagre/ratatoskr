@@ -14,7 +14,7 @@ export fn test() {
 }
 
 task Ackermann {
-    public savedCalculations is (Int, Int, Int) = []
+    public savedCalculations: (Int, Int, Int) = []
     public fn calc(m, n) {
         ?result := ackermann(m, n),
         (result, this(savedCalculations: (m, n, result) :: savedCalculations))

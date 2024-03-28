@@ -2,11 +2,11 @@ export fn main(_) {
     zonk((42, 1))
 }
 
-fn zonk(a is (Int, Int)) -> (Int, (Int, Int)) {
+fn zonk(a: (Int, Int)) -> (Int, (Int, Int)) {
     switch a {
         case (?a, 4713) as ?b =>
             (a, b)
-        case (?a, 4711), (?a, 4712) as ?b is (Int, Int) when a == 42 =>
+        case (?a, 4711), (?a, 4712): (Int, Int) as ?b when a == 42 =>
             (a, b)
         default =>
             (0, (0, 0))

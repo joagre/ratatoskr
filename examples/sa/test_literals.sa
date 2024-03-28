@@ -1,43 +1,43 @@
 fn foo() {
    // Bool
-   ?a is Bool := true,
-   ?a is Bool := false,
+   ?a: Bool := true,
+   ?a: Bool := false,
    // Int
-   ?a is Int := 42,
-   ?a is Int := -42,
-   ?a is Int := +42,
-   ?a is Int := 0xff,
-   ?a is Int := 0b101010,
-   ?a is Int := 042,
-   ?a is Int := 42 + 4711,
+   ?a: Int := 42,
+   ?a: Int := -42,
+   ?a: Int := +42,
+   ?a: Int := 0xff,
+   ?a: Int := 0b101010,
+   ?a: Int := 042,
+   ?a: Int := 42 + 4711,
    // Float
-   ?a is Float := 3.14,
-   ?a is Float := 3E-2,
-   ?a is Float := +.3E+2,
-   ?a is Float := +.3.14E+2,
-   ?a is Float := +.14E+2,
-   ?a is Float := 3.14 +. 3.14,
+   ?a: Float := 3.14,
+   ?a: Float := 3E-2,
+   ?a: Float := +.3E+2,
+   ?a: Float := +.3.14E+2,
+   ?a: Float := +.14E+2,
+   ?a: Float := 3.14 +. 3.14,
    // Char
-   ?a is Char := 'a',
+   ?a: Char := 'a',
    // String
-   ?a is String := "foo",
-   ?a is String := "",
-   ?a is String := r"\nbar",
+   ?a: String := "foo",
+   ?a: String := "",
+   ?a: String := r"\nbar",
    // Function
-   ?a is (Int -> Int) :=
-       fn (x is Int) -> Int {
+   ?a: (Int -> Int) :=
+       fn (x: Int) -> Int {
            x
        },
    41 := a(41),
    ?bonk := fn (x) { x },
    42 := bonk(42),
    // List
-   ?a is [(Bool, Int)] := [(true, 42), (false, 4711)],
-   ?a is [] := [],
+   ?a: [(Bool, Int)] := [(true, 42), (false, 4711)],
+   ?a: [] := [],
    // Map
-   ?a is [Bool: Int] := [true: 42, false:4711],
-   ?a is [:] := [:],
+   ?a: [Bool: Int] := [true: 42, false:4711],
+   ?a: [:] := [:],
    // Tuple
-   ?a is (Bool, [Int: String]) := (true, [42: "foo"]),
-   ?a is () := ()
+   ?a: (Bool, [Int: String]) := (true, [42: "foo"]),
+   ?a: () := ()
 }

@@ -5,9 +5,9 @@ enum ErrorStatus {
 }
 
 record Queue<$t> {
-    private queue is [$t] = []
+    private queue: [$t] = []
 
-    public fn enqueue<$t>(element is $t) -> Queue<$t>  {
+    public fn enqueue<$t>(element: $t) -> Queue<$t>  {
         this(queue : queue @ [element])
     }
 

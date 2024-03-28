@@ -1,6 +1,6 @@
 //type Result<$t1, $t2> = Ok<$t1> || Error<$t2>
 
-fn foo<$t>(x is $t, baz is ($t -> Bool)) -> Result<$t, String> {
+fn foo<$t>(x: $t, baz: ($t -> Bool)) -> Result<$t, String> {
    if baz(x) {
        Result;Ok<x> // Constructirs can be prefixed with its type parent
    } else {

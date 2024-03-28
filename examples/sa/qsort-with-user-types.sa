@@ -3,7 +3,7 @@ import Std.stdio: writeln
 //type Either<$t1, $t2> = This<$t1> or That<$t2>
 //alias Compare<$t> = ({$t, $t} -> Bool)
 
-fn sort<$t>(compare is Compare<$t>, list is [$t]) -> Either<[$t], String> {
+fn sort<$t>(compare: Compare<$t>, list: [$t]) -> Either<[$t], String> {
     if !list.isEmpty() {
         This<qsort(compare, list)>
     } else {

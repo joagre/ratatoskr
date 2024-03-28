@@ -19,9 +19,9 @@ fn startTributes(numberOfTributes, n, tasks) {
 }
 
 task Tribute {
-    public n is Int
-    public fn hail(message is String) {
+    public n: Int
+    public fn hail(message: String) {
         writeln("%n: %message"),
-        Task.die
+        this(stopTask: true)
     }
 }

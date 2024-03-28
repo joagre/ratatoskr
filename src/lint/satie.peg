@@ -92,7 +92,7 @@ Constructor <- n:Name ("<" _ t:Types? _ ">")? { $$ = CN(CONSTRUCTOR, 2, n, t); }
 # Enumeration definition
 #
 
-EnumDef <- "enum" __ n:Name (__ "is" __ t:Type)? _ "{" _ e:Enums _ "}" { $$ = CN(ENUM_DEF, 3, n, CCN(TYPE, 1, t), e); }
+EnumDef <- "enum" __ n:Name (_ ":" _ t:Type)? _ "{" _ e:Enums _ "}" { $$ = CN(ENUM_DEF, 3, n, CCN(TYPE, 1, t), e); }
 Enums <- e:Enum { $$ = CN(ENUMS, 1, e); } (_ UnexpectedSeparator)? (_ e:Enum { AC($$, e); } (_ UnexpectedSeparator)?)*
 Enum <- n:Name (_ "=" _ e:Expr)? { $$ = CN(ENUM, 2, n, CCN(ENUM_VALUE, 1, e)); }
 
@@ -104,7 +104,7 @@ FunctionDef <- e:Export? _ "fn" __ fn:FunctionName _ ("<" _ tv:TypeVariables _ "
 Export <- "export" { $$ = CT(EXPORT, NULL); }
 FunctionName <- Identifier { $$ = CT(FUNCTION_NAME, $0); }
 Params <- p:Param { $$ = CN(PARAMS, 1, p); } (_ "," _ p:Param { AC($$, p); })*
-Param <- n:Name (_ "is" _ t:Type)? { $$ = RN(n, PARAM_NAME); AC($$, CCN(TYPE, 1, t));}
+Param <- n:Name (_ ":" _ t:Type)? { $$ = RN(n, PARAM_NAME); AC($$, CCN(TYPE, 1, t));}
 
 #
 # Interface definition
@@ -117,7 +117,7 @@ InterfaceMembers <- im:InterfaceMember (_ UnexpectedSeparator)? { $$ = CN(INTERF
 InterfaceMember <- (im:InterfaceMemberMethod / i:InterfaceMemberProperty) { $$ = im; }
 InterfaceMemberMethod <- ma:MemberAccess __ im:InterfaceMethod { $$ = CN(INTERFACE_MEMBER_METHOD, 2, ma, im); }
 InterfaceMethod <- "fn" __ fn:FunctionName ("<" _ tv:TypeVariables _ ">")? _ "(" _ p:Params? _ ")" (_ "->" _ t:Type)? _ { $$ = CN(INTERFACE_METHOD, 4, fn, tv, p, CCN(TYPE, 1, t)); }
-InterfaceMemberProperty <- (ma:MemberAccess (_ c:Const)? / c:Readonly) __ n:Name (__ "is" __ t:Type { AC(n, CCN(TYPE, 1, t)); })? { $$ = CN(INTERFACE_MEMBER_PROPERTY, 4, ma, c, n, t); }
+InterfaceMemberProperty <- (ma:MemberAccess (_ c:Const)? / c:Readonly) __ n:Name (_ ":" _ t:Type { AC(n, CCN(TYPE, 1, t)); })? { $$ = CN(INTERFACE_MEMBER_PROPERTY, 4, ma, c, n, t); }
 
 #
 # Record definition
@@ -132,7 +132,7 @@ RecordMembers <- rm:RecordMember (_ UnexpectedSeparator)? { $$ = CN(RECORD_MEMBE
 RecordMember <- (rm:MemberMethod / rm:MemberProperty) { $$ = rm; }
 MemberMethod <- ma:MemberAccess __ fd:FunctionDef { $$ = CN(MEMBER_METHOD, 2, ma, fd); }
 MemberAccess <- "public" { $$ = CT(PUBLIC, NULL); } / "private" { $$ = CT(PRIVATE, NULL); }
-MemberProperty <- (ma:MemberAccess (_ c:Const)? / c:Readonly) __ n:Name (__ "is" __ t:Type { AC(n, CCN(TYPE, 1, t)); })? (_ "=" _ e:Expr)? { $$ = CN(MEMBER_PROPERTY, 4, ma, c, n, e); }
+MemberProperty <- (ma:MemberAccess (_ c:Const)? / c:Readonly) __ n:Name (_ ":" _ t:Type { AC(n, CCN(TYPE, 1, t)); })? (_ "=" _ e:Expr)? { $$ = CN(MEMBER_PROPERTY, 4, ma, c, n, e); }
 Const <- "const" { $$ = CT(CONST, NULL); }
 Readonly <- "readonly" { $$ = CT(READONLY, NULL); }
 
@@ -177,7 +177,7 @@ Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
 Expr <- "this" _ "(" _ (":" / a:NamedArgs) _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; }
 
-BindExpr <- l:Expr (__ ("as" __ un:UnboundName __ "is" __ t:Type / "is" __ t:Type __ "as" __ un:UnboundName / "is" __ t:Type / "as" __ un:UnboundName))? _ ":=" _ r:Expr { $$ = CN(BIND, 4, l, CCN(IS, 1, t), CCN(AS, 1, un), r); } / e:LogicalOrExpr { $$ = e; }
+BindExpr <- l:Expr (_ ":" _ t:Type)? (__ "as" __ un:UnboundName)? _ ":=" _ r:Expr { $$ = CN(BIND, 4, l, CCN(IS, 1, t), CCN(AS, 1, un), r); } / e:LogicalOrExpr { $$ = e; }
 LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r); } / e:LogicalAndExpr { $$ = e; }
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
 BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
@@ -259,7 +259,7 @@ IfExpr <- "if" __ e:Expr _ be:BlockExpr { $$ = CN(IF, 2, e, be); }
           (_ "else" _ be:BlockExpr { AC($$, CN(ELSE, 1, be)); })
 
 SwitchExpr <- "switch" __ se:Expr { $$ = CN(SWITCH, 1, se); } _ "{"
-              (_ "case" __ me:Exprs (__ ("as" __ un:UnboundName __ "is" __ t:Type / "is" __ t:Type __ "as" __ un:UnboundName / "is" __ t:Type / "as" __ un:UnboundName))? (__ "when" __ we:Expr)? _ "=>" _ b:Block { AC($$, CN(CASE, 5, me, CCN(AS, 1, un), CCN(IS, 1, t), CCN(WHEN, 1, we), b)); })+
+              (_ "case" __ me:Exprs (_ ":" _ t:Type)? (__ "as" __ un:UnboundName)? (__ "when" __ we:Expr)? _ "=>" _ b:Block { AC($$, CN(CASE, 5, me, CCN(AS, 1, un), CCN(IS, 1, t), CCN(WHEN, 1, we), b)); })+
               (_ "default" _ "=>" _ b:Block { AC($$, CN(DEFAULT, 1, b)); })? _
               "}"
 
@@ -363,7 +363,6 @@ Reserved <- ("alias" /
              "readonly" /
              "record" /
              "implements"
-             "is" /
              "switch" /
              "task" /
              "this" /

@@ -27,7 +27,7 @@ task Master {
 }
 
 task Slave {
-    private masterTask is Task
+    private masterTask: Task
     public fn start(m, n) {
         masterTask~>slaveRunning(m, n),
         ?result := ackermann(m, n),

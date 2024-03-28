@@ -2,17 +2,17 @@ export fn main(_) {
     44 := foo(42)
 }
 
-fn foo(x is Int) -> Int {
+fn foo(x: Int) -> Int {
     [42] := [], // just a check to see if I handle empty lists ok
-    ?l is [Int] := [1, 2, 3],
+    ?l: [Int] := [1, 2, 3],
     ?l2 := l @ [4, 5],
     1 := l2[0],
     5 := l2[$ - 1],
     [2, 3] := l2[1 .. $ - 2],
     [2, 3] := l2[bar(0) - 1 + 1 .. $ - 2], // :-)
     [5] := l2[$ - 1 .. $], // only the last element remains (corner case)
-    ?l2 is [Int] := l2[1 = 42, bar(x) = 66],
-    ?l3 is [[(Int -> Int)]] :=
+    ?l2: [Int] := l2[1 = 42, bar(x) = 66],
+    ?l3: [[(Int -> Int)]] :=
         [[fn (x) { x + 1 }, fn (x) { x + 2 }],
          [fn (x) { x + 2 }, fn (x) { x + 3 }]],
     l3[0][1](x)

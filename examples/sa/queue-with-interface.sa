@@ -5,14 +5,14 @@ enum ErrorStatus {
 }
 
 interface QueueInterface<$t> {
-    public fn enqueue(element is $t) -> QueueInterface<$t>
+    public fn enqueue(element: $t) -> QueueInterface<$t>
     public fn null() -> Bool
     public fn hd() -> Either<$t, ErrorStatus>
     public fn dequeue() -> Either<QueueInterface<$t>, ErrorStatus>
 }
 
 record Queue<$t> implements QueueInterface<$t> {
-    private queue is [$t] = []
+    private queue: [$t] = []
 
     public fn enqueue(element) {
         this(queue : queue @ [element])

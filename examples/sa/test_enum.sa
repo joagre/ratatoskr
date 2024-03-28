@@ -1,4 +1,4 @@
-enum Zonk is Int {
+enum Zonk: Int {
     foo = 42
     bar = 4711
 }

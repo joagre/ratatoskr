@@ -3,9 +3,9 @@ import Std.stdio: writeln
 type TreeChild<$t> = Tree<$t> or Leaf<>
 
 record Tree<$t> {
-    public label is $t
-    public left is TreeChild<$t>
-    public right is TreeChild<$t>
+    public label: $t
+    public left: TreeChild<$t>
+    public right: TreeChild<$t>
 }
 
 export fn main(_args) {
