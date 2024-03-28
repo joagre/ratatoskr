@@ -67,6 +67,7 @@ typedef dynarray_t node_array_t;
         NODE_NAME(FLOAT_TYPE) \
         NODE_NAME(FUNCTION_CALL) \
         NODE_NAME(FUNCTION_DEF) \
+        NODE_NAME(FUNCTION_INSTANCE_LITERAL) \
         NODE_NAME(FUNCTION_LITERAL) \
         NODE_NAME(FUNCTION_NAME) \
         NODE_NAME(GT_INT) \
@@ -136,9 +137,11 @@ typedef dynarray_t node_array_t;
         NODE_NAME(PUBLIC) \
         NODE_NAME(RAW_STRING) \
         NODE_NAME(READONLY) \
+        NODE_NAME(RECORD_CONSTRUCTOR) \
         NODE_NAME(RECORD_DEF) \
         NODE_NAME(RECORD_DOT) \
         NODE_NAME(RECORD_MEMBERS) \
+	NODE_NAME(RECORD_TYPE) \
         NODE_NAME(REGULAR_STRING) \
         NODE_NAME(SLICE_LENGTH) \
 	NODE_NAME(STRING_TYPE) \

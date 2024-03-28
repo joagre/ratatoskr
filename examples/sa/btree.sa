@@ -1,21 +1,17 @@
 import Std.stdio: writeln
 
-type Tree<$label> = Leaf<> or Branch<$label, Tree<$label>, Tree<$label>>
+type Tree($t) = #Leaf or #Branch($t, #Tree($t), #Tree($t))
 
 export fn main(_args) {
-    ?tree := Branch<"The",
-                    Leaf<>,
-                    Branch<"wood",
-                           Branch<"of",
-                                  Branch<"Birnam",
-                                         Leaf<>,
-                                         Leaf<>
-                                        >,
-                                  Leaf<>
-                                 >,
-                           Leaf<>
-                          >
-                   >,
+    ?tree := #Branch("The",
+                     #Leaf,
+                     #Branch("wood",
+                             #Branch("of",
+                                     #Branch("Birnam",
+                                             #Leaf,
+                                             #Leaf),
+                                     #Leaf),
+                             #Leaf)),
     writeln("Size: %{size(tree)}"),
     writeln("Depth: %{depth(tree)}"),
     writeln("Complete Tree: %{completeTree(1, 8)}"),
@@ -25,37 +21,39 @@ export fn main(_args) {
 
 fn size(tree) {
     switch tree {
-        case Leaf<> => 0
-        case Branch<_, ?left, ?right> => 1 + size(left) + size(right)
+        case #Leaf => 0
+        case #Branch(_, ?left, ?right) => 1 + size(left) + size(right)
     }
 }
 
 fn depth(tree) {
     switch tree {
-        case Leaf<> => 0
-        case Branch<_, ?left, ?right> => 1 + depth(left).max(depth(right))
+        case #Leaf => 0
+        case #Branch(_, ?left, ?right) => 1 + depth(left).max(depth(right))
     }
 }
 
 fn completeTree(k, n) {
     if n == 0 {
-        Leaf<>
+        #Leaf
     } else {
-        Branch<k, completeTree(2 * k, n - 1), completeTree(2 * k + 1, n - 1)>
+        #Branch(k, completeTree(2 * k, n - 1), completeTree(2 * k + 1, n - 1))
     }
 }
 
 fn mirror(tree) {
     switch tree {
-        case Leaf<> => tree
-        case Branch<?label, ?left, ?right> => Branch<label, mirror(right), mirror(left)>
+        case #Leaf => tree
+        case #Branch(?label, ?left, ?right) =>
+            #Branch(label, mirror(right), mirror(left))
     }
 }
 
 fn traverse(tree) {
     switch tree {
-        case Leaf<> => []
-        case Branch<?label, ?left, ?right> => label :: traverse(left) @ traverse(right)
+        case #Leaf => []
+        case #Branch(?label, ?left, ?right) =>
+            label :: traverse(left) @ traverse(right)
     }
 }
 

@@ -25,6 +25,9 @@ simple() ->
 all() ->
     simple(),
     Ignore = ["test_constructor.sa",
+              "test_functions_adt.sa",
+              "test_record2.sa",
+              "test_type_alias.sa",
               "test_enum.sa",
               "test_record.sa"],
     case file:list_dir("../../../examples/sa") of

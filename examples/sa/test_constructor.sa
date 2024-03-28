@@ -1,18 +1,18 @@
-//type Result<$t1, $t2> = Ok<$t1> || Error<$t2>
+type Result($t1, $t2) = #Ok($t1) or #Error($t2)
 
-fn foo<$t>(x: $t, baz: ($t -> Bool)) -> Result<$t, String> {
+fn foo<$t>(x: $t, baz: ($t -> Bool)) -> #Result($t, String) {
    if baz(x) {
-       Result;Ok<x> // Constructirs can be prefixed with its type parent
+       Result;#Ok(x) // Constructirs can be prefixed with its type parent
    } else {
-       Error<"Bad value">
+       #Error("Bad value")
    }
 }
 
 fn bar() {
     switch foo<Int>(42, fn (x) { x == 42 }) { // <Int> can be omitted
-        case Ok<?value> =>
+        case #Ok(?value) =>
             writeln("%value")
-        case Error<?reason> =>
+        case #Error(?reason) =>
             writeln("%reason")
     }
 }

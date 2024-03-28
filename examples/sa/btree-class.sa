@@ -1,23 +1,23 @@
 import Std.stdio: writeln
 
-type TreeChild<$t> = Tree<$t> or Leaf<>
+type TreeChild($t) = Tree<$t> or #Leaf
 
 record Tree<$t> {
     public label: $t
-    public left: TreeChild<$t>
-    public right: TreeChild<$t>
+    public left: #TreeChild($t)
+    public right: #TreeChild($t)
 }
 
 export fn main(_args) {
     ?tree := Tree(label: "The",
-                  left: Leaf<>,
+                  left: #Leaf,
                   right: Tree(label: "wood",
                               left: Tree(label: "of"),
                                          left: Tree(label: "Birnam",
-                                                    left: Leaf<>,
-                                                    right: Leaf<>),
-                                         right: Leaf<>,
-                              right: Leaf<>)),
+                                                    left: #Leaf,
+                                                    right: #Leaf),
+                                         right: #Leaf,
+                              right: #Leaf)),
     writeln("Size: %{size(tree)}"),
     writeln("Depth: %{depth(tree)}"),
     writeln("Complete Tree: %{completeTree(1, 8)}"),
@@ -27,21 +27,21 @@ export fn main(_args) {
 
 fn size(tree) {
     switch tree {
-        case Leaf<> => 0
+        case #Leaf => 0
         case Tree(?left, ?right) => 1 + size(left) + size(right)
     }
 }
 
 fn depth(tree) {
     switch tree {
-        case Leaf<> => 0
+        case #Leaf => 0
         case Tree(?left, ?right) => 1 + depth(left).max(depth(right))
     }
 }
 
 fn completeTree(k, n) {
     if n == 0 {
-        Leaf<>
+        #Leaf
     } else {
         Tree(k, completeTree(2 * k, n - 1), completeTree(2 * k + 1, n - 1))
     }
@@ -49,14 +49,14 @@ fn completeTree(k, n) {
 
 fn mirror(tree) {
     switch tree {
-        case Leaf<> => tree
+        case #Leaf => tree
         case Tree(?label, ?left, ?right) => Tree(label, mirror(right), mirror(left))
     }
 }
 
 fn traverse(tree) {
     switch tree {
-        case Leaf<> => []
+        case #Leaf => []
         case Tree(?label, ?left, ?right) => label :: traverse(left) @ traverse(right)
 
 

@@ -4,7 +4,7 @@ enum Zonk: Int {
 }
 
 fn zippo() {
-    ?a := Zonk#foo,
+    ?a := Zonk%foo,
     if a.value() == 42 {
         writeln("No shit!")
     } else {

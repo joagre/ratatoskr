@@ -78,15 +78,15 @@ ImportedDefs <- n:Name { $$ = CN(IMPORTED_DEFS, 1, n); } (_ "," _ n:Name { AC($$
 # Alias definition
 #
 
-AliasDef <- "alias" __ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ t:Type { $$ = CN(ALIAS_DEF, 3, n, tv, t); }
+AliasDef <- "alias" __ n:Name ("(" _ tv:TypeVariables _ ")")? _ "=" _ t:Type { $$ = CN(ALIAS_DEF, 3, n, tv, t); }
 
 #
 # Type definition
 #
 
-TypeDef <- "type" __ n:Name ("<" _ tv:TypeVariables _ ">")? _ "=" _ c:Constructors { $$ = CN(TYPE_DEF, 3, n, tv, c); }
+TypeDef <- "type" __ n:Name ("(" _ tv:TypeVariables _ ")")? _ "=" _ c:Constructors { $$ = CN(TYPE_DEF, 3, n, tv, c); }
 Constructors <- c:Constructor { $$ = CN(CONSTRUCTORS, 1, c); } (__ "or" __ c:Constructor { AC($$, c); })*
-Constructor <- n:Name ("<" _ t:Types? _ ">")? { $$ = CN(CONSTRUCTOR, 2, n, t); }
+Constructor <- "#" n:Name ("(" _ t:Types? _ ")")? { $$ = CN(CONSTRUCTOR, 2, n, t); } / rt:RecordType { $$ = rt; }
 
 #
 # Enumeration definition
@@ -148,7 +148,7 @@ TaskDef <- "task" __ n:Name ("<" _ tv:TypeVariables _ ">")? (__ "implements" __ 
 # Type
 #
 
-Type <- (t:BasicType / t:ListType / t:FunctionType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable / t:Name) { $$ = t; }
+Type <- (t:BasicType / t:ListType / t:FunctionType / t:TupleType / t:MapType / t:ConstructorType / t:TypeVariable / t:RecordType) { $$ = t; }
 BasicType <- (b:BoolType / b:IntType / b:FloatType / b:CharType / b:StringType / b:TaskType) { $$ = b;}
 BoolType <- "Bool" { $$ = CT(BOOL_TYPE, NULL); }
 IntType <- "Int" { $$ = CT(INT_TYPE, NULL); }
@@ -161,13 +161,12 @@ FunctionType <- "(" _ ("<" _ tv:TypeVariables _ ">" _)? a:Type _ "->" _ r:Type _
 ArgTypes <- a:Type { $$ = CN(ARG_TYPES, 1, a); } (_ "," _ a:Type { AC($$, a); })*
 TupleType <- "(" _ t:Type { $$ = CN(TUPLE_TYPE, 1, t); } (_ "," _ t:Type { AC($$, t); })* _ ")" / "(" _ ")" { $$ = CT(EMPTY_TUPLE_TYPE, NULL); }
 MapType <- "[" _ k:Type _ ":" _ v:Type _ "]" { $$ = CN(MAP_TYPE, 2, k, v); } / "[" _ ":" _ "]" { $$ = CT(EMPTY_MAP_TYPE, NULL); }
-
-ConstructorType <- n:Name "<" _ t:Types? _ ">" { $$ = CN(CONSTRUCTOR_TYPE, 2, n, t); }
+ConstructorType <- "#" n:Name "(" _ t:Types? _ ")" { $$ = CN(CONSTRUCTOR_TYPE, 2, n, t); }
+TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
+RecordType <- n:Name ("<" _ tv:Types _ ">")? { $$ = CN(RECORD_TYPE, 2, n, tv); }
 
 Types <- t:Type { $$ = CN(TYPES, 1, CN(TYPE, 1, t)); } (_ "," _ t:Type { AC($$, CN(TYPE, 1, t)); })*
-
 TypeVariables <- t:TypeVariable {$$ = CN(TYPE_VARIABLES, 1, t); } (_ "," _ t:TypeVariable { AC($$, t); })*
-TypeVariable <- "$" Identifier { $$ = CT(TYPE_VARIABLE, $0); }
 
 #
 # Expression
@@ -195,7 +194,7 @@ NotEqualFloatExpr <- l:NotEqualFloatExpr _ "!=." _ r:NotEqualExpr { $$ = CN(NE, 
 NotEqualExpr <- l:NotEqualExpr _ "!" !("Int" / "Float") t:Name "=" _ r:EqualIntExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualIntExpr { $$ = e; }
 EqualIntExpr <- l:EqualIntExpr _ "==" _ r:EqualFloatExpr { $$ = CN(EQ, 3, l, CT(INT_TYPE, NULL), r); } / e:EqualFloatExpr { $$ = e; }
 EqualFloatExpr <- l:EqualFloatExpr _ "==." _ r:EqualExpr { $$ = CN(EQ, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:EqualExpr { $$ = e; }
-EqualExpr <- l:EqualExpr _ "=" !("Int" / "Float") t:Name "=" _ r:RightShiftExpr { $$ = CN(EQ, 3, l, RN(t, EQ_TYPE), r); } / e:RightShiftExpr { $$ = e; }
+EqualExpr <- l:EqualExpr _ "=" !("Int" / "Float") n:Name ("<" _ t:Types _ ">")? _ "=" _ r:RightShiftExpr { $$ = CN(EQ, 4, l, RN(n, EQ_TYPE), t, r); } / e:RightShiftExpr { $$ = e; }
 RightShiftExpr <- l:RightShiftExpr __ ">>" __ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
 LeftShiftExpr <- l:LeftShiftExpr __ "<<" __ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
 ConsExpr <- l:ConsExpr _ "::" _ r:ListConcatExpr { $$ = CN(CONS, 2, l, r); } / e:ListConcatExpr { $$ = e; }
@@ -278,6 +277,7 @@ BasicLiteral <- (bl:BoolLiteral /
                  bl:CharLiteral /
                  bl:StringLiteral /
                  bl:FunctionLiteral /
+                 bl:FunctionReferenceLiteral /
                  bl:EnumLiteral) { $$ = bl; }
 
 CompositeLiteral <- (cl:TupleLiteral /
@@ -322,7 +322,9 @@ RawString <- [^"]* { $$ = CT(RAW_STRING, $0); }
 
 FunctionLiteral <- "fn" __ f:FunctionName? _ ("<" _ tv:TypeVariables _ ">" _)? "(" _ p:Params? _ ")" (_ "->" _ Type)? _ e:BlockExpr { $$ = CN(FUNCTION_LITERAL, 4, f, tv, p, e); }
 
-EnumLiteral <- en:Name _ "#" _ n:Name { $$ = CN(ENUM_LITERAL, 2, en, n); }
+FunctionReferenceLiteral <- "fn" __ f:FunctionName _ ("<" _ t:Types _ ">" _)? { $$ = CN(FUNCTION_INSTANCE_LITERAL, 2, f, t); }
+
+EnumLiteral <- en:Name _ "%" _ n:Name { $$ = CN(ENUM_LITERAL, 2, en, n); }
 
 TupleLiteral <- "(" _ ")" { $$ = CT(TUPLE_LITERAL, NULL); } /
                 "(" _ e:Expr _ "," _ ")" { $$ = CN(TUPLE_LITERAL, 1, e); } /
@@ -335,7 +337,7 @@ MapLiteral <- "[" _ ":" _ "]" { $$ = CT(MAP_LITERAL, NULL); } / "[" _ k:MapKeyVa
 MapKeyValues <- m:MapKeyValue { $$ = CN(MAP_KEY_VALUES, 1, m); } (_ "," _ m:MapKeyValue { AC($$, m); })*
 MapKeyValue <- k:Expr _ ":" _ v:Expr { $$ = CN(MAP_KEY_VALUE, 2, k, v); }
 
-ConstructorLiteral <- (Name _ ";" _)? n:Name "<" _ e:Exprs? _ ">" !(_"(") { $$ = CN(CONSTRUCTOR_LITERAL, 2, n, e); }
+ConstructorLiteral <- (Name _ ";" _)? "#" n:Name ("(" _ e:Exprs? _ ")")? { $$ = CN(CONSTRUCTOR_LITERAL, 2, n, e); }
 
 Args <- e:Expr { $$ = CN(ARGS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 

@@ -1,4 +1,4 @@
-type Either<$t1, $t2> = This<$t1> or That<$t2>
+type Either($t1, $t2) = #This($t1) or #That($t2)
 
 enum ErrorStatus {
    emptyQueue
@@ -7,8 +7,8 @@ enum ErrorStatus {
 interface QueueInterface<$t> {
     public fn enqueue(element: $t) -> QueueInterface<$t>
     public fn null() -> Bool
-    public fn hd() -> Either<$t, ErrorStatus>
-    public fn dequeue() -> Either<QueueInterface<$t>, ErrorStatus>
+    public fn hd() -> #Either($t, ErrorStatus)
+    public fn dequeue() -> #Either(QueueInterface<$t>, ErrorStatus)
 }
 
 record Queue<$t> implements QueueInterface<$t> {
@@ -24,24 +24,24 @@ record Queue<$t> implements QueueInterface<$t> {
 
     public fn hd() {
         switch queue {
-            case [?first :: _] => This<first>
-            case [] => That<ErrorStatus#emptyQueue>
+            case [?first :: _] => #This(first)
+            case [] => #That(ErrorStatus%emptyQueue)
         }
     }
 
     public fn dequeue() {
         switch queue {
-            case [_ :: ?rest] => This<this(queue: rest)>
-            case [] => That<ErrorStatus#emptyQueue>
+            case [_ :: ?rest] => #This(this(queue: rest))
+            case [] => #That(ErrorStatus%emptyQueue)
         }
     }
 }
 
 export fn main(_args) {
-    ?a := Queue(:),
+    ?a := Queue<Int>(:),
     ?a := a.enqueue(4711),
-    This<4711> := b.hd(),
-    ?b := Queue(:),
+    #This(4711) := b.hd(),
+    ?b := Queue<Int>(:),
     ?b := b.enqueue(4711),
-    true := (a =Queue= b)
+    true := (a =Queue<Int>= b)
 }

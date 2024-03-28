@@ -1,17 +1,17 @@
-type Either<$t1, $t2> = This<$t1> or That<$t2>
+type Either($t1, $t2) = #This($t1) or #That($t2)
 alias Baz = Int
 
 fn foo(x, y, compare) {
     ?first :: ?rest := x,
     if compare(first, y) {
-        This<rest>
+        #This(rest)
     } else {
-        That<"%x is an invalid value">
+        #That("%x is an invalid value")
     }
 }
 
 export fn main(_args) {
     ?compare := fn (a, b) { a == b },
     ?w := foo([12, 13], 42, compare),
-    w := foo2<int>([12, 13], 42, compare)
+    w := foo2<Int>([12, 13], 42, compare)
 }
