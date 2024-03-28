@@ -1,4 +1,5 @@
-type Either($t1, $t2) = #This($t1) or #That($t2)
+#Either($t1, $t2) = #This($t1) or #That($t2)
+
 alias Baz = Int
 
 fn foo(x, y, compare) {

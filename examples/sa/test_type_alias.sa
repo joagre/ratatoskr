@@ -1,8 +1,9 @@
 alias Stack($t) = [$t]
-type Colors = #Green or #Blue or #Yellow
-type MoreColors = #Colors or #Black
-type Either($t1, $t2) = #This($t1) or #That($t2)
-type TreeChild($t) = Tree<$t> or #Leaf
+
+#Colors = #Green or #Blue or #Yellow
+#MoreColors = #Colors or #Black
+#Either($t1, $t2) = #This($t1) or #That($t2)
+#TreeChild($t) = Tree<$t> or #Leaf
 
 record Tree<$t> {
     public label: $t

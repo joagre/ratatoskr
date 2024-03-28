@@ -1,6 +1,6 @@
 import Std.stdio: writeln
 
-type Tree($t) = #Leaf or #Branch($t, #Tree($t), #Tree($t))
+#Tree($t) = #Leaf or #Branch($t, #Tree($t), #Tree($t))
 
 export fn main(_args) {
     ?tree := #Branch("The",

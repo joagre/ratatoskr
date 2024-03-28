@@ -1,4 +1,4 @@
-type Result($t1, $t2) = #Ok($t1) or #Error($t2)
+#Result($t1, $t2) = #Ok($t1) or #Error($t2)
 
 fn foo<$t>(x: $t, baz: ($t -> Bool)) -> #Result($t, String) {
    if baz(x) {
