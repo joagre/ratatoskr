@@ -1,0 +1,8 @@
+record Person<$t> {
+    public name: $t
+}
+
+export fn main(_) {
+    ?p1 := Person(name: "Joe"),
+    42 := p1.name
+}

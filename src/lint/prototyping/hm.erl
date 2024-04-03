@@ -185,7 +185,49 @@ unify({function, GenericsX, ArgsX, ReturnX},
                     end
             end
     end;
+unify({record_dot, PostfixExprType, MemberName},
+       Type, TypeStack, Node, Substitutions) ->
+     S = unify(PostfixExprType, {record_resolve_dot, PostfixExprType, MemberName},
+               TypeStack, Node, Substitutions),
+     io:format("SNUVA: ~p -> ~p\n", [Substitutions, S]),
+     S;
+unify({record_resolve_dot, PostfixExprType, MemberName} = Type,
+      {record_instance, RecordDefType, _, _},
+      TypeStack, Node, Substitutions) ->
+    unify(RecordDefType, Type, TypeStack, Node, Substitutions);
+
+
+unify({record_resolve_dot, PostfixExprType, MemberName} = Type,
+      {record_def, _, _, MemberTypes},
+      TypeStack, Node, Substitutions) ->
+
+    io:format("aaaaa_record_resolve_dot: ~p\n",
+              [{MemberName, MemberTypes,
+                lists:keyfind(MemberName, 2, MemberTypes)}]),
+
+
+
+
+
+    case lists:keyfind(MemberName, 2, MemberTypes) of
+        {property, _MemberName, _Modifier, MemberType} ->
+            io:format("aaaaa: ~p\n", [{MemberType, Type}]),
+            unify(MemberType, Type, TypeStack, Node, Substitutions);
+        false ->
+            {mismatch, TypeStack}
+    end;
+
+
+
+
+
+
+
+
+
+
 unify(_X, _Y, TypeStack, _Node, _Substitutions) ->
+    io:format("**** X, Y: ~p: ~p\n", [_X, _Y]),
     {mismatch, TypeStack}.
 
 unify_args([], [], _TypeStack, _MetInfo, Substitutions) ->
@@ -246,6 +288,110 @@ occurs_check(Variable, Type, Substitutions)
 occurs_check(_Variable, _Type, _Substitutions) ->
     false.
 
+
+
+
+
+
+%    unify(PostfixExprType,
+%          {record_instance, PostfixExprType, [], [{named_arg, MemberName, Type}%]},
+%          TypeStack, Node, Substitutions);
+
+
+%% unify({record_instance, PostfixExprType, [],
+%%        [{named_arg, MemberName, MemberType}]},
+%%       Type, TypeStack, Node, Substitutions) ->
+%%     unify({record_def, PostfixExprType, [],
+%%            [{property, MemberName, '_', MemberType, '_',
+%%                                   '_'}]},
+%%           Type, TypeStack, Node, Substitutions);
+
+%% unify({record_def, PostfixExprType, [],
+%%        [{property, MemberName, '_', MemberType, '_', '_'}]} = BAJS,
+%%       Type, TypeStack, Node, Substitutions) ->
+%%     unify(BAJS,
+%%           {record_def, '_', [],
+%%            [{property, MemberName, '_', MemberType, '_', '_'}]},
+%%             TypeStack, Node, Substitutions);
+
+
+
+
+
+
+%% unify({record_instance, X, _, _} = A, {record_instance, Y, _, _} = B,
+%%       TypeStack, Node, Substitutions) ->
+%%     throw(bajs1);
+
+%% unify({record_def, CC, _, _} = A, {record_def, DD, _, _} = B,
+%%       TypeStack, Node, Substitutions) ->
+%%     throw(bajs2);
+
+
+
+
+
+
+%%unify({record_dot, RecordDefType, MemberName},
+%%      string,
+%%      TypeStack, Node, Substitutions) ->
+%%    unify_variable(RecordDefType, {record_def, MemberName, '_', '_'},
+%%                   TypeStack, Node, Substitutions);
+
+%% HERE
+%% unify({record_dot, PostfixExprType, MemberName},
+%%       Type, TypeStack, Node, Substitutions) ->
+%%     case unify({record_instance, PostfixExprType, [],
+%%                 [{named_arg, MemberName, '_'}]},
+%%                Type, TypeStack, Node, Substitutions) of
+%%         {mismatch, TypeStack} ->
+%%             {mismatch, TypeStack};
+%%         UpdatedSubstitutions ->
+%%             UpdatedSubstitutions
+%%     end;
+
+
+
+
+
+
+
+
+%% unify({record_dot, PostfixExprTypeX, MemberNameX},
+%%       {record_dot, PostfixExprTypeY, MemberNameY},
+%%       TypeStack, Node, Substitutions) ->
+%%     case unify(RecordDefTypeX, RecordDefTypeY, TypeStack, Node,
+%%                Substitutions) of
+%%         {mismatch, TypeStack} ->
+%%             {mismatch, TypeStack};
+%%         UpdatedSubstitutions ->
+%%             unify(MemberNameX, MemberNameY, TypeStack, Node,
+%%                   UpdatedSubstitutions)
+%%     end;
+
+
+
+
+%% unify({record_dot, RecordDefTypeX, MemberNameX},
+%%       {record_dot, RecordDefTypeY, MemberNameY},
+%%       TypeStack, Node, Substitutions) ->
+%%     case unify(RecordDefTypeX, RecordDefTypeY, TypeStack, Node,
+%%                Substitutions) of
+%%         {mismatch, TypeStack} ->
+%%             {mismatch, TypeStack};
+%%         UpdatedSubstitutions ->
+%%             unify(MemberNameX, MemberNameY, TypeStack, Node,
+%%                   UpdatedSubstitutions)
+%%     end;
+
+
+
+
+
+
+
+
+
 %%
 %% Dereference
 %%
@@ -262,10 +408,53 @@ dereference(Substitutions, {function, _GenericTypes, ArgTypes, ReturnType}) ->
     {function, [],
      lists:map(fun(Type) -> dereference(Substitutions, Type) end, ArgTypes),
      dereference(Substitutions, ReturnType)};
+dereference(Substitutions, {record_dot, X, MemberName}) ->
+    {record_dot, dereference(Substitutions, X), MemberName};
+
+dereference(Substitutions, {record_resolve_dot, X, MemberName}) ->
+    %%{record_resolve_dot, dereference(Substitutions, X), MemberName};
+    {record_dot, X, MemberName};
+
+
+
+dereference(Substitutions,
+            {record_instance, RecordDefType, GenericTypes, NamedArgs}) ->
+    {record_instance, dereference(Substitutions, RecordDefType),
+     lists:map(fun(Type) ->
+                       dereference(Substitutions, Type) end,
+               GenericTypes),
+     lists:map(fun({named_arg, Name, Type}) ->
+                       {named_arg, Name, dereference(Substitutions, Type)} end,
+               NamedArgs)};
+dereference(Substitutions, {record_def, Name, TypeVariables, MemberTypes}) ->
+    {record_def, Name,
+     lists:map(fun(TypeVariable) ->
+                       dereference(Substitutions, TypeVariable) end,
+               TypeVariables),
+     lists:map(
+       fun({property, MemberName, AccessModifier, Type}) ->
+               DereferencedType =
+                   case Type of
+                       undefined ->
+                           undefined;
+                       _ ->
+                           dereference(Substitutions, Type)
+                   end,
+               {property, MemberName, AccessModifier, DereferencedType}
+       end,
+       MemberTypes)};
+dereference(Substitutions, {property, MemberName, Modifier, Type}) ->
+    {property, MemberName, Modifier,
+     case Type of
+         undefined ->
+             undefined;
+         _ ->
+             dereference(Substitutions, Type)
+     end};
 dereference(Substitutions, Variable) when is_integer(Variable) ->
     case maps:get(Variable, Substitutions, undefined) of
         undefined ->
-            '_';
+            Variable;
         Substitution ->
             dereference(Substitutions, Substitution)
     end.
@@ -308,20 +497,57 @@ type_to_string({tuple, Xs}) ->
     "(" ++ type_to_string(Xs) ++ ")";
 type_to_string(empty_tuple) ->
     "()";
-type_to_string({function, [], [ArgType], ReturnType}) ->
-    "(" ++ type_to_string(ArgType) ++ " -> " ++
-        type_to_string(ReturnType) ++ ")";
 type_to_string({function, [], ArgTypes, ReturnType}) ->
-    "(["++ type_to_string(ArgTypes) ++ "] -> " ++
-        type_to_string(ReturnType) ++ ")";
-type_to_string({function, GenericTypes, [ArgType], ReturnType}) ->
-    "(<" ++ type_to_string(GenericTypes) ++ ">" ++
-        type_to_string(ArgType) ++ " -> " ++
+    "(fn(" ++ type_to_string(ArgTypes) ++ ") -> " ++
         type_to_string(ReturnType) ++ ")";
 type_to_string({function, GenericTypes, ArgTypes, ReturnType}) ->
-    "(<" ++ type_to_string(GenericTypes) ++ ">" ++
-        "["++ type_to_string(ArgTypes) ++ "] -> " ++
+    "(fn<" ++ type_to_string(GenericTypes) ++ ">" ++
+        "("++ type_to_string(ArgTypes) ++ ") -> " ++
         type_to_string(ReturnType) ++ ")";
+type_to_string({record_def, Name, [], MemberTypes}) ->
+    "(record " ++ Name ++ " { " ++ type_to_string(MemberTypes) ++ " })";
+type_to_string({record_def, Name, TypeVariables, MemberTypes}) ->
+    "(record " ++ Name ++ "<" ++ type_to_string(TypeVariables) ++ "> { " ++
+        type_to_string(MemberTypes) ++ " })";
+type_to_string({property, MemberName, Modifier, Type}) ->
+    modifier_to_string(Modifier) ++ " " ++
+        MemberName ++ ": " ++ type_to_string(Type);
+type_to_string({record_instance, RecordDefType, [], []}) ->
+    "(record " ++ type_to_string(RecordDefType) ++ ")";
+type_to_string({record_instance, RecordDefType, GenericTypes, []}) ->
+    "(record " ++ type_to_string(RecordDefType) ++ " <" ++
+        type_to_string(GenericTypes) ++ ">(:))";
+type_to_string({record_instance, RecordDefType, [], NamedArgs}) ->
+    "(record " ++ type_to_string(RecordDefType) ++ " (" ++
+        type_to_string(NamedArgs) ++ "))";
+type_to_string({record_instance, RecordDefType, GenericTypes, NamedArgs}) ->
+    "(record " ++ type_to_string(RecordDefType) ++ " <" ++
+        type_to_string(GenericTypes) ++ "> (" ++ type_to_string(NamedArgs) ++
+        "))";
+type_to_string({record_dot, PostfixExprType, MemberName}) ->
+    type_to_string(PostfixExprType) ++ "." ++ MemberName;
+type_to_string({named_arg, Name, Type}) ->
+    Name ++ ": " ++ type_to_string(Type);
+
+
+
+%% I need to have a syntax type for the creation of record instances as well. This is how records are created in the languge:
+
+%% ?a := Person(name: "Joe")
+
+%% or indeed:
+
+%% ?a := Person<String>(name: "Joe")
+
+%% if I want to be explicit.
+
+
+%% fn newPersonRecord(name: String) -> Person(:) {
+%%     Person(name: name)
+%% }
+
+
+
 type_to_string(TypeVariable) when is_integer(TypeVariable) ->
     "t" ++ integer_to_list(TypeVariable);
 type_to_string([]) ->
@@ -330,3 +556,9 @@ type_to_string([Type]) ->
     type_to_string(Type);
 type_to_string([Type|Rest]) ->
     type_to_string(Type) ++ ", " ++ type_to_string(Rest).
+
+modifier_to_string(private) -> "private";
+modifier_to_string(private_const) -> "private";
+modifier_to_string(public) -> "public";
+modifier_to_string(public_const) -> "public constant";
+modifier_to_string(readonly) -> "readonly".

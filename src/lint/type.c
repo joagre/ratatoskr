@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <assert.h>
+#include <log.h>
+#include "ast.h"
 #include "types.h"
+#include "named_args.h"
 
 // Forward declarations of local functions
 static type_variable_t next_type_variable(void);
@@ -57,6 +59,7 @@ type_t* type_new_empty_map_type(void) {
     type->tag = TYPE_TAG_EMPTY_MAP_TYPE;
     return type;
 }
+
 /*
 type_t* type_new_record_def_member_method_type(
     char* name, record_def_member_method_modifier_t modifier, type_t* type) {
@@ -68,28 +71,45 @@ type_t* type_new_record_def_member_method_type(
     record_def_member_method_type->record_def_member_method_type.type = type;
     return record_def_member_method_type;
 }
-
-type_t* type_new_record_def_member_property_type(
-    char* name, record_def_member_property_modifier_t modifier, type_t* type) {
-    type_t* record_def_member_property_type = malloc(sizeof(type_t));
-    record_def_member_property_type->tag =
-	TYPE_TAG_RECORD_DEF_MEMBER_PROPERTY_TYPE;
-    record_def_member_property_type->record_def_member_property_type.name =
-	name;
-    record_def_member_property_type->record_def_member_property_type.modifier =
-	modifier;
-    record_def_member_property_type->record_def_member_property_type.type =
-	type;
-    return record_def_member_property_type;
-}
-
-type_t* type_new_record_type(char* name) {
-    type_t* record_type = malloc(sizeof(type_t));
-    record_type->tag = TYPE_TAG_RECORD_TYPE;
-    record_type->record_name = name;
-    return record_type;
-}
 */
+
+type_t* type_new_member_property_type(
+    char* name, member_property_modifier_t modifier, type_t* type) {
+    type_t* member_property_type = malloc(sizeof(type_t));
+    member_property_type->tag = TYPE_TAG_MEMBER_PROPERTY_TYPE;
+    member_property_type->member_property_type.name = name;
+    member_property_type->member_property_type.modifier = modifier;
+    member_property_type->member_property_type.type = type;
+    return member_property_type;
+}
+
+type_t* type_new_record_def_type(char*name, types_t* types_variables,
+				 types_t* member_types) {
+    type_t* type = malloc(sizeof(type_t));
+    type->tag = TYPE_TAG_RECORD_DEF_TYPE;
+    type->record_def_type.name = name;
+    type->record_def_type.type_variables = types_variables;
+    type->record_def_type.member_types = member_types;
+    return type;
+}
+
+type_t* type_new_record_type(type_t* record_def_type, types_t* generic_types,
+			     named_args_t* named_args) {
+    type_t* type = malloc(sizeof(type_t));
+    type->tag = TYPE_TAG_RECORD_TYPE;
+    type->record_type.record_def_type = record_def_type;
+    type->record_type.generic_types = generic_types;
+    type->record_type.named_args = named_args;
+    return type;
+}
+
+type_t* type_new_record_dot_type(type_t* postfix_expr_type, char* member_name) {
+    type_t* type = malloc(sizeof(type_t));
+    type->tag = TYPE_TAG_RECORD_DOT_TYPE;
+    type->record_dot_type.postfix_expr_type = postfix_expr_type;
+    type->record_dot_type.member_name = member_name;
+    return type;
+}
 
 type_t* type_new_tuple_type(types_t* tuple_types) {
     type_t* type = malloc(sizeof(type_t));
@@ -130,7 +150,8 @@ char* type_basic_type_to_string(type_basic_type_t basic_type) {
 	case TYPE_BASIC_TYPE_TASK:
 	    return "Task";
 	default:
-	    assert(false);
+	    LOG_ABORT("Unknown basic type: %d\n", basic_type);
+	    return NULL;
     }
 }
 
@@ -148,7 +169,8 @@ type_basic_type_t type_string_to_basic_type(const char* string) {
     } else if (strcmp(string, "Task") == 0) {
 	return TYPE_BASIC_TYPE_TASK;
     } else {
-	assert(false);
+	LOG_ABORT("Unknown basic type: %s\n", string);
+	return 0;
     }
 }
 
@@ -175,7 +197,7 @@ void type_print_type(type_t* type) {
 		    printf("task");
 		    break;
 		default:
-		    assert(false);
+		    LOG_ABORT("Unknown basic type: %d\n", type->basic_type);
 	    }
 	    break;
 	case TYPE_TAG_CONSTRUCTOR_TYPE:
@@ -253,43 +275,88 @@ void type_print_type(type_t* type) {
 	    type_print_type(type->record_member_method_type.type);
 	    printf("}");
 	    break;
-	case TYPE_TAG_RECORD_DEF_MEMBER_PROPERTY_TYPE:
-	    printf("{property, %s, ", type->record_member_property_type.name);
-	    switch (type->record_member_property_type.modifier) {
-		case RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PUBLIC:
-		    printf("public, ");
-		    break;
-		case RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PUBLIC_CONSTANT:
-		    printf("public_constant, ");
-		    break;
-		case RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PRIVATE:
+	    */
+	case TYPE_TAG_MEMBER_PROPERTY_TYPE:
+	    printf("{property, \"%s\", ", type->member_property_type.name);
+	    switch (type->member_property_type.modifier) {
+		case MEMBER_PROPERTY_MODIFIER_PRIVATE:
 		    printf("private, ");
 		    break;
-		case RECORD_DEF_MEMBER_PROPERTY_MODIFIER_PRIVATE_CONSTANT:
-		    printf("private_constant, ");
+		case MEMBER_PROPERTY_MODIFIER_PRIVATE_CONST:
+		    printf("private_const, ");
 		    break;
-		case RECORD_DEF_MEMBER_PROPERTY_MODIFIER_READONLY:
+		case MEMBER_PROPERTY_MODIFIER_PUBLIC:
+		    printf("public, ");
+		    break;
+		case MEMBER_PROPERTY_MODIFIER_PUBLIC_CONST:
+		    printf("public_const, ");
+		    break;
+		case MEMBER_PROPERTY_MODIFIER_READONLY:
 		    printf("readonly, ");
 		    break;
 		default:
-		    assert(false);
+		    LOG_ABORT("Unknown member property modifier: %d\n",
+			      type->member_property_type.modifier);
 	    }
-	    type_print_type(type->record_member_property_type.type);
+	    type_print_type(type->member_property_type.type);
 	    printf("}");
 	    break;
-	case TYPE_TAG_RECORD_DEF_TYPE:
-	    printf("{record, [");
-	    for (uint16_t i = 0; i < type->record_type.types->size; i++) {
-		type_t* record_type =
-		    types_get(type->record_type.types, i);
-		type_print_type(record_type);
-		if (i < type->record_type.types->size - 1) {
+	case TYPE_TAG_RECORD_TYPE: {
+	    printf("{record_instance, ");
+	    type_print_type(type->record_type.record_def_type);
+	    printf(", [");
+	    for (uint16_t i = 0; i < type->record_type.generic_types->size;
+		 i++) {
+		type_t* generic_type =
+		    types_get(type->record_type.generic_types, i);
+		type_print_type(generic_type);
+		if (i < type->record_type.generic_types->size - 1) {
+		    printf(", ");
+		}
+	    }
+	    printf("], [");
+	    uint16_t n = named_args_size(type->record_type.named_args);
+	    for (uint16_t i = 0; i < n; i++) {
+		named_arg_t* named_arg =
+		    named_args_get(type->record_type.named_args, i);
+		printf("{named_arg, \"%s\", ", named_arg->name);
+		type_print_type(named_arg->type);
+		printf("}");
+		if (i < type->record_type.named_args->size - 1) {
 		    printf(", ");
 		}
 	    }
 	    printf("]}");
 	    break;
-	    */
+	}
+	case TYPE_TAG_RECORD_DEF_TYPE:
+	    printf("{record_def, \"%s\", [", type->record_def_type.name);
+	    uint16_t n = types_size(type->record_def_type.type_variables);
+	    for (uint16_t i = 0; i < n; i++) {
+		type_t* type_variable =
+		    types_get(type->record_def_type.type_variables, i);
+		type_print_type(type_variable);
+		if (i < n - 1) {
+		    printf(", ");
+		}
+	    }
+	    printf("], [");
+	    n = types_size(type->record_def_type.member_types);
+	    for (uint16_t i = 0; i < n; i++) {
+		type_t* member_type =
+		    types_get(type->record_def_type.member_types, i);
+		type_print_type(member_type);
+		if (i < n - 1) {
+		    printf(", ");
+		}
+	    }
+	    printf("]}");
+	    break;
+	case TYPE_TAG_RECORD_DOT_TYPE:
+	    printf("{record_dot, ");
+	    type_print_type(type->record_dot_type.postfix_expr_type);
+	    printf(", \"%s\"}", type->record_dot_type.member_name);
+	    break;
 	case TYPE_TAG_TUPLE_TYPE:
 	    printf("{tuple, [");
 	    for (uint16_t i = 0; i < type->tuple_types->size; i++) {
@@ -309,8 +376,7 @@ void type_print_type(type_t* type) {
 	    printf("%d", type->type_variable);
 	    break;
 	default:
-	    printf("default\n");
-	    assert(false);
+	    LOG_ABORT("Unknown type tag: %d\n", type->tag);
     }
 }
 

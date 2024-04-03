@@ -13,3 +13,7 @@ void types_add(types_t* types, type_t* type) {
 type_t* types_get(types_t* types, uint16_t i) {
     return dynarray_element(types, i);
 }
+
+uint16_t types_size(types_t* types) {
+    return dynarray_size(types);
+}

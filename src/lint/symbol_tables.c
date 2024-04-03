@@ -69,7 +69,7 @@ void symbol_tables_hoist(symbol_tables_t* tables, char* name) {
 	    return;
 	}
     } while (i-- > 0);
-    LOG_PANIC("Symbol %s not found", name);
+    LOG_ABORT("Symbol %s not found", name);
 }
 
 void symbol_tables_print(symbol_tables_t* tables) {
