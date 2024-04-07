@@ -1,8 +1,9 @@
 #ifndef LINT_SATIE_AUXIL_H
 #define LINT_SATIE_AUXIL_H
 
-#include <stdint.h>
 #include <stdarg.h>
+#include <stdint.h>
+
 #include "ast.h"
 
 typedef struct {

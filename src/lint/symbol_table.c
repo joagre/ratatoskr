@@ -1,7 +1,8 @@
 //#define MUTE_LOG_DEBUG 1
 
-#include <log.h>
 #include <assert.h>
+#include <log.h>
+
 #include "symbol_table.h"
 
 // Forward declarations of local functions (alphabetical order)
@@ -67,7 +68,7 @@ void symbol_table_print(symbol_table_t* table) {
 		}
 		break;
 	    case TYPE_TAG_TYPE_VARIABLE:
-		printf("t%d\n", type->type_variable);
+		printf("t%d\n", type->type_variable.id);
 		break;
 	    case TYPE_TAG_FUNCTION_TYPE:
 		printf("Function\n");
@@ -107,7 +108,7 @@ void symbol_table_unit_test(void) {
     symbol_table_insert(table, "int", type1);
     type_t* type2 = type_new_basic_type(TYPE_BASIC_TYPE_BOOL);
     symbol_table_insert(table, "bool", type2);
-    type_t* type3 = type_new_type_variable();
+    type_t* type3 = type_new_type_variable(NULL);
     symbol_table_insert(table, "bar", type3);
     type_t* type = symbol_table_lookup(table, "int");
     LOG_ASSERT(type->tag == TYPE_TAG_BASIC_TYPE, "Wrong type");

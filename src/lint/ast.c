@@ -49,19 +49,9 @@ void ast_print(ast_node_t* node, uint16_t level) {
 	} else {
 	    indent = MAX_COLS - cols - 4;
 	}
-	if (node->type->tag == TYPE_TAG_BASIC_TYPE) {
-	    if (node->type->basic_type == TYPE_BASIC_TYPE_BOOL) {
-		printf("%*sBool\n", indent, "");
-	    } else if (node->type->basic_type == TYPE_BASIC_TYPE_INT) {
-		printf("%*sInt\n", indent, "");
-	    } else {
-		assert(false);
-	    }
-	} else if (node->type->tag == TYPE_TAG_TYPE_VARIABLE) {
-	    printf("%*st%d\n", indent, "", node->type->type_variable);
-	} else {
-	    assert(false);
-	}
+	printf("%*s", indent, "");
+	type_print_type(node->type);
+	printf("\n");
     } else {
 	printf("\n");
     }

@@ -54,8 +54,6 @@ typedef enum {
 } member_method_modifier_t;
 */
 
-typedef uint32_t type_variable_t;
-
 typedef struct type {
     type_tag_t tag;
     union {
@@ -112,7 +110,10 @@ typedef struct type {
 	// Tuple type
 	types_t* tuple_types;
 	// Type variable
-	type_variable_t type_variable;
+	struct {
+	    char* name;
+	    uint32_t id;
+	} type_variable;
     };
 } type_t;
 
@@ -142,7 +143,7 @@ type_t* type_new_record_dot_type(type_t* postfix_expr_type, char* member_name);
 type_t* type_new_tuple_type(types_t* tuple_types);
 type_t* type_new_empty_tuple_type(void);
 
-type_t* type_new_type_variable(void);
+type_t* type_new_type_variable(char* name);
 
 void type_free(type_t* type);
 

@@ -189,7 +189,7 @@ Exprs <- e:Expr { $$ = CN(EXPRS, 1, e); } (_ "," _ e:Expr { AC($$, e); })*
 
 Expr <- "this" _ "(" _ (":" / a:NamedArgs) _ ")" { $$ = CN(THIS, 1, a); } / e:BindExpr { $$ = e; }
 
-BindExpr <- l:Expr (_ ":" _ t:Type)? (__ "as" __ un:UnboundName)? _ ":=" _ r:Expr { $$ = CN(BIND, 4, l, CCN(IS, 1, t), CCN(AS, 1, un), r); } / e:LogicalOrExpr { $$ = e; }
+BindExpr <- l:Expr (_ ":" _ t:Type)? (__ "as" __ un:UnboundName)? _ ":=" _ r:Expr { $$ = CN(BIND, 4, l, CCN(TYPE, 1, t), CCN(AS, 1, un), r); } / e:LogicalOrExpr { $$ = e; }
 LogicalOrExpr <- l:LogicalOrExpr _ "||" _ r:LogicalAndExpr { $$ = CN(OR, 2, l, r); } / e:LogicalAndExpr { $$ = e; }
 LogicalAndExpr <- l:LogicalAndExpr _ "&&" _ r:BitwiseAndExpr { $$ = CN(AND, 2, l, r); } / e:BitwiseAndExpr { $$ = e; }
 BitwiseAndExpr <- l:BitwiseAndExpr _ "&" _ r:BitwiseOrExpr { $$ = CN(BITWISE_AND, 2, l, r); } / e:BitwiseOrExpr { $$ = e; }
@@ -205,9 +205,9 @@ LTFloatExpr <- l:LTFloatExpr __ "<." __ r:NotEqualExpr { $$ = CN(LT_FLOAT, 2, l,
 NotEqualIntExpr <- l:NotEqualIntExpr _ "!=" _ r:NotEqualFloatExpr { $$ = CN(NE, 3, l, CT(INT_TYPE, NULL), r); } / e:NotEqualFloatExpr { $$ = e; }
 NotEqualFloatExpr <- l:NotEqualFloatExpr _ "!=." _ r:NotEqualExpr { $$ = CN(NE, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:NotEqualExpr { $$ = e; }
 NotEqualExpr <- l:NotEqualExpr _ "!" !("Int" / "Float") t:Name "=" _ r:EqualIntExpr { $$ = CN(NE, 3, l, t, r); } / e:EqualIntExpr { $$ = e; }
-EqualIntExpr <- l:EqualIntExpr _ "==" _ r:EqualFloatExpr { $$ = CN(EQ, 3, l, CT(INT_TYPE, NULL), r); } / e:EqualFloatExpr { $$ = e; }
-EqualFloatExpr <- l:EqualFloatExpr _ "==." _ r:EqualExpr { $$ = CN(EQ, 3, l, CT(FLOAT_TYPE, NULL), r); } / e:EqualExpr { $$ = e; }
-EqualExpr <- l:EqualExpr _ "=" !("Int" / "Float") n:Name ("<" _ t:Types _ ">")? _ "=" _ r:RightShiftExpr { $$ = CN(EQ, 4, l, RN(n, EQ_TYPE), t, r); } / e:RightShiftExpr { $$ = e; }
+EqualIntExpr <- l:EqualIntExpr _ "==" _ r:EqualFloatExpr { $$ = CN(EQ, 3, l, CN(TYPE, 1, CT(INT_TYPE, NULL)), r); } / e:EqualFloatExpr { $$ = e; }
+EqualFloatExpr <- l:EqualFloatExpr _ "==." _ r:EqualExpr { $$ = CN(EQ, 3, l, CN(TYPE, 1, CT(FLOAT_TYPE, NULL)), r); } / e:EqualExpr { $$ = e; }
+EqualExpr <- l:EqualExpr _ "=" !("Int" / "Float") n:Name ("<" _ t:Types _ ">")? _ "=" _ r:RightShiftExpr { $$ = CN(EQ, 3, l, CN(EQ_TYPE, 2, n, CN(TYPE, 1, t)), r); } / e:RightShiftExpr { $$ = e; }
 RightShiftExpr <- l:RightShiftExpr __ ">>" __ e:LeftShiftExpr { $$ = CN(BSR, 2, l, e); } / e:LeftShiftExpr { $$ = e; }
 LeftShiftExpr <- l:LeftShiftExpr __ "<<" __ e:ConsExpr { $$ = CN(BSL, 2, l, e); } / e:ConsExpr { $$ = e; }
 ConsExpr <- l:ConsExpr _ "::" _ r:ListConcatExpr { $$ = CN(CONS, 2, l, r); } / e:ListConcatExpr { $$ = e; }
@@ -270,7 +270,7 @@ IfExpr <- "if" __ e:Expr _ be:BlockExpr { $$ = CN(IF, 2, e, be); }
           (_ "else" _ be:BlockExpr { AC($$, CN(ELSE, 1, be)); })
 
 SwitchExpr <- "switch" __ se:Expr { $$ = CN(SWITCH, 1, se); } _ "{"
-              (_ "case" __ me:Exprs (_ ":" _ t:Type)? (__ "as" __ un:UnboundName)? (__ "when" __ we:Expr)? _ "=>" _ b:Block { AC($$, CN(CASE, 5, me, CCN(AS, 1, un), CCN(IS, 1, t), CCN(WHEN, 1, we), b)); })+
+              (_ "case" __ me:Exprs (_ ":" _ t:Type)? (__ "as" __ un:UnboundName)? (__ "when" __ we:Expr)? _ "=>" _ b:Block { AC($$, CN(CASE, 5, me, CCN(TYPE, 1, t), CCN(AS, 1, un), CCN(WHEN, 1, we), b)); })+
               (_ "default" _ "=>" _ b:Block { AC($$, CN(DEFAULT, 1, b)); })? _
               "}"
 

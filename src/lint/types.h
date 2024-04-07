@@ -2,6 +2,7 @@
 #define LINT_TYPES_H
 
 #include <dynarr.h>
+
 #include "type.h"
 
 typedef dynarray_t types_t;

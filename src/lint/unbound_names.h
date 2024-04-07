@@ -1,8 +1,8 @@
 #ifndef LINT_UNBOUND_NAMES_H
 #define LINT_UNBOUND_NAMES_H
 
-#include <stdbool.h>
 #include <dynarr.h>
+#include <stdbool.h>
 
 typedef dynarray_t unbound_names_t;
 

@@ -1,6 +1,7 @@
 //#define MUTE_LOG_DEBUG 1
 
 #include <log.h>
+
 #include "symbol_tables.h"
 
 void symbol_tables_init(symbol_tables_t* tables) {
@@ -64,7 +65,8 @@ void symbol_tables_hoist(symbol_tables_t* tables, char* name) {
 	    //printf("Hoisting %s\n", name);
 	    symbol_table_delete(entry->table, name);
 	    LOG_ASSERT(i > 0, "Cannot hoist symbol table to the top");
-	    symbol_tables_entry_t* entry_above = dynarray_element(tables, i - 1);
+	    symbol_tables_entry_t* entry_above =
+		dynarray_element(tables, i - 1);
 	    symbol_table_insert(entry_above->table, name, type_copy);
 	    return;
 	}

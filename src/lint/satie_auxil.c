@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <log.h>
+
 #include "satie_auxil.h"
 
 // Forward declarations of local functions (alphabetical order)

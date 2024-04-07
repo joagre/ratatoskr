@@ -1,8 +1,9 @@
 #ifndef __HM_H__
 #define __HM_H__
 
-#include <stdbool.h>
 #include <satie_error.h>
+#include <stdbool.h>
+
 #include "ast.h"
 
 #define CONTEXT_LIST_LOOKUP 0x01

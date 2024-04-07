@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include "named_arg.h"
 
 named_arg_t* named_arg_new(char* name, type_t* type) {

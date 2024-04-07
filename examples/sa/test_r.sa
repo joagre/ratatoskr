@@ -1,8 +1,17 @@
 record Person<$t> {
-    public name: $t
+    public name: (Int, Int)
 }
 
-export fn main(_) {
-    ?p1 := Person(name: "Joe"),
-    42 := p1.name
+export fn zip() {
+    Person(name: ?w) := Person(name: "Joe"),
+    w
+//    foo(42)
+//    ?p1 := Person(name: "Joe"),
+//    42 := p1.name
+}
+
+fn foo(x: Int) {
+//    42
+   fn (x) { x + 1 }
+//    "Joe" := zip()
 }

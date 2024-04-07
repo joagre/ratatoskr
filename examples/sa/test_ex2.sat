@@ -1,0 +1,23 @@
+fn main(_) {
+    // Create a record instance using the auto generated record constructor.
+    // Only public member properties can be specified when calling the
+    // constructor
+    ?a := Stack<Int>(maxSize: 42), // <Int> is *not* optional
+    ?a := a.push(10),
+    ?b := a.self(),
+    a =Person<Int>= b // true
+}
+
+record Stack<$t> {
+    private values: [$t] = []
+    public maxSize: Int
+    public fn push(elem: $t) -> [$t] {
+        this(values: elem :: values)
+    }
+    public self() -> Stack<$t> {
+       // Very silly but maybe informative
+       this
+    }
+}
+
+// Note: All type variables above can be ommited

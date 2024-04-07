@@ -1,8 +1,9 @@
 //#define MUTE_LOG_DEBUG 1
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
+
 #include "unbound_names.h"
 
 unbound_names_t* unbound_names_new(void) {

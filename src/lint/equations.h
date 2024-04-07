@@ -2,6 +2,7 @@
 #define LINT_EQUATIONS_H
 
 #include <dynarr.h>
+
 #include "equation.h"
 
 typedef dynarray_t equations_t;

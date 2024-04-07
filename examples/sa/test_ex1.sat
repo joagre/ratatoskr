@@ -1,0 +1,27 @@
+type Either($t1, $t2) = This($t1) or That($t2)
+
+export fn main(_) {
+    ?f := baz(0, 42.0),
+    f(0, "bazaar") // Will return #This("bazaar")
+}
+
+fn baz(x, y) {
+    // Hard match
+    #This(42.0) := foo((x, y)),
+    // Hard match but with extra type info in the function call
+    #That(42.0) := foo<Float, Int>((y, x)),
+    // Return a type-instantiated foo function
+    foo<Int, String>
+}
+
+export fn foo<$t1, $t2>(x: ($t1, $t2)) -> #Either<$t1, $t2> {
+    switch x {
+        case (0, ?a) =>
+            #This(a)
+        case (?a, 0) =>
+            #That(a)
+    }
+}
+
+// foo() could as well be written *without* type variables
+// For example: fn foo(x) -> #Either<Int, Float> { ...

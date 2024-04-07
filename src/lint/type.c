@@ -1,12 +1,13 @@
-#include <stdio.h>
-#include <stdbool.h>
 #include <log.h>
+#include <stdbool.h>
+#include <stdio.h>
+
 #include "ast.h"
-#include "types.h"
 #include "named_args.h"
+#include "types.h"
 
 // Forward declarations of local functions
-static type_variable_t next_type_variable(void);
+static type_variable_t next_type_variable_id(void);
 
 type_t* type_new_basic_type(type_basic_type_t basic_type) {
     type_t* type = malloc(sizeof(type_t));
@@ -124,10 +125,11 @@ type_t* type_new_empty_tuple_type(void) {
     return type;
 }
 
-type_t* type_new_type_variable(void) {
+type_t* type_new_type_variable(char* name) {
     type_t* type = malloc(sizeof(type_t));
     type->tag = TYPE_TAG_TYPE_VARIABLE;
-    type->type_variable = next_type_variable();
+    type->type_variable.name = name;
+    type->type_variable.id = next_type_variable_id();
     return type;
 }
 
@@ -302,7 +304,7 @@ void type_print_type(type_t* type) {
 	    printf("}");
 	    break;
 	case TYPE_TAG_RECORD_TYPE: {
-	    printf("{record_instance, ");
+	    printf("{new_record, ");
 	    type_print_type(type->record_type.record_def_type);
 	    printf(", [");
 	    for (uint16_t i = 0; i < type->record_type.generic_types->size;
@@ -373,7 +375,7 @@ void type_print_type(type_t* type) {
 	    printf("empty_tuple");
 	    break;
 	case TYPE_TAG_TYPE_VARIABLE:
-	    printf("%d", type->type_variable);
+	    printf("%d", type->type_variable.id);
 	    break;
 	default:
 	    LOG_ABORT("Unknown type tag: %d\n", type->tag);
@@ -384,7 +386,7 @@ void type_print_type(type_t* type) {
 // Local functions
 //
 
-static type_variable_t next_type_variable(void) {
-    static type_variable_t next_type_variable = 0;
-    return next_type_variable++;
+static type_variable_t next_type_variable_id(void) {
+    static uint32_t next_type_variable_id = 0;
+    return next_type_variable_id++;
 }

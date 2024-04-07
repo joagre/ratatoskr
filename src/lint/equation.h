@@ -2,8 +2,9 @@
 #define LINT_EQUATION_H
 
 #include <stdbool.h>
-#include "type.h"
+
 #include "ast.h"
+#include "type.h"
 
 typedef struct {
     type_t* left;

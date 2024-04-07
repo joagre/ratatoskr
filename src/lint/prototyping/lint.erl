@@ -58,7 +58,7 @@ parse_tree([Line|Rest] = Lines, Level) ->
     end.
 
 parse_node_type("") -> undefined;
-parse_node_type("t" ++ Variable) -> list_to_integer(Variable).
+parse_node_type(Type) -> parse_type(Type).
 
 parse_line(Line) ->
     [Name, Row, Value, Type] = string:split(string:trim(Line), ":", all),

@@ -2,6 +2,7 @@
 #define LINT_UNBOUND_NAMES_LIST_H
 
 #include <dynarr.h>
+
 #include "unbound_names.h"
 
 typedef dynarray_t unbound_names_list_t;

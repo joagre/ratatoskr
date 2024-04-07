@@ -2,6 +2,7 @@
 #define LINT_SYMBOL_TABLES_H
 
 #include <dynarr.h>
+
 #include "symbol_table.h"
 
 typedef dynarray_t symbol_tables_t;

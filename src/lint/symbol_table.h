@@ -2,6 +2,7 @@
 #define LINT_SYMBOL_TABLE_H
 
 #include <lhash_kv.h>
+
 #include "type.h"
 
 typedef lhash_kv_t symbol_table_t;
