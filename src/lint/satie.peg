@@ -274,7 +274,7 @@ SwitchExpr <- "switch" __ se:Expr { $$ = CN(SWITCH, 1, se); } _ "{"
               (_ "default" _ "=>" _ b:Block { AC($$, CN(DEFAULT, 1, b)); })? _
               "}"
 
-BlockExpr <- "{" _ be:Block _ "}" { $$ = be; }
+BlockExpr <- "{" _ be:Block _ ","? _ "}" { $$ = be; }
 Block <- e:Expr { $$ = CN(BLOCK, 1, e); } ( _ CommaSeparator _ e:Expr { AC($$, e); })*
 CommaSeparator <- ("," / ";") {
     if (strcmp($0, ";") == 0) {

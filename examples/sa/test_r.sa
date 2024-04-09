@@ -1,17 +1,19 @@
-record Person<$t> {
-    public name: (Int, Int)
+record Person<$t1, $t2> {
+    public name: $t1
+    public x: (Int, $t2)
+    public y: Int
 }
 
-export fn zip() {
-    Person(name: ?w) := Person(name: "Joe"),
-    w
-//    foo(42)
-//    ?p1 := Person(name: "Joe"),
-//    42 := p1.name
-}
-
-fn foo(x: Int) {
-//    42
-   fn (x) { x + 1 }
-//    "Joe" := zip()
+fn zip() {
+    ?a := Person<String, Int>(name: "Joe", x: (42, 42), y: 4711),
+    Person<String, Int>(name: ?d, x: (42, 42), y: 4711) := a,
+    ?b := Person<String, Float>(name: "Joe", x: (42, 42.0), y: 4712),
+    Person<String, Float>(name: "Joe", x: (42, 42.0), y: 4712) := b,
+    a := a,
+//    a := b,
+    (42, 42) := a.x,
+    (42, 42.0) := b.x,
+    (a.y, 42.0) := b.x,
+    (?c, 42.0) := b.x,
+    c := a.y,
 }

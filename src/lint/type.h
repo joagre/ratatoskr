@@ -23,7 +23,7 @@ typedef enum {
 //    TYPE_TAG_MEMBER_METHOD_TYPE,
     TYPE_TAG_MEMBER_PROPERTY_TYPE,
     TYPE_TAG_RECORD_DEF_TYPE,
-    TYPE_TAG_RECORD_TYPE,
+    TYPE_TAG_RECORD_INSTANCE_TYPE,
     TYPE_TAG_RECORD_DOT_TYPE,
     TYPE_TAG_TUPLE_TYPE,
     TYPE_TAG_EMPTY_TUPLE_TYPE,
@@ -96,12 +96,13 @@ typedef struct type {
 	    types_t* type_variables;
 	    types_t* member_types;
 	} record_def_type;
-        // Record type
+        // Record instance type
 	struct {
+	    char* name;
 	    struct type* record_def_type;
 	    types_t* generic_types;
 	    named_args_t* named_args;
-	} record_type;
+	} record_instance_type;
 	// Record dot type
 	struct {
 	    struct type* postfix_expr_type;
@@ -136,8 +137,9 @@ type_t* type_new_member_property_type(
     char* name, member_property_modifier_t modifier, type_t* type);
 type_t* type_new_record_def_type(char *name, types_t* type_variables,
 				 types_t* member_types);
-type_t* type_new_record_type(type_t* record_type, types_t* generic_types,
-			     named_args_t* named_args);
+type_t* type_new_record_instance_type(char* name, type_t* record_type,
+				      types_t* generic_types,
+				      named_args_t* named_args);
 type_t* type_new_record_dot_type(type_t* postfix_expr_type, char* member_name);
 
 type_t* type_new_tuple_type(types_t* tuple_types);

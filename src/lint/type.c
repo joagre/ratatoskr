@@ -94,13 +94,15 @@ type_t* type_new_record_def_type(char*name, types_t* types_variables,
     return type;
 }
 
-type_t* type_new_record_type(type_t* record_def_type, types_t* generic_types,
-			     named_args_t* named_args) {
+type_t* type_new_record_instance_type(char*name, type_t* record_def_type,
+				      types_t* generic_types,
+				      named_args_t* named_args) {
     type_t* type = malloc(sizeof(type_t));
-    type->tag = TYPE_TAG_RECORD_TYPE;
-    type->record_type.record_def_type = record_def_type;
-    type->record_type.generic_types = generic_types;
-    type->record_type.named_args = named_args;
+    type->tag = TYPE_TAG_RECORD_INSTANCE_TYPE;
+    type->record_instance_type.name = name;
+    type->record_instance_type.record_def_type = record_def_type;
+    type->record_instance_type.generic_types = generic_types;
+    type->record_instance_type.named_args = named_args;
     return type;
 }
 
@@ -204,38 +206,39 @@ void type_print_type(type_t* type) {
 	    break;
 	case TYPE_TAG_CONSTRUCTOR_TYPE:
 	    printf("{constructor, %s, [", type->constructor_type.name);
-	    for (uint16_t i = 0; i < type->constructor_type.types->size; i++) {
+	    uint16_t n = types_size(type->constructor_type.types);
+	    for (uint16_t i = 0; i < n; i++) {
 		type_t* constructor_type =
 		    types_get(type->constructor_type.types, i);
 		type_print_type(constructor_type);
-		if (i < type->constructor_type.types->size - 1) {
+		if (i < n - 1) {
 		    printf(", ");
 		}
 	    }
 	    printf("]}");
 	    break;
-	case TYPE_TAG_FUNCTION_TYPE:
+	case TYPE_TAG_FUNCTION_TYPE: {
 	    printf("{function, ");
 	    // Generic types
 	    printf("[");
-	    for (uint16_t i = 0;
-		 i < type->function_type.generic_types->size; i++) {
+	    uint16_t n = types_size(type->function_type.generic_types);
+	    for (uint16_t i = 0; i < n; i++) {
 		type_t* generic_type =
 		    types_get(type->function_type.generic_types, i);
 		type_print_type(generic_type);
-		if (i < type->function_type.generic_types->size - 1) {
+		if (i < n - 1) {
 		    printf(", ");
 		}
 	    }
 	    printf("], ");
 	    // Argument types
 	    printf("[");
-	    for (uint16_t i = 0;
-		 i < type->function_type.arg_types->size; i++) {
+	    n = types_size(type->function_type.arg_types);
+	    for (uint16_t i = 0; i < n; i++) {
 		type_t* arg_type =
 		    types_get(type->function_type.arg_types, i);
 		type_print_type(arg_type);
-		if (i < type->function_type.arg_types->size - 1) {
+		if (i < n - 1) {
 		    printf(", ");
 		}
 	    }
@@ -243,6 +246,7 @@ void type_print_type(type_t* type) {
 	    type_print_type(type->function_type.return_type);
 	    printf("}");
 	    break;
+	}
 	case TYPE_TAG_LIST_TYPE:
 	    printf("{list, ");
 	    type_print_type(type->list_type);
@@ -303,35 +307,36 @@ void type_print_type(type_t* type) {
 	    type_print_type(type->member_property_type.type);
 	    printf("}");
 	    break;
-	case TYPE_TAG_RECORD_TYPE: {
-	    printf("{new_record, ");
-	    type_print_type(type->record_type.record_def_type);
+	case TYPE_TAG_RECORD_INSTANCE_TYPE: {
+	    printf("{record_instance, \"%s\", ",
+		   type->record_instance_type.name);
+	    type_print_type(type->record_instance_type.record_def_type);
 	    printf(", [");
-	    for (uint16_t i = 0; i < type->record_type.generic_types->size;
-		 i++) {
+	    uint16_t n = types_size(type->record_instance_type.generic_types);
+	    for (uint16_t i = 0; i < n; i++) {
 		type_t* generic_type =
-		    types_get(type->record_type.generic_types, i);
+		    types_get(type->record_instance_type.generic_types, i);
 		type_print_type(generic_type);
-		if (i < type->record_type.generic_types->size - 1) {
+		if (i < n - 1) {
 		    printf(", ");
 		}
 	    }
 	    printf("], [");
-	    uint16_t n = named_args_size(type->record_type.named_args);
+	    n = named_args_size(type->record_instance_type.named_args);
 	    for (uint16_t i = 0; i < n; i++) {
 		named_arg_t* named_arg =
-		    named_args_get(type->record_type.named_args, i);
+		    named_args_get(type->record_instance_type.named_args, i);
 		printf("{named_arg, \"%s\", ", named_arg->name);
 		type_print_type(named_arg->type);
 		printf("}");
-		if (i < type->record_type.named_args->size - 1) {
+		if (i < n - 1) {
 		    printf(", ");
 		}
 	    }
 	    printf("]}");
 	    break;
 	}
-	case TYPE_TAG_RECORD_DEF_TYPE:
+	case TYPE_TAG_RECORD_DEF_TYPE: {
 	    printf("{record_def, \"%s\", [", type->record_def_type.name);
 	    uint16_t n = types_size(type->record_def_type.type_variables);
 	    for (uint16_t i = 0; i < n; i++) {
@@ -354,28 +359,36 @@ void type_print_type(type_t* type) {
 	    }
 	    printf("]}");
 	    break;
+	}
 	case TYPE_TAG_RECORD_DOT_TYPE:
 	    printf("{record_dot, ");
 	    type_print_type(type->record_dot_type.postfix_expr_type);
 	    printf(", \"%s\"}", type->record_dot_type.member_name);
 	    break;
-	case TYPE_TAG_TUPLE_TYPE:
+	case TYPE_TAG_TUPLE_TYPE: {
 	    printf("{tuple, [");
-	    for (uint16_t i = 0; i < type->tuple_types->size; i++) {
+	    uint16_t n = types_size(type->tuple_types);
+	    for (uint16_t i = 0; i < n; i++) {
 		type_t* tuple_type =
 		    types_get(type->tuple_types, i);
 		type_print_type(tuple_type);
-		if (i < type->tuple_types->size - 1) {
+		if (i < n - 1) {
 		    printf(", ");
 		}
 	    }
 	    printf("]}");
 	    break;
+	}
 	case TYPE_TAG_EMPTY_TUPLE_TYPE:
 	    printf("empty_tuple");
 	    break;
 	case TYPE_TAG_TYPE_VARIABLE:
-	    printf("%d", type->type_variable.id);
+	    if (type->type_variable.name != NULL) {
+		printf("{var, %d, \"%s\"}", type->type_variable.id,
+		       type->type_variable.name);
+	    } else {
+		printf("{var, %d, none}", type->type_variable.id);
+	    }
 	    break;
 	default:
 	    LOG_ABORT("Unknown type tag: %d\n", type->tag);

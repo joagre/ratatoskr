@@ -286,6 +286,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 				  satie_error_t* error) {
     bool traverse_children = true;
     if (node->name == CONS ||
+	node->name == CONST ||
 	node->name == CONCAT_STRING ||
 	node->name == DIV_INT ||
 	node->name == DIV_FLOAT ||
@@ -353,9 +354,11 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	node->name == POS_INT ||
 	node->name == POS_FLOAT ||
 	node->name == PARAMS ||
+	node->name == PRIVATE ||
 	node->name == PROGRAM ||
 	node->name == PUBLIC ||
 	node->name == RAW_STRING ||
+	node->name == READONLY ||
 	node->name == RECORD_DEF ||
 	node->name == RECORD_MEMBERS ||
 	node->name == REGULAR_STRING ||
@@ -376,8 +379,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 	// Do not assign a type variable
     } else if (node->name == EXPRS ||
 	       node->name == IF ||
-	node->name == FUNCTION_CALL ||
-
+	       node->name == FUNCTION_CALL ||
 	       node->name == LIST_LOOKUP ||
 	       node->name == LIST_SLICE ||
 	       node->name == LIST_UPDATE ||
@@ -662,6 +664,9 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 			   "Expected a TYPE_VARIABLE node");
 		type_t* type_variable_type =
 		    type_new_type_variable(type_variable_node->value);
+		// REMOVE START: Adding a type to the node is not needed.
+		type_variable_node->type = type_variable_type;
+		// REMOVE END
 		types_add(type_variables_types, type_variable_type);
 	    }
 	}
@@ -1043,6 +1048,9 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 			   "Expected a TYPE_VARIABLE node");
 		type_t* type_variable_type =
 		    type_new_type_variable(type_variable_node->value);
+		// REMOVE START: Adding a type to the node is not needed.
+		type_variable_node->type = type_variable_type;
+		// REMOVE END
 		types_add(type_variables_types, type_variable_type);
 	    }
 	}
@@ -1372,6 +1380,9 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 			   "Expected a TYPE_VARIABLE node");
 		type_t* type_variable_type =
 		    type_new_type_variable(type_variable_node->value);
+		// REMOVE START: Adding a type to the node is not needed.
+		type_variable_node->type = type_variable_type;
+		// REMOVE END
 		types_add(type_variables_types, type_variable_type);
 	    }
 	}
@@ -1489,9 +1500,10 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		named_args_add(named_args, name_node->value, value_node->type);
 	    }
 	}
-	// Equation: New record
+	// Equation: Record instance
 	type_t* type =
-	    type_new_record_type(name_node->type, generic_types, named_args);
+	    type_new_record_instance_type(name_node->value, name_node->type,
+					  generic_types, named_args);
 	equation_t equation = equation_new(node->type, type, node, node, false);
 	equations_append(equations, &equation);
     } else {
