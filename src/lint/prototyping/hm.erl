@@ -244,30 +244,39 @@ unify({record, Name, GenericTypesX, NamedArgsX, TypeVariablesX, MemberTypesX},
       TypeStack, Node, Substitutions)
   when length(GenericTypesX) == length(TypeVariablesX) andalso
        length(GenericTypesY) == length(TypeVariablesY) ->
-    case unify_many(GenericTypesX, TypeVariablesX, TypeStack, Node,
-                    Substitutions) of
-        {mismatch, TypeStack} ->
+    case verify_named_args(MemberTypesX, NamedArgsX) andalso
+         verify_named_args(MemberTypesY, NamedArgsY) of
+        false ->
             {mismatch, TypeStack};
-        GenericSubstitutionsX ->
-            case unify_many(GenericTypesY, TypeVariablesY, TypeStack, Node,
-                            GenericSubstitutionsX) of
+        true ->
+            case unify_many(GenericTypesX, TypeVariablesX, TypeStack, Node,
+                            Substitutions) of
                 {mismatch, TypeStack} ->
                     {mismatch, TypeStack};
-                GenericSubstitutionsY ->
-                    case unify_many(NamedArgsX, NamedArgsY, TypeStack, Node,
-                                    GenericSubstitutionsY) of
+                GenericSubstitutionsX ->
+                    case unify_many(GenericTypesY, TypeVariablesY, TypeStack,
+                                    Node, GenericSubstitutionsX) of
                         {mismatch, TypeStack} ->
                             {mismatch, TypeStack};
-                        NamedArgsSubstitutions ->
-                            case unify_many(TypeVariablesX, TypeVariablesY,
-                                            TypeStack, Node,
-                                            NamedArgsSubstitutions) of
+                        GenericSubstitutionsY ->
+                            case unify_many(lists:sort(NamedArgsX),
+                                            lists:sort(NamedArgsY), TypeStack,
+                                            Node, GenericSubstitutionsY) of
                                 {mismatch, TypeStack} ->
                                     {mismatch, TypeStack};
-                                TypeVariablesSubstitutions ->
-                                    unify_many(MemberTypesX, MemberTypesY,
-                                               TypeStack, Node,
-                                               TypeVariablesSubstitutions)
+                                NamedArgsSubstitutions ->
+                                    case unify_many(TypeVariablesX,
+                                                    TypeVariablesY,
+                                                    TypeStack, Node,
+                                                    NamedArgsSubstitutions) of
+                                        {mismatch, TypeStack} ->
+                                            {mismatch, TypeStack};
+                                        TypeVariablesSubstitutions ->
+                                            unify_many(
+                                              MemberTypesX, MemberTypesY,
+                                              TypeStack, Node,
+                                              TypeVariablesSubstitutions)
+                                    end
                             end
                     end
             end
@@ -351,6 +360,9 @@ occurs_check({var, _, _} = Variable, {var, _, _} = Type, Substitutions) ->
     end;
 occurs_check(_Variable, _Type, _Substitutions) ->
     false.
+
+verify_named_args(_MemberTypesX, _NamedArgsX) ->
+    true.
 
 %%
 %% Dereference

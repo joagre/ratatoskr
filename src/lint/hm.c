@@ -543,7 +543,7 @@ static bool create_type_variables(ast_node_t* node, symbol_tables_t* tables,
 static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 				  equations_t* equations,
 				  satie_error_t* error) {
-  // Traverse children first (if any)
+    // Traverse children first (if any)
     uint16_t n = ast_number_of_children(node);
     for (uint16_t i = 0; i < n; i++) {
 	if (!create_type_equations(ast_get_child(node, i), tables, equations,
