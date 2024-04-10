@@ -34,7 +34,9 @@ test() ->
               "test_type_alias.sa",
               "test_enum.sa",
               "test_record.sa",
-              "test_r.sa"
+              "test_r.sa",
+              "test_r2.sa",
+              "test_stack.sa"
 
 ],
     case file:list_dir("../../../examples/sa") of

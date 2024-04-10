@@ -20,5 +20,6 @@ typedef struct {
 } operator_types_t;
 
 bool hm_infer_types(ast_node_t* node, satie_error_t* error);
+uint32_t unique_id(void);
 
 #endif

@@ -2,10 +2,10 @@ record Person<$t1, $t2> {
     public name: $t1
     public x: (Int, $t2)
     public y: Int
-    public u
+ //   public u
     public fn z(x) -> ($t1, $t1) {
         name
-    }
+   }
 //    public fn w(n) -> Person(:) {
 //        this(u: (name, this.name, this(u: "Bengt")))
 //    }
@@ -20,11 +20,13 @@ fn zip() {
     Person<String, Float>(name: "Joe", x: (42, 42.0), y: 4712) := b,
     a := a,
 //    a := b,
+    ?c := Person<String, Int>(name: "Joe", x: (42, 42), y: 4711),
+    c := a,
     (42, 42) := a.x,
     (42, 42.0) := b.x,
     (a.y, 42.0) := b.x,
     (?c, 42.0) := b.x,
     c := a.y,
-    ?a := a.name("Bulle"),
-    "Bulle" := a.name
+ //   ?a := a.name("Bulle"),
+ //   "Bulle" := a.name
 }
