@@ -37,7 +37,16 @@ test() ->
               "test_record.sa",
               "test_r.sa",
               "test_r2.sa",
-              "test_stack.sa"],
+              "test_stack.sa",
+              "test_simple.sa",
+
+
+              "test_generic_functions.sa" %% MAKE THIS WORK ASAP
+
+
+
+
+],
     case file:list_dir("../../../examples/sa") of
         {ok, Files} ->
             lists:foreach(
@@ -100,7 +109,7 @@ check_types({Source, Result, Node, AdornedEquations}) ->
                     io:format("==== Solutions:\n"),
                     lists:foreach(
                       fun(#equation{type = {Left, Right}}) ->
-                              io:format("~s -> ~s\n",
+                              io:format("~s = ~s\n",
                                         [type_to_string(Left),
                                          type_to_string(
                                            dereference(Substitutions, Right))])
@@ -247,30 +256,30 @@ unify({record, Name, GenericTypesX, NamedArgsX, TypeVariablesX, MemberTypesX},
   when length(GenericTypesX) == length(TypeVariablesX) andalso
        length(GenericTypesY) == length(TypeVariablesY) ->
     case verify_named_args(MemberTypesX, NamedArgsX) andalso
-         verify_named_args(MemberTypesY, NamedArgsY) of
+        verify_named_args(MemberTypesY, NamedArgsY) of
         false ->
             {mismatch, record, TypeStack};
         true ->
             case unify_all(GenericTypesX, TypeVariablesX, TypeStack, Node,
-                            Substitutions) of
+                           Substitutions) of
                 {mismatch, Why, TypeStack} ->
                     {mismatch, Why, TypeStack};
                 GenericSubstitutionsX ->
                     case unify_all(GenericTypesY, TypeVariablesY, TypeStack,
-                                    Node, GenericSubstitutionsX) of
+                                   Node, GenericSubstitutionsX) of
                         {mismatch, Why, TypeStack} ->
                             {mismatch, Why, TypeStack};
                         GenericSubstitutionsY ->
                             case unify_all(lists:sort(NamedArgsX),
-                                            lists:sort(NamedArgsY), TypeStack,
-                                            Node, GenericSubstitutionsY) of
+                                           lists:sort(NamedArgsY), TypeStack,
+                                           Node, GenericSubstitutionsY) of
                                 {mismatch, Why, TypeStack} ->
                                     {mismatch, Why, TypeStack};
                                 NamedArgsSubstitutions ->
                                     case unify_all(TypeVariablesX,
-                                                    TypeVariablesY,
-                                                    TypeStack, Node,
-                                                    NamedArgsSubstitutions) of
+                                                   TypeVariablesY,
+                                                   TypeStack, Node,
+                                                   NamedArgsSubstitutions) of
                                         {mismatch, Why, TypeStack} ->
                                             {mismatch, Why, TypeStack};
                                         TypeVariablesSubstitutions ->
@@ -304,14 +313,17 @@ unify({named_arg, Name, TypeX}, {named_arg, Name, TypeY},
       TypeStack, Node, Substitutions) ->
     unify(TypeX, TypeY, TypeStack, Node, Substitutions);
 unify(X, Y, TypeStack, _Node, _Substitutions) ->
-    io:format("**** X, Y: ~p != ~p\n", [X, Y]),
+    throw({unify_panic, X, Y}),
     {mismatch, generic, TypeStack}.
 
 unify_all([], [], _TypeStack, _MetInfo, Substitutions) ->
     Substitutions;
 unify_all([X|Xs], [Y|Ys], TypeStack, Node, Substitutions) ->
+    io:format("ALL: ~p === ~p\n", [X, Y]),
+
+
     unify_all(Xs, Ys, TypeStack, Node,
-               unify(X, Y, [{X, Y}|TypeStack], Node, Substitutions)).
+              unify(X, Y, [{X, Y}|TypeStack], Node, Substitutions)).
 
 unify_variable(Variable, Type, TypeStack, Node, Substitutions) ->
     case {maps:get(Variable, Substitutions, undefined), Type} of
@@ -366,17 +378,17 @@ occurs_check(_Variable, _Type, _Substitutions) ->
 validate_function(GenericsX, ArgsX, GenericsY, ArgsY) ->
     case {length(GenericsX), length(ArgsX), length(GenericsY), length(ArgsY)} of
         {_, M, _, N} when M /= N ->
-            {error, function_args};
-        {M, N, _, _} when M /= N, M /= 0 ->
-            {error, function_left_generics};
-        {_, _, M, N} when M /= N, M /= 0 ->
-            {error, function_right_generics};
-        {M, _, _, N} when M == N, M /= 0 ->
-            has_type_variables;
-        {0, _, _, _} ->
+            {error, {function_args, ArgsX, ArgsY}};
+        {0, _, N, _} when N /= 0 ->
             has_no_type_variables;
-        _ ->
-            throw({internal_error, GenericsX, ArgsX, GenericsY, ArgsY})
+        {M, _, 0, _} when M /= 0 ->
+            has_no_type_variables;
+        {0, _, 0, _} ->
+            has_no_type_variables;
+        {M, _, N, _} when M /= N ->
+            {error, {function_generics, GenericsX, GenericsY}};
+        {_, _, _, _} ->
+            has_type_variables
     end.
 
 verify_named_args(_MemberTypesX, _NamedArgsX) ->
@@ -492,7 +504,7 @@ type_to_string(string) ->
 type_to_string(task) ->
     "Task";
 type_to_string({constructor, Xs}) ->
-    "<" ++ type_to_string(Xs) ++ ">";
+    "#(" ++ type_to_string(Xs) ++ ")";
 type_to_string({list, X}) ->
     "[" ++ type_to_string(X) ++ "]";
 type_to_string(empty_list) ->
@@ -505,12 +517,20 @@ type_to_string({tuple, Xs}) ->
     "(" ++ type_to_string(Xs) ++ ")";
 type_to_string(empty_tuple) ->
     "()";
+type_to_string({function, [], [], ReturnType}) ->
+    "(() -> " ++ type_to_string(ReturnType) ++ ")";
+type_to_string({function, [], [ArgType], ReturnType}) ->
+    "(" ++ type_to_string(ArgType) ++ " -> " ++ type_to_string(ReturnType) ++
+        ")";
 type_to_string({function, [], ArgTypes, ReturnType}) ->
-    "(fn(" ++ type_to_string(ArgTypes) ++ ") -> " ++
-        type_to_string(ReturnType) ++ ")";
+    "((" ++ type_to_string(ArgTypes) ++ ") -> " ++ type_to_string(ReturnType) ++
+        ")";
+type_to_string({function, GenericTypes, [ArgType], ReturnType}) ->
+    "(<" ++ type_to_string(GenericTypes) ++ ">" ++ type_to_string(ArgType) ++
+        " -> " ++ type_to_string(ReturnType) ++ ")";
 type_to_string({function, GenericTypes, ArgTypes, ReturnType}) ->
-    "(fn<" ++ type_to_string(GenericTypes) ++ ">" ++
-        "("++ type_to_string(ArgTypes) ++ ") -> " ++
+    "(<" ++ type_to_string(GenericTypes) ++ ">(" ++ type_to_string(ArgTypes) ++
+        ") -> " ++
         type_to_string(ReturnType) ++ ")";
 type_to_string({record_def, Name, [], MemberTypes}) ->
     "(record " ++ Name ++ " { " ++ type_to_string(MemberTypes) ++ " })";
@@ -521,7 +541,7 @@ type_to_string({property, MemberName, Modifier, Type}) ->
     modifier_to_string(Modifier) ++ " " ++
         MemberName ++ ": " ++ type_to_string(Type);
 type_to_string({method, Name, Modifier, GenericTypes, ArgTypes, ReturnType}) ->
-    modifier_to_string(Modifier) ++ " fn " ++ Name ++ "<" ++
+    modifier_to_string(Modifier) ++ " (" ++ Name ++ "<" ++
         type_to_string(GenericTypes) ++ ">(" ++ type_to_string(ArgTypes) ++
         ") -> " ++ type_to_string(ReturnType);
 type_to_string({record_instance, _Name, RecordDefType, [], []}) ->

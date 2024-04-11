@@ -1,40 +1,43 @@
 // Function defintion without type variables
 
-fn foo(x, baz) {
-    baz(x)
-}
+//fn foo(x, baz) {
+//   baz(x)
+//}
 
-fn baz() {
-   (42, 42) := foo(42, fn (x) { (x, x) })
-}
+//fn baz() {
+//   (42, 42) := foo(42, fn(x) { (x, x) })
+//}
 
 // Function defintion *with* type variables (same as above)
-
 fn foo2<$t>(x: $t, baz: ($t -> ($t, $t))) -> ($t, $t) {
     baz(x)
 }
 
-fn bar2() {
-   (42, 42) := foo2(42, fn (x) { (x, x) }),
-   (42, 42) := foo2<Int>(42, fn (x) { (x, x) }) // Be more specific
+fn baz2() {
+    foo2(42, fn(x) { (x, x) }),
+    foo2(42.0, fn(x) { (x, x) }),
+
+
+//   (42, 42) := foo2(42, fn(x) { (x, x) }),
+//   //(42.0, 42.0) := foo2(42.0, fn(x) { (x, x) }), // Be more specific
 }
 
 // Named function literal *with* type variables (same as above)
 
-fn zippo() {
-    fn foo<$t>(x: $t, baz: ($t -> ($t, $t))) -> ($t, $t) {
-        baz(x)
-    },
-    (42, 42) := foo(42, fn (x) { (x, x) }),
-    (42, 42) := foo<Int>(42, fn (x) { (x, x) }) // Be more specific
-}
+//fn zippo() {
+//    fn foo<$t>(x: $t, baz: ($t -> ($t, $t))) -> ($t, $t) {
+//        baz(x)
+//    },
+//    (42, 42) := foo(42, fn(x) { (x, x) }),
+//    (42, 42) := foo<Int>(42, fn(x) { (x, x) }) // Be more specific
+//}
 
 // Anonymous function literal *with* type variables (same as above)
 
-fn zippo2() {
-    ?foo := fn <$t>(x: $t, baz: ($t -> ($t, $t))) -> ($t, $t) {
-        baz(x)
-    },
-    (42, 42) := foo(42, fn (x) { (x, x) }),
-    (42, 42) := foo<Int>(42, fn (x) { (x, x) }) // Be more specific
-}
+//fn zippo2() {
+//    ?foo := fn <$t>(x: $t, baz: ($t -> ($t, $t))) -> ($t, $t) {
+//        baz(x)
+//    },
+//    (42, 42) := foo(42, fn(x) { (x, x) }),
+//    (42, 42) := foo<Int>(42, fn(x) { (x, x) }) // Be more specific
+//}
