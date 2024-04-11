@@ -6,12 +6,10 @@ bool function_deconstruct(ast_node_t* node, equations_t* equations,
 			  uint16_t index, function_types_t* function_types,
 			  satie_error_t* error) {
     ast_node_t* child_node = ast_get_child(node, index);
-    ast_node_t* type_variables_node = NULL;
-    uint16_t number_of_type_variables = 0;
     // Extract type variables (if any)
+    ast_node_t* type_variables_node = NULL;
     if (child_node->name == TYPE_VARIABLES) {
 	type_variables_node = child_node;
-	number_of_type_variables = ast_number_of_children(type_variables_node);
 	child_node = ast_get_child(node, ++index);
     }
     // Extract parameters (if any)
@@ -30,7 +28,8 @@ bool function_deconstruct(ast_node_t* node, equations_t* equations,
     // Extract type variables types (if any)
     types_t* type_variables_types = types_new();
     if (type_variables_node != NULL) {
-	for (uint16_t i = 0; i < number_of_type_variables; i++) {
+	uint16_t n = ast_number_of_children(type_variables_node);
+	for (uint16_t i = 0; i < n; i++) {
 	    ast_node_t* type_variable_node =
 		ast_get_child(type_variables_node, i);
 	    LOG_ASSERT(type_variable_node->name == TYPE_VARIABLE,
@@ -51,10 +50,8 @@ bool function_deconstruct(ast_node_t* node, equations_t* equations,
 	    if (param_type_node != NULL) {
 		LOG_ASSERT(param_type_node->name == TYPE,
 			   "Expected a TYPE node");
-		if (!type_variable_associate(
-			equations, type_variables_types,
-			number_of_type_variables, param_type_node->type,
-			error)) {
+		if (!type_variable_associate(equations, type_variables_types,
+					     param_type_node->type, error)) {
 		    return false;
 		}
 		// Equation: Parameter type
@@ -68,6 +65,10 @@ bool function_deconstruct(ast_node_t* node, equations_t* equations,
     }
     // Has a return type been specified?
     if (type_node != NULL) {
+	if (!type_variable_associate(equations, type_variables_types,
+				     type_node->type, error)) {
+	    return false;
+	}
 	// Equation: Return type
 	equation_t return_type_equation =
 	    equation_new(block_expr_node->type, type_node->type, node,
@@ -78,6 +79,6 @@ bool function_deconstruct(ast_node_t* node, equations_t* equations,
     // Instantiate function types
     function_types->type_variables_types = type_variables_types;
     function_types->param_types = param_types;
-    function_types->block_expr_type = block_expr_node->type;
+    function_types->return_type = block_expr_node->type;
     return true;
 }

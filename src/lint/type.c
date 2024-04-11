@@ -61,21 +61,23 @@ type_t* type_new_empty_map_type(void) {
     return type;
 }
 
-/*
-type_t* type_new_record_def_member_method_type(
-    char* name, record_def_member_method_modifier_t modifier, type_t* type) {
-    type_t* record_def_member_method_type = malloc(sizeof(type_t));
-    record_def_member_method_type->tag = TYPE_TAG_RECORD_DEF_MEMBER_METHOD_TYPE;
-    record_def_member_method_type->record_def_member_method_type.name = name;
-    record_def_member_method_type->record_def_member_method_type.modifier =
-	modifier;
-    record_def_member_method_type->record_def_member_method_type.type = type;
-    return record_def_member_method_type;
+type_t* type_new_member_method_type(char* name,
+				    member_method_modifier_t modifier,
+				    types_t* generic_types, types_t* arg_types,
+				    type_t* return_type) {
+    type_t* type = malloc(sizeof(type_t));
+    type->tag = TYPE_TAG_MEMBER_METHOD_TYPE;
+    type->member_method_type.name = name;
+    type->member_method_type.modifier = modifier;
+    type->member_method_type.generic_types = generic_types;
+    type->member_method_type.arg_types = arg_types;
+    type->member_method_type.return_type = return_type;
+    return type;
 }
-*/
 
-type_t* type_new_member_property_type(
-    char* name, member_property_modifier_t modifier, type_t* type) {
+type_t* type_new_member_property_type(char* name,
+				      member_property_modifier_t modifier,
+				      type_t* type) {
     type_t* member_property_type = malloc(sizeof(type_t));
     member_property_type->tag = TYPE_TAG_MEMBER_PROPERTY_TYPE;
     member_property_type->member_property_type.name = name;
@@ -265,23 +267,47 @@ void type_print_type(type_t* type) {
 	case TYPE_TAG_EMPTY_MAP_TYPE:
 	    printf("empty_map");
 	    break;
-	    /*
-	case TYPE_TAG_RECORD_DEF_MEMBER_METHOD_TYPE:
-	    printf("{method, %s, ", type->record_member_method_type.name);
-	    switch (type->record_member_method_type.modifier) {
-		case RECORD_DEF_MEMBER_METHOD_MODIFIER_PUBLIC:
-		    printf("public, ");
-		    break;
-		case RECORD_DEF_MEMBER_METHOD_MODIFIER_PRIVATE:
+	case TYPE_TAG_MEMBER_METHOD_TYPE: {
+	    printf("{method, \"%s\", ", type->member_method_type.name);
+	    switch (type->member_method_type.modifier) {
+		case MEMBER_METHOD_MODIFIER_PRIVATE:
 		    printf("private, ");
 		    break;
+		case MEMBER_METHOD_MODIFIER_PUBLIC:
+		    printf("public, ");
+		    break;
 		default:
-		    assert(false);
+		    LOG_ABORT("Unknown member method modifier: %d\n",
+			      type->member_method_type.modifier);
 	    }
-	    type_print_type(type->record_member_method_type.type);
+	    // Generic types
+	    printf("[");
+	    uint16_t n = types_size(type->member_method_type.generic_types);
+	    for (uint16_t i = 0; i < n; i++) {
+		type_t* generic_type =
+		    types_get(type->member_method_type.generic_types, i);
+		type_print_type(generic_type);
+		if (i < n - 1) {
+		    printf(", ");
+		}
+	    }
+	    printf("], ");
+	    // Argument types
+	    printf("[");
+	    n = types_size(type->member_method_type.arg_types);
+	    for (uint16_t i = 0; i < n; i++) {
+		type_t* arg_type =
+		    types_get(type->member_method_type.arg_types, i);
+		type_print_type(arg_type);
+		if (i < n - 1) {
+		    printf(", ");
+		}
+	    }
+	    printf("], ");
+	    type_print_type(type->member_method_type.return_type);
 	    printf("}");
 	    break;
-	    */
+	}
 	case TYPE_TAG_MEMBER_PROPERTY_TYPE:
 	    printf("{property, \"%s\", ", type->member_property_type.name);
 	    switch (type->member_property_type.modifier) {

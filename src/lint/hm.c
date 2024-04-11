@@ -374,7 +374,7 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	}
 	node->type = type_new_function_type(function_types.type_variables_types,
 					    function_types.param_types,
-					    function_types.block_expr_type);
+					    function_types.return_type);
     } else if (node->name == LIST_LITERAL) {
 	uint16_t n = ast_number_of_children(node);
 	if (n == 0) {
@@ -685,9 +685,9 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	} else {
 	    function_name_node = child_node;
 	}
-	++index;
 	LOG_ASSERT(function_name_node->name == FUNCTION_NAME,
 		   "Expected a FUNCTION_NAME node");
+	++index;
 	function_types_t function_types;
 	if (!function_deconstruct(node, equations, index, &function_types,
 				  error)) {
@@ -698,9 +698,10 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	// for the function defintinon name node and it must be used.
 	equation_t function_equation =
 	    equation_new(function_name_node->type,
-			 type_new_function_type(function_types.type_variables_types,
-						function_types.param_types,
-						function_types.block_expr_type),
+			 type_new_function_type(
+			     function_types.type_variables_types,
+			     function_types.param_types,
+			     function_types.return_type),
 			 node, node, false);
 	equations_append(equations, &function_equation);
     } else if (node->name == BIND) {
@@ -791,13 +792,9 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 					       function_call_node->type),
 			node, node, false);
 		equations_append(equations, &function_equation);
-
-
 		// Update postfix expression
 		postfix_expr_node = function_call_node;
 	    } else if (postfix_expr_child_node->name == LIST_LOOKUP) {
-
-
 		ast_node_t* list_lookup_node = postfix_expr_child_node;
 		ast_node_t* index_node = ast_get_child(list_lookup_node, 0);
 		// Equation: Index equation
@@ -967,18 +964,16 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	ast_node_t* name_node = ast_get_child(node, index);
 	ast_node_t* child_node = ast_get_child(node, ++index);
 	ast_node_t* type_variables_node = NULL;
-	uint16_t number_of_type_variables = 0;
 	if (child_node->name == TYPE_VARIABLES) {
 	    type_variables_node = child_node;
-	    number_of_type_variables =
-		ast_number_of_children(type_variables_node);
 	    child_node = ast_get_child(node, ++index);
 	}
 	ast_node_t* members_node = child_node;
 	// Extract all type variables (if any)
 	types_t* type_variables_types = types_new();
 	if (type_variables_node != NULL) {
-	    for (uint16_t i = 0; i < number_of_type_variables; i++) {
+	    uint16_t n = ast_number_of_children(type_variables_node);
+	    for (uint16_t i = 0; i < n; i++) {
 		ast_node_t* type_variable_node =
 		    ast_get_child(type_variables_node, i);
 		LOG_ASSERT(type_variable_node->name == TYPE_VARIABLE,
@@ -1049,7 +1044,6 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 			       "Expected a TYPE node");
 		    if (!type_variable_associate(
 			    equations, type_variables_types,
-			    number_of_type_variables,
 			    member_name_type_node->type, error)) {
 			return false;
 		    }
@@ -1066,23 +1060,33 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 			member_name_node->value, modifier,
 			member_name_node->type);
 		types_add(member_types, member_type);
-		/*
 	    } else if (member_node->name == MEMBER_METHOD) {
 		// Extract all nodes constituting the member property
-		ast_node_t* member_name_node = ast_get_child(member_node, 1);
-
-
 		uint16_t index = 0;
-		ast_node_t* child_node = ast_get_child(member_node, index);
-
-
+		ast_node_t* member_access_node =
+		    ast_get_child(member_node, index);
+		member_method_modifier_t modifier;
+		if (member_access_node->name == PUBLIC) {
+		    modifier = MEMBER_METHOD_MODIFIER_PUBLIC;
+		} else {
+		    modifier = MEMBER_METHOD_MODIFIER_PRIVATE;
+		}
+		ast_node_t* member_name_node =
+		    ast_get_child(member_node, ++index);
+		++index;
+		function_types_t function_types;
+		if (!function_deconstruct(member_node, equations, index,
+					  &function_types, error)) {
+		    return false;
+		}
 		// Add the member type
 		type_t* member_type =
 		    type_new_member_method_type(
 			member_name_node->value, modifier,
-			member_name_node->type);
+			function_types.type_variables_types,
+			function_types.param_types,
+			function_types.return_type);
 		types_add(member_types, member_type);
-		*/
 	    } else {
 		LOG_ABORT("NYI: %s\n",
 			  ast_node_name_to_string(member_node->name));

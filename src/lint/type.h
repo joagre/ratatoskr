@@ -20,7 +20,7 @@ typedef enum {
     TYPE_TAG_EMPTY_LIST_TYPE,
     TYPE_TAG_MAP_TYPE,
     TYPE_TAG_EMPTY_MAP_TYPE,
-//    TYPE_TAG_MEMBER_METHOD_TYPE,
+    TYPE_TAG_MEMBER_METHOD_TYPE,
     TYPE_TAG_MEMBER_PROPERTY_TYPE,
     TYPE_TAG_RECORD_DEF_TYPE,
     TYPE_TAG_RECORD_INSTANCE_TYPE,
@@ -47,12 +47,10 @@ typedef enum {
     MEMBER_PROPERTY_MODIFIER_READONLY
 } member_property_modifier_t;
 
-/*
 typedef enum {
-    MEMBER_METHOD_MODIFIER_PRIVATE
-    MEMBER_METHOD_MODIFIER_PUBLIC,
+    MEMBER_METHOD_MODIFIER_PRIVATE,
+    MEMBER_METHOD_MODIFIER_PUBLIC
 } member_method_modifier_t;
-*/
 
 typedef struct type {
     type_tag_t tag;
@@ -77,13 +75,15 @@ typedef struct type {
 	    struct type* key_type;
 	    struct type* value_type;
 	} map_type;
-// Record definition member method type
-//	struct {
-//	    char* name;
-//	    member_method_modifier_t modifier;
-//	    struct type* type;
-//	} member_method_type;
-	// Record definition member property type
+	// Record definition member method type
+	struct {
+	    char* name;
+	    member_method_modifier_t modifier;
+	    types_t* generic_types;
+	    types_t* arg_types;
+	    struct type* return_type;
+	} member_method_type;
+        // Record definition member property type
 	struct {
 	    char* name;
 	    types_t* type_variables;
@@ -131,10 +131,15 @@ type_t* type_new_empty_list_type(void);
 type_t* type_new_map_type(type_t* key_type, type_t* value_type);
 type_t* type_new_empty_map_type(void);
 
-//type_t* type_new_member_method_type(
-//    char* name, member_method_modifier_t modifier, type_t* type);
-type_t* type_new_member_property_type(
-    char* name, member_property_modifier_t modifier, type_t* type);
+type_t* type_new_member_method_type(char* name,
+				    member_method_modifier_t modifier,
+				    types_t* generic_types,
+				    types_t* arg_types,
+				    type_t* return_type);
+type_t* type_new_member_property_type(char* name,
+				      member_property_modifier_t modifier,
+				      type_t* type);
+
 type_t* type_new_record_def_type(char *name, types_t* type_variables,
 				 types_t* member_types);
 type_t* type_new_record_instance_type(char* name, type_t* record_type,

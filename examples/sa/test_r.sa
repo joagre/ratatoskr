@@ -1,32 +1,79 @@
-record Person<$t1, $t2> {
-    public name: $t1
-    public x: (Int, $t2)
-    public y: Int
- //   public u
-    public fn z(x) -> ($t1, $t1) {
-        name
-   }
-//    public fn w(n) -> Person(:) {
-//        this(u: (name, this.name, this(u: "Bengt")))
-//    }
+//record Person<$t1> {
+//     public name: $t1
+//     public x: (Int, $t2)
+//     public y: Int
+//  //   public u
+// //    public fn z(x) -> ($t1, $t1) {
+// //        (name, name)
+// //   }
+// //    public fn w(n) -> Person(:) {
+// //        this(u: (name, this.name, this(u: "Bengt")))
+// //    }
+// }
+
+// fn zip() {
+//     ?a := Person<String, Int>(name: "Joe", x: (42, 42), y: 4711),
+//     Person<String, Int>(y: 4711, name: ?d, x: (42, 42)) := a,
+//     ?b := Person<String, Float>(name: "Joe", x: (42, 42.0), y: 4712),
+//     Person<String, Float>(name: "Joe", x: (42, 42.0), y: 4712) := b,
+//     a := a,
+// //    a := b,
+//     ?c := Person<String, Int>(name: "Joe", x: (42, 42), y: 4711),
+//     c := a,
+//     (42, 42) := a.x,
+//     (42, 42.0) := b.x,
+//     (a.y, 42.0) := b.x,
+//     (?c, 42.0) := b.x,
+//     c := a.y,
+
+// //    ("Joe", "Joe") := a.z(1)
+
+
+//  //   ?a := a.name("Bulle"),
+//  //   "Bulle" := a.name
+//}
+
+
+//Should this be valid code in a statically typed prohgramming language?
+
+fn faz<$t1, $t2>(a: $t1, b: $t2) -> [$t1] {
+    [a]
+}
+
+fn foz() {
+    [1, 2, 3] := faz(3, 3.14),
+    //(3.14, 3.14) := faz(3.14, 3.14)
 }
 
 
 
-fn zip() {
-    ?a := Person<String, Int>(name: "Joe", x: (42, 42), y: 4711),
-    Person<String, Int>(y: 4711, name: ?d, x: (42, 42)) := a,
-    ?b := Person<String, Float>(name: "Joe", x: (42, 42.0), y: 4712),
-    Person<String, Float>(name: "Joe", x: (42, 42.0), y: 4712) := b,
-    a := a,
-//    a := b,
-    ?c := Person<String, Int>(name: "Joe", x: (42, 42), y: 4711),
-    c := a,
-    (42, 42) := a.x,
-    (42, 42.0) := b.x,
-    (a.y, 42.0) := b.x,
-    (?c, 42.0) := b.x,
-    c := a.y,
- //   ?a := a.name("Bulle"),
- //   "Bulle" := a.name
-}
+// fn basic() {
+//     // Create record
+//     ?a := Person<String, Int>(name: "Joe", x: (42, 42), y: 4711),
+//     // Match the record
+//     Person<String, Int>(y: 4711, name: ?d, x: (42, 42)) := a,
+//     a := a,
+
+//     ?dd := Person<Int, Int, Int>(name: "Joe", x: (42, 42), y: 4711),
+
+
+
+
+
+//     // Create another record with different signature
+//     ?b := Person<String, Float>(name: "Joe", x: (42, 42.0), y: 4712),
+//     // Match the record
+//     Person<String, Float>(name: "Joe", x: (42, 42.0), y: 4712) := b,
+//     b := b,
+
+//     // Create a new (same as a)
+//     ?c := Person<String, Int>(name: "Joe", x: (42, 42), y: 4711),
+//     a := c,
+
+//     // Check equality
+// //    a =Perso= c
+// //    a =Person<String, Int>= c
+
+
+
+// }

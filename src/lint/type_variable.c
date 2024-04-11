@@ -2,6 +2,11 @@
 
 #include "type_variable.h"
 
+// Forward declarations of local functions (alphabetical order)
+static bool associate(equations_t* equations, types_t* type_variables_types,
+		      uint16_t number_of_type_variables, type_t* type,
+		      satie_error_t* error);
+
 bool type_variable_create(ast_node_t* node, symbol_tables_t* tables,
 			  uint32_t block_expr_id,
 			  satie_error_t* error) {
@@ -306,9 +311,20 @@ bool type_variable_create(ast_node_t* node, symbol_tables_t* tables,
 }
 
 bool type_variable_associate(equations_t* equations,
-			     types_t* type_variables_types,
-			     uint16_t number_of_type_variables, type_t* type,
+			     types_t* type_variables_types, type_t* type,
 			     satie_error_t* error) {
+    uint16_t number_of_type_variables = types_size(type_variables_types);
+    return associate(equations, type_variables_types, number_of_type_variables,
+		     type, error);
+}
+
+//
+// Local functions (alphabetical order)
+//
+
+static bool associate(equations_t* equations, types_t* type_variables_types,
+		      uint16_t number_of_type_variables, type_t* type,
+		      satie_error_t* error) {
     if (number_of_type_variables == 0) {
 	CLEAR_ERROR(error);
 	return true;
@@ -330,66 +346,61 @@ bool type_variable_associate(equations_t* equations,
 			  type->type_variable.name);
 	return false;
     } else if (type->tag == TYPE_TAG_LIST_TYPE) {
-	if (!type_variable_associate(
-		equations, type_variables_types, number_of_type_variables,
-		type->list_type, error)) {
+	if (!associate(equations, type_variables_types,
+		       number_of_type_variables, type->list_type, error)) {
 	    return false;
 	}
     } else if (type->tag == TYPE_TAG_FUNCTION_TYPE) {
 	types_t* generic_types = type->function_type.generic_types;
 	uint16_t n = types_size(generic_types);
 	for (uint16_t i = 0; i < n; i++) {
-	    if (!type_variable_associate(
-		    equations, type_variables_types,
-		    number_of_type_variables,
-		    types_get(generic_types, i), error)) {
+	    if (!associate(equations, type_variables_types,
+			   number_of_type_variables,
+			   types_get(generic_types, i), error)) {
 		return false;
 	    }
 	}
 	types_t* arg_types = type->function_type.arg_types;
 	n = types_size(arg_types);
 	for (uint16_t i = 0; i < n; i++) {
-	    if (!type_variable_associate(
-		    equations, type_variables_types,
-		    number_of_type_variables,
-		    types_get(arg_types, i), error)) {
+	    if (!associate(equations, type_variables_types,
+			   number_of_type_variables, types_get(arg_types, i),
+			   error)) {
 		return false;
 	    }
 	}
 	type_t* return_type = type->function_type.return_type;
-	if (!type_variable_associate(
-		equations, type_variables_types, number_of_type_variables,
-		return_type, error)) {
+	if (!associate(equations, type_variables_types,
+		       number_of_type_variables, return_type, error)) {
 	    return false;
 	}
     } else if (type->tag == TYPE_TAG_TUPLE_TYPE) {
 	uint16_t n = types_size(type->tuple_types);
 	for (uint16_t i = 0; i < n; i++) {
-	    if (!type_variable_associate(
-		    equations, type_variables_types, number_of_type_variables,
-		    types_get(type->tuple_types, i), error)) {
+	    if (!associate(equations, type_variables_types,
+			   number_of_type_variables,
+			   types_get(type->tuple_types, i), error)) {
 		return false;
 	    }
 	}
     } else if (type->tag == TYPE_TAG_MAP_TYPE) {
-	if (!type_variable_associate(
-		equations, type_variables_types, number_of_type_variables,
-		type->map_type.key_type, error)) {
+	if (!associate(equations, type_variables_types,
+		       number_of_type_variables, type->map_type.key_type,
+		       error)) {
 	    return false;
 	}
-	if (!type_variable_associate(
-		equations, type_variables_types, number_of_type_variables,
-		type->map_type.value_type, error)) {
+	if (!associate(equations, type_variables_types,
+		       number_of_type_variables, type->map_type.value_type,
+		       error)) {
 	    return false;
 	}
     } else if (type->tag == TYPE_TAG_CONSTRUCTOR_TYPE) {
 	types_t* types = type->constructor_type.types;
 	uint16_t n = types_size(types);
 	for (uint16_t i = 0; i < n; i++) {
-	    if (!type_variable_associate(
-		    equations, type_variables_types,
-		    number_of_type_variables,
-		    types_get(types, i), error)) {
+	    if (!associate(equations, type_variables_types,
+			   number_of_type_variables, types_get(types, i),
+			   error)) {
 		return false;
 	    }
 	}
