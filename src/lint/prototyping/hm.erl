@@ -6,25 +6,19 @@
 %% foo f g x = if f(x == 1) then g(x) else 20
 hello_world() ->
     Equations = [{int, int},
-                 {{var, 3, none}, int},
-                 {{var, 6, none}, bool},
-                 {{var, 1, none},
-                  {function, [], [{var, 6, none}], {var, 5, none}}},
-                 {{var, 2, none},
-                  {function, [], [{var, 3, none}], {var, 7, none}}},
-                 {{var, 5, none}, bool},
-                 {{var, 4, none}, {var, 7, none}},
-                 {{var, 4, none}, int},
-                 {{var, 0, none},
-                  {function, [],
-                   [{var, 1, none}, {var, 2, none}, {var, 3, none}],
-                   {var, 4, none}}}],
+                 {3, int},
+                 {6, bool},
+                 {1, {function, [], [6], 5}},
+                 {2, {function, [], [3], 7}},
+                 {5, bool},
+                 {4, 7},
+                 {4, int},
+                 {0, {function, [], [1, 2, 3], 4}}],
     Substitutions = unify_all_equations(Equations, #node{}),
     {function, [],
      [{function,[],[bool],bool},
       {function,[],[int], int},int],
-     int} =
-        dereference(Substitutions, {var, 0, none}),
+     int} = dereference(Substitutions, 0),
     ok.
 
 test() ->
@@ -188,9 +182,9 @@ unify(_X, _Y, _TypeStack, _Node, {mismatch, Why, TypeStack}) ->
     {mismatch, Why, TypeStack};
 unify(X, X, _TypeStack, _Node, Substitutions) ->
     Substitutions;
-unify({var, _Id, _Name} = X , Y, TypeStack, Node, Substitutions) ->
+unify(X , Y, TypeStack, Node, Substitutions) when is_integer(X) ->
     unify_variable(X, Y, TypeStack, Node, Substitutions);
-unify(X, {var, _Id, _Name} = Y, TypeStack, Node, Substitutions) ->
+unify(X, Y, TypeStack, Node, Substitutions) when is_integer(Y) ->
     unify_variable(Y, X, TypeStack, Node, Substitutions);
 unify({list, X}, {list, Y}, TypeStack, Node, Substitutions) ->
     unify_all([X], [Y], TypeStack, Node, Substitutions);
@@ -295,7 +289,7 @@ unify({record, Name, GenericTypesX, NamedArgsX, TypeVariablesX, MemberTypesX},
 unify({record_dot, PostfixExprType, MemberName},
       Type, TypeStack, Node, #{deferred := Deferred} = Substitutions) ->
     case dereference(Substitutions, PostfixExprType) of
-        {var, _, _} ->
+        TypeVariable when is_integer(TypeVariable) ->
             Substitutions#{deferred => [PostfixExprType|Deferred]};
         {record, _, _, NamedArgs, _, _} ->
             case lists:keyfind(MemberName, 2, NamedArgs) of
@@ -325,54 +319,57 @@ unify_all([X|Xs], [Y|Ys], TypeStack, Node, Substitutions) ->
     unify_all(Xs, Ys, TypeStack, Node,
               unify(X, Y, [{X, Y}|TypeStack], Node, Substitutions)).
 
-unify_variable(Variable, Type, TypeStack, Node, Substitutions) ->
-    case {maps:get(Variable, Substitutions, undefined), Type} of
-        {undefined, {var, _Id, _Name}} ->
+unify_variable(TypeVariable, Type, TypeStack, Node, Substitutions) ->
+    case {maps:get(TypeVariable, Substitutions, undefined), Type} of
+        {undefined, AnotherTypeVariable} when is_integer(AnotherTypeVariable)->
             case maps:get(Type, Substitutions, undefined) of
                 undefined ->
-                    case occurs_check(Variable, Type, Substitutions) of
+                    case occurs_check(TypeVariable, Type, Substitutions) of
                         true ->
                             {mismatch, occurs_check, TypeStack};
                         false ->
-                            Substitutions#{Variable => Type}
+                            Substitutions#{TypeVariable => Type}
                     end;
                 Substitution ->
-                    unify(Variable, Substitution,
-                          [{Variable, Substitution}|TypeStack], Node,
+                    unify(TypeVariable, Substitution,
+                          [{TypeVariable, Substitution}|TypeStack], Node,
                           Substitutions)
 
             end;
         {undefined, _} ->
-            case occurs_check(Variable, Type, Substitutions) of
+            case occurs_check(TypeVariable, Type, Substitutions) of
                 true ->
                     {mismatch, occurs_check, TypeStack};
                 false ->
-                    Substitutions#{Variable => Type}
+                    Substitutions#{TypeVariable => Type}
             end;
         {Substitution, _} ->
             unify(Substitution, Type, [{Substitution, Type}|TypeStack],
                   Node, Substitutions)
     end.
 
-occurs_check({var, Id, Name}, {var, Id, Name}, _Substitutions) ->
+occurs_check(TypeVariable, TypeVariable, _Substitutions)
+  when is_integer(TypeVariable) ->
     true;
-occurs_check({var, _, _} = Variable, {var, _, _} = Type, Substitutions) ->
-    case maps:get(Type, Substitutions, undefined) of
+occurs_check(TypeVariableX, TypeVariableY, Substitutions)
+  when is_integer(TypeVariableX) andalso is_integer(TypeVariableY) ->
+    case maps:get(TypeVariableY, Substitutions, undefined) of
         undefined ->
-            case Type of
+            case TypeVariableY of
                 {ArgTypes, ReturnType} ->
-                    occurs_check(Variable, ReturnType, Substitutions) orelse
-                        lists:any(
-                          fun(ArgType) ->
-                                  occurs_check(ArgType, ArgType, Substitutions)
-                          end, ArgTypes);
+                    occurs_check(TypeVariableX, ReturnType, Substitutions)
+                        orelse lists:any(
+                                 fun(ArgType) ->
+                                         occurs_check(ArgType, ArgType,
+                                                      Substitutions)
+                                 end, ArgTypes);
                 _ ->
                     false
             end;
         Substitution ->
-            occurs_check(Variable, Substitution, Substitutions)
+            occurs_check(TypeVariableX, Substitution, Substitutions)
     end;
-occurs_check(_Variable, _Type, _Substitutions) ->
+occurs_check(_TypeVariable, _Type, _Substitutions) ->
     false.
 
 validate_function(GenericsX, ArgsX, GenericsY, ArgsY) ->
@@ -471,10 +468,10 @@ dereference(Substitutions, {record_def, Name, TypeVariables, MemberTypes}) ->
                                   end, ArgTypes),
                         dereference(Substitutions, ReturnType)}
                end, MemberTypes)};
-dereference(Substitutions, {var, _, _} = Variable) ->
-    case maps:get(Variable, Substitutions, undefined) of
+dereference(Substitutions, TypeVariable) when is_integer(TypeVariable) ->
+    case maps:get(TypeVariable, Substitutions, undefined) of
         undefined ->
-            Variable;
+            TypeVariable;
         Substitution ->
             dereference(Substitutions, Substitution)
     end.
@@ -565,10 +562,8 @@ type_to_string({named_arg, Name, Type}) ->
     Name ++ ": " ++ type_to_string(Type);
 type_to_string({record_dot, PostfixExprType, MemberName}) ->
     type_to_string(PostfixExprType) ++ "." ++ MemberName;
-type_to_string({var, Id, none}) ->
-    "t" ++ integer_to_list(Id);
-type_to_string({var, Id, Name}) ->
-    "t" ++ integer_to_list(Id) ++ ":" ++ Name;
+type_to_string(TypeVariable) when is_integer(TypeVariable) ->
+    "t" ++ integer_to_list(TypeVariable);
 type_to_string([]) ->
     "";
 type_to_string([Type]) ->

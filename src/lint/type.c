@@ -409,12 +409,7 @@ void type_print_type(type_t* type) {
 	    printf("empty_tuple");
 	    break;
 	case TYPE_TAG_TYPE_VARIABLE:
-	    if (type->type_variable.name != NULL) {
-		printf("{var, %d, \"%s\"}", type->type_variable.id,
-		       type->type_variable.name);
-	    } else {
-		printf("{var, %d, none}", type->type_variable.id);
-	    }
+	    printf("%d", type->type_variable.id);
 	    break;
 	default:
 	    LOG_ABORT("Unknown type tag: %d\n", type->tag);
