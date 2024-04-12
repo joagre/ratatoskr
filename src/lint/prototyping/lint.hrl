@@ -8,6 +8,7 @@
                type,
                children = []
               }).
+
 -record(equation, {
                    origin_node_name,
                    origin_row,

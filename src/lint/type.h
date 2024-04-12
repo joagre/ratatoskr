@@ -40,6 +40,11 @@ typedef enum {
 } type_basic_type_t;
 
 typedef enum {
+    TYPE_FUNCTION_KIND_INSTANCE,
+    TYPE_FUNCTION_KIND_DEFINITION
+} type_function_kind_t;
+
+typedef enum {
     MEMBER_PROPERTY_MODIFIER_PRIVATE,
     MEMBER_PROPERTY_MODIFIER_PRIVATE_CONST,
     MEMBER_PROPERTY_MODIFIER_PUBLIC,
@@ -64,6 +69,7 @@ typedef struct type {
 	} constructor_type;
 	// Function type
 	struct {
+	    type_function_kind_t kind;
 	    types_t* generic_types;
 	    types_t* arg_types;
 	    struct type* return_type;
@@ -122,7 +128,8 @@ type_t* type_new_basic_type(type_basic_type_t basic_type);
 
 type_t* type_new_constructor_type(char* name, types_t* types);
 
-type_t* type_new_function_type(types_t* generic_types,
+type_t* type_new_function_type(type_function_kind_t kind,
+			       types_t* generic_types,
 			       types_t* arg_types, type_t* return_type);
 
 type_t* type_new_list_type(type_t* list_type);

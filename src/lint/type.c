@@ -24,10 +24,12 @@ type_t* type_new_constructor_type(char* name, types_t* types) {
     return type;
 }
 
-type_t* type_new_function_type(types_t* generic_types,
+type_t* type_new_function_type(type_function_kind_t kind,
+			       types_t* generic_types,
 			       types_t* arg_types, type_t* return_type) {
     type_t* type = malloc(sizeof(type_t));
     type->tag = TYPE_TAG_FUNCTION_TYPE;
+    type->function_type.kind = kind;
     type->function_type.generic_types = generic_types;
     type->function_type.arg_types = arg_types;
     type->function_type.return_type = return_type;
@@ -221,6 +223,14 @@ void type_print_type(type_t* type) {
 	    break;
 	case TYPE_TAG_FUNCTION_TYPE: {
 	    printf("{function, ");
+	    switch (type->function_type.kind) {
+		case TYPE_FUNCTION_KIND_INSTANCE:
+		    printf("instance, ");
+		    break;
+		case TYPE_FUNCTION_KIND_DEFINITION:
+		    printf("definition, ");
+		    break;
+	    }
 	    // Generic types
 	    printf("[");
 	    uint16_t n = types_size(type->function_type.generic_types);

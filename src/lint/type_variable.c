@@ -336,7 +336,7 @@ static bool associate(equations_t* equations, types_t* type_variables_types,
 		       type->type_variable.name) == 0) {
 		// Equation: Type variable
 		equation_t equation =
-		    equation_new(type, type_variable_type, NULL, NULL, true);
+		    equation_new(type_variable_type, type, NULL, NULL, true);
 		equations_append(equations, &equation);
 		return true;
 	    }

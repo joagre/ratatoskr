@@ -372,7 +372,8 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 				  error)) {
 	    return false;
 	}
-	node->type = type_new_function_type(function_types.type_variables_types,
+	node->type = type_new_function_type(TYPE_FUNCTION_KIND_DEFINITION,
+					    function_types.type_variables_types,
 					    function_types.param_types,
 					    function_types.return_type);
     } else if (node->name == LIST_LITERAL) {
@@ -699,6 +700,7 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 	equation_t function_equation =
 	    equation_new(function_name_node->type,
 			 type_new_function_type(
+			     TYPE_FUNCTION_KIND_DEFINITION,
 			     function_types.type_variables_types,
 			     function_types.param_types,
 			     function_types.return_type),
@@ -788,7 +790,8 @@ static bool create_type_equations(ast_node_t *node, symbol_tables_t* tables,
 		equation_t function_equation =
 		    equation_new(
 			postfix_expr_node->type,
-			type_new_function_type(generic_types, arg_types,
+			type_new_function_type(TYPE_FUNCTION_KIND_INSTANCE,
+					       generic_types, arg_types,
 					       function_call_node->type),
 			node, node, false);
 		equations_append(equations, &function_equation);
@@ -1203,7 +1206,8 @@ static type_t* extract_type(ast_node_t* type_node, symbol_tables_t* tables) {
 	    }
 	    // Return type
 	    type_t* return_type = extract_type(return_type_node, tables);
-	    return type_new_function_type(generic_types, arg_types,
+	    return type_new_function_type(TYPE_FUNCTION_KIND_DEFINITION,
+					  generic_types, arg_types,
 					  return_type);
 	}
 	case LIST_TYPE:

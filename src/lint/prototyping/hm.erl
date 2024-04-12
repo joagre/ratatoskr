@@ -8,16 +8,16 @@ hello_world() ->
     Equations = [{int, int},
                  {3, int},
                  {6, bool},
-                 {1, {function, [], [6], 5}},
-                 {2, {function, [], [3], 7}},
+                 {1, {function, instance, [], [6], 5}},
+                 {2, {function, instance, [], [3], 7}},
                  {5, bool},
                  {4, 7},
                  {4, int},
-                 {0, {function, [], [1, 2, 3], 4}}],
-    Substitutions = unify_all_equations(Equations, #node{}),
-    {function, [],
-     [{function,[],[bool],bool},
-      {function,[],[int], int},int],
+                 {0, {function, definition, [], [1, 2, 3], 4}}],
+    Substitutions = unify_all_equations(Equations),
+    {function, _, [],
+     [{function, _, [],[bool],bool},
+      {function, _, [],[int], int},int],
      int} = dereference(Substitutions, 0),
     ok.
 
@@ -30,6 +30,7 @@ test() ->
               "test_enum.sa",
               "test_record.sa",
               "test_r.sa",
+              "test_rr.sa",
               "test_r2.sa",
               "test_stack.sa",
               "test_simple.sa",
@@ -76,13 +77,13 @@ start_test(Filename) ->
     case lint:start(Filename) of
         {error, Reason} ->
             Reason;
-        Result ->
-            check_types(Result)
+        LintOutput ->
+            check_types(LintOutput)
     end.
 
-check_types({Source, Result, Node, AdornedEquations}) ->
+check_types({Source, RawLintOutput, Node, AdornedEquations}) ->
     io:format("==== Source:\n~s\n", [Source]),
-    io:format("==== Lint output:\n~s\n", [Result]),
+    io:format("==== Lint output:\n~s\n", [RawLintOutput]),
     Equations =
         lists:map(fun(#equation{type = Type}) -> Type end, AdornedEquations),
     io:format("==== Equations:\n"),
@@ -94,7 +95,7 @@ check_types({Source, Result, Node, AdornedEquations}) ->
     io:format("\n"),
     case instantiate_records(Equations) of
         {ok, InstantiatedEquations} ->
-            case unify_all_equations(InstantiatedEquations, Node) of
+            case unify_all_equations(InstantiatedEquations) of
                 {mismatch, Why, TypeStack} ->
                     io:format("==== Why: ~w\n", [Why]),
                     print_type_error(Source, Node, AdornedEquations, TypeStack),
@@ -158,95 +159,104 @@ print_type_error(_Source, _Node, _AdornedEquations, TypeStack) ->
 %% Unify all equations
 %%
 
-unify_all_equations(Equations, Node) ->
-    unify_all_equations(Equations, Equations, Node, #{deferred => []}).
+unify_all_equations(Equations) ->
+    unify_all_equations(Equations, Equations, #{deferred => []}).
 
-unify_all_equations([], Equations, _Node, Substitutions) ->
+unify_all_equations([], Equations, Substitutions) ->
     case maps:get(deferred, Substitutions, []) of
-        [] ->
+        final ->
             Substitutions;
+        [] ->
+            %% A final round to cate for any newly created equations
+            unify_all_equations(Equations, Equations,
+                                Substitutions#{deferred => final});
         Deferred ->
             io:format("==== Deferred: ~p\n", [Deferred]),
-            unify_all_equations(Equations, Equations, _Node,
+            unify_all_equations(Equations, Equations,
                                 Substitutions#{deferred => []})
     end;
-unify_all_equations([{Left, Right}|Rest], Equations, Node, Substitutions) ->
-    case unify(Left, Right, [{Left, Right}], Node, Substitutions) of
+unify_all_equations([{Left, Right}|Rest], Equations, Substitutions) ->
+    case unify(Left, Right, [{Left, Right}], Substitutions) of
         {mismatch, Why, TypeStack} ->
             {mismatch, Why, TypeStack};
         UpdatedSubstitutions ->
-            unify_all_equations(Rest, Equations, Node, UpdatedSubstitutions)
+            unify_all_equations(Rest, Equations, UpdatedSubstitutions)
     end.
 
-unify(_X, _Y, _TypeStack, _Node, {mismatch, Why, TypeStack}) ->
+unify(_X, _Y, _TypeStack, {mismatch, Why, TypeStack}) ->
     {mismatch, Why, TypeStack};
-unify(X, X, _TypeStack, _Node, Substitutions) ->
+unify(X, X, _TypeStack, Substitutions) ->
     Substitutions;
-unify(X , Y, TypeStack, Node, Substitutions) when is_integer(X) ->
-    unify_variable(X, Y, TypeStack, Node, Substitutions);
-unify(X, Y, TypeStack, Node, Substitutions) when is_integer(Y) ->
-    unify_variable(Y, X, TypeStack, Node, Substitutions);
-unify({list, X}, {list, Y}, TypeStack, Node, Substitutions) ->
-    unify_all([X], [Y], TypeStack, Node, Substitutions);
-unify(empty_list, {list, _Ys}, _TypeStack, _Node, Substitutions) ->
+unify(X , Y, TypeStack, Substitutions) when is_integer(X) ->
+    unify_variable(X, Y, TypeStack, Substitutions);
+unify(X, Y, TypeStack, Substitutions) when is_integer(Y) ->
+    unify_variable(Y, X, TypeStack, Substitutions);
+unify({list, X}, {list, Y}, TypeStack, Substitutions) ->
+    unify_all([X], [Y], TypeStack, Substitutions);
+unify(empty_list, {list, _Ys}, _TypeStack, Substitutions) ->
     Substitutions;
-unify({list, _}, empty_list, _TypeStack, _Node, Substitutions) ->
+unify({list, _}, empty_list, _TypeStack, Substitutions) ->
     Substitutions;
-unify({tuple, Xs}, {tuple, Ys}, TypeStack, Node, Substitutions) ->
+unify({tuple, Xs}, {tuple, Ys}, TypeStack, Substitutions) ->
     case length(Xs) /= length(Ys) of
         true ->
             {mismatch, tuple, TypeStack};
         false ->
-            unify_all(Xs, Ys, TypeStack, Node, Substitutions)
+            unify_all(Xs, Ys, TypeStack, Substitutions)
     end;
-unify(empty_map, {map, _KeyY, _ValueY}, _TypeStack, _Node,
-      Substitutions) ->
+unify(empty_map, {map, _KeyY, _ValueY}, _TypeStack, Substitutions) ->
     Substitutions;
-unify({map, _KeyX, _ValueX}, empty_map, _TypeStack, _Node,
-      Substitutions) ->
+unify({map, _KeyX, _ValueX}, empty_map, _TypeStack, Substitutions) ->
     Substitutions;
-unify({map, KeyX, ValueX}, {map, KeyY, ValueY}, TypeStack, Node,
+unify({map, KeyX, ValueX}, {map, KeyY, ValueY}, TypeStack, Substitutions) ->
+    unify_all([KeyX, ValueX], [KeyY, ValueY], TypeStack, Substitutions);
+unify({constructor, Xs}, {constructor, Ys}, TypeStack, Substitutions) ->
+    unify_all(Xs, Ys, TypeStack, Substitutions);
+unify({function, _KindX, _GenericsX, _ArgsX, _ReturnX} = X,
+      {function, _KindY, _GenericsY, _ArgsY, _ReturnY} = Y, TypeStack,
       Substitutions) ->
-    unify_all([KeyX, ValueX], [KeyY, ValueY], TypeStack, Node, Substitutions);
-unify({constructor, Xs}, {constructor, Ys}, TypeStack, Node, Substitutions) ->
-    unify_all(Xs, Ys, TypeStack, Node, Substitutions);
-unify({function, GenericsX, ArgsX, ReturnX},
-      {function, GenericsY, ArgsY, ReturnY}, TypeStack, Node,
-      Substitutions) ->
-    case validate_function(GenericsX, ArgsX, GenericsY, ArgsY) of
-        has_type_variables ->
-            case unify_all(GenericsX, GenericsY,
-                           [{GenericsX, GenericsY}|TypeStack], Node,
-                           Substitutions) of
-                {mismatch, Why, TypeStack} ->
-                    {mismatch, Why, TypeStack};
-                GenericsSubstitutions ->
+    case validate_functions(X, Y) of
+        {false, Why} ->
+            {mismatch, Why, TypeStack};
+        {true, HasTypeVariables} ->
+            {{function, _, GenericsX, ArgsX, ReturnX},
+             {function, _, GenericsY, ArgsY, ReturnY},
+             InstantiatedSubstitutions} =
+                instantiate_functions(X, Y, Substitutions),
+            case HasTypeVariables of
+                true ->
+                    case unify_all(GenericsX, GenericsY,
+                                   [{GenericsX, GenericsY}|TypeStack],
+                                   InstantiatedSubstitutions) of
+                        {mismatch, Why, TypeStack} ->
+                            {mismatch, Why, TypeStack};
+                        GenericsSubstitutions ->
+                            case unify_all(ArgsX, ArgsY,
+                                           [{ArgsX, ArgsY}|TypeStack],
+                                           GenericsSubstitutions) of
+                                {mismatch, Why, TypeStack} ->
+                                    {mismatch, Why, TypeStack};
+                                ArgsSubstitutions ->
+                                    unify(ReturnX, ReturnY,
+                                          [{ReturnX, ReturnY}|TypeStack],
+                                          ArgsSubstitutions)
+                            end
+                    end;
+                false ->
                     case unify_all(ArgsX, ArgsY, [{ArgsX, ArgsY}|TypeStack],
-                                   Node, GenericsSubstitutions) of
+                                   InstantiatedSubstitutions) of
                         {mismatch, Why, TypeStack} ->
                             {mismatch, Why, TypeStack};
                         ArgsSubstitutions ->
                             unify(ReturnX, ReturnY,
                                   [{ReturnX, ReturnY}|TypeStack],
-                                  Node, ArgsSubstitutions)
+                                  ArgsSubstitutions)
                     end
-            end;
-        has_no_type_variables ->
-            case unify_all(ArgsX, ArgsY, [{ArgsX, ArgsY}|TypeStack],
-                           Node, Substitutions) of
-                {mismatch, Why, TypeStack} ->
-                    {mismatch, Why, TypeStack};
-                ArgsSubstitutions ->
-                    unify(ReturnX, ReturnY,
-                          [{ReturnX, ReturnY}|TypeStack],
-                          Node, ArgsSubstitutions)
-            end;
-        {error, Why} ->
-            {mismatch, Why, TypeStack}
+            end
     end;
 unify({record, Name, GenericTypesX, NamedArgsX, TypeVariablesX, MemberTypesX},
       {record, Name, GenericTypesY, NamedArgsY, TypeVariablesY, MemberTypesY},
-      TypeStack, Node, Substitutions)
+      TypeStack, Substitutions)
   when length(GenericTypesX) == length(TypeVariablesX) andalso
        length(GenericTypesY) == length(TypeVariablesY) ->
     case verify_named_args(MemberTypesX, NamedArgsX) andalso
@@ -254,72 +264,69 @@ unify({record, Name, GenericTypesX, NamedArgsX, TypeVariablesX, MemberTypesX},
         false ->
             {mismatch, record, TypeStack};
         true ->
-            case unify_all(GenericTypesX, TypeVariablesX, TypeStack, Node,
+            case unify_all(GenericTypesX, TypeVariablesX, TypeStack,
                            Substitutions) of
                 {mismatch, Why, TypeStack} ->
                     {mismatch, Why, TypeStack};
                 GenericSubstitutionsX ->
                     case unify_all(GenericTypesY, TypeVariablesY, TypeStack,
-                                   Node, GenericSubstitutionsX) of
+                                   GenericSubstitutionsX) of
                         {mismatch, Why, TypeStack} ->
                             {mismatch, Why, TypeStack};
                         GenericSubstitutionsY ->
                             case unify_all(lists:sort(NamedArgsX),
                                            lists:sort(NamedArgsY), TypeStack,
-                                           Node, GenericSubstitutionsY) of
+                                           GenericSubstitutionsY) of
                                 {mismatch, Why, TypeStack} ->
                                     {mismatch, Why, TypeStack};
                                 NamedArgsSubstitutions ->
                                     case unify_all(TypeVariablesX,
                                                    TypeVariablesY,
-                                                   TypeStack, Node,
+                                                   TypeStack,
                                                    NamedArgsSubstitutions) of
                                         {mismatch, Why, TypeStack} ->
                                             {mismatch, Why, TypeStack};
                                         TypeVariablesSubstitutions ->
                                             unify_all(
                                               MemberTypesX, MemberTypesY,
-                                              TypeStack, Node,
+                                              TypeStack,
                                               TypeVariablesSubstitutions)
                                     end
                             end
                     end
             end
     end;
-unify({record_dot, PostfixExprType, MemberName},
-      Type, TypeStack, Node, #{deferred := Deferred} = Substitutions) ->
+unify({record_dot, PostfixExprType, MemberName}, Type, TypeStack,
+      #{deferred := Deferred} = Substitutions) ->
     case dereference(Substitutions, PostfixExprType) of
         TypeVariable when is_integer(TypeVariable) ->
             Substitutions#{deferred => [PostfixExprType|Deferred]};
         {record, _, _, NamedArgs, _, _} ->
             case lists:keyfind(MemberName, 2, NamedArgs) of
                 {named_arg, _, MemberType} ->
-                    unify(MemberType, Type, TypeStack, Node, Substitutions);
+                    unify(MemberType, Type, TypeStack, Substitutions);
                 false ->
                     {mismatch, record_dot, TypeStack}
             end
     end;
-unify(Type, {record_dot, PostfixExprType, MemberName},
-      TypeStack, Node, Substitutions) ->
-    unify({record_dot, PostfixExprType, MemberName}, Type,
-          TypeStack, Node, Substitutions);
-unify({named_arg, Name, TypeX}, {named_arg, Name, TypeY},
-      TypeStack, Node, Substitutions) ->
-    unify(TypeX, TypeY, TypeStack, Node, Substitutions);
-unify(X, Y, TypeStack, _Node, _Substitutions) ->
+unify(Type, {record_dot, PostfixExprType, MemberName}, TypeStack,
+      Substitutions) ->
+    unify({record_dot, PostfixExprType, MemberName}, Type, TypeStack,
+          Substitutions);
+unify({named_arg, Name, TypeX}, {named_arg, Name, TypeY}, TypeStack,
+      Substitutions) ->
+    unify(TypeX, TypeY, TypeStack, Substitutions);
+unify(X, Y, TypeStack, _Substitutions) ->
     throw({unify_panic, X, Y}),
     {mismatch, generic, TypeStack}.
 
-unify_all([], [], _TypeStack, _MetInfo, Substitutions) ->
+unify_all([], [], _TypeStack, Substitutions) ->
     Substitutions;
-unify_all([X|Xs], [Y|Ys], TypeStack, Node, Substitutions) ->
-    io:format("ALL: ~p === ~p\n", [X, Y]),
+unify_all([X|Xs], [Y|Ys], TypeStack, Substitutions) ->
+    unify_all(Xs, Ys, TypeStack,
+              unify(X, Y, [{X, Y}|TypeStack], Substitutions)).
 
-
-    unify_all(Xs, Ys, TypeStack, Node,
-              unify(X, Y, [{X, Y}|TypeStack], Node, Substitutions)).
-
-unify_variable(TypeVariable, Type, TypeStack, Node, Substitutions) ->
+unify_variable(TypeVariable, Type, TypeStack, Substitutions) ->
     case {maps:get(TypeVariable, Substitutions, undefined), Type} of
         {undefined, AnotherTypeVariable} when is_integer(AnotherTypeVariable)->
             case maps:get(Type, Substitutions, undefined) of
@@ -332,7 +339,7 @@ unify_variable(TypeVariable, Type, TypeStack, Node, Substitutions) ->
                     end;
                 Substitution ->
                     unify(TypeVariable, Substitution,
-                          [{TypeVariable, Substitution}|TypeStack], Node,
+                          [{TypeVariable, Substitution}|TypeStack],
                           Substitutions)
 
             end;
@@ -345,7 +352,7 @@ unify_variable(TypeVariable, Type, TypeStack, Node, Substitutions) ->
             end;
         {Substitution, _} ->
             unify(Substitution, Type, [{Substitution, Type}|TypeStack],
-                  Node, Substitutions)
+                  Substitutions)
     end.
 
 occurs_check(TypeVariable, TypeVariable, _Substitutions)
@@ -372,20 +379,24 @@ occurs_check(TypeVariableX, TypeVariableY, Substitutions)
 occurs_check(_TypeVariable, _Type, _Substitutions) ->
     false.
 
-validate_function(GenericsX, ArgsX, GenericsY, ArgsY) ->
+instantiate_functions(X, Y, Substitutions) ->
+    {X, Y, Substitutions}.
+
+validate_functions({function, _KindX, GenericsX, ArgsX, _ReturnX},
+                   {function, _KindY, GenericsY, ArgsY, _ReturnY}) ->
     case {length(GenericsX), length(ArgsX), length(GenericsY), length(ArgsY)} of
         {_, M, _, N} when M /= N ->
-            {error, {function_args, ArgsX, ArgsY}};
+            {false, {function_args, ArgsX, ArgsY}};
         {0, _, N, _} when N /= 0 ->
-            has_no_type_variables;
+            {true, false};
         {M, _, 0, _} when M /= 0 ->
-            has_no_type_variables;
+            {true, false};
         {0, _, 0, _} ->
-            has_no_type_variables;
+            {true, false};
         {M, _, N, _} when M /= N ->
-            {error, {function_generics, GenericsX, GenericsY}};
+            {false, {function_generics, GenericsX, GenericsY}};
         {_, _, _, _} ->
-            has_type_variables
+            {true, true}
     end.
 
 verify_named_args(_MemberTypesX, _NamedArgsX) ->
@@ -403,8 +414,9 @@ dereference(Substitutions, {map, Key, Value}) ->
     {map, dereference(Substitutions, Key), dereference(Substitutions, Value)};
 dereference(Substitutions, {tuple, Xs}) ->
     {tuple, lists:map(fun(Type) -> dereference(Substitutions, Type) end, Xs)};
-dereference(Substitutions, {function, _GenericTypes, ArgTypes, ReturnType}) ->
-    {function, [],
+dereference(Substitutions,
+            {function, Kind, _GenericTypes, ArgTypes, ReturnType}) ->
+    {function, Kind, [],
      lists:map(fun(Type) -> dereference(Substitutions, Type) end, ArgTypes),
      dereference(Substitutions, ReturnType)};
 dereference(Substitutions, {record_dot, X, MemberName}) ->
@@ -514,18 +526,18 @@ type_to_string({tuple, Xs}) ->
     "(" ++ type_to_string(Xs) ++ ")";
 type_to_string(empty_tuple) ->
     "()";
-type_to_string({function, [], [], ReturnType}) ->
+type_to_string({function, _Kind, [], [], ReturnType}) ->
     "(() -> " ++ type_to_string(ReturnType) ++ ")";
-type_to_string({function, [], [ArgType], ReturnType}) ->
+type_to_string({function, _Kind, [], [ArgType], ReturnType}) ->
     "(" ++ type_to_string(ArgType) ++ " -> " ++ type_to_string(ReturnType) ++
         ")";
-type_to_string({function, [], ArgTypes, ReturnType}) ->
+type_to_string({function, _Kind, [], ArgTypes, ReturnType}) ->
     "((" ++ type_to_string(ArgTypes) ++ ") -> " ++ type_to_string(ReturnType) ++
         ")";
-type_to_string({function, GenericTypes, [ArgType], ReturnType}) ->
+type_to_string({function, _Kind, GenericTypes, [ArgType], ReturnType}) ->
     "(<" ++ type_to_string(GenericTypes) ++ ">" ++ type_to_string(ArgType) ++
         " -> " ++ type_to_string(ReturnType) ++ ")";
-type_to_string({function, GenericTypes, ArgTypes, ReturnType}) ->
+type_to_string({function, _Kind, GenericTypes, ArgTypes, ReturnType}) ->
     "(<" ++ type_to_string(GenericTypes) ++ ">(" ++ type_to_string(ArgTypes) ++
         ") -> " ++
         type_to_string(ReturnType) ++ ")";

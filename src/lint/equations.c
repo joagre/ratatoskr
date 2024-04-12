@@ -22,13 +22,13 @@ void equations_print(equations_t* equations) {
 	equation_t* equation = equations_get(equations, i);
 	uint16_t n = 0;
 	if (equation->origin_node == NULL || equation->node == NULL) {
-	    n += printf("GENERATED_TYPE:0:0:%d", equation->user_defined);
+	    n += printf("GENERATED_TYPE:0:0:%d", equation->is_user_defined);
 	} else {
 	    n += printf("%s:%d:%d:%d",
 			ast_node_name_to_string(equation->origin_node->name),
 			equation->origin_node->row,
 			equation->node->row,
-			equation->user_defined);
+			equation->is_user_defined);
 	}
 	if (equation->node != NULL && equation->node->value != NULL) {
 	    n += printf(":%s:", equation->node->value);
